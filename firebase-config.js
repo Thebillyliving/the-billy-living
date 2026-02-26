@@ -1,25 +1,24 @@
 /**
  * ╔══════════════════════════════════════════════════════════════════╗
- * ║  AYOOLUWA ADMIN — Firebase Configuration                        ║
+ * ║  THE BILLY LIVING — Firebase Configuration                      ║
  * ║  PASTE YOUR FIREBASE PROJECT KEYS BELOW                         ║
  * ║  (Firebase Console → Project Settings → Your Apps → Web App)   ║
  * ╚══════════════════════════════════════════════════════════════════╝
  *
  * ⚠️  NOTE ON SECURITY:
  *  Firebase web API keys are INTENTIONALLY public. They are not secrets.
- *  Security is enforced server-side via Firestore Security Rules.
- *  The admin app has full read/write/delete access via password protection
- *  at the app level and Firestore rules at the server level.
+ *  Security is enforced server-side via Firestore Security Rules (firestore.rules).
+ *  The rules ensure clients can only READ published content, never write.
  */
 
 const TBL_FIREBASE_CONFIG = {
-  apiKey:            "AIzaSyD-ZCaYTLvvaaNFd8G4S8_InyRcSQ9qk8s",
-  authDomain:        "the-billy-living-ee243.firebaseapp.com",
-  projectId:         "the-billy-living-ee243",
-  storageBucket:     "the-billy-living-ee243.firebasestorage.app",
-  messagingSenderId: "454031913213",
-  appId:             "1:454031913213:web:d68fc786f556b6e49c8e94",
-  measurementId:     "G-F7RKJK3R1D",  // optional
+  apiKey:            "PASTE_YOUR_apiKey_HERE",
+  authDomain:        "PASTE_YOUR_authDomain_HERE",
+  projectId:         "PASTE_YOUR_projectId_HERE",
+  storageBucket:     "PASTE_YOUR_storageBucket_HERE",
+  messagingSenderId: "PASTE_YOUR_messagingSenderId_HERE",
+  appId:             "PASTE_YOUR_appId_HERE",
+  measurementId:     "PASTE_YOUR_measurementId_HERE",  // optional
 };
 
 /**
