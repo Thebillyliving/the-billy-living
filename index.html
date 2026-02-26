@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#080B10">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="ayooluwa">
+  <meta name="description" content="ayooluwa — Studio Management">
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <title>ayooluwa</title>
+  <style>
+    :root {
+      --bg:     #080B10;
+      --bg1:    #0E1219;
+      --bg2:    #141C28;
+      --bg3:    #1C2638;
+      --blue:   #3B82F6;
+      --bluelt: #60A5FA;
+      --bluedk: #1D4ED8;
+      --cyan:   #22D3EE;
+      --slate:  #94A3B8;
+      --slatlt: #CBD5E1;
+      --white:  #F1F5F9;
+      --danger: #EF4444;
+      --ok:     #10B981;
+      --warn:   #F59E0B;
+      --gold:   #C9A84C;
+      --nav-h:  66px;
+      --top-h:  54px;
+      --r:      12px;
+      --rsm:    8px;
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{height:100%;width:100%;background:var(--bg);font-family:'Syne',sans-serif;color:var(--white);overflow:hidden;overscroll-behavior:none}
+
+    /* ── LOCK SCREEN ── */
+    #lock{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 28px;transition:opacity .4s}
+    .lock-logo{font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.35em;color:var(--blue);text-transform:uppercase;margin-bottom:6px}
+    .lock-name{font-size:36px;font-weight:700;color:var(--white);letter-spacing:.02em;margin-bottom:4px}
+    .lock-sub{font-size:11px;color:var(--slate);letter-spacing:.2em;margin-bottom:40px}
+    .lock-form{width:100%;max-width:320px}
+    .lock-step-lbl{font-size:11px;letter-spacing:.15em;color:var(--bluelt);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+    .step-ico{width:22px;height:22px;border-radius:50%;background:var(--blue);display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+    .lock-field{width:100%;background:var(--bg1);border:1px solid rgba(59,130,246,.25);border-radius:var(--rsm);padding:14px 16px;color:var(--white);font-size:15px;font-family:'Syne',sans-serif;outline:none;margin-bottom:10px;transition:border-color .2s;letter-spacing:.02em}
+    .lock-field:focus{border-color:var(--blue)}
+    .lock-field::placeholder{color:var(--slate)}
+    .lock-btn{width:100%;padding:14px;border-radius:var(--rsm);background:var(--blue);border:none;color:var(--white);font-size:14px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif;letter-spacing:.06em;transition:opacity .2s;margin-top:4px}
+    .lock-btn:active{opacity:.8}
+    .lock-err{color:var(--danger);font-size:12px;text-align:center;padding:6px 0;display:none;font-family:'DM Mono',monospace}
+    .lock-div{height:1px;background:rgba(255,255,255,.06);margin:20px 0}
+    .sec-note{display:flex;align-items:flex-start;gap:8px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:var(--rsm);padding:12px 14px}
+    .sec-note-ico{font-size:14px;flex-shrink:0;margin-top:1px}
+    .sec-note-txt{font-size:11px;color:var(--slate);line-height:1.6;font-family:'DM Mono',monospace}
+
+    /* ── APP ── */
+    #app{position:fixed;inset:0;display:none;flex-direction:column}
+    .top-bar{position:fixed;top:0;left:0;right:0;z-index:200;height:var(--top-h);padding-top:env(safe-area-inset-top,0);background:rgba(8,11,16,.96);backdrop-filter:blur(12px);border-bottom:1px solid rgba(59,130,246,.12);display:flex;align-items:center;padding-left:16px;padding-right:14px;gap:12px}
+    .top-logo{font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.2em;color:var(--blue);flex:1}
+    .top-env{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:4px;padding:3px 10px;font-size:9px;letter-spacing:.12em;color:var(--bluelt);font-family:'DM Mono',monospace}
+    .top-icon{width:34px;height:34px;border-radius:var(--rsm);background:rgba(59,130,246,.1);border:none;color:var(--bluelt);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+
+    /* ── SCREENS ── */
+    .screen{position:fixed;inset:0;padding-top:var(--top-h);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--nav-h)+16px);opacity:0;pointer-events:none;transition:opacity .2s}
+    .screen.active{opacity:1;pointer-events:all}
+
+    /* ── NAV ── */
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);padding-bottom:env(safe-area-inset-bottom,0);background:rgba(14,18,25,.97);backdrop-filter:blur(12px);border-top:1px solid rgba(59,130,246,.1);display:flex;align-items:center;z-index:200}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 0;cursor:pointer}
+    .nav-ico{font-size:18px;transition:all .2s;filter:grayscale(1) opacity(.4)}
+    .nav-lbl{font-size:9px;color:var(--slate);font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+    .nav-item.active .nav-ico{filter:none}
+    .nav-item.active .nav-lbl{color:var(--bluelt)}
+
+    /* ── SHARED UI ── */
+    .section{padding:16px}
+    .sec-title{font-size:10px;letter-spacing:.18em;color:var(--slate);text-transform:uppercase;font-family:'DM Mono',monospace;margin-bottom:12px}
+    .card{background:var(--bg1);border-radius:var(--r);border:1px solid rgba(255,255,255,.06);margin-bottom:10px;overflow:hidden}
+    .card-pad{padding:14px}
+    .card-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .card-lbl{font-size:14px;font-weight:600}
+    .card-sub{font-size:11px;color:var(--slate);margin-top:2px;font-family:'DM Mono',monospace}
+    .badge{padding:3px 10px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-family:'DM Mono',monospace}
+    .b-blue{background:rgba(59,130,246,.15);color:var(--bluelt);border:1px solid rgba(59,130,246,.3)}
+    .b-green{background:rgba(16,185,129,.15);color:#34D399;border:1px solid rgba(16,185,129,.3)}
+    .b-amber{background:rgba(245,158,11,.15);color:var(--warn);border:1px solid rgba(245,158,11,.3)}
+    .b-red{background:rgba(239,68,68,.15);color:#FCA5A5;border:1px solid rgba(239,68,68,.3)}
+    .btn{padding:9px 16px;border-radius:var(--rsm);cursor:pointer;font-family:'Syne',sans-serif;font-size:12px;font-weight:600;letter-spacing:.04em;border:none;transition:opacity .2s}
+    .btn:active{opacity:.8}
+    .btn-blue{background:var(--blue);color:var(--white)}
+    .btn-outline{background:transparent;border:1px solid rgba(59,130,246,.35);color:var(--bluelt)}
+    .btn-danger{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:#FCA5A5}
+    .btn-gold{background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);color:var(--gold)}
+    .toggle{width:42px;height:23px;border-radius:12px;background:rgba(59,130,246,.2);border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .3s}
+    .toggle.on{background:var(--blue)}
+    .toggle::after{content:'';position:absolute;top:2px;left:2px;width:19px;height:19px;border-radius:50%;background:var(--white);transition:left .3s}
+    .toggle.on::after{left:21px}
+    .inp{width:100%;background:var(--bg2);border:1px solid rgba(59,130,246,.2);border-radius:var(--rsm);padding:11px 13px;color:var(--white);font-size:13px;font-family:'Syne',sans-serif;outline:none;margin-bottom:10px;transition:border-color .2s}
+    .inp:focus{border-color:var(--blue)}
+    .inp::placeholder{color:var(--slate)}
+    select.inp{cursor:pointer}
+    textarea.inp{resize:none;min-height:80px}
+
+    /* ── DASHBOARD ── */
+    .dash-hero{background:linear-gradient(145deg,var(--bg1),var(--bg2));margin:14px;border-radius:var(--r);padding:20px 18px;border:1px solid rgba(59,130,246,.12)}
+    .dash-greet{font-size:11px;color:var(--bluelt);letter-spacing:.15em;margin-bottom:6px;font-family:'DM Mono',monospace}
+    .dash-title{font-size:26px;font-weight:700;line-height:1.2}
+    .dash-title em{color:var(--bluelt);font-style:normal}
+    .dash-time{font-size:11px;color:var(--slate);margin-top:6px;font-family:'DM Mono',monospace}
+    .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 14px}
+    .stat-card{background:var(--bg1);border-radius:var(--r);padding:14px;border:1px solid rgba(255,255,255,.05);display:flex;flex-direction:column;gap:4px}
+    .stat-num{font-size:32px;font-weight:700;line-height:1;font-family:'DM Mono',monospace}
+    .stat-lbl{font-size:10px;color:var(--slate);letter-spacing:.12em;text-transform:uppercase}
+    .stat-delta{font-size:11px;font-family:'DM Mono',monospace}
+    .stat-delta.up{color:var(--ok)}
+    .stat-delta.pend{color:var(--warn)}
+    .quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 14px}
+    .quick-card{background:var(--bg1);border-radius:var(--r);padding:14px;border:1px solid rgba(59,130,246,.1);cursor:pointer;display:flex;flex-direction:column;gap:8px;transition:background .2s,border-color .2s}
+    .quick-card:active{background:var(--bg2);border-color:rgba(59,130,246,.3)}
+    .quick-ico{font-size:24px}
+    .quick-lbl{font-size:13px;font-weight:600}
+    .quick-desc{font-size:11px;color:var(--slate)}
+
+    /* ── CONTENT TABS ── */
+    .ctabs{display:flex;padding:14px 14px 0;border-bottom:1px solid rgba(255,255,255,.06);overflow-x:auto;scrollbar-width:none}
+    .ctabs::-webkit-scrollbar{display:none}
+    .ctab{flex-shrink:0;padding:9px 16px;font-size:12px;font-weight:600;cursor:pointer;color:var(--slate);border-bottom:2px solid transparent;letter-spacing:.04em;transition:all .2s}
+    .ctab.on{color:var(--bluelt);border-bottom-color:var(--blue)}
+    .cpanel{display:none;padding:14px}
+    .cpanel.on{display:block}
+    .item-row{background:var(--bg1);border-radius:var(--rsm);margin-bottom:8px;overflow:hidden;border:1px solid rgba(255,255,255,.05)}
+    .item-main{display:flex;align-items:center;gap:11px;padding:12px 13px}
+    .item-emoji{font-size:22px;flex-shrink:0;width:32px;text-align:center}
+    .item-info{flex:1;min-width:0}
+    .item-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .item-meta{font-size:10px;color:var(--slate);margin-top:2px;font-family:'DM Mono',monospace}
+    .item-acts{display:flex;gap:6px;flex-shrink:0}
+    .ib{padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:none;font-family:'Syne',sans-serif}
+    .ib-edit{background:rgba(59,130,246,.12);color:var(--bluelt)}
+    .ib-del{background:rgba(239,68,68,.1);color:#FCA5A5}
+    .ib-pub{background:rgba(16,185,129,.1);color:#34D399}
+    .ib-hide{background:rgba(245,158,11,.1);color:var(--warn)}
+    .add-area{border:1.5px dashed rgba(59,130,246,.25);border-radius:var(--r);padding:20px;text-align:center;cursor:pointer;transition:background .2s}
+    .add-area:active{background:rgba(59,130,246,.05)}
+    .add-ico{font-size:28px;margin-bottom:6px}
+    .add-lbl{font-size:13px;font-weight:600;color:var(--bluelt)}
+    .add-sub{font-size:11px;color:var(--slate);margin-top:3px}
+    .color-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+
+    /* ── VIP ── */
+    .vip-row{background:var(--bg1);border-radius:var(--rsm);margin-bottom:8px;border:1px solid rgba(255,255,255,.05);overflow:hidden}
+    .vip-main{display:flex;align-items:center;gap:11px;padding:12px 13px}
+    .vip-av{width:44px;height:44px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--bluedk),var(--blue));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:var(--white)}
+    .vip-info{flex:1}
+    .vip-name{font-size:13px;font-weight:600}
+    .vip-email{font-size:10px;color:var(--slate);font-family:'DM Mono',monospace}
+    .vip-tags{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap}
+    .vip-exp{padding:11px 13px 13px;background:var(--bg2);border-top:1px solid rgba(255,255,255,.05);display:none}
+    .vip-exp.open{display:block}
+    .vip-dr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .vip-dl{font-size:11px;color:var(--slate);font-family:'DM Mono',monospace}
+    .vip-dv{font-size:12px;font-weight:600}
+    .pov-btn{width:100%;padding:11px;border-radius:var(--rsm);background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);color:var(--gold);font-size:13px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif;letter-spacing:.04em;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:6px}
+
+    /* ── POV BANNER ── */
+    #pov-bar{display:none;position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#7F1D1D,#991B1B);z-index:9998;padding:9px 16px;font-size:12px;font-weight:600;letter-spacing:.06em;text-align:center;align-items:center;justify-content:center;gap:12px;font-family:'DM Mono',monospace}
+    #pov-bar.show{display:flex}
+    #pov-exit{background:rgba(255,255,255,.15);border:none;color:var(--white);padding:3px 12px;border-radius:4px;font-size:11px;cursor:pointer;font-family:'DM Mono',monospace}
+
+    /* ── SHEET ── */
+    .sheet-ov{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:700;display:none;align-items:flex-end;backdrop-filter:blur(4px)}
+    .sheet-ov.open{display:flex}
+    .sheet-box{width:100%;background:var(--bg1);border-radius:18px 18px 0 0;padding:0 0 env(safe-area-inset-bottom,20px);transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1)}
+    .sheet-ov.open .sheet-box{transform:translateY(0)}
+    .sheet-handle{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.12);margin:11px auto 0}
+    .sheet-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .sheet-ttl{font-size:16px;font-weight:700}
+    .sheet-close{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.08);border:none;color:var(--white);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .sheet-body{padding:16px;max-height:70vh;overflow-y:auto}
+
+    /* ── TOAST ── */
+    .toast-el{position:fixed;bottom:calc(var(--nav-h)+14px);left:50%;transform:translateX(-50%) translateY(12px);background:var(--bg2);color:var(--white);padding:10px 18px;border-radius:8px;font-size:12px;font-family:'DM Mono',monospace;border:1px solid rgba(59,130,246,.2);z-index:9000;pointer-events:none;opacity:0;transition:all .25s;white-space:nowrap}
+    .toast-el.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+    ::-webkit-scrollbar{width:3px}
+    ::-webkit-scrollbar-thumb{background:rgba(59,130,246,.25);border-radius:2px}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .screen.active>*{animation:fadeIn .22s ease}
+  </style>
+</head>
+<body>
+
+<!-- LOCK SCREEN — Zero data visible before auth -->
+<div id="lock">
+  <div class="lock-logo">AYOOLUWA</div>
+  <div class="lock-name">ayooluwa</div>
+  <div class="lock-sub">STUDIO MANAGEMENT</div>
+  <div class="lock-form">
+    <div class="lock-step-lbl"><span class="step-ico">🔑</span> Enter Password</div>
+    <input class="lock-field" type="password" id="a-pass" placeholder="Password" autocomplete="off" onkeydown="if(event.key==='Enter')submitCreds()">
+    <div class="lock-err" id="creds-err">Incorrect password. Access denied.</div>
+    <button class="lock-btn" onclick="submitCreds()">Enter →</button>
+    <div class="lock-div"></div>
+    <div class="sec-note">
+      <span class="sec-note-ico">🔐</span>
+      <div class="sec-note-txt">Authorized personnel only. All access attempts are logged.</div>
+    </div>
+  </div>
+</div>
+
+<!-- POV Banner -->
+<div id="pov-bar"><span>👁 VIEWING AS: <strong id="pov-name">User</strong></span><button id="pov-exit" onclick="exitPOV()">EXIT POV</button></div>
+
+<!-- APP -->
+<div id="app">
+  <div class="top-bar">
+    <div class="top-logo">AYOOLUWA</div>
+    <span class="top-env">LIVE</span>
+    <button class="top-icon" onclick="syncNow()">🔄</button>
+    <button class="top-icon" onclick="doLogout()">🚪</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="screen active" id="sc-dash">
+    <div class="dash-hero">
+      <div class="dash-greet">// GOOD TO SEE YOU, CLINTON</div>
+      <div class="dash-title">ayooluwa<br><em>Dashboard</em></div>
+      <div class="dash-time" id="dash-time"></div>
+    </div>
+    <div class="stats-grid" id="stats-grid"></div>
+    <div class="section"><div class="sec-title">Quick Actions</div></div>
+    <div class="quick-grid">
+      <div class="quick-card" onclick="nav('content');setCtab('posts')"><div class="quick-ico">📸</div><div class="quick-lbl">New Post</div><div class="quick-desc">Publish to feed</div></div>
+      <div class="quick-card" onclick="nav('vip')"><div class="quick-ico">⭐</div><div class="quick-lbl">VIP Manager</div><div class="quick-desc">Approve clients</div></div>
+      <div class="quick-card" onclick="nav('content');setCtab('catalog')"><div class="quick-ico">🗂️</div><div class="quick-lbl">Catalog</div><div class="quick-desc">Edit categories</div></div>
+      <div class="quick-card" onclick="nav('settings')"><div class="quick-ico">⚙️</div><div class="quick-lbl">Settings</div><div class="quick-desc">App config</div></div>
+    </div>
+    <div class="section"><div class="sec-title">Pending VIP Approvals</div><div id="pending-vips"></div></div>
+  </div>
+
+  <!-- CONTENT MANAGER -->
+  <div class="screen" id="sc-content">
+    <div class="ctabs">
+      <div class="ctab on" onclick="setCtab('posts',this)">Posts</div>
+      <div class="ctab" onclick="setCtab('stories',this)">Stories</div>
+      <div class="ctab" onclick="setCtab('catalog',this)">Catalog</div>
+      <div class="ctab" onclick="setCtab('trending',this)">Trending</div>
+      <div class="ctab" onclick="setCtab('portfolio',this)">Portfolio</div>
+      <div class="ctab" onclick="setCtab('designers',this)">Designers</div>
+    </div>
+    <div class="cpanel on" id="panel-posts">
+      <div class="add-area" onclick="openSheet('post')"><div class="add-ico">📸</div><div class="add-lbl">Add New Post</div><div class="add-sub">Author · Location · Caption · Emoji</div></div>
+      <div id="list-posts" style="margin-top:12px"></div>
+    </div>
+    <div class="cpanel" id="panel-stories">
+      <div class="add-area" onclick="openSheet('story')"><div class="add-ico">✨</div><div class="add-lbl">Add Story</div><div class="add-sub">Name · Emoji</div></div>
+      <div id="list-stories" style="margin-top:12px"></div>
+    </div>
+    <div class="cpanel" id="panel-catalog">
+      <div class="add-area" onclick="openSheet('catalog')"><div class="add-ico">🗂️</div><div class="add-lbl">Add Category</div><div class="add-sub">Name · Color · Description</div></div>
+      <div id="list-catalog" style="margin-top:12px"></div>
+    </div>
+    <div class="cpanel" id="panel-trending">
+      <div class="add-area" onclick="openSheet('trending')"><div class="add-ico">🔥</div><div class="add-lbl">Add Trending Item</div><div class="add-sub">Title · Views · Badge</div></div>
+      <div id="list-trending" style="margin-top:12px"></div>
+    </div>
+    <div class="cpanel" id="panel-portfolio">
+      <div class="add-area" onclick="openSheet('portfolio')"><div class="add-ico">🖼️</div><div class="add-lbl">Add Portfolio Item</div><div class="add-sub">Title · Category · Emoji</div></div>
+      <div id="list-portfolio" style="margin-top:12px"></div>
+    </div>
+    <div class="cpanel" id="panel-designers">
+      <div class="add-area" onclick="openSheet('designer')"><div class="add-ico">👗</div><div class="add-lbl">Add Designer</div><div class="add-sub">Name · Specialty · WhatsApp</div></div>
+      <div id="list-designers" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <!-- VIP MANAGER -->
+  <div class="screen" id="sc-vip">
+    <div class="section"><div class="sec-title">VIP Client Accounts</div><div id="vip-list"></div></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="screen" id="sc-settings">
+    <div class="section">
+      <div class="sec-title">App Identity</div>
+      <div class="card card-pad">
+        <div class="card-row" style="margin-bottom:10px"><div><div class="card-lbl">Client App</div><div class="card-sub">The Billy Living</div></div><div class="badge b-blue">LIVE</div></div>
+        <div class="card-row"><div><div class="card-lbl">Admin App</div><div class="card-sub">ayooluwa</div></div><div class="badge b-blue">LIVE</div></div>
+      </div>
+    </div>
+    <div class="section" style="border-top:1px solid rgba(255,255,255,.05)">
+      <div class="sec-title">Business Config</div>
+      <div class="card card-pad">
+        <div class="card-lbl" style="margin-bottom:8px">WhatsApp Number</div>
+        <input class="inp" id="wa-num" placeholder="+234 xxx xxxx xxxx">
+        <div class="card-lbl" style="margin-bottom:8px;margin-top:4px">Auto-Reply Message</div>
+        <textarea class="inp" id="wa-msg" placeholder="Message when client taps Chat Now…"></textarea>
+        <div class="card-lbl" style="margin-bottom:8px">Measurement Unit</div>
+        <select class="inp" id="unit-sel">
+          <option value="inches">Inches (in) — Default</option>
+          <option value="centimetres">Centimetres (cm)</option>
+          <option value="metres">Metres (m)</option>
+          <option value="feet">Feet (ft)</option>
+        </select>
+        <button class="btn btn-blue" style="width:100%" onclick="saveMeta()">Save & Sync Settings</button>
+      </div>
+    </div>
+    <div class="section" style="border-top:1px solid rgba(255,255,255,.05)">
+      <div class="sec-title">Security</div>
+      <div class="card card-pad">
+        <div class="card-row" style="margin-bottom:12px"><div><div class="card-lbl">Password Protection</div><div class="card-sub">Single password · ayooluwa</div></div><div class="badge b-green">ACTIVE</div></div>
+        <div class="card-row"><div><div class="card-lbl">Client Write Access</div><div class="card-sub">Disabled at code level</div></div><div class="badge b-green">SECURE</div></div>
+      </div>
+    </div>
+    <div class="section" style="border-top:1px solid rgba(255,255,255,.05)">
+      <div class="card card-pad"><button class="btn btn-danger" style="width:100%" onclick="doLogout()">Sign Out</button></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" id="n-dash" onclick="nav('dash')"><span class="nav-ico">📊</span><span class="nav-lbl">Dashboard</span></div>
+    <div class="nav-item" id="n-content" onclick="nav('content')"><span class="nav-ico">✏️</span><span class="nav-lbl">Content</span></div>
+    <div class="nav-item" id="n-vip" onclick="nav('vip')"><span class="nav-ico">⭐</span><span class="nav-lbl">VIP</span></div>
+    <div class="nav-item" id="n-settings" onclick="nav('settings')"><span class="nav-ico">⚙️</span><span class="nav-lbl">Settings</span></div>
+  </nav>
+</div>
+
+<!-- Sheet -->
+<div class="sheet-ov" id="sheet-ov" onclick="if(event.target===this)closeSheet()">
+  <div class="sheet-box">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><span class="sheet-ttl" id="sheet-ttl">Add</span><button class="sheet-close" onclick="closeSheet()">✕</button></div>
+    <div class="sheet-body" id="sheet-body"></div>
+  </div>
+</div>
+
+<div class="toast-el" id="toast-el"></div>
+
+<script src="firebase-config.js"></script>
+<script src="db.js"></script>
+<script>
+/* ── CREDENTIALS ── */
+const ADMIN_PASS = '1AYOoluw$';
+
+/* ── STATE ── */
+let adminOk = false;
+let povUser = null;
+let editId  = null;
+let editType = null;
+
+/* ── AUTH ── */
+function submitCreds() {
+  const pass = document.getElementById('a-pass').value;
+  const err  = document.getElementById('creds-err');
+  err.style.display = 'none';
+  if (pass !== ADMIN_PASS) {
+    err.style.display = 'block';
+    document.getElementById('a-pass').value = '';
+    document.getElementById('a-pass').focus();
+    return;
+  }
+  adminOk = true;
+  const lock = document.getElementById('lock');
+  lock.style.opacity = '0';
+  setTimeout(()=>lock.style.display='none', 400);
+  document.getElementById('app').style.display = 'flex';
+  initAdmin();
+}
+
+function doLogout() {
+  adminOk = false;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('a-pass').value = '';
+  document.getElementById('creds-err').style.display = 'none';
+  const lock = document.getElementById('lock');
+  lock.style.display = 'flex'; lock.style.opacity = '1';
+}
+
+/* ── INIT ── */
+function initAdmin() {
+  updateTime(); setInterval(updateTime, 1000);
+  TBL_DB.listen('posts',     renderPostsList);
+  TBL_DB.listen('posts',     ()=>refreshStats());
+  TBL_DB.listen('stories',   renderStoriesList);
+  TBL_DB.listen('catalog',   renderCatalogList);
+  TBL_DB.listen('trending',  renderTrendingList);
+  TBL_DB.listen('portfolio', renderPortfolioList);
+  TBL_DB.listen('designers', renderDesignersList);
+  TBL_DB.listen('vipUsers',  data=>{ renderVipList(data); renderPendingVips(data); refreshStats(); });
+  TBL_DB.read('meta').then(m=>{
+    document.getElementById('wa-num').value   = m.whatsappNumber||'';
+    document.getElementById('wa-msg').value   = m.waMessage||'';
+    document.getElementById('unit-sel').value = m.measurementUnit||'inches';
+  });
+}
+
+function updateTime() {
+  const el = document.getElementById('dash-time');
+  if (el) el.textContent = `// ${new Date().toLocaleDateString('en-NG',{weekday:'long',day:'numeric',month:'long'})} · ${new Date().toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'})}`;
+}
+
+function refreshStats() {
+  Promise.all([TBL_DB.read('posts'),TBL_DB.read('vipUsers'),TBL_DB.read('catalog')]).then(([p,v,c])=>{
+    const pend = v.filter(u=>u.status==='pending').length;
+    const el = document.getElementById('stats-grid');
+    if (!el) return;
+    el.innerHTML = [
+      {num:p.length,       lbl:'Total Posts',   delta:`+${p.filter(x=>Date.now()-x.createdAt<86400000*7).length} this week`, cls:'up'},
+      {num:v.filter(u=>u.status==='approved').length, lbl:'VIP Clients', delta:`${pend} pending`, cls:pend?'pend':'up'},
+      {num:c.length,       lbl:'Catalog Rooms', delta:'',                cls:'up'},
+      {num:v.length,       lbl:'Total Users',   delta:'',                cls:'up'},
+    ].map(s=>`<div class="stat-card"><div class="stat-num" style="color:var(--bluelt)">${s.num}</div><div class="stat-lbl">${s.lbl}</div>${s.delta?`<div class="stat-delta ${s.cls}">${s.delta}</div>`:''}</div>`).join('');
+  });
+}
+
+/* ── NAV ── */
+function nav(screen) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('sc-'+screen).classList.add('active');
+  document.getElementById('n-'+screen)?.classList.add('active');
+}
+
+function setCtab(tab, el) {
+  document.querySelectorAll('.ctab').forEach(c=>c.classList.remove('on'));
+  document.querySelectorAll('.cpanel').forEach(p=>p.classList.remove('on'));
+  const tabs = ['posts','stories','catalog','trending','portfolio','designers'];
+  const idx  = tabs.indexOf(tab);
+  const clickedEl = el || document.querySelectorAll('.ctab')[idx];
+  if (clickedEl) clickedEl.classList.add('on');
+  document.getElementById('panel-'+tab).classList.add('on');
+}
+
+/* ── RENDERERS ── */
+function renderPostsList(posts) {
+  document.getElementById('list-posts').innerHTML = posts.map(p=>`
+    <div class="item-row"><div class="item-main">
+      <div class="item-emoji">${p.emoji||'📸'}</div>
+      <div class="item-info"><div class="item-name">${p.author||'The Billy Living'}</div><div class="item-meta">${p.location||''} · ${p.likes||0} likes</div></div>
+      <div class="item-acts">
+        <button class="ib ${p.published!==false?'ib-hide':'ib-pub'}" onclick="togglePub('posts','${p.id}',${p.published!==false})">${p.published!==false?'Hide':'Show'}</button>
+        <button class="ib ib-edit" onclick="openEditSheet('post','${p.id}')">Edit</button>
+        <button class="ib ib-del" onclick="delItem('posts','${p.id}')">Del</button>
+      </div>
+    </div></div>`).join('');
+}
+
+function renderStoriesList(stories) {
+  document.getElementById('list-stories').innerHTML = stories.map(s=>`
+    <div class="item-row"><div class="item-main">
+      <div class="item-emoji">${s.emoji}</div>
+      <div class="item-info"><div class="item-name">${s.name}</div><div class="item-meta">${s.active?'Active':'Hidden'}</div></div>
+      <div class="item-acts">
+        <button class="ib ${s.active?'ib-hide':'ib-pub'}" onclick="toggleActive('stories','${s.id}',${!!s.active})">${s.active?'Hide':'Show'}</button>
+        <button class="ib ib-edit" onclick="openEditSheet('story','${s.id}')">Edit</button>
+        <button class="ib ib-del" onclick="delItem('stories','${s.id}')">Del</button>
+      </div>
+    </div></div>`).join('');
+}
+
+function renderCatalogList(items) {
+  document.getElementById('list-catalog').innerHTML = items.map(c=>`
+    <div class="item-row"><div class="item-main">
+      <div class="color-dot" style="background:${c.color}"></div>
+      <div class="item-emoji">${c.emoji}</div>
+      <div class="item-info"><div class="item-name">${c.name}</div><div class="item-meta">${c.desc} · ${c.count} designs</div></div>
+      <div class="item-acts">
+        <button class="ib ib-edit" onclick="openEditSheet('catalog','${c.id}')">Edit</button>
+        <button class="ib ib-del" onclick="delItem('catalog','${c.id}')">Del</button>
+      </div>
+    </div></div>`).join('');
+}
+
+function renderTrendingList(items) {
+  document.getElementById('list-trending').innerHTML = items.map(t=>`
+    <div class="item-row"><div class="item-main">
+      <div class="item-emoji">${t.emoji}</div>
+      <div class="item-info"><div class="item-name">${t.title}</div><div class="item-meta">${t.views} views${t.badge?' · '+t.badge:''}</div></div>
+      <div class="item-acts">
+        <button class="ib ${t.published!==false?'ib-hide':'ib-pub'}" onclick="togglePub('trending','${t.id}',${t.published!==false})">${t.published!==false?'Hide':'Show'}</button>
+        <button class="ib ib-edit" onclick="openEditSheet('trending','${t.id}')">Edit</button>
+        <button class="ib ib-del" onclick="delItem('trending','${t.id}')">Del</button>
+      </div>
+    </div></div>`).join('');
+}
+
+function renderPortfolioList(items) {
+  document.getElementById('list-portfolio').innerHTML = items.map(p=>`
+    <div class="item-row"><div class="item-main">
+      <div class="item-emoji">${p.emoji}</div>
+      <div class="item-info"><div class="item-name">${p.title}</div><div class="item-meta">${p.category||''} · ${p.published!==false?'Published':'Hidden'}</div></div>
+      <div class="item-acts">
+        <button class="ib ${p.published!==false?'ib-hide':'ib-pub'}" onclick="togglePub('portfolio','${p.id}',${p.published!==false})">${p.published!==false?'Hide':'Show'}</button>
+        <button class="ib ib-del" onclick="delItem('portfolio','${p.id}')">Del</button>
+      </div>
+    </div></div>`).join('');
+}
+
+function renderDesignersList(items) {
+  document.getElementById('list-designers').innerHTML = items.map(d=>`
+    <div class="item-row"><div class="item-main">
+      <div class="item-emoji" style="font-size:16px;font-weight:700;color:var(--bluelt)">${d.initials}</div>
+      <div class="item-info"><div class="item-name">${d.name}</div><div class="item-meta">${d.specialty} · ${d.online?'Online':'Offline'}</div></div>
+      <div class="item-acts">
+        <button class="ib ib-edit" onclick="openEditSheet('designer','${d.id}')">Edit</button>
+        <button class="ib ib-del" onclick="delItem('designers','${d.id}')">Del</button>
+      </div>
+    </div></div>`).join('');
+}
+
+function renderVipList(users) {
+  document.getElementById('vip-list').innerHTML = users.map(u=>`
+    <div class="vip-row">
+      <div class="vip-main">
+        <div class="vip-av">${u.initials||'?'}</div>
+        <div class="vip-info">
+          <div class="vip-name">${u.name}</div>
+          <div class="vip-email">${u.email}</div>
+          <div class="vip-tags">
+            <span class="badge ${u.status==='approved'?'b-green':u.status==='pending'?'b-amber':'b-red'}">${u.status}</span>
+            <span class="badge b-blue">${u.tier}</span>
+          </div>
+        </div>
+        <button class="ib ib-edit" onclick="toggleVipExp('${u.id}')">▼</button>
+      </div>
+      <div class="vip-exp" id="vip-exp-${u.id}">
+        <div class="vip-dr"><span class="vip-dl">Email</span><span class="vip-dv">${u.email}</span></div>
+        <div class="vip-dr"><span class="vip-dl">Tier</span><span class="vip-dv">${u.tier}</span></div>
+        <div class="vip-dr"><span class="vip-dl">Joined</span><span class="vip-dv">${new Date(u.joinedAt||Date.now()).toLocaleDateString()}</span></div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          ${u.status!=='approved'?`<button class="btn btn-blue" style="flex:1" onclick="setVipStatus('${u.id}','approved')">✓ Approve</button>`:''}
+          ${u.status==='approved'?`<button class="btn btn-outline" style="flex:1" onclick="setVipStatus('${u.id}','suspended')">Suspend</button>`:''}
+          <button class="btn btn-danger" onclick="delItem('vipUsers','${u.id}')">Remove</button>
+        </div>
+        <button class="pov-btn" onclick="enterPOV('${u.id}','${u.name}')">👁 View App as ${u.name.split(' ')[0]}</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderPendingVips(users) {
+  const pend = users.filter(u=>u.status==='pending');
+  const el = document.getElementById('pending-vips');
+  if (!el) return;
+  if (!pend.length) { el.innerHTML=`<div style="font-size:12px;color:var(--slate);font-family:'DM Mono',monospace;padding:10px 0">// No pending approvals</div>`; return; }
+  el.innerHTML = pend.map(u=>`
+    <div class="card card-pad" style="margin-bottom:8px">
+      <div class="card-row">
+        <div><div class="card-lbl">${u.name}</div><div class="card-sub">${u.email}</div></div>
+        <div style="display:flex;gap:7px">
+          <button class="btn btn-blue" onclick="setVipStatus('${u.id}','approved')">Approve</button>
+          <button class="btn btn-danger" onclick="setVipStatus('${u.id}','rejected')">Reject</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+/* ── VIP ACTIONS ── */
+function toggleVipExp(id) { document.getElementById('vip-exp-'+id).classList.toggle('open'); }
+function setVipStatus(id, status) { TBL_DB.write('vipUsers',{id,status}).then(()=>aToast(`Status: ${status}`)); }
+
+/* ── POV ── */
+function enterPOV(userId, userName) {
+  povUser = {id:userId, name:userName};
+  document.getElementById('pov-bar').classList.add('show');
+  document.getElementById('pov-name').textContent = userName.toUpperCase();
+  aToast(`Viewing as ${userName}`);
+}
+function exitPOV() {
+  povUser = null;
+  document.getElementById('pov-bar').classList.remove('show');
+  aToast('Returned to admin view');
+}
+
+/* ── CONTENT CRUD ── */
+function togglePub(col, id, currently) { TBL_DB.write(col,{id,published:!currently}).then(()=>aToast(currently?'Hidden from clients':'Now live')); }
+function toggleActive(col, id, currently) { TBL_DB.write(col,{id,active:!currently}).then(()=>aToast('Updated')); }
+function delItem(col, id) { TBL_DB.delete(col, id).then(()=>aToast('Deleted')); }
+function syncNow() { aToast('Sync complete ✓'); }
+
+/* ── SHEET FORMS ── */
+const FORMS = {
+  post: (item={}) => `
+    <input class="inp" id="f-emoji" placeholder="Emoji (e.g. 🛋️)" value="${item.emoji||''}">
+    <input class="inp" id="f-author" placeholder="Author name" value="${item.author||'The Billy Living'}">
+    <input class="inp" id="f-location" placeholder="Location (e.g. Lagos Island, Lagos)" value="${item.location||''}">
+    <textarea class="inp" id="f-caption" placeholder="Caption…">${item.caption||''}</textarea>
+    <input class="inp" id="f-category" placeholder="Category (living, bedroom, kitchen…)" value="${item.category||''}">
+    <button class="btn btn-blue" style="width:100%" onclick="saveItem('posts')">Publish Post</button>`,
+  story: (item={}) => `
+    <input class="inp" id="f-name" placeholder="Story name" value="${item.name||''}">
+    <input class="inp" id="f-emoji" placeholder="Emoji" value="${item.emoji||''}">
+    <button class="btn btn-blue" style="width:100%" onclick="saveItem('stories')">Save Story</button>`,
+  catalog: (item={}) => `
+    <input class="inp" id="f-name" placeholder="Room name" value="${item.name||''}">
+    <input class="inp" id="f-emoji" placeholder="Emoji" value="${item.emoji||''}">
+    <input class="inp" id="f-color" placeholder="Hex color (e.g. #C9A84C)" value="${item.color||''}">
+    <input class="inp" id="f-desc" placeholder="Feeling (e.g. Calm · Rest · Warmth)" value="${item.desc||''}">
+    <input class="inp" id="f-count" placeholder="Number of designs" type="number" value="${item.count||0}">
+    <button class="btn btn-blue" style="width:100%" onclick="saveItem('catalog')">Save Category</button>`,
+  trending: (item={}) => `
+    <input class="inp" id="f-title" placeholder="Title" value="${item.title||''}">
+    <input class="inp" id="f-emoji" placeholder="Emoji" value="${item.emoji||''}">
+    <input class="inp" id="f-views" placeholder="Views (e.g. 24.5K)" value="${item.views||''}">
+    <input class="inp" id="f-badge" placeholder="Badge (optional, e.g. Trending)" value="${item.badge||''}">
+    <button class="btn btn-blue" style="width:100%" onclick="saveItem('trending')">Save</button>`,
+  portfolio: (item={}) => `
+    <input class="inp" id="f-title" placeholder="Portfolio item title" value="${item.title||''}">
+    <input class="inp" id="f-emoji" placeholder="Emoji" value="${item.emoji||'🖼️'}">
+    <input class="inp" id="f-category" placeholder="Category (living, bedroom…)" value="${item.category||''}">
+    <button class="btn btn-blue" style="width:100%" onclick="saveItem('portfolio')">Save</button>`,
+  designer: (item={}) => `
+    <input class="inp" id="f-name" placeholder="Full name" value="${item.name||''}">
+    <input class="inp" id="f-initials" placeholder="Initials (e.g. AO)" value="${item.initials||''}">
+    <input class="inp" id="f-specialty" placeholder="Specialty" value="${item.specialty||''}">
+    <input class="inp" id="f-tags" placeholder="Tags (comma separated)" value="${(item.tags||[]).join(', ')}">
+    <input class="inp" id="f-whatsapp" placeholder="WhatsApp number" value="${item.whatsapp||''}">
+    <label style="display:flex;align-items:center;gap:10px;margin-bottom:12px;cursor:pointer">
+      <input type="checkbox" id="f-online" ${item.online?'checked':''}> <span style="font-size:13px">Currently Online</span>
+    </label>
+    <button class="btn btn-blue" style="width:100%" onclick="saveItem('designers')">Save Designer</button>`,
+};
+
+const COL_MAP = {post:'posts',story:'stories',catalog:'catalog',trending:'trending',portfolio:'portfolio',designer:'designers'};
+
+function openSheet(type) {
+  editId=null; editType=type;
+  document.getElementById('sheet-ttl').textContent='Add '+type.charAt(0).toUpperCase()+type.slice(1);
+  document.getElementById('sheet-body').innerHTML = FORMS[type]();
+  document.getElementById('sheet-ov').classList.add('open');
+}
+
+function openEditSheet(type, id) {
+  editId=id; editType=type;
+  const col=COL_MAP[type];
+  TBL_DB.read(col).then(items=>{
+    const item=items.find(i=>i.id===id);
+    if (!item) return;
+    document.getElementById('sheet-ttl').textContent='Edit '+type.charAt(0).toUpperCase()+type.slice(1);
+    document.getElementById('sheet-body').innerHTML = FORMS[type](item);
+    document.getElementById('sheet-ov').classList.add('open');
+  });
+}
+
+function saveItem(col) {
+  const g = id => document.getElementById(id)?.value?.trim()||'';
+  const id = editId || TBL_DB.newId(col.slice(0,2));
+  const item = { id, published:true, active:true };
+  ['emoji','author','location','caption','category','name','color','desc','views','badge','title','initials','specialty','whatsapp'].forEach(f=>{
+    const el=document.getElementById('f-'+f); if(el) item[f]=el.value.trim();
+  });
+  if (document.getElementById('f-count')) item.count=parseInt(document.getElementById('f-count').value)||0;
+  if (document.getElementById('f-tags')) item.tags=document.getElementById('f-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  if (document.getElementById('f-online')) item.online=document.getElementById('f-online').checked;
+  if (!item.createdAt) item.createdAt=Date.now();
+  TBL_DB.write(col, item).then(()=>{ closeSheet(); aToast('Saved & synced ✓'); });
+}
+
+function closeSheet() { document.getElementById('sheet-ov').classList.remove('open'); }
+
+/* ── SETTINGS ── */
+function saveMeta() {
+  TBL_DB.write('meta',{
+    whatsappNumber: document.getElementById('wa-num').value.trim(),
+    waMessage:      document.getElementById('wa-msg').value.trim(),
+    measurementUnit:document.getElementById('unit-sel').value,
+  }).then(()=>aToast('Settings saved & synced ✓'));
+}
+
+function aToast(msg) {
+  const t=document.getElementById('toast-el');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body>
+</html>
