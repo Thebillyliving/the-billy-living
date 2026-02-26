@@ -13,7 +13,7 @@
 (function(window) {
   'use strict';
 
-  const USE_FIREBASE = false; // ← Set to true after pasting keys in firebase-config.js
+  const USE_FIREBASE = true; // ← Firebase activated
   const STORE_KEY    = 'tbl_db_v2';
   const BC_NAME      = 'tbl_sync_v2';
 
@@ -178,4 +178,3 @@
   // ── The admin-app has its own db.js with write/delete methods ─────
 
 })(window);
-
