@@ -13,13 +13,13 @@
  */
 
 const TBL_FIREBASE_CONFIG = {
-  apiKey:            "PASTE_YOUR_apiKey_HERE",
-  authDomain:        "PASTE_YOUR_authDomain_HERE",
-  projectId:         "PASTE_YOUR_projectId_HERE",
-  storageBucket:     "PASTE_YOUR_storageBucket_HERE",
-  messagingSenderId: "PASTE_YOUR_messagingSenderId_HERE",
-  appId:             "PASTE_YOUR_appId_HERE",
-  measurementId:     "PASTE_YOUR_measurementId_HERE",  // optional
+  apiKey:            "AIzaSyD-ZCaYTLvvaaNFd8G4S8_InyRcSQ9qk8s",
+  authDomain:        "the-billy-living-ee243.firebaseapp.com",
+  projectId:         "the-billy-living-ee243",
+  storageBucket:     "the-billy-living-ee243.firebasestorage.app",
+  messagingSenderId: "454031913213",
+  appId:             "1:454031913213:web:d68fc786f556b6e49c8e94",
+  measurementId:     "G-F7RKJK3R1D",  // optional
 };
 
 /**
@@ -32,4 +32,3 @@ const TBL_FIREBASE_CONFIG = {
  */
 
 window.__TBL_FIREBASE_CONFIG__ = TBL_FIREBASE_CONFIG;
-
