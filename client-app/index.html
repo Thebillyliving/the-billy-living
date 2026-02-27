@@ -65,11 +65,11 @@
     .vip-pill{background:linear-gradient(90deg,var(--gold-dk),var(--gold));color:var(--ink);font-size:10px;font-weight:700;letter-spacing:.12em;padding:4px 11px;border-radius:20px;text-transform:uppercase}
 
     /* ── SCREENS ── */
-    .screen{position:fixed;inset:0;padding-top:calc(var(--top-h) + 54px);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--nav-h) + 20px);opacity:0;pointer-events:none;transition:opacity .22s ease}
+    .screen{position:fixed;inset:0;padding-top:var(--top-h);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--nav-h) + 20px);opacity:0;pointer-events:none;transition:opacity .22s ease}
     .screen.active{opacity:1;pointer-events:all}
 
     /* ── NAV ── */
-    .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);padding-bottom:env(safe-area-inset-bottom,0);background:rgba(30,22,12,.97);backdrop-filter:blur(16px);border-top:1px solid rgba(201,168,76,.12);display:flex;align-items:center;z-index:200}
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);padding-bottom:env(safe-area-inset-bottom,0);background:rgba(30,22,12,.97);backdrop-filter:blur(16px);border-top:1px solid rgba(201,168,76,.12);display:flex;align-items:center;z-index:500}
     .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0;cursor:pointer;position:relative}
     .nav-ico{font-size:20px;transition:all .2s;filter:grayscale(1) opacity(.45)}
     .nav-lbl{font-size:9.5px;font-weight:500;letter-spacing:.04em;color:var(--ash);transition:color .2s}
@@ -302,10 +302,11 @@
   
     /* ── THREE COLS BAR ── */
     .three-cols-bar{
-      position:fixed;top:56px;left:0;right:0;z-index:199;
-      height:54px;background:rgba(18,13,6,.97);backdrop-filter:blur(12px);
+      width:100%;height:54px;
+      background:rgba(18,13,6,.97);
       border-bottom:1px solid rgba(201,168,76,.1);
       display:flex;align-items:center;justify-content:space-around;padding:0 16px;
+      flex-shrink:0;
     }
     .col-btn{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;flex:1}
     .col-ring{
@@ -426,23 +427,22 @@
       </button>
     </div>
   </div>
-  <div class="three-cols-bar" id="three-cols-bar">
-    <div class="col-btn" onclick="nav('profile')">
-      <div class="col-ring" id="col-profile-ring"><div class="col-av" id="col-profile-av">👤</div></div>
-      <span class="col-lbl">My Profile</span>
-    </div>
-    <div class="col-btn" onclick="openAIChat()">
-      <div class="col-ring col-ring-ai"><div class="col-av">🤖</div></div>
-      <span class="col-lbl">AI Chat</span>
-    </div>
-    <div class="col-btn" onclick="nav('designer')">
-      <div class="col-ring col-ring-designer"><div class="col-av">👗</div></div>
-      <span class="col-lbl">Lead Designer</span>
-    </div>
-  </div>
-
   <!-- HOME -->
-  <div class="screen active" id="sc-home">
+  <div class="screen active" id="sc-home" style="flex-direction:column;overflow-x:hidden">
+    <div class="three-cols-bar" id="three-cols-bar">
+      <div class="col-btn" onclick="nav('profile')">
+        <div class="col-ring" id="col-profile-ring"><div class="col-av" id="col-profile-av">👤</div></div>
+        <span class="col-lbl">My Profile</span>
+      </div>
+      <div class="col-btn" onclick="openAIChat()">
+        <div class="col-ring col-ring-ai"><div class="col-av">🤖</div></div>
+        <span class="col-lbl">AI Chat</span>
+      </div>
+      <div class="col-btn" onclick="nav('designer')">
+        <div class="col-ring col-ring-designer"><div class="col-av">👗</div></div>
+        <span class="col-lbl">Lead Designer</span>
+      </div>
+    </div>
     <div class="stories-row" id="stories-row"></div>
     <div id="posts-wrap"></div>
   </div>
@@ -696,9 +696,7 @@ function nav(screen) {
   document.getElementById('n-'+screen)?.classList.add('active');
   currentScreen = screen;
   document.getElementById('fab-wa').classList.toggle('show', screen==='portfolio');
-  // Three icons only on home
-  const bar = document.getElementById('three-cols-bar');
-  if (bar) bar.style.display = screen==='home' ? 'flex' : 'none';
+  // Three icons are inside sc-home so they auto-hide with it
   // Trending is full-screen TikTok style — hide top bar
   const topBar = document.getElementById('top-bar-el');
   if (topBar) topBar.style.display = screen==='trending' ? 'none' : '';
