@@ -65,7 +65,7 @@
     .vip-pill{background:linear-gradient(90deg,var(--gold-dk),var(--gold));color:var(--ink);font-size:10px;font-weight:700;letter-spacing:.12em;padding:4px 11px;border-radius:20px;text-transform:uppercase}
 
     /* ── SCREENS ── */
-    .screen{position:fixed;inset:0;padding-top:var(--top-h);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--nav-h) + 20px);opacity:0;pointer-events:none;transition:opacity .22s ease}
+    .screen{position:fixed;top:0;left:0;right:0;bottom:var(--nav-h);padding-top:var(--top-h);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:20px;opacity:0;pointer-events:none;transition:opacity .22s ease}
     .screen.active{opacity:1;pointer-events:all}
 
     /* ── NAV ── */
@@ -428,7 +428,7 @@
     </div>
   </div>
   <!-- HOME -->
-  <div class="screen active" id="sc-home" style="flex-direction:column;overflow-x:hidden">
+  <div class="screen active" id="sc-home" style="overflow-x:hidden">
     <div class="three-cols-bar" id="three-cols-bar">
       <div class="col-btn" onclick="nav('profile')">
         <div class="col-ring" id="col-profile-ring"><div class="col-av" id="col-profile-av">👤</div></div>
@@ -444,7 +444,7 @@
       </div>
     </div>
     <div class="stories-row" id="stories-row"></div>
-    <div id="posts-wrap"></div>
+    <div id="posts-wrap" style="display:block;min-height:100px"></div>
   </div>
 
   <!-- TRENDING — TikTok style -->
@@ -519,6 +519,39 @@
     <div id="vault-inner"></div>
   </div>
 
+  <!-- PROFILE SCREEN -->
+  <div class="screen" id="sc-profile">
+    <div class="profile-hero">
+      <div class="profile-av-ring"><div class="profile-av" id="prof-av">👤</div></div>
+      <div class="profile-name" id="prof-name">The Billy <em>Living</em></div>
+      <div class="profile-vip-badge" id="prof-badge" style="display:none">VIP Client</div>
+      <div class="profile-stats">
+        <div class="pstat"><div class="pstat-num" id="prof-saved">0</div><div class="pstat-lbl">Saved</div></div>
+        <div class="pstat"><div class="pstat-num">—</div><div class="pstat-lbl">Tier</div></div>
+        <div class="pstat"><div class="pstat-num" id="prof-status">Guest</div><div class="pstat-lbl">Status</div></div>
+      </div>
+      <div class="profile-actions">
+        <button class="pa-btn pa-gold" onclick="openWA()">💬 Chat Designer</button>
+        <button class="pa-btn pa-outline" onclick="nav('vault')">💎 VIP Vault</button>
+      </div>
+    </div>
+    <div class="profile-section-title">Saved Designs</div>
+    <div class="pf-grid" id="profile-saved-grid" style="padding:8px 3px"></div>
+  </div>
+
+  <!-- AI CHAT SCREEN -->
+  <div class="screen" id="sc-aichat">
+    <div class="ai-chat-wrap">
+      <div class="ai-msgs" id="ai-msgs">
+        <div class="ai-msg bot">👋 Hello! I am The Billy Living AI design assistant. Ask me anything about interior design, room styling, colour palettes, furniture placement, or Nigerian luxury aesthetics.</div>
+      </div>
+      <div class="ai-input-row">
+        <input class="ai-inp" id="ai-inp" placeholder="Ask about design, colours, furniture…" onkeydown="if(event.key==='Enter')sendAI()">
+        <button class="ai-send" onclick="sendAI()">↑</button>
+      </div>
+    </div>
+  </div>
+
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
     <div class="nav-item active" id="n-home" onclick="nav('home')">
@@ -540,39 +573,6 @@
       <span class="nav-ico">💎</span><span class="nav-lbl">VIP Vault</span>
     </div>
   </nav>
-</div>
-
-<!-- PROFILE SCREEN -->
-<div class="screen" id="sc-profile">
-  <div class="profile-hero">
-    <div class="profile-av-ring"><div class="profile-av" id="prof-av">👤</div></div>
-    <div class="profile-name" id="prof-name">The Billy <em>Living</em></div>
-    <div class="profile-vip-badge" id="prof-badge" style="display:none">VIP Client</div>
-    <div class="profile-stats">
-      <div class="pstat"><div class="pstat-num" id="prof-saved">0</div><div class="pstat-lbl">Saved</div></div>
-      <div class="pstat"><div class="pstat-num">—</div><div class="pstat-lbl">Tier</div></div>
-      <div class="pstat"><div class="pstat-num" id="prof-status">Guest</div><div class="pstat-lbl">Status</div></div>
-    </div>
-    <div class="profile-actions">
-      <button class="pa-btn pa-gold" onclick="openWA()">💬 Chat Designer</button>
-      <button class="pa-btn pa-outline" onclick="nav('vault')">💎 VIP Vault</button>
-    </div>
-  </div>
-  <div class="profile-section-title">Saved Designs</div>
-  <div class="pf-grid" id="profile-saved-grid" style="padding:8px 3px"></div>
-</div>
-
-<!-- AI CHAT SCREEN -->
-<div class="screen" id="sc-aichat">
-  <div class="ai-chat-wrap">
-    <div class="ai-msgs" id="ai-msgs">
-      <div class="ai-msg bot">👋 Hello! I am The Billy Living AI design assistant. Ask me anything about interior design, room styling, colour palettes, furniture placement, or Nigerian luxury aesthetics.</div>
-    </div>
-    <div class="ai-input-row">
-      <input class="ai-inp" id="ai-inp" placeholder="Ask about design, colours, furniture…" onkeydown="if(event.key==='Enter')sendAI()">
-      <button class="ai-send" onclick="sendAI()">↑</button>
-    </div>
-  </div>
 </div>
 
 <!-- Floating WhatsApp -->
@@ -1023,7 +1023,7 @@ function renderProfile() {
   document.getElementById('prof-status').textContent = isVip ? 'VIP' : (currentUser?.email ? 'Member' : 'Guest');
   TBL_DB.read('portfolio').then(items => {
     const pub = items.filter(i => i.published !== false);
-    document.getElementById('prof-saved-grid').innerHTML = pub.slice(0,4).map(item =>
+    document.getElementById('profile-saved-grid').innerHTML = pub.slice(0,4).map(item =>
       `<div class="pf-item" onclick="nav('portfolio')">${item.emoji}</div>`
     ).join('') || '<div style="padding:20px;color:var(--ash);font-size:12px;text-align:center">No saved designs yet</div>';
   });
