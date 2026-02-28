@@ -428,7 +428,7 @@
     </div>
   </div>
   <!-- HOME -->
-  <div class="screen active" id="sc-home" style="overflow-x:hidden">
+  <div class="screen active" id="sc-home" style="display:flex;flex-direction:column;overflow-y:hidden">
     <div class="three-cols-bar" id="three-cols-bar">
       <div class="col-btn" onclick="nav('profile')">
         <div class="col-ring" id="col-profile-ring"><div class="col-av" id="col-profile-av">👤</div></div>
@@ -443,8 +443,10 @@
         <span class="col-lbl">Lead Designer</span>
       </div>
     </div>
-    <div class="stories-row" id="stories-row"></div>
-    <div id="posts-wrap" style="display:block;min-height:100px"></div>
+    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:20px">
+      <div class="stories-row" id="stories-row"></div>
+      <div id="posts-wrap"></div>
+    </div>
   </div>
 
   <!-- TRENDING — TikTok style -->
@@ -1029,7 +1031,13 @@ function renderProfile() {
   });
 }
 
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+// Kill old service workers then re-register fresh
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(r => r.unregister());
+  });
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
 
 // Auto-enter app directly — no login screen
 window.addEventListener('DOMContentLoaded', () => {
