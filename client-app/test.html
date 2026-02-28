@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#120D06">
+  <title>The Billy Living</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #120D06;
+      --ink-mid: #1E160C;
+      --gold: #C9A84C;
+      --ash: #8A7F72;
+      --ash-lt: #B0A898;
+      --white: #FDFAF4;
+      --nav-h: 68px;
+      --top-h: 58px;
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%;width:100%;background:var(--ink);font-family:'Jost',sans-serif;color:var(--white);overflow:hidden}
+    
+    #app{position:fixed;inset:0;display:flex;flex-direction:column}
+    
+    .top-bar{position:fixed;top:0;left:0;right:0;z-index:200;height:var(--top-h);background:rgba(18,13,6,.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(201,168,76,.1);display:flex;align-items:center;justify-content:space-between;padding:0 20px 0 20px}
+    .top-wm{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold);letter-spacing:.06em}
+    .top-wm em{font-style:italic;color:var(--white)}
+    
+    .screen{position:fixed;top:var(--top-h);left:0;right:0;bottom:var(--nav-h);overflow-y:auto;padding:14px;opacity:0;pointer-events:none;transition:opacity .22s}
+    .screen.active{opacity:1;pointer-events:all}
+    
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:rgba(30,22,12,.97);border-top:1px solid rgba(201,168,76,.12);display:flex;align-items:center;z-index:500}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0;cursor:pointer}
+    .nav-ico{font-size:20px;filter:grayscale(1) opacity(.45)}
+    .nav-lbl{font-size:9.5px;color:var(--ash)}
+    .nav-item.active .nav-ico{filter:none}
+    .nav-item.active .nav-lbl{color:var(--gold)}
+    
+    .three-cols-bar{width:100%;height:54px;background:rgba(18,13,6,.97);border-bottom:1px solid rgba(201,168,76,.1);display:flex;align-items:center;justify-content:space-around;padding:0 16px;margin-bottom:14px}
+    .col-btn{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;flex:1}
+    .col-ring{width:36px;height:36px;border-radius:50%;padding:2px;background:linear-gradient(135deg,var(--gold),#8C6F2A)}
+    .col-ring-ai{background:linear-gradient(135deg,#4B3BCC,#7A5AF8)}
+    .col-ring-designer{background:linear-gradient(135deg,#2E9E60,#1A6B40)}
+    .col-av{width:100%;height:100%;border-radius:50%;background:var(--ink-mid);display:flex;align-items:center;justify-content:center;font-size:16px}
+    .col-lbl{font-size:9px;color:var(--ash-lt)}
+    
+    .stories-row{display:flex;gap:11px;padding:0 0 14px;overflow-x:auto;margin-bottom:14px}
+    .story-wrap{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer}
+    .story-ring{width:58px;height:58px;border-radius:50%;padding:2.5px;background:linear-gradient(135deg,var(--gold),#8C6F2A)}
+    .story-inner{width:100%;height:100%;border-radius:50%;background:var(--ink-mid);display:flex;align-items:center;justify-content:center;font-size:22px}
+    .story-lbl{font-size:9.5px;color:var(--ash-lt);max-width:58px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    
+    .post{margin-bottom:20px;border-radius:14px;background:var(--ink-mid);overflow:hidden;padding:14px}
+    .post-head{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+    .post-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#8C6F2A);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--ink)}
+    .post-author-info{flex:1}
+    .post-author-name{font-size:13px;font-weight:500}
+    .post-location{font-size:10px;color:var(--gold)}
+    .post-img{width:100%;aspect-ratio:4/5;background:linear-gradient(160deg,#2D2114,var(--ink-mid));display:flex;align-items:center;justify-content:center;font-size:72px;border-radius:8px;margin:10px 0}
+    .post-acts{display:flex;gap:14px;margin-top:10px}
+    .act-btn{background:none;border:none;color:var(--ash-lt);font-size:13px;display:flex;align-items:center;gap:5px;cursor:pointer}
+    
+    .toast{position:fixed;bottom:calc(var(--nav-h) + 14px);left:50%;transform:translateX(-50%);background:#2D2114;padding:10px 20px;border-radius:30px;font-size:12px;border:1px solid rgba(201,168,76,.2);z-index:9000;opacity:0;transition:opacity .28s;pointer-events:none}
+    .toast.show{opacity:1}
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <div class="top-bar">
+    <div class="top-wm">The Billy <em>Living</em></div>
+    <div style="color:var(--white)">🔍 🔔</div>
+  </div>
+  
+  <div class="screen active" id="sc-home">
+    <div class="three-cols-bar">
+      <div class="col-btn" onclick="nav('profile')">
+        <div class="col-ring"><div class="col-av">👤</div></div>
+        <span class="col-lbl">My Profile</span>
+      </div>
+      <div class="col-btn" onclick="toast('AI Chat coming soon')">
+        <div class="col-ring col-ring-ai"><div class="col-av">🤖</div></div>
+        <span class="col-lbl">AI Chat</span>
+      </div>
+      <div class="col-btn" onclick="nav('designer')">
+        <div class="col-ring col-ring-designer"><div class="col-av">👗</div></div>
+        <span class="col-lbl">Lead Designer</span>
+      </div>
+    </div>
+    
+    <div class="stories-row" id="stories-row"></div>
+    <div id="posts-wrap"></div>
+  </div>
+  
+  <div class="screen" id="sc-designer">
+    <div style="padding:20px;text-align:center">
+      <h2 style="font-family:Cormorant Garamond;font-size:28px;font-weight:300;margin-bottom:10px">Your Personal<br>Design Consultant</h2>
+      <p style="color:var(--ash-lt);margin-bottom:20px">Real-time styling advice from our curated team</p>
+      <button onclick="toast('Chat feature coming soon')" style="padding:13px 30px;border-radius:30px;background:var(--gold);border:none;color:var(--ink);font-size:14px;font-weight:600;cursor:pointer">💬 Chat Now</button>
+    </div>
+  </div>
+  
+  <div class="screen" id="sc-profile">
+    <div style="padding:40px 20px;text-align:center">
+      <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#8C6F2A);margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:36px">👤</div>
+      <h2 style="font-family:Cormorant Garamond;font-size:24px;margin-bottom:10px">Guest User</h2>
+      <button onclick="nav('home')" style="padding:11px 30px;border-radius:30px;background:var(--gold);border:none;color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;margin-top:20px">Back to Home</button>
+    </div>
+  </div>
+  
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="nav('home')"><span class="nav-ico">🏠</span><span class="nav-lbl">Home</span></div>
+    <div class="nav-item" onclick="toast('Trending coming soon')"><span class="nav-ico">🔥</span><span class="nav-lbl">Trending</span></div>
+    <div class="nav-item" onclick="toast('Catalog coming soon')"><span class="nav-ico">🗂️</span><span class="nav-lbl">Catalog</span></div>
+    <div class="nav-item" onclick="nav('designer')"><span class="nav-ico">👗</span><span class="nav-lbl">Live Designer</span></div>
+    <div class="nav-item" onclick="toast('Portfolio coming soon')"><span class="nav-ico">🖼️</span><span class="nav-lbl">Portfolio</span></div>
+  </nav>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Simple navigation
+function nav(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  
+  const sc = document.getElementById('sc-' + screen);
+  if (sc) sc.classList.add('active');
+  
+  // Update nav active state
+  const navItems = {'home':0, 'trending':1, 'catalog':2, 'designer':3, 'portfolio':4};
+  if (navItems[screen] !== undefined) {
+    document.querySelectorAll('.nav-item')[navItems[screen]].classList.add('active');
+  }
+}
+
+// Toast notification
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// Render stories
+const stories = [
+  {emoji: '➕', name: 'Your Story'},
+  {emoji: '🏛️', name: 'Studio'},
+  {emoji: '✨', name: 'New Work'},
+  {emoji: '🌿', name: 'Nature'}
+];
+
+document.getElementById('stories-row').innerHTML = stories.map(s => `
+  <div class="story-wrap" onclick="toast('${s.name}')">
+    <div class="story-ring"><div class="story-inner">${s.emoji}</div></div>
+    <div class="story-lbl">${s.name}</div>
+  </div>
+`).join('');
+
+// Render posts
+const posts = [
+  {emoji: '🛋️', author: 'The Billy Living', location: 'Lagos Island', caption: 'Luxury living redefined. Every detail crafted for the discerning eye.', likes: 124},
+  {emoji: '🏛️', author: 'The Billy Living', location: 'Victoria Island', caption: 'Where elegance meets comfort. Our signature penthouse collection.', likes: 89},
+  {emoji: '🪴', author: 'The Billy Living', location: 'Lekki', caption: 'Bringing nature indoors — biophilic design at its finest.', likes: 210}
+];
+
+document.getElementById('posts-wrap').innerHTML = posts.map(p => `
+  <div class="post">
+    <div class="post-head">
+      <div class="post-av">${p.author[0]}</div>
+      <div class="post-author-info">
+        <div class="post-author-name">${p.author}</div>
+        <div class="post-location">📍 ${p.location}</div>
+      </div>
+    </div>
+    <div class="post-img">${p.emoji}</div>
+    <div class="post-acts">
+      <button class="act-btn" onclick="toast('Liked!')">❤️ ${p.likes}</button>
+      <button class="act-btn" onclick="toast('Shared!')">↗️ Share</button>
+      <button class="act-btn" onclick="toast('Saved!')">🔖 Save</button>
+    </div>
+    <div style="font-size:13px;line-height:1.6;color:#DDD1B8;margin-top:10px"><strong>${p.author}</strong> ${p.caption}</div>
+  </div>
+`).join('');
+</script>
+
+</body>
+</html>
