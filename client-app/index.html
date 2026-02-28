@@ -66,11 +66,11 @@
 
     /* ── SCREENS ── */
     .screen{position:fixed;top:0;left:0;right:0;bottom:var(--nav-h);padding-top:var(--top-h);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:20px;opacity:0;pointer-events:none;transition:opacity .22s ease}
-    .screen.active{opacity:1;pointer-events:all}
+    .screen.active{opacity:1;pointer-events:auto}
 
     /* ── NAV ── */
-    .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);padding-bottom:env(safe-area-inset-bottom,0);background:rgba(30,22,12,.97);backdrop-filter:blur(16px);border-top:1px solid rgba(201,168,76,.12);display:flex;align-items:center;z-index:500}
-    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0;cursor:pointer;position:relative}
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);padding-bottom:env(safe-area-inset-bottom,0);background:rgba(30,22,12,.97);backdrop-filter:blur(16px);border-top:1px solid rgba(201,168,76,.12);display:flex;align-items:center;z-index:9999}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0;cursor:pointer;position:relative;pointer-events:auto;-webkit-tap-highlight-color:rgba(201,168,76,.15)}
     .nav-ico{font-size:20px;transition:all .2s;filter:grayscale(1) opacity(.45)}
     .nav-lbl{font-size:9.5px;font-weight:500;letter-spacing:.04em;color:var(--ash);transition:color .2s}
     .nav-item.active .nav-ico{filter:none}
@@ -79,7 +79,7 @@
 
     /* Floating WhatsApp */
     #fab-wa{position:fixed;bottom:calc(var(--nav-h) + 14px);right:18px;width:52px;height:52px;border-radius:50%;background:var(--wa);border:none;cursor:pointer;z-index:300;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 22px rgba(37,211,102,.45);font-size:26px;transition:transform .2s,opacity .3s;opacity:0;pointer-events:none}
-    #fab-wa.show{opacity:1;pointer-events:all}
+    #fab-wa.show{opacity:1;pointer-events:auto}
     #fab-wa:active{transform:scale(.9)}
 
     /* ── HOME ── */
@@ -428,7 +428,7 @@
     </div>
   </div>
   <!-- HOME -->
-  <div class="screen active" id="sc-home" style="display:flex;flex-direction:column;overflow-y:hidden">
+  <div class="screen active" id="sc-home" style="overflow-x:hidden">
     <div class="three-cols-bar" id="three-cols-bar">
       <div class="col-btn" onclick="nav('profile')">
         <div class="col-ring" id="col-profile-ring"><div class="col-av" id="col-profile-av">👤</div></div>
@@ -443,10 +443,8 @@
         <span class="col-lbl">Lead Designer</span>
       </div>
     </div>
-    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:20px">
-      <div class="stories-row" id="stories-row"></div>
-      <div id="posts-wrap"></div>
-    </div>
+    <div class="stories-row" id="stories-row"></div>
+    <div id="posts-wrap" style="display:block;min-height:100px"></div>
   </div>
 
   <!-- TRENDING — TikTok style -->
@@ -554,28 +552,29 @@
     </div>
   </div>
 
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav">
-    <div class="nav-item active" id="n-home" onclick="nav('home')">
-      <span class="nav-ico">🏠</span><span class="nav-lbl">Home</span>
-    </div>
-    <div class="nav-item" id="n-trending" onclick="nav('trending')">
-      <span class="nav-ico">🔥</span><span class="nav-lbl">Trending</span>
-    </div>
-    <div class="nav-item" id="n-catalog" onclick="nav('catalog')">
-      <span class="nav-ico">🗂️</span><span class="nav-lbl">Catalog</span>
-    </div>
-    <div class="nav-item" id="n-designer" onclick="nav('designer')">
-      <span class="nav-ico">👗</span><span class="nav-lbl">Live Designer</span>
-    </div>
-    <div class="nav-item" id="n-portfolio" onclick="nav('portfolio')">
-      <span class="nav-ico">🖼️</span><span class="nav-lbl">Portfolio</span>
-    </div>
-    <div class="nav-item" id="n-vault" onclick="nav('vault')" style="display:none">
-      <span class="nav-ico">💎</span><span class="nav-lbl">VIP Vault</span>
-    </div>
-  </nav>
 </div>
+
+<!-- BOTTOM NAV — outside #app so nothing can block it -->
+<nav class="bottom-nav">
+  <div class="nav-item active" id="n-home" onclick="nav('home')">
+    <span class="nav-ico">🏠</span><span class="nav-lbl">Home</span>
+  </div>
+  <div class="nav-item" id="n-trending" onclick="nav('trending')">
+    <span class="nav-ico">🔥</span><span class="nav-lbl">Trending</span>
+  </div>
+  <div class="nav-item" id="n-catalog" onclick="nav('catalog')">
+    <span class="nav-ico">🗂️</span><span class="nav-lbl">Catalog</span>
+  </div>
+  <div class="nav-item" id="n-designer" onclick="nav('designer')">
+    <span class="nav-ico">👗</span><span class="nav-lbl">Live Designer</span>
+  </div>
+  <div class="nav-item" id="n-portfolio" onclick="nav('portfolio')">
+    <span class="nav-ico">🖼️</span><span class="nav-lbl">Portfolio</span>
+  </div>
+  <div class="nav-item" id="n-vault" onclick="nav('vault')" style="display:none">
+    <span class="nav-ico">💎</span><span class="nav-lbl">VIP Vault</span>
+  </div>
+</nav>
 
 <!-- Floating WhatsApp -->
 <button id="fab-wa" onclick="openWA()">
@@ -1031,13 +1030,7 @@ function renderProfile() {
   });
 }
 
-// Kill old service workers then re-register fresh
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    regs.forEach(r => r.unregister());
-  });
-  navigator.serviceWorker.register('./sw.js').catch(()=>{});
-}
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
 // Auto-enter app directly — no login screen
 window.addEventListener('DOMContentLoaded', () => {
