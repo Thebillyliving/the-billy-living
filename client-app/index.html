@@ -4,227 +4,61 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#120D06">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="The Billy Living">
-  <meta name="description" content="Luxury Interior Design — The Billy Living">
-  <link rel="manifest" href="manifest.json">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
   <title>The Billy Living</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --ink:      #120D06;
-      --ink-mid:  #1E160C;
-      --ink-soft: #2D2114;
-      --gold:     #C9A84C;
-      --gold-lt:  #E2C97A;
-      --gold-dk:  #8C6F2A;
-      --dust:     #F3EDE0;
-      --dust-dp:  #DDD1B8;
-      --ash:      #8A7F72;
-      --ash-lt:   #B0A898;
-      --white:    #FDFAF4;
-      --success:  #2E9E60;
-      --wa:       #25D366;
-      --danger:   #B83232;
-      --nav-h:    68px;
-      --top-h:    58px;
-      --r:        14px;
-      --r-sm:     9px;
-    }
-    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    html,body{height:100%;width:100%;background:var(--ink);font-family:'Jost',sans-serif;color:var(--white);overflow:hidden;overscroll-behavior:none}
-
-    /* ── SPLASH ── */
-    #splash{position:fixed;inset:0;z-index:9999;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 32px;transition:opacity .4s}
-    .splash-wm{font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;line-height:1.1;color:var(--gold);letter-spacing:.05em;text-align:center}
-    .splash-sub{font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--ash);margin-top:8px;text-align:center}
-    .splash-rule{width:48px;height:1px;background:var(--gold);margin:28px auto}
-    .auth-form{width:100%;max-width:320px}
-    .auth-tabs{display:flex;border-radius:30px;background:rgba(255,255,255,.05);padding:3px;margin-bottom:22px}
-    .auth-tab{flex:1;text-align:center;padding:9px;border-radius:27px;font-size:13px;font-weight:500;cursor:pointer;transition:all .25s;color:var(--ash)}
-    .auth-tab.active{background:var(--gold);color:var(--ink)}
-    .field{width:100%;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);border-radius:var(--r-sm);padding:14px 16px;color:var(--white);font-size:15px;font-family:'Jost',sans-serif;outline:none;margin-bottom:11px;transition:border-color .2s}
-    .field:focus{border-color:var(--gold)}
-    .field::placeholder{color:var(--ash)}
-    .auth-btn{width:100%;padding:15px;border-radius:40px;background:linear-gradient(135deg,var(--gold),var(--gold-dk));border:none;color:var(--ink);font-size:15px;font-weight:600;cursor:pointer;font-family:'Jost',sans-serif;letter-spacing:.04em;transition:opacity .2s;margin-top:4px}
-    .auth-btn:active{opacity:.82}
-    .auth-guest{display:block;text-align:center;margin-top:18px;color:var(--ash);font-size:13px;cursor:pointer}
-    .auth-guest span{color:var(--gold);text-decoration:underline}
-    .auth-err{color:#E07070;font-size:12px;text-align:center;padding:6px 0;display:none}
-
-    /* ── APP ── */
-    #app{position:fixed;inset:0;display:none;flex-direction:column}
-    .top-bar{position:fixed;top:0;left:0;right:0;z-index:200;height:var(--top-h);padding-top:env(safe-area-inset-top,0);background:rgba(18,13,6,.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(201,168,76,.1);display:flex;align-items:center;justify-content:space-between;padding-left:20px;padding-right:16px}
-    .top-wm{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--gold);letter-spacing:.06em}
-    .top-wm em{font-style:italic;color:var(--white);font-size:18px}
-    .top-acts{display:flex;gap:8px;align-items:center}
-    .icon-btn{width:38px;height:38px;border-radius:50%;background:none;border:none;color:var(--white);cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;transition:opacity .15s}
-    .icon-btn:active{opacity:.5}
-    .vip-pill{background:linear-gradient(90deg,var(--gold-dk),var(--gold));color:var(--ink);font-size:10px;font-weight:700;letter-spacing:.12em;padding:4px 11px;border-radius:20px;text-transform:uppercase}
-
-    /* ── SCREENS ── */
-    .screen{position:fixed;top:0;left:0;right:0;bottom:var(--nav-h);padding-top:var(--top-h);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:20px;opacity:0;pointer-events:none;transition:opacity .22s ease}
-    .screen.active{opacity:1;pointer-events:auto}
-
-    /* ── NAV ── */
-    .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);padding-bottom:env(safe-area-inset-bottom,0);background:rgba(30,22,12,.97);backdrop-filter:blur(16px);border-top:1px solid rgba(201,168,76,.12);display:flex;align-items:center;z-index:9999}
-    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0;cursor:pointer;position:relative;pointer-events:auto;-webkit-tap-highlight-color:rgba(201,168,76,.15)}
-    .nav-ico{font-size:20px;transition:all .2s;filter:grayscale(1) opacity(.45)}
-    .nav-lbl{font-size:9.5px;font-weight:500;letter-spacing:.04em;color:var(--ash);transition:color .2s}
+    :root{--ink:#120D06;--ink-mid:#1E160C;--gold:#C9A84C;--gold-dk:#8C6F2A;--ash:#8A7F72;--ash-lt:#B0A898;--white:#FDFAF4;--nav-h:68px;--top-h:58px}
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%;width:100%;background:var(--ink);font-family:'Jost',sans-serif;color:var(--white);overflow:hidden}
+    #app{position:fixed;inset:0;display:flex;flex-direction:column}
+    .top-bar{position:fixed;top:0;left:0;right:0;z-index:200;height:var(--top-h);background:rgba(18,13,6,.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(201,168,76,.1);display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+    .top-wm{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold);letter-spacing:.06em}
+    .top-wm em{font-style:italic;color:var(--white)}
+    .screen{position:fixed;top:var(--top-h);left:0;right:0;bottom:var(--nav-h);overflow-y:auto;padding:14px;opacity:0;pointer-events:none;transition:opacity .22s}
+    .screen.active{opacity:1;pointer-events:all}
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:rgba(30,22,12,.97);border-top:1px solid rgba(201,168,76,.12);display:flex;align-items:center;z-index:500}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0;cursor:pointer}
+    .nav-ico{font-size:20px;filter:grayscale(1) opacity(.45)}
+    .nav-lbl{font-size:9.5px;color:var(--ash)}
     .nav-item.active .nav-ico{filter:none}
     .nav-item.active .nav-lbl{color:var(--gold)}
-    .nav-item.active::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:24px;height:2px;background:var(--gold);border-radius:1px}
-
-    /* Floating WhatsApp */
-    #fab-wa{position:fixed;bottom:calc(var(--nav-h) + 14px);right:18px;width:52px;height:52px;border-radius:50%;background:var(--wa);border:none;cursor:pointer;z-index:300;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 22px rgba(37,211,102,.45);font-size:26px;transition:transform .2s,opacity .3s;opacity:0;pointer-events:none}
-    #fab-wa.show{opacity:1;pointer-events:auto}
-    #fab-wa:active{transform:scale(.9)}
-
-    /* ── HOME ── */
-    .stories-row{display:flex;gap:11px;padding:14px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-    .stories-row::-webkit-scrollbar{display:none}
+    .three-cols-bar{width:100%;height:54px;background:rgba(18,13,6,.97);border-bottom:1px solid rgba(201,168,76,.1);display:flex;align-items:center;justify-content:space-around;padding:0 16px;margin-bottom:14px}
+    .col-btn{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;flex:1}
+    .col-ring{width:36px;height:36px;border-radius:50%;padding:2px;background:linear-gradient(135deg,var(--gold),var(--gold-dk))}
+    .col-ring-ai{background:linear-gradient(135deg,#4B3BCC,#7A5AF8)}
+    .col-ring-designer{background:linear-gradient(135deg,#2E9E60,#1A6B40)}
+    .col-av{width:100%;height:100%;border-radius:50%;background:var(--ink-mid);display:flex;align-items:center;justify-content:center;font-size:16px}
+    .col-lbl{font-size:9px;color:var(--ash-lt)}
+    .stories-row{display:flex;gap:11px;padding:0 0 14px;overflow-x:auto;margin-bottom:14px}
     .story-wrap{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer}
     .story-ring{width:58px;height:58px;border-radius:50%;padding:2.5px;background:linear-gradient(135deg,var(--gold),var(--gold-dk))}
     .story-inner{width:100%;height:100%;border-radius:50%;background:var(--ink-mid);display:flex;align-items:center;justify-content:center;font-size:22px}
     .story-lbl{font-size:9.5px;color:var(--ash-lt);max-width:58px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .post{margin:0 14px 20px;border-radius:var(--r);background:var(--ink-mid);overflow:hidden;box-shadow:0 2px 16px rgba(12,8,3,.3)}
-    .post-head{display:flex;align-items:center;justify-content:space-between;padding:12px 13px 0}
-    .post-author-row{display:flex;align-items:center;gap:9px}
-    .post-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dk));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--ink);flex-shrink:0}
-    .post-author-info{display:flex;flex-direction:column;gap:1px}
-    .post-author-name{font-size:13px;font-weight:500;line-height:1.2}
-    .post-location{font-size:10px;color:var(--gold);display:flex;align-items:center;gap:3px}
-    .post-location::before{content:'📍';font-size:9px}
-    .post-img{margin-top:10px;width:100%;aspect-ratio:4/5;background:linear-gradient(160deg,var(--ink-soft),var(--ink-mid));display:flex;align-items:center;justify-content:center;font-size:72px}
-    .post-acts{display:flex;align-items:center;gap:14px;padding:11px 13px 6px}
-    .act-btn{background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:5px;color:var(--ash-lt);font-size:13px;font-family:'Jost',sans-serif}
-    .act-btn svg{width:19px;height:19px}
-    .act-btn.liked svg{fill:#E05050;stroke:#E05050}
-    .post-cap{padding:3px 13px 14px;font-size:13px;line-height:1.6;color:var(--dust-dp)}
-    .post-cap strong{color:var(--white)}
-
-    /* ── TRENDING ── */
+    .post{margin-bottom:20px;border-radius:14px;background:var(--ink-mid);overflow:hidden;padding:14px}
+    .post-head{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+    .post-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dk));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--ink)}
+    .post-author-info{flex:1}
+    .post-author-name{font-size:13px;font-weight:500}
+    .post-location{font-size:10px;color:var(--gold)}
+    .post-img{width:100%;aspect-ratio:4/5;background:linear-gradient(160deg,#2D2114,var(--ink-mid));display:flex;align-items:center;justify-content:center;font-size:72px;border-radius:8px;margin:10px 0}
+    .post-acts{display:flex;gap:14px;margin-top:10px}
+    .act-btn{background:none;border:none;color:var(--ash-lt);font-size:13px;display:flex;align-items:center;gap:5px;cursor:pointer}
     .sec-h{padding:18px 18px 10px;font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300}
     .sec-h em{color:var(--gold);font-style:italic}
-    /* TikTok-style trending */
-    .trend-feed{height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch}
-    .trend-feed::-webkit-scrollbar{display:none}
-    .trend-card{
-      position:relative;width:100%;height:100vh;
-      scroll-snap-align:start;scroll-snap-stop:always;
-      background:var(--ink);display:flex;align-items:center;justify-content:center;
-      overflow:hidden;flex-shrink:0;
-    }
-    .trend-card-bg{position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat}
-    .trend-card-emoji{font-size:100px;opacity:.35;position:absolute;top:50%;left:50%;transform:translate(-50%,-60%)}
-    .trend-card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.85) 0%,rgba(0,0,0,.1) 50%,transparent 100%)}
-    .trend-card-info{position:absolute;bottom:calc(var(--nav-h) + 20px);left:0;right:64px;padding:0 16px}
-    .trend-card-badge{display:inline-block;background:var(--gold);color:#000;font-size:9px;font-weight:700;letter-spacing:.1em;padding:3px 10px;border-radius:20px;text-transform:uppercase;margin-bottom:9px}
-    .trend-card-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;color:#fff;line-height:1.2;margin-bottom:6px}
-    .trend-card-caption{font-size:13px;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:6px}
-    .trend-card-views{font-size:11px;color:rgba(255,255,255,.5);font-family:'DM Mono',monospace}
-    .trend-card-side{position:absolute;right:10px;bottom:calc(var(--nav-h) + 30px);display:flex;flex-direction:column;align-items:center;gap:20px}
-    .trend-side-btn{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;background:none;border:none;color:#fff}
-    .trend-side-ico{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.15);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;font-size:20px}
-    .trend-side-lbl{font-size:10px;color:rgba(255,255,255,.7)}
-
-    /* ══ CATALOG — 3-LEVEL ELITE PREFORMATS ══ */
-
-    /* Level 1: Topic/Feeling grid */
-    .ep-header{padding:18px 14px 10px;text-align:center}
-    .ep-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
-    .ep-rule{width:100px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:8px auto 0}
-    .ep-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:2px}
-    .ep-cell{
-      position:relative;background:var(--ink-mid);border:1px solid rgba(201,168,76,.18);
-      cursor:pointer;transition:border-color .2s;overflow:hidden;
-      display:flex;flex-direction:column;
-    }
-    .ep-cell:active{border-color:var(--gold)}
-    .ep-cell-header{padding:8px 10px;border-bottom:1px solid rgba(201,168,76,.12);background:rgba(0,0,0,.3)}
-    .ep-cell-topic{font-size:9px;color:var(--ash-lt);letter-spacing:.04em}
-    .ep-cell-topic strong{color:var(--gold)}
-    .ep-cell-feeling{font-size:9px;color:var(--ash);margin-top:2px}
-    .ep-cell-feeling strong{color:var(--ash-lt)}
-    .ep-cell-img{
-      flex:1;min-height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;
-      background:var(--ink-soft);position:relative;cursor:pointer;
-    }
-    .ep-placeholder-ico{
-      width:52px;height:52px;border:1.5px solid rgba(201,168,76,.3);border-radius:4px;
-      display:flex;align-items:center;justify-content:center;margin-bottom:8px;
-      position:relative;
-    }
-    .ep-placeholder-ico::before{content:'';position:absolute;inset:5px;border:1px solid rgba(201,168,76,.2)}
-    .ep-placeholder-ico svg{opacity:.4}
-    .ep-placeholder-lbl{font-size:8px;letter-spacing:.12em;color:var(--ash);text-transform:uppercase;text-align:center}
-
-    /* Level 2: Mixtures */
-    .mix-screen{display:none;flex-direction:column;height:100%}
-    .mix-screen.active{display:flex}
-    .mix-header{padding:14px 14px 10px;text-align:center;border-bottom:1px solid rgba(201,168,76,.12);flex-shrink:0}
-    .mix-back{display:flex;align-items:center;gap:6px;color:var(--gold);font-size:12px;letter-spacing:.06em;cursor:pointer;margin-bottom:8px;justify-content:flex-start}
-    .mix-title{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:300;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
-    .mix-brand{font-size:9px;letter-spacing:.22em;color:var(--ash);text-transform:uppercase;margin-top:3px}
-    .mix-rule{width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:6px auto 0}
-    .mix-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;flex:1;overflow-y:auto}
-    .mix-card{border:1px solid rgba(201,168,76,.18);background:var(--ink-mid);display:flex;flex-direction:column;cursor:pointer;overflow:hidden;transition:border-color .2s}
-    .mix-card:active{border-color:var(--gold)}
-    .mix-card-header{padding:7px 10px;border-bottom:1px solid rgba(201,168,76,.1);background:rgba(0,0,0,.35)}
-    .mix-card-label{font-size:8.5px;color:var(--ash-lt);letter-spacing:.04em}
-    .mix-card-label strong{color:var(--gold-lt)}
-    .mix-card-img{
-      flex:1;min-height:130px;display:flex;align-items:center;justify-content:center;
-      background:var(--ink-soft);position:relative;overflow:hidden;
-    }
-    .mix-card-img img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
-    .mix-card-ph{display:flex;flex-direction:column;align-items:center;gap:6px}
-    .mix-swatches{display:flex;gap:3px;padding:8px 10px 6px;flex-wrap:wrap}
-    .mix-swatch{height:8px;flex:1;border-radius:2px;min-width:18px}
-    .mix-select-btn{margin:0 10px 10px;padding:9px;border:1px solid rgba(201,168,76,.35);background:rgba(201,168,76,.06);color:var(--gold);font-size:9px;letter-spacing:.18em;text-transform:uppercase;font-family:'Cormorant Garamond',serif;cursor:pointer;border-radius:2px;font-weight:400}
-    .mix-select-btn:active{background:rgba(201,168,76,.15)}
-
-    /* Level 3: Room Galleries */
-    .room-screen{display:none;flex-direction:column;height:100%}
-    .room-screen.active{display:flex}
-    .room-header{padding:14px 14px 10px;text-align:center;border-bottom:1px solid rgba(201,168,76,.12);flex-shrink:0}
-    .room-back{display:flex;align-items:center;gap:6px;color:var(--gold);font-size:12px;cursor:pointer;margin-bottom:6px}
-    .room-title{font-family:'Cormorant Garamond',serif;font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
-    .room-mix{font-size:9px;color:var(--ash);letter-spacing:.14em;text-transform:uppercase;margin-top:2px}
-    .room-body{flex:1;overflow-y:auto;padding-bottom:20px}
-    .room-section{margin-bottom:2px}
-    .room-section-title{padding:12px 14px 8px;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:14px;border-bottom:1px solid rgba(201,168,76,.1)}
-    .room-ph-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:2px}
-    .room-ph{
-      aspect-ratio:4/3;background:var(--ink-mid);border:1px solid rgba(201,168,76,.12);
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      cursor:pointer;transition:border-color .2s;overflow:hidden;position:relative;
-    }
-    .room-ph:active{border-color:var(--gold)}
-    .room-ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-    .room-ph-inner{display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;z-index:1}
-    .room-ph-icon{width:32px;height:32px;border:1px solid rgba(201,168,76,.25);display:flex;align-items:center;justify-content:center;border-radius:2px}
-    .room-ph-lbl{font-size:8px;letter-spacing:.12em;color:var(--ash);text-transform:uppercase}
-
-    /* ── LIVE DESIGNER ── */
-    .des-hero{margin:14px;border-radius:var(--r);background:linear-gradient(145deg,var(--ink-soft),var(--ink-mid));padding:24px 22px;position:relative;overflow:hidden}
-    .des-hero::after{content:'✦';position:absolute;right:20px;top:14px;font-size:64px;color:rgba(201,168,76,.1);pointer-events:none}
+    .des-hero{margin:14px;border-radius:14px;background:linear-gradient(145deg,#2D2114,var(--ink-mid));padding:24px 22px;position:relative;overflow:hidden}
     .live-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(46,158,96,.14);border:1px solid rgba(46,158,96,.3);border-radius:20px;padding:4px 12px;margin-bottom:14px}
-    .live-dot{width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 2s infinite}
+    .live-dot{width:7px;height:7px;border-radius:50%;background:#2E9E60;animation:pulse 2s infinite}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-    .live-lbl{font-size:11px;color:var(--success);font-weight:500}
+    .live-lbl{font-size:11px;color:#2E9E60;font-weight:500}
     .des-hero h2{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;margin-bottom:8px;line-height:1.2}
     .des-hero p{font-size:13px;color:var(--ash-lt);line-height:1.7}
     .cta-row{display:flex;gap:10px;margin-top:20px}
     .btn-gold{flex:1;padding:13px;border-radius:30px;background:var(--gold);border:none;color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;font-family:'Jost',sans-serif}
     .btn-outline{flex:1;padding:13px;border-radius:30px;background:transparent;border:1.5px solid var(--gold);color:var(--gold);font-size:13px;font-weight:500;cursor:pointer;font-family:'Jost',sans-serif}
     .des-grid{padding:0 14px 14px;display:grid;gap:11px}
-    .dc-card{background:var(--ink-mid);border-radius:var(--r);padding:15px;display:flex;gap:13px;align-items:center}
+    .dc-card{background:var(--ink-mid);border-radius:14px;padding:15px;display:flex;gap:13px;align-items:center}
     .dc-av{width:54px;height:54px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--gold),var(--gold-dk));display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;color:var(--ink);position:relative}
-    .dc-dot{position:absolute;bottom:1px;right:1px;width:12px;height:12px;border-radius:50%;border:2px solid var(--ink-mid)}
-    .dc-dot.on{background:var(--success)}
+    .dc-dot{position:absolute;bottom:1px;right:1px;width:12px;height:12px;border-radius:50%;border:2px solid var(--ink-mid);background:#2E9E60}
     .dc-dot.off{background:var(--ash)}
     .dc-info{flex:1}
     .dc-name{font-size:15px;font-weight:500;margin-bottom:2px}
@@ -232,209 +66,67 @@
     .dc-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
     .dc-tag{font-size:10px;padding:2px 8px;border-radius:8px;background:rgba(201,168,76,.1);color:var(--gold);border:1px solid rgba(201,168,76,.18)}
     .dc-btn{padding:7px 15px;border-radius:20px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.25);color:var(--gold);font-size:12px;font-weight:500;cursor:pointer}
-
-    /* ── PORTFOLIO ── */
-    .pf-head{padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between}
-    .pf-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300}
-    .pf-title em{color:var(--gold);font-style:italic}
-    .pf-sub{font-size:11px;color:var(--ash);margin-top:2px}
-    .sel-bar{display:none;position:sticky;top:0;z-index:100;background:rgba(18,13,6,.97);backdrop-filter:blur(8px);padding:10px 16px;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(201,168,76,.12)}
-    .sel-bar.show{display:flex}
-    .sel-count{font-size:14px;font-weight:500}
-    .sel-acts{display:flex;gap:8px}
-    .sel-btn{padding:7px 14px;border-radius:20px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.22);color:var(--gold);font-size:12px;font-weight:500;cursor:pointer}
     .pf-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:0 3px}
-    .pf-item{aspect-ratio:1;background:linear-gradient(145deg,var(--ink-soft),var(--ink-mid));display:flex;align-items:center;justify-content:center;font-size:44px;cursor:pointer;position:relative;overflow:hidden;transition:opacity .18s}
-    .pf-item.sel{border:2.5px solid var(--gold)}
-    .pf-item.sel::after{content:'✓';position:absolute;inset:0;background:rgba(201,168,76,.35);display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--white)}
-    .sel-all-btn{padding:7px 14px;border-radius:20px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);color:var(--gold);font-size:12px;font-weight:500;cursor:pointer}
-
-    /* ── VIP VAULT ── */
+    .pf-item{aspect-ratio:1;background:linear-gradient(145deg,#2D2114,var(--ink-mid));display:flex;align-items:center;justify-content:center;font-size:44px;cursor:pointer;position:relative;overflow:hidden}
+    .ep-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:2px}
+    .ep-cell{position:relative;background:var(--ink-mid);border:1px solid rgba(201,168,76,.18);cursor:pointer;transition:border-color .2s;overflow:hidden;display:flex;flex-direction:column;padding:10px}
+    .ep-cell:active{border-color:var(--gold)}
+    .ep-cell-topic{font-size:9px;color:var(--ash-lt)}
+    .ep-cell-topic strong{color:var(--gold)}
+    .ep-cell-feeling{font-size:9px;color:var(--ash);margin-top:2px}
+    .ep-cell-feeling strong{color:var(--ash-lt)}
+    .ep-placeholder-ico{width:52px;height:52px;border:1.5px solid rgba(201,168,76,.3);border-radius:4px;display:flex;align-items:center;justify-content:center;margin:10px auto}
+    .ep-placeholder-lbl{font-size:8px;letter-spacing:.12em;color:var(--ash);text-transform:uppercase;text-align:center}
     .vault-gate{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:32px;text-align:center;gap:16px}
     .vault-icon{font-size:52px}
     .vault-title{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300}
     .vault-title em{color:var(--gold);font-style:italic}
     .vault-desc{font-size:13px;color:var(--ash-lt);line-height:1.7;max-width:280px}
     .vault-req-btn{margin-top:8px;padding:13px 32px;border-radius:30px;background:var(--gold);border:none;color:var(--ink);font-size:14px;font-weight:600;cursor:pointer;font-family:'Jost',sans-serif}
-    .vault-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 14px}
-    .vault-card{background:var(--ink-mid);border-radius:var(--r);overflow:hidden;cursor:pointer}
-    .vault-img{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;font-size:44px;background:var(--ink-soft)}
-    .vault-info{padding:10px 12px}
-    .vault-card-title{font-size:13px;font-weight:500}
-    .vault-card-sub{font-size:11px;color:var(--ash-lt);margin-top:2px}
-    .pending-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:36px;text-align:center;gap:14px}
-    .pending-icon{font-size:48px}
-    .pending-title{font-family:'Cormorant Garamond',serif;font-size:26px}
-    .pending-desc{font-size:13px;color:var(--ash-lt);line-height:1.7;max-width:260px}
-
-    /* ── SHARE SHEET ── */
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:700;display:none;align-items:flex-end;backdrop-filter:blur(5px)}
-    .overlay.open{display:flex}
-    .sht{width:100%;background:#1C1309;border-radius:22px 22px 0 0;padding:0 0 env(safe-area-inset-bottom,20px);transform:translateY(100%);transition:transform .32s cubic-bezier(.32,.72,0,1)}
-    .overlay.open .sht{transform:translateY(0)}
-    .sht-handle{width:38px;height:4px;border-radius:2px;background:rgba(255,255,255,.15);margin:12px auto 0}
-    .sht-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px;border-bottom:1px solid rgba(255,255,255,.07)}
-    .sht-ttl{font-size:16px;font-weight:600}
-    .sht-x{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.1);border:none;color:var(--white);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-    .sht-sec{font-size:10.5px;color:var(--ash);letter-spacing:.1em;text-transform:uppercase;padding:12px 18px 7px}
-    .contacts-row,.apps-row{display:flex;gap:14px;padding:0 18px 14px;overflow-x:auto;scrollbar-width:none}
-    .contacts-row::-webkit-scrollbar,.apps-row::-webkit-scrollbar{display:none}
-    .c-item{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
-    .c-av{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dk));display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--ink);border:2px solid rgba(201,168,76,.35)}
-    .c-name{font-size:10.5px;color:var(--dust-dp);text-align:center;max-width:66px;line-height:1.3}
-    .a-item{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
-    .a-ico{width:50px;height:50px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:24px;background:var(--ink-soft)}
-    .a-ico.wa{background:#0B6E4F}
-    .a-name{font-size:10.5px;color:var(--dust-dp)}
-    .sht-div{height:1px;background:rgba(255,255,255,.06);margin:0 18px}
-
-    /* ── TOAST ── */
-    .toast-el{position:fixed;bottom:calc(var(--nav-h) + 14px);left:50%;transform:translateX(-50%) translateY(14px);background:var(--ink-soft);color:var(--white);padding:10px 20px;border-radius:30px;font-size:12.5px;border:1px solid rgba(201,168,76,.2);z-index:9000;pointer-events:none;opacity:0;transition:all .28s;white-space:nowrap}
-    .toast-el.show{opacity:1;transform:translateX(-50%) translateY(0)}
-
-    ::-webkit-scrollbar{width:3px}
-    ::-webkit-scrollbar-thumb{background:rgba(201,168,76,.25);border-radius:2px}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-    .screen.active .post:nth-child(1){animation:fadeUp .3s ease both}
-    .screen.active .post:nth-child(2){animation:fadeUp .3s .08s ease both}
-    .screen.active .post:nth-child(3){animation:fadeUp .3s .14s ease both}
-    .screen.active .post:nth-child(4){animation:fadeUp .3s .2s ease both}
-  
-    /* ── THREE COLS BAR ── */
-    .three-cols-bar{
-      width:100%;height:54px;
-      background:rgba(18,13,6,.97);
-      border-bottom:1px solid rgba(201,168,76,.1);
-      display:flex;align-items:center;justify-content:space-around;padding:0 16px;
-      flex-shrink:0;
-    }
-    .col-btn{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;flex:1}
-    .col-ring{
-      width:36px;height:36px;border-radius:50%;padding:2px;
-      background:linear-gradient(135deg,var(--gold),var(--gold-dk));
-    }
-    .col-ring-ai{background:linear-gradient(135deg,#4B3BCC,#7A5AF8)}
-    .col-ring-designer{background:linear-gradient(135deg,#2E9E60,#1A6B40)}
-    .col-av{
-      width:100%;height:100%;border-radius:50%;background:var(--ink-mid);
-      display:flex;align-items:center;justify-content:center;font-size:16px;
-    }
-    .col-lbl{font-size:9px;color:var(--ash-lt);letter-spacing:.03em;white-space:nowrap}
-
-    /* ── AI CHAT SCREEN ── */
-    .ai-chat-wrap{display:flex;flex-direction:column;height:100%}
-    .ai-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:11px}
-    .ai-msg{max-width:82%;padding:11px 14px;border-radius:16px;font-size:13px;line-height:1.6}
-    .ai-msg.bot{background:var(--ink-mid);align-self:flex-start;border-bottom-left-radius:4px}
-    .ai-msg.user{background:var(--gold);color:var(--ink);align-self:flex-end;border-bottom-right-radius:4px;font-weight:500}
-    .ai-input-row{
-      display:flex;gap:8px;padding:11px 14px;
-      background:rgba(18,13,6,.97);border-top:1px solid rgba(201,168,76,.1);
-      padding-bottom:calc(env(safe-area-inset-bottom,0px) + 11px);
-    }
-    .ai-inp{
-      flex:1;background:var(--ink-mid);border:1px solid rgba(201,168,76,.2);
-      border-radius:22px;padding:10px 16px;color:var(--white);font-size:14px;
-      font-family:'Jost',sans-serif;outline:none;
-    }
-    .ai-inp::placeholder{color:var(--ash)}
-    .ai-send{
-      width:40px;height:40px;border-radius:50%;background:var(--gold);
-      border:none;color:var(--ink);font-size:18px;cursor:pointer;
-      display:flex;align-items:center;justify-content:center;flex-shrink:0;
-    }
-
-    /* ── PROFILE SCREEN ── */
     .profile-hero{padding:20px 16px 0;display:flex;flex-direction:column;align-items:center;gap:10px}
-    .profile-av-ring{
-      width:80px;height:80px;border-radius:50%;padding:3px;
-      background:linear-gradient(135deg,var(--gold),var(--gold-dk));
-    }
-    .profile-av{
-      width:100%;height:100%;border-radius:50%;background:var(--ink-mid);
-      display:flex;align-items:center;justify-content:center;font-size:36px;
-    }
+    .profile-av-ring{width:80px;height:80px;border-radius:50%;padding:3px;background:linear-gradient(135deg,var(--gold),var(--gold-dk))}
+    .profile-av{width:100%;height:100%;border-radius:50%;background:var(--ink-mid);display:flex;align-items:center;justify-content:center;font-size:36px}
     .profile-name{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300}
     .profile-name em{color:var(--gold);font-style:italic}
-    .profile-vip-badge{
-      background:linear-gradient(90deg,var(--gold-dk),var(--gold));
-      color:var(--ink);font-size:10px;font-weight:700;letter-spacing:.14em;
-      padding:4px 14px;border-radius:20px;text-transform:uppercase;
-    }
-    .profile-stats{display:flex;gap:0;width:100%;border:1px solid rgba(201,168,76,.15);border-radius:var(--r);overflow:hidden;margin-top:6px}
+    .profile-vip-badge{background:linear-gradient(90deg,var(--gold-dk),var(--gold));color:var(--ink);font-size:10px;font-weight:700;letter-spacing:.14em;padding:4px 14px;border-radius:20px;text-transform:uppercase}
+    .profile-stats{display:flex;gap:0;width:100%;border:1px solid rgba(201,168,76,.15);border-radius:14px;overflow:hidden;margin-top:6px}
     .pstat{flex:1;text-align:center;padding:13px 0;border-right:1px solid rgba(201,168,76,.1)}
     .pstat:last-child{border-right:none}
     .pstat-num{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold)}
     .pstat-lbl{font-size:9px;color:var(--ash);text-transform:uppercase;letter-spacing:.1em;margin-top:2px}
     .profile-actions{display:flex;gap:9px;width:100%;margin-top:4px}
-    .pa-btn{
-      flex:1;padding:11px;border-radius:30px;font-size:12px;font-weight:600;
-      cursor:pointer;font-family:'Jost',sans-serif;letter-spacing:.04em;
-    }
+    .pa-btn{flex:1;padding:11px;border-radius:30px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Jost',sans-serif;letter-spacing:.04em}
     .pa-gold{background:var(--gold);border:none;color:var(--ink)}
     .pa-outline{background:transparent;border:1.5px solid var(--gold);color:var(--gold)}
-    .profile-section-title{
-      font-size:10px;letter-spacing:.2em;color:var(--ash);text-transform:uppercase;
-      padding:16px 16px 8px;font-family:'Cormorant Garamond',serif;font-size:14px;
-      border-bottom:1px solid rgba(201,168,76,.1);margin-bottom:2px;
-    }
-</style>
+    .ai-chat-wrap{display:flex;flex-direction:column;height:100%}
+    .ai-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:11px}
+    .ai-msg{max-width:82%;padding:11px 14px;border-radius:16px;font-size:13px;line-height:1.6}
+    .ai-msg.bot{background:var(--ink-mid);align-self:flex-start;border-bottom-left-radius:4px}
+    .ai-msg.user{background:var(--gold);color:var(--ink);align-self:flex-end;border-bottom-right-radius:4px;font-weight:500}
+    .ai-input-row{display:flex;gap:8px;padding:11px 14px;background:rgba(18,13,6,.97);border-top:1px solid rgba(201,168,76,.1)}
+    .ai-inp{flex:1;background:var(--ink-mid);border:1px solid rgba(201,168,76,.2);border-radius:22px;padding:10px 16px;color:var(--white);font-size:14px;font-family:'Jost',sans-serif;outline:none}
+    .ai-inp::placeholder{color:var(--ash)}
+    .ai-send{width:40px;height:40px;border-radius:50%;background:var(--gold);border:none;color:var(--ink);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .toast{position:fixed;bottom:calc(var(--nav-h) + 14px);left:50%;transform:translateX(-50%);background:#2D2114;padding:10px 20px;border-radius:30px;font-size:12px;border:1px solid rgba(201,168,76,.2);z-index:9000;opacity:0;transition:opacity .28s;pointer-events:none}
+    .toast.show{opacity:1}
+  </style>
 </head>
 <body>
 
-<!-- SPLASH / AUTH -->
-<div id="splash" style="display:none">
-  <div class="splash-wm">The Billy<br>Living</div>
-  <div class="splash-sub">Luxury Interior Design</div>
-  <div class="splash-rule"></div>
-  <div class="auth-form">
-    <div class="auth-tabs">
-      <div class="auth-tab active" onclick="switchTab('login',this)">Sign In</div>
-      <div class="auth-tab" onclick="switchTab('signup',this)">Request Access</div>
-    </div>
-    <div id="tab-login">
-      <input class="field" type="email" id="login-email" placeholder="Email address">
-      <input class="field" type="password" id="login-pass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
-      <div class="auth-err" id="login-err">Incorrect credentials. Please try again.</div>
-      <button class="auth-btn" onclick="doLogin()">Enter</button>
-    </div>
-    <div id="tab-signup" style="display:none">
-      <input class="field" type="text" id="sig-name" placeholder="Full name">
-      <input class="field" type="email" id="sig-email" placeholder="Email address">
-      <input class="field" type="password" id="sig-pass" placeholder="Create password">
-      <div class="auth-err" id="sig-err"></div>
-      <button class="auth-btn" onclick="doSignup()">Request Access</button>
-    </div>
-    <span class="auth-guest" onclick="guestEnter()">Continue as guest · <span>Browse catalog</span></span>
-  </div>
-</div>
-
-<!-- APP -->
-<div id="app" style="display:flex">
-  <div class="top-bar" id="top-bar-el">
+<div id="app">
+  <div class="top-bar">
     <div class="top-wm">The Billy <em>Living</em></div>
-    <div class="top-acts">
-      <span class="vip-pill" id="vip-pill" style="display:none">VIP</span>
-      <button class="icon-btn" onclick="toast('Search coming soon')">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-      </button>
-      <button class="icon-btn" onclick="toast('No new notifications')">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-        </svg>
-      </button>
-    </div>
+    <div style="color:var(--white)">🔍 🔔</div>
   </div>
+  
   <!-- HOME -->
-  <div class="screen active" id="sc-home" style="overflow-x:hidden">
-    <div class="three-cols-bar" id="three-cols-bar">
+  <div class="screen active" id="sc-home">
+    <div class="three-cols-bar">
       <div class="col-btn" onclick="nav('profile')">
-        <div class="col-ring" id="col-profile-ring"><div class="col-av" id="col-profile-av">👤</div></div>
+        <div class="col-ring"><div class="col-av">👤</div></div>
         <span class="col-lbl">My Profile</span>
       </div>
-      <div class="col-btn" onclick="openAIChat()">
+      <div class="col-btn" onclick="nav('aichat')">
         <div class="col-ring col-ring-ai"><div class="col-av">🤖</div></div>
         <span class="col-lbl">AI Chat</span>
       </div>
@@ -443,46 +135,25 @@
         <span class="col-lbl">Lead Designer</span>
       </div>
     </div>
+    
     <div class="stories-row" id="stories-row"></div>
-    <div id="posts-wrap" style="display:block;min-height:100px"></div>
+    <div id="posts-wrap"></div>
   </div>
-
-  <!-- TRENDING — TikTok style -->
-  <div class="screen" id="sc-trending" style="padding-top:0">
-    <div class="trend-feed" id="trend-feed"></div>
+  
+  <!-- TRENDING -->
+  <div class="screen" id="sc-trending">
+    <div class="sec-h">Trending <em>Now</em></div>
+    <div id="trend-feed"></div>
   </div>
-
-  <!-- CATALOG — 3-LEVEL ELITE PREFORMATS -->
-  <div class="screen" id="sc-catalog" style="padding-top:var(--top-h)">
-    <!-- LEVEL 1: Topic/Feeling grid -->
-    <div id="cat-l1" style="height:100%;overflow-y:auto">
-      <div class="ep-header">
-        <div class="ep-title">The Elite Preformats</div>
-        <div class="ep-rule"></div>
-      </div>
-      <div class="ep-grid" id="ep-grid"></div>
+  
+  <!-- CATALOG -->
+  <div class="screen" id="sc-catalog">
+    <div class="ep-header" style="padding:18px 14px 10px;text-align:center">
+      <div class="sec-h" style="padding:0">The Elite <em>Preformats</em></div>
     </div>
-    <!-- LEVEL 2: Mixtures -->
-    <div class="mix-screen" id="cat-l2">
-      <div class="mix-header">
-        <div class="mix-back" onclick="catBack(1)">‹ Back</div>
-        <div class="mix-title" id="mix-title"></div>
-        <div class="mix-brand">The Billy Living</div>
-        <div class="mix-rule"></div>
-      </div>
-      <div class="mix-grid" id="mix-grid"></div>
-    </div>
-    <!-- LEVEL 3: Room Galleries -->
-    <div class="room-screen" id="cat-l3">
-      <div class="room-header">
-        <div class="room-back" onclick="catBack(2)">‹ Back</div>
-        <div class="room-title" id="room-title"></div>
-        <div class="room-mix" id="room-mix"></div>
-      </div>
-      <div class="room-body" id="room-body"></div>
-    </div>
+    <div class="ep-grid" id="ep-grid"></div>
   </div>
-
+  
   <!-- LIVE DESIGNER -->
   <div class="screen" id="sc-designer">
     <div class="des-hero">
@@ -490,56 +161,49 @@
       <h2>Your Personal<br>Design Consultant</h2>
       <p>Real-time styling advice from our curated team of luxury interior designers. Available 9am–9pm WAT.</p>
       <div class="cta-row">
-        <button class="btn-gold" onclick="openWA()">💬 Chat Now</button>
+        <button class="btn-gold" onclick="toast('Opening WhatsApp...')">💬 Chat Now</button>
         <button class="btn-outline" onclick="nav('catalog')">Browse Catalog</button>
       </div>
     </div>
     <div class="sec-h" style="padding-bottom:8px">Our <em>Consultants</em></div>
     <div class="des-grid" id="des-grid"></div>
   </div>
-
+  
   <!-- PORTFOLIO -->
   <div class="screen" id="sc-portfolio">
-    <div class="sel-bar" id="sel-bar">
-      <span class="sel-count" id="sel-count">0 selected</span>
-      <div class="sel-acts">
-        <button class="sel-btn" onclick="openShare()">↗ Share</button>
-        <button class="sel-btn" style="color:var(--ash)" onclick="clearSel()">✕ Clear</button>
-      </div>
-    </div>
-    <div class="pf-head">
-      <div><div class="pf-title">My <em>Portfolio</em></div><div class="pf-sub">Tap to select · Share your designs</div></div>
-      <button class="sel-all-btn" onclick="selAll()">Select All</button>
-    </div>
+    <div class="sec-h">My <em>Portfolio</em></div>
     <div class="pf-grid" id="pf-grid"></div>
   </div>
-
+  
   <!-- VIP VAULT -->
   <div class="screen" id="sc-vault">
-    <div id="vault-inner"></div>
+    <div class="vault-gate">
+      <div class="vault-icon">💎</div>
+      <div class="vault-title">The VIP <em>Vault</em></div>
+      <div class="vault-desc">Exclusive access to private design collections, early releases, and bespoke services.</div>
+      <button class="vault-req-btn" onclick="toast('VIP Access Requested!')">Request VIP Access</button>
+    </div>
   </div>
-
-  <!-- PROFILE SCREEN -->
+  
+  <!-- PROFILE -->
   <div class="screen" id="sc-profile">
     <div class="profile-hero">
       <div class="profile-av-ring"><div class="profile-av" id="prof-av">👤</div></div>
-      <div class="profile-name" id="prof-name">The Billy <em>Living</em></div>
-      <div class="profile-vip-badge" id="prof-badge" style="display:none">VIP Client</div>
+      <div class="profile-name">The Billy <em>Living</em></div>
+      <div class="profile-vip-badge">Guest</div>
       <div class="profile-stats">
-        <div class="pstat"><div class="pstat-num" id="prof-saved">0</div><div class="pstat-lbl">Saved</div></div>
+        <div class="pstat"><div class="pstat-num">0</div><div class="pstat-lbl">Saved</div></div>
         <div class="pstat"><div class="pstat-num">—</div><div class="pstat-lbl">Tier</div></div>
-        <div class="pstat"><div class="pstat-num" id="prof-status">Guest</div><div class="pstat-lbl">Status</div></div>
+        <div class="pstat"><div class="pstat-num">Guest</div><div class="pstat-lbl">Status</div></div>
       </div>
       <div class="profile-actions">
-        <button class="pa-btn pa-gold" onclick="openWA()">💬 Chat Designer</button>
+        <button class="pa-btn pa-gold" onclick="toast('Chat Designer')">💬 Chat Designer</button>
         <button class="pa-btn pa-outline" onclick="nav('vault')">💎 VIP Vault</button>
       </div>
     </div>
-    <div class="profile-section-title">Saved Designs</div>
-    <div class="pf-grid" id="profile-saved-grid" style="padding:8px 3px"></div>
   </div>
-
-  <!-- AI CHAT SCREEN -->
+  
+  <!-- AI CHAT -->
   <div class="screen" id="sc-aichat">
     <div class="ai-chat-wrap">
       <div class="ai-msgs" id="ai-msgs">
@@ -551,454 +215,40 @@
       </div>
     </div>
   </div>
-
+  
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="nav('home')"><span class="nav-ico">🏠</span><span class="nav-lbl">Home</span></div>
+    <div class="nav-item" onclick="nav('trending')"><span class="nav-ico">🔥</span><span class="nav-lbl">Trending</span></div>
+    <div class="nav-item" onclick="nav('catalog')"><span class="nav-ico">🗂️</span><span class="nav-lbl">Catalog</span></div>
+    <div class="nav-item" onclick="nav('designer')"><span class="nav-ico">👗</span><span class="nav-lbl">Live Designer</span></div>
+    <div class="nav-item" onclick="nav('portfolio')"><span class="nav-ico">🖼️</span><span class="nav-lbl">Portfolio</span></div>
+  </nav>
 </div>
 
-<!-- BOTTOM NAV — outside #app so nothing can block it -->
-<nav class="bottom-nav">
-  <div class="nav-item active" id="n-home" onclick="nav('home')">
-    <span class="nav-ico">🏠</span><span class="nav-lbl">Home</span>
-  </div>
-  <div class="nav-item" id="n-trending" onclick="nav('trending')">
-    <span class="nav-ico">🔥</span><span class="nav-lbl">Trending</span>
-  </div>
-  <div class="nav-item" id="n-catalog" onclick="nav('catalog')">
-    <span class="nav-ico">🗂️</span><span class="nav-lbl">Catalog</span>
-  </div>
-  <div class="nav-item" id="n-designer" onclick="nav('designer')">
-    <span class="nav-ico">👗</span><span class="nav-lbl">Live Designer</span>
-  </div>
-  <div class="nav-item" id="n-portfolio" onclick="nav('portfolio')">
-    <span class="nav-ico">🖼️</span><span class="nav-lbl">Portfolio</span>
-  </div>
-  <div class="nav-item" id="n-vault" onclick="nav('vault')" style="display:none">
-    <span class="nav-ico">💎</span><span class="nav-lbl">VIP Vault</span>
-  </div>
-</nav>
+<div class="toast" id="toast"></div>
 
-<!-- Floating WhatsApp -->
-<button id="fab-wa" onclick="openWA()">
-  <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.104.544 4.082 1.497 5.804L0 24l6.305-1.654C8.02 23.447 9.977 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.892 0-3.663-.516-5.18-1.413l-.371-.22-3.844 1.008 1.026-3.741-.24-.386A9.94 9.94 0 0 1 2 12c0-5.514 4.486-10 10-10s10 4.486 10 10-4.486 10-10 10z"/></svg>
-</button>
-
-<!-- Share Sheet -->
-<div class="overlay" id="share-ov" onclick="if(event.target===this)closeShare()">
-  <div class="sht">
-    <div class="sht-handle"></div>
-    <div class="sht-head"><span class="sht-ttl">Send to</span><button class="sht-x" onclick="closeShare()">✕</button></div>
-    <div class="sht-sec">Direct Contacts</div>
-    <div class="contacts-row">
-      <div class="c-item" onclick="shareToDesigner()"><div class="c-av">👗</div><span class="c-name">Live Designer</span></div>
-      <div class="c-item" onclick="toast('AI Chat opening…');closeShare()"><div class="c-av" style="background:linear-gradient(135deg,#4B3BCC,#7A5AF8)">🤖</div><span class="c-name">AI Chat</span></div>
-      <div class="c-item" onclick="openWA();closeShare()"><div class="c-av" style="background:#0B6E4F">📱</div><span class="c-name">Designer (WhatsApp)</span></div>
-    </div>
-    <div class="sht-div"></div>
-    <div class="sht-sec">Apps & Actions</div>
-    <div class="apps-row">
-      <div class="a-item" onclick="openWA();closeShare()"><div class="a-ico wa"><svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.104.544 4.082 1.497 5.804L0 24l6.305-1.654C8.02 23.447 9.977 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.892 0-3.663-.516-5.18-1.413l-.371-.22-3.844 1.008 1.026-3.741-.24-.386A9.94 9.94 0 0 1 2 12c0-5.514 4.486-10 10-10s10 4.486 10 10-4.486 10-10 10z"/></svg></div><span class="a-name">WhatsApp</span></div>
-      <div class="a-item" onclick="copyLink()"><div class="a-ico">🔗</div><span class="a-name">Copy Link</span></div>
-      <div class="a-item" onclick="nativeShare()"><div class="a-ico">···</div><span class="a-name">More apps</span></div>
-    </div>
-  </div>
-</div>
-
-<div class="toast-el" id="toast-el"></div>
-
-<script src="firebase-config.js"></script>
-<script src="db.js"></script>
 <script>
-/* ── STATE ── */
-let currentUser = null;
-let currentScreen = 'home';
-let selPf = new Set();
-let allCatalog = [];
-let activeChip = 'All';
-const CHIPS = ['All','Living','Bedroom','Kitchen','Bathroom','Office','Outdoor','Dining',"Kids'"];
-
-/* ── AUTH ── */
-function switchTab(tab, el) {
-  document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('tab-login').style.display = tab==='login'?'block':'none';
-  document.getElementById('tab-signup').style.display = tab==='signup'?'block':'none';
-}
-
-function doLogin() {
-  const email = document.getElementById('login-email').value.trim();
-  const pass  = document.getElementById('login-pass').value;
-  const err   = document.getElementById('login-err');
-  err.style.display = 'none';
-  if (!email||!pass) { err.textContent='Please fill in all fields.'; err.style.display='block'; return; }
-  TBL_DB.read('vipUsers').then(vips => {
-    const match = vips.find(v=>v.email===email);
-    if (match) {
-      currentUser = { email, name:match.name, isVip:true, vipTier:match.tier, vipStatus:match.status, initials:match.initials };
-    } else {
-      const saved = JSON.parse(localStorage.getItem('tbl_clients')||'[]');
-      const client = saved.find(c=>c.email===email && c.pass===btoa(pass));
-      if (!client) { err.style.display='block'; return; }
-      currentUser = { email, name:client.name, isVip:false };
-    }
-    enterApp();
-  });
-}
-
-function doSignup() {
-  const name  = document.getElementById('sig-name').value.trim();
-  const email = document.getElementById('sig-email').value.trim();
-  const pass  = document.getElementById('sig-pass').value;
-  const err   = document.getElementById('sig-err');
-  err.style.display = 'none';
-  if (!name||!email||!pass) { err.textContent='Please fill in all fields.'; err.style.display='block'; return; }
-  const clients = JSON.parse(localStorage.getItem('tbl_clients')||'[]');
-  if (clients.find(c=>c.email===email)) { err.textContent='Account exists. Please sign in.'; err.style.display='block'; return; }
-  clients.push({ email, name, pass:btoa(pass) });
-  localStorage.setItem('tbl_clients', JSON.stringify(clients));
-  const entry = { id:TBL_DB.newId('v'), name, email, initials:name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2), tier:'Standard', status:'pending', joinedAt:Date.now() };
-  TBL_DB.read('vipUsers').then(vips => {
-    // NOTE: Client app has no write(). We store the request locally only.
-    // In Firebase production, use a Cloud Function triggered by auth to create the pending entry.
-    localStorage.setItem('tbl_pending_'+email, JSON.stringify(entry));
-  });
-  currentUser = { email, name, isVip:false, vipStatus:'pending' };
-  enterApp();
-  toast('Access requested! We\'ll confirm your VIP status within 24 hours.');
-}
-
-function guestEnter() {
-  currentUser = { email:null, name:'Guest', isVip:false };
-  enterApp();
-}
-
-function enterApp() {
-  const s = document.getElementById('splash');
-  s.style.opacity = '0';
-  setTimeout(()=>s.style.display='none', 400);
-  document.getElementById('app').style.display = 'flex';
-  if (currentUser.isVip && currentUser.vipStatus==='approved') {
-    document.getElementById('vip-pill').style.display = 'inline-flex';
-    document.getElementById('n-vault').style.display = 'flex';
-  }
-  TBL_DB.listen('posts', renderPosts);
-  TBL_DB.listen('stories', renderStories);
-  TBL_DB.listen('catalog', data=>{ allCatalog=data; renderCatalog(); });
-  TBL_DB.listen('designers', renderDesigners);
-  TBL_DB.listen('portfolio', renderPortfolio);
-  TBL_DB.listen('trending', renderTrending);
-  renderVault();
-}
-
-/* ── NAV ── */
+// Navigation
 function nav(screen) {
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  const sc = document.getElementById('sc-'+screen);
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const sc = document.getElementById('sc-' + screen);
   if (sc) sc.classList.add('active');
-  document.getElementById('n-'+screen)?.classList.add('active');
-  currentScreen = screen;
-  document.getElementById('fab-wa').classList.toggle('show', screen==='portfolio');
-  // Three icons are inside sc-home so they auto-hide with it
-  // Trending is full-screen TikTok style — hide top bar
-  const topBar = document.getElementById('top-bar-el');
-  if (topBar) topBar.style.display = screen==='trending' ? 'none' : '';
-  if (screen === 'profile') renderProfile();
-}
-
-/* ── RENDERERS (READ-ONLY) ── */
-function renderPosts(posts) {
-  if (!posts) return;
-  const pub = posts.filter(p=>p.published!==false);
-  document.getElementById('posts-wrap').innerHTML = pub.map(p=>`
-    <div class="post">
-      <div class="post-head">
-        <div class="post-author-row">
-          <div class="post-av">${(p.author||'T')[0]}</div>
-          <div class="post-author-info">
-            <div class="post-author-name">${p.author||'The Billy Living'}</div>
-            <div class="post-location">${p.location||'Lagos, Nigeria'}</div>
-          </div>
-        </div>
-        <span style="color:var(--ash);font-size:20px;padding:4px;cursor:pointer">⋯</span>
-      </div>
-      ${p.imageData ? `<img src="${p.imageData}" style="width:100%;max-height:380px;object-fit:cover;display:block">` 
-       : p.imageUrl ? `<img src="${p.imageUrl}" style="width:100%;max-height:380px;object-fit:cover;display:block" onerror="this.style.display='none'">` 
-       : `<div class="post-img">${p.emoji||'🏠'}</div>`}
-      ${p.title ? `<div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold);padding:10px 14px 0;font-style:italic">${p.title}</div>` : ''}
-      <div class="post-acts">
-        <button class="act-btn" onclick="toggleLike(this)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-          ${p.likes||0}
-        </button>
-        <button class="act-btn" onclick="openShare()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          Share
-        </button>
-        <button class="act-btn" onclick="toast('Saved to portfolio!')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-          Save
-        </button>
-      </div>
-      <div class="post-cap"><strong>${p.author||'The Billy Living'}</strong> ${p.caption||''}</div>
-    </div>`).join('');
-}
-
-function renderStories(stories) {
-  if (!stories) return;
-  document.getElementById('stories-row').innerHTML =
-    `<div class="story-wrap"><div class="story-ring"><div class="story-inner">➕</div></div><div class="story-lbl">Your Story</div></div>` +
-    stories.filter(s=>s.active!==false).map(s=>`
-      <div class="story-wrap" onclick="toast('Opening story')">
-        <div class="story-ring"><div class="story-inner">${s.emoji}</div></div>
-        <div class="story-lbl">${s.name}</div>
-      </div>`).join('');
-}
-
-function renderTrending(items) {
-  if (!items) return;
-  const feed = document.getElementById('trend-feed');
-  if (!feed) return;
-  feed.innerHTML = items.filter(i=>i.published!==false).map(t=>{
-    const bg = t.imageData ? `style="background-image:url(${t.imageData})"` 
-              : t.imageUrl  ? `style="background-image:url(${t.imageUrl})"` : '';
-    return `<div class="trend-card">
-      <div class="trend-card-bg" ${bg}></div>
-      ${!t.imageData && !t.imageUrl ? `<div class="trend-card-emoji">${t.emoji||'🔥'}</div>` : ''}
-      <div class="trend-card-overlay"></div>
-      <div class="trend-card-info">
-        ${t.badge ? `<div class="trend-card-badge">${t.badge}</div>` : ''}
-        <div class="trend-card-title">${t.title||''}</div>
-        ${t.caption ? `<div class="trend-card-caption">${t.caption}</div>` : ''}
-        <div class="trend-card-views">${t.views||'0'} views</div>
-      </div>
-      <div class="trend-card-side">
-        <button class="trend-side-btn" onclick="toggleLike(this)">
-          <div class="trend-side-ico">♡</div><span class="trend-side-lbl">${t.likes||0}</span>
-        </button>
-        <button class="trend-side-btn" onclick="openShare()">
-          <div class="trend-side-ico">↗</div><span class="trend-side-lbl">Share</span>
-        </button>
-        <button class="trend-side-btn" onclick="toast('Saved!')">
-          <div class="trend-side-ico">🔖</div><span class="trend-side-lbl">Save</span>
-        </button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-/* ══ ELITE PREFORMATS DATA ══ */
-const ELITE_TOPICS = [
-  { id:'ep01', topic:'Penthouse Serenity',      feeling:'Calm & Elevated',       mixtures:[{ id:'m1', label:'LUSTROUS ALABASTER & RECLAIMED WALNUT', swatches:['#F5F0E8','#8B6914','#C9A84C','#2D2114'] },{ id:'m2', label:'ONYX HDF & BRUSHED CHAMPAGNE BRASS', swatches:['#1A1A1A','#D4AF6A','#8A7A60','#F0EBE3'] }]},
-  { id:'ep02', topic:'Golden Hour Lounge',       feeling:'Warm & Rich',           mixtures:[{ id:'m1', label:'AMBER TRAVERTINE & SMOKED OAK',        swatches:['#C8956C','#4A3520','#D4AF6A','#8C7B5A'] },{ id:'m2', label:'BURNT SIENNA & POLISHED BRONZE',     swatches:['#8B3A1A','#B87333','#F5DEB3','#2D1810'] }]},
-  { id:'ep03', topic:'The Marble Sanctuary',     feeling:'Pure & High-End',       mixtures:[{ id:'m1', label:'CARRARA WHITE & NERO MARQUINA',         swatches:['#F8F6F0','#1A1A1A','#C9A84C','#9E9E9E'] },{ id:'m2', label:'THASSOS MARBLE & AGED BRASS',         swatches:['#FAFAFA','#B8963C','#E8E0D0','#7A6A4A'] }]},
-  { id:'ep04', topic:'Obsidian Executive Suite', feeling:'Power & Focus',         mixtures:[{ id:'m1', label:'MATTE BLACK & GUNMETAL GREY',           swatches:['#0A0A0A','#4A4A4A','#C9A84C','#2D2D2D'] },{ id:'m2', label:'CHARCOAL LACQUER & POLISHED NICKEL',  swatches:['#2D2D2D','#B0B8C1','#1A1A1A','#D4AF6A'] }]},
-  { id:'ep05', topic:'Champagne Dining',         feeling:'Elegant & Social',      mixtures:[{ id:'m1', label:'IVORY SILK & ROSE GOLD ACCENTS',        swatches:['#F8F0E3','#B76E79','#D4AF6A','#F5E6D0'] },{ id:'m2', label:'BLUSH LINEN & CHAMPAGNE METAL',        swatches:['#E8D5C4','#C9A84C','#F2E8D8','#8A6A50'] }]},
-  { id:'ep06', topic:'Midnight Master Suite',    feeling:'Deep & Exclusive',      mixtures:[{ id:'m1', label:'DEEP NAVY & BRUSHED GOLD',              swatches:['#0D1B2A','#C9A84C','#1E2D3D','#F0EBE3'] },{ id:'m2', label:'BURGUNDY VELVET & ANTIQUE BRASS',     swatches:['#5C1A2A','#B87333','#2D0F18','#D4AF6A'] }]},
-  { id:'ep07', topic:'The Ivory Atrium',         feeling:'Breathable Opulence',   mixtures:[{ id:'m1', label:'IVORY TRAVERTINE & PALE LINEN',         swatches:['#F5EDD8','#E8DFC8','#C9A84C','#D4CAB0'] },{ id:'m2', label:'CREAM TERRAZZO & WARM BRASS',          swatches:['#F0E8D0','#B8963C','#E0D8C0','#8A7A5A'] }]},
-  { id:'ep08', topic:'Emerald Oasis',            feeling:'Lush & Private',        mixtures:[{ id:'m1', label:'FOREST GREEN & AGED TEAK',              swatches:['#2D5016','#6B4A2A','#C9A84C','#1A3010'] },{ id:'m2', label:'SAGE PLASTER & RAW STONE',             swatches:['#8A9E78','#9E9080','#C9A84C','#F5F0E8'] }]},
-  { id:'ep09', topic:'Sapphire Pavilion',        feeling:'Bold & Majestic',       mixtures:[{ id:'m1', label:'COBALT BLUE & WHITE CARRARA',           swatches:['#1A3A6B','#F8F6F0','#C9A84C','#2D4A80'] },{ id:'m2', label:'MIDNIGHT BLUE & PLATINUM',             swatches:['#0D1B3E','#C0C0C0','#1A2D5A','#D4AF6A'] }]},
-  { id:'ep10', topic:'Walnut Grandeur',          feeling:'Earthy & Timeless',     mixtures:[{ id:'m1', label:'BLACK WALNUT & BRUSHED COPPER',         swatches:['#3D2010','#B87333','#5A3020','#C9A84C'] },{ id:'m2', label:'OAK VENEER & WARM STONE',              swatches:['#8B6914','#C8A882','#5A4530','#F5EDD8'] }]},
-  { id:'ep11', topic:'Velvet Monolith',          feeling:'Soft & Imposing',       mixtures:[{ id:'m1', label:'DEEP PLUM VELVET & NOIR LACQUER',       swatches:['#3D1040','#0A0A0A','#C9A84C','#7A2080'] },{ id:'m2', label:'CHARCOAL VELVET & BRUSHED STEEL',      swatches:['#2D2D2D','#A0A8B0','#1A1A1A','#D4AF6A'] }]},
-  { id:'ep12', topic:'Cashmere Quarters',        feeling:'Warm & Tailored',       mixtures:[{ id:'m1', label:'WARM TAUPE & COGNAC LEATHER',           swatches:['#C4A882','#8B5A2B','#E8DCC8','#D4AF6A'] },{ id:'m2', label:'SAND LINEN & ANTIQUE GOLD',            swatches:['#D4C4A0','#C9A84C','#E8DCC8','#8A7A5A'] }]},
-  { id:'ep13', topic:'Platinum Foyer',           feeling:'Sleek & Welcoming',     mixtures:[{ id:'m1', label:'PLATINUM PLASTER & MIRROR GLASS',       swatches:['#C0C0C0','#F8F8F8','#C9A84C','#8A8A8A'] },{ id:'m2', label:'SILVER TRAVERTINE & WHITE OAK',        swatches:['#D0D0D0','#F0E8D8','#B8B0A0','#C9A84C'] }]},
-  { id:'ep14', topic:'The Quartz Gallery',       feeling:'Sharp & Brilliant',     mixtures:[{ id:'m1', label:'CRYSTAL QUARTZ & LACQUERED WHITE',      swatches:['#F8F8F8','#E8E8E8','#C9A84C','#D0D0D0'] },{ id:'m2', label:'SMOKY QUARTZ & DARK BRONZE',            swatches:['#8A8A7A','#5A4A2A','#2D2820','#D4AF6A'] }]},
-  { id:'ep15', topic:'Onyx Corridor',            feeling:'Dark & Seamless',       mixtures:[{ id:'m1', label:'NERO ONYX & POLISHED BLACK',            swatches:['#0A0A0A','#1A1A1A','#C9A84C','#2D2D2D'] },{ id:'m2', label:'BLACK MARBLE & BRASS INLAY',           swatches:['#0D0D0D','#B8963C','#1E1E1E','#8A7A5A'] }]},
-  { id:'ep16', topic:'Gilded Solarium',          feeling:'Sunlit & Lavish',       mixtures:[{ id:'m1', label:'GOLDEN SANDSTONE & AMBER GLASS',        swatches:['#D4A843','#C87C28','#F5DEB3','#8B6914'] },{ id:'m2', label:'HONEY TRAVERTINE & POLISHED BRASS',    swatches:['#C8956C','#C9A84C','#F0D898','#8A6A30'] }]},
-  { id:'ep17', topic:'The Pearl Alcove',         feeling:'Luminous & Rare',       mixtures:[{ id:'m1', label:'PEARL WHITE & IRIDESCENT TILE',         swatches:['#F8F4F0','#E8E0D8','#C9A84C','#D8D0C8'] },{ id:'m2', label:'OYSTER PLASTER & ROSE GOLD',           swatches:['#E8DED4','#B76E79','#F8F4F0','#D4AF6A'] }]},
-  { id:'ep18', topic:'Charcoal Minimalist',      feeling:'Striking & Clean',      mixtures:[{ id:'m1', label:'CHARCOAL CONCRETE & MATTE WHITE',       swatches:['#3D3D3D','#F5F5F5','#C9A84C','#2D2D2D'] },{ id:'m2', label:'GRAPHITE PLASTER & PALE TIMBER',       swatches:['#4A4A4A','#E8DCC8','#2D2D2D','#C9A84C'] }]},
-  { id:'ep19', topic:'Alabaster Haven',          feeling:'Bright & Weightless',   mixtures:[{ id:'m1', label:'ALABASTER WHITE & WARM LINEN',          swatches:['#F5F0E8','#E8DCC8','#C9A84C','#D8D0B8'] },{ id:'m2', label:'CLOUD WHITE & POLISHED LIMESTONE',     swatches:['#FAFAFA','#D8D0C0','#C9A84C','#E8E0D0'] }]},
-  { id:'ep20', topic:'The Greige Estate',        feeling:'Balanced & Wealthy',    mixtures:[{ id:'m1', label:'WARM GREIGE & BRUSHED NICKEL',          swatches:['#C8C0B0','#A0A8B0','#C9A84C','#D8D0C0'] },{ id:'m2', label:'STONE GREY & NATURAL OAK',             swatches:['#9A9488','#C8A882','#5A5040','#D4AF6A'] }]},
-  { id:'ep21', topic:'Brass Horizon',            feeling:'Reflective & Infinite', mixtures:[{ id:'m1', label:'BURNISHED BRASS & TINTED MIRROR',       swatches:['#B87333','#8A6A30','#C9A84C','#F8F4E8'] },{ id:'m2', label:'ANTIQUE BRASS & SMOKED GLASS',         swatches:['#8B6914','#4A3A20','#C9A84C','#2D2820'] }]},
-  { id:'ep22', topic:'The Monarch Suite',        feeling:'Absolute Pinnacle',     mixtures:[{ id:'m1', label:'IMPERIAL GOLD & EBONY',                 swatches:['#C9A84C','#0D0D0D','#D4AF6A','#1A1A1A'] },{ id:'m2', label:'ROYAL VELVET & GILT BRONZE',           swatches:['#3D1040','#8B5E3C','#C9A84C','#2D0D30'] }]},
-];
-
-const ROOM_TYPES = [
-  { key:'living',   label:'Living Room',  icon:'🛋️' },
-  { key:'bedroom',  label:'Bed Room',     icon:'🛏️' },
-  { key:'kitchen',  label:'Kitchen',      icon:'🍽️' },
-  { key:'toilet',   label:'Toilet',       icon:'🚿' },
-  { key:'passage',  label:'Passage Way',  icon:'🚪' },
-  { key:'restroom', label:'Rest Room',    icon:'🛁' },
-];
-
-let catLevel = 1;
-let selectedTopic = null;
-let selectedMixture = null;
-
-function renderCatalog() {
-  document.getElementById('ep-grid').innerHTML = ELITE_TOPICS.map(t => `
-    <div class="ep-cell" onclick="catOpenMixtures('${t.id}')">
-      <div class="ep-cell-header">
-        <div class="ep-cell-topic"><strong>TOPIC:</strong> ${t.topic}</div>
-        <div class="ep-cell-feeling"><strong>FEELING:</strong> ${t.feeling}</div>
-      </div>
-      <div class="ep-cell-img">
-        <div class="ep-placeholder-ico">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="1"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        </div>
-        <div class="ep-placeholder-lbl">TAP TO ADD PROJECT IMAGE (0/168)</div>
-      </div>
-    </div>`).join('');
-}
-
-function catOpenMixtures(topicId) {
-  selectedTopic = ELITE_TOPICS.find(t => t.id === topicId);
-  if (!selectedTopic) return;
-  document.getElementById('mix-title').textContent = selectedTopic.topic.toUpperCase() + ': CONFIGURATION';
-  document.getElementById('mix-grid').innerHTML = selectedTopic.mixtures.map((m, i) => `
-    <div class="mix-card">
-      <div class="mix-card-header">
-        <div class="mix-card-label"><strong>MIXTURE ${i+1}:</strong> ${m.label}</div>
-      </div>
-      <div class="mix-card-img">
-        <div class="mix-card-ph">
-          <div class="ep-placeholder-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="1"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
-        </div>
-      </div>
-      <div class="mix-swatches">${m.swatches.map(s => `<div class="mix-swatch" style="background:${s}"></div>`).join('')}</div>
-      <button class="mix-select-btn" onclick="catOpenRooms('${topicId}','${m.id}',\`${m.label}\`)">SELECT THIS MIXTURE</button>
-    </div>`).join('');
-  catShowLevel(2);
-}
-
-function catOpenRooms(topicId, mixId, mixLabel) {
-  selectedTopic = ELITE_TOPICS.find(t => t.id === topicId);
-  selectedMixture = mixLabel;
-  document.getElementById('room-title').textContent = selectedTopic.topic.toUpperCase() + ': ROOM GALLERY';
-  document.getElementById('room-mix').textContent = 'MIXTURE: ' + mixLabel;
-  document.getElementById('room-body').innerHTML = ROOM_TYPES.map(room => `
-    <div class="room-section">
-      <div class="room-section-title">${room.icon} ${room.label}</div>
-      <div class="room-ph-grid">${[1,2,3,4].map(() => `
-        <div class="room-ph">
-          <div class="room-ph-inner">
-            <div class="room-ph-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="1"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
-            <div class="room-ph-lbl">Add Image</div>
-          </div>
-        </div>`).join('')}
-      </div>
-    </div>`).join('');
-  catShowLevel(3);
-}
-
-function catShowLevel(n) {
-  catLevel = n;
-  document.getElementById('cat-l1').style.display = n===1 ? 'block' : 'none';
-  const l2 = document.getElementById('cat-l2'); l2.className = 'mix-screen' + (n===2?' active':'');
-  const l3 = document.getElementById('cat-l3'); l3.className = 'room-screen' + (n===3?' active':'');
-}
-
-function catBack(toLevelN) { catShowLevel(toLevelN); }
-
-let activeChip = 'All';
-function setChip() {}
-function filterCats() {}
-
-function renderDesigners(designers) {
-  if (!designers) return;
-  document.getElementById('des-grid').innerHTML = designers.map(d=>`
-    <div class="dc-card">
-      <div class="dc-av">${d.initials}<div class="dc-dot ${d.online?'on':'off'}"></div></div>
-      <div class="dc-info">
-        <div class="dc-name">${d.name}</div>
-        <div class="dc-spec">${d.specialty}</div>
-        <div class="dc-tags">${(d.tags||[]).map(t=>`<span class="dc-tag">${t}</span>`).join('')}</div>
-      </div>
-      <button class="dc-btn" onclick="chatDesigner('${d.whatsapp||''}')">${d.online?'Chat':'Book'}</button>
-    </div>`).join('');
-}
-
-function renderPortfolio(items) {
-  if (!items) return;
-  const pub = items.filter(i=>i.published!==false);
-  document.getElementById('pf-grid').innerHTML = pub.map(item=>`
-    <div class="pf-item ${selPf.has(item.id)?'sel':''}" onclick="toggleSel('${item.id}')">${item.emoji}</div>`).join('');
-}
-
-function renderVault() {
-  const inner = document.getElementById('vault-inner');
-  if (!currentUser||!currentUser.isVip) {
-    inner.innerHTML = `<div class="vault-gate"><div class="vault-icon">💎</div><div class="vault-title">The VIP <em>Vault</em></div><div class="vault-desc">Exclusive access to private design collections, early releases, and bespoke services — reserved for our VIP clients.</div><button class="vault-req-btn" onclick="reqVip()">Request VIP Access</button></div>`;
-    return;
+  const navItems = {'home':0, 'trending':1, 'catalog':2, 'designer':3, 'portfolio':4};
+  if (navItems[screen] !== undefined) {
+    document.querySelectorAll('.nav-item')[navItems[screen]].classList.add('active');
   }
-  if (currentUser.vipStatus==='pending') {
-    inner.innerHTML = `<div class="pending-screen"><div class="pending-icon">⏳</div><div class="pending-title">Access Pending</div><div class="pending-desc">Your VIP application is under review. Our studio team will confirm within 24 hours.</div></div>`;
-    return;
-  }
-  const exclusives = [
-    {emoji:'🏛️',title:'Banana Island Penthouse',sub:'Private Collection · 12 designs'},
-    {emoji:'🌊',title:'Oceanfront Suite',sub:'Exclusive · 8 designs'},
-    {emoji:'✨',title:'Gold Edition Bedroom',sub:'Limited · 6 designs'},
-    {emoji:'🖼️',title:'Art-Deco Collection',sub:'VIP Only · 14 designs'},
-  ];
-  inner.innerHTML = `<div class="sec-h" style="padding-top:6px">VIP <em>Vault</em></div><div class="vault-grid">${exclusives.map(e=>`<div class="vault-card" onclick="toast('Opening exclusive collection…')"><div class="vault-img">${e.emoji}</div><div class="vault-info"><div class="vault-card-title">${e.title}</div><div class="vault-card-sub">${e.sub}</div></div></div>`).join('')}</div>`;
 }
 
-/* ── PORTFOLIO SELECTION ── */
-function toggleSel(id) {
-  if (selPf.has(id)) selPf.delete(id); else selPf.add(id);
-  updateSelBar(); TBL_DB.read('portfolio').then(renderPortfolio);
-}
-function updateSelBar() {
-  const n=selPf.size;
-  document.getElementById('sel-bar').classList.toggle('show',n>0);
-  document.getElementById('sel-count').textContent=`${n} item${n!==1?'s':''} selected`;
-}
-function clearSel() { selPf.clear(); updateSelBar(); TBL_DB.read('portfolio').then(renderPortfolio); }
-function selAll() { TBL_DB.read('portfolio').then(items=>{ items.filter(i=>i.published!==false).forEach(i=>selPf.add(i.id)); updateSelBar(); renderPortfolio(items); }); }
-
-/* ── SHARE ── */
-function openShare() {
-  if (currentScreen==='portfolio' && selPf.size===0) { toast('Tap items to select first'); return; }
-  document.getElementById('share-ov').classList.add('open');
-}
-function closeShare() { document.getElementById('share-ov').classList.remove('open'); }
-function shareToDesigner() { closeShare(); openWA(); }
-function copyLink() { closeShare(); navigator.clipboard?.writeText(window.location.href).catch(()=>{}); toast('Link copied!'); }
-function nativeShare() {
-  closeShare();
-  if (navigator.share) navigator.share({title:'The Billy Living',text:'Check out these designs',url:window.location.href}).catch(()=>{});
-  else toast('Sharing not available on this browser');
-}
-
-/* ── MISC ── */
-function openWA() {
-  TBL_DB.read('meta').then(m=>{
-    const num=(m.whatsappNumber||'+2349000000000').replace(/\D/g,'');
-    const msg=encodeURIComponent(m.waMessage||'Hello, I found you on The Billy Living app.');
-    window.open(`https://wa.me/${num}?text=${msg}`,'_blank');
-  });
-}
-function chatDesigner(num) { const n=num.replace(/\D/g,''); window.open(`https://wa.me/${n}`,'_blank'); }
-function toggleLike(btn) {
-  btn.classList.toggle('liked');
-  const cn=btn.childNodes[btn.childNodes.length-1];
-  const old=parseInt(cn.textContent.trim())||0;
-  cn.textContent=btn.classList.contains('liked')?old+1:old-1;
-}
-function reqVip() {
-  if (!currentUser?.email) { toast('Please sign in to request VIP access'); return; }
-  toast('VIP access requested. We will be in touch within 24 hours.');
-}
-
+// Toast
 function toast(msg) {
-  const t=document.getElementById('toast-el');
-  t.textContent=msg; t.classList.add('show');
-  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2600);
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
 }
 
-
-/* ── AI CHAT ── */
-function openAIChat() { nav('aichat'); }
-const aiResponses = [
-  'For Nigerian luxury interiors, warm earth tones paired with gold accents create an elegant and culturally rich atmosphere.',
-  'Open-plan living works beautifully in Lagos homes. Try using a statement rug to define the sitting area.',
-  'For bedrooms, soft lighting with pendant lamps on either side of the bed adds a boutique hotel feel.',
-  'Marble surfaces in the kitchen pair wonderfully with dark cabinetry for a high-end editorial look.',
-  'Consider louvred shutters for windows — they are both traditional and timeless in Nigerian architecture.',
-  'For small spaces, mirrors placed opposite windows double the perceived space and light.',
-  'A bespoke headboard in textured fabric transforms an ordinary bedroom into a luxury suite.',
-];
-let aiIdx = 0;
+// AI Chat
 function sendAI() {
   const inp = document.getElementById('ai-inp');
   const q = inp.value.trim();
@@ -1008,79 +258,125 @@ function sendAI() {
   inp.value = '';
   msgs.scrollTop = msgs.scrollHeight;
   setTimeout(() => {
-    const reply = aiResponses[aiIdx % aiResponses.length]; aiIdx++;
-    msgs.innerHTML += `<div class="ai-msg bot">${reply}</div>`;
+    const replies = [
+      'For Nigerian luxury interiors, warm earth tones paired with gold accents create an elegant atmosphere.',
+      'Open-plan living works beautifully in Lagos homes. Try using a statement rug to define spaces.',
+      'For bedrooms, soft lighting with pendant lamps adds a boutique hotel feel.',
+      'Marble surfaces in the kitchen pair wonderfully with dark cabinetry.',
+      'Consider louvred shutters for windows — traditional and timeless in Nigerian architecture.'
+    ];
+    msgs.innerHTML += `<div class="ai-msg bot">${replies[Math.floor(Math.random()*replies.length)]}</div>`;
     msgs.scrollTop = msgs.scrollHeight;
-  }, 900);
+  }, 800);
 }
 
-/* ── PROFILE ── */
-function renderProfile() {
-  const name = currentUser?.name || 'Guest';
-  const isVip = currentUser?.isVip && currentUser?.vipStatus === 'approved';
-  document.getElementById('prof-av').textContent = name === 'Guest' ? '👤' : name.charAt(0).toUpperCase();
-  document.getElementById('prof-name').innerHTML = name === 'Guest' ? 'Browse as <em>Guest</em>' : name;
-  document.getElementById('prof-badge').style.display = isVip ? 'inline-block' : 'none';
-  document.getElementById('prof-status').textContent = isVip ? 'VIP' : (currentUser?.email ? 'Member' : 'Guest');
-  TBL_DB.read('portfolio').then(items => {
-    const pub = items.filter(i => i.published !== false);
-    document.getElementById('profile-saved-grid').innerHTML = pub.slice(0,4).map(item =>
-      `<div class="pf-item" onclick="nav('portfolio')">${item.emoji}</div>`
-    ).join('') || '<div style="padding:20px;color:var(--ash);font-size:12px;text-align:center">No saved designs yet</div>';
-  });
-}
+// Render Stories
+const stories = [
+  {emoji: '➕', name: 'Your Story'},
+  {emoji: '🏛️', name: 'Studio'},
+  {emoji: '✨', name: 'New Work'},
+  {emoji: '🌿', name: 'Nature'},
+  {emoji: '🏠', name: 'Penthouse'},
+  {emoji: '🌊', name: 'Ocean'}
+];
 
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+document.getElementById('stories-row').innerHTML = stories.map(s => `
+  <div class="story-wrap" onclick="toast('${s.name}')">
+    <div class="story-ring"><div class="story-inner">${s.emoji}</div></div>
+    <div class="story-lbl">${s.name}</div>
+  </div>
+`).join('');
 
-// Auto-enter app directly — no login screen
-window.addEventListener('DOMContentLoaded', () => {
-  currentUser = { email: null, name: 'Guest', isVip: false };
+// Render Posts
+const posts = [
+  {emoji: '🛋️', author: 'The Billy Living', location: 'Lagos Island', caption: 'Luxury living redefined. Every detail crafted for the discerning eye.', likes: 124},
+  {emoji: '🏛️', author: 'The Billy Living', location: 'Victoria Island', caption: 'Where elegance meets comfort. Our signature penthouse collection.', likes: 89},
+  {emoji: '🪴', author: 'The Billy Living', location: 'Lekki', caption: 'Bringing nature indoors — biophilic design at its finest.', likes: 210}
+];
 
-  // ── DEMO DATA so the app never shows blank ──
-  const DEMO_POSTS = [
-    { id:'d1', published:true, emoji:'🛋️', author:'The Billy Living', location:'Lagos Island, Lagos', caption:'Luxury living redefined. Every detail crafted for the discerning eye.', likes:124 },
-    { id:'d2', published:true, emoji:'🏛️', author:'The Billy Living', location:'Victoria Island, Lagos', caption:'Where elegance meets comfort. Our signature penthouse collection.', likes:89 },
-    { id:'d3', published:true, emoji:'🪴', author:'The Billy Living', location:'Lekki, Lagos', caption:'Bringing nature indoors — biophilic design at its finest.', likes:210 },
-  ];
-  const DEMO_CATALOG = [
-    { id:'c1', published:true, emoji:'🛋️', name:'Living Room', desc:'Calm · Rest · Warmth', color:'#C9A84C', count:12 },
-    { id:'c2', published:true, emoji:'🛏️', name:'Bedroom',     desc:'Peace · Luxury · Sleep', color:'#7A8FA6', count:8 },
-    { id:'c3', published:true, emoji:'🍽️', name:'Dining',      desc:'Style · Gathering · Taste', color:'#8A6A3A', count:6 },
-    { id:'c4', published:true, emoji:'🛁', name:'Bathroom',    desc:'Spa · Calm · Clean', color:'#4A8A7A', count:5 },
-  ];
-  const DEMO_TRENDING = [
-    { id:'t1', published:true, emoji:'🏙️', title:'Lagos Penthouse Reveal', views:'24.5K', badge:'Trending' },
-    { id:'t2', published:true, emoji:'🌿', title:'Biophilic Living 2025',  views:'18.2K', badge:'Hot' },
-    { id:'t3', published:true, emoji:'🕯️', title:'Moody Interiors',        views:'12.1K', badge:'' },
-    { id:'t4', published:true, emoji:'🪑', title:'Minimal Luxury Chairs',  views:'9.8K',  badge:'' },
-  ];
-  const DEMO_DESIGNERS = [
-    { id:'des1', name:'Clinton Ayooluwa', initials:'CA', specialty:'Lead Designer · Luxury Residential', online:true, whatsapp:'' },
-    { id:'des2', name:'Amara Osei',       initials:'AO', specialty:'Interior Styling · West African',   online:false, whatsapp:'' },
-  ];
-  const DEMO_STORIES = [
-    { id:'s1', active:true, emoji:'🏛️', name:'Studio' },
-    { id:'s2', active:true, emoji:'✨', name:'New Work' },
-    { id:'s3', active:true, emoji:'🌿', name:'Nature' },
-  ];
+document.getElementById('posts-wrap').innerHTML = posts.map(p => `
+  <div class="post">
+    <div class="post-head">
+      <div class="post-av">${p.author[0]}</div>
+      <div class="post-author-info">
+        <div class="post-author-name">${p.author}</div>
+        <div class="post-location">📍 ${p.location}</div>
+      </div>
+    </div>
+    <div class="post-img">${p.emoji}</div>
+    <div class="post-acts">
+      <button class="act-btn" onclick="toast('Liked!')">❤️ ${p.likes}</button>
+      <button class="act-btn" onclick="toast('Shared!')">↗️ Share</button>
+      <button class="act-btn" onclick="toast('Saved!')">🔖 Save</button>
+    </div>
+    <div style="font-size:13px;line-height:1.6;color:#DDD1B8;margin-top:10px"><strong>${p.author}</strong> ${p.caption}</div>
+  </div>
+`).join('');
 
-  // Render demo data immediately
-  renderPosts(DEMO_POSTS);
-  renderStories(DEMO_STORIES);
-  allCatalog = DEMO_CATALOG; renderCatalog();
-  renderDesigners(DEMO_DESIGNERS);
-  renderTrending(DEMO_TRENDING);
-  renderPortfolio([]);
-  renderVault();
+// Render Trending
+const trending = [
+  {emoji: '🏙️', title: 'Lagos Penthouse Reveal', views: '24.5K'},
+  {emoji: '🌿', title: 'Biophilic Living 2025', views: '18.2K'},
+  {emoji: '🕯️', title: 'Moody Interiors', views: '12.1K'},
+  {emoji: '🪑', title: 'Minimal Luxury Chairs', views: '9.8K'}
+];
 
-  // Then listen for real data from Firebase — will replace demo when it arrives
-  TBL_DB.listen('posts',     data => { if(data && data.length) renderPosts(data); });
-  TBL_DB.listen('stories',   data => { if(data && data.length) renderStories(data); });
-  TBL_DB.listen('catalog',   data => { if(data && data.length){ allCatalog=data; renderCatalog(); } });
-  TBL_DB.listen('designers', data => { if(data && data.length) renderDesigners(data); });
-  TBL_DB.listen('portfolio', data => { if(data) renderPortfolio(data); });
-  TBL_DB.listen('trending',  data => { if(data && data.length) renderTrending(data); });
-});
+document.getElementById('trend-feed').innerHTML = trending.map(t => `
+  <div class="post" style="margin-bottom:10px" onclick="toast('${t.title}')">
+    <div style="display:flex;align-items:center;gap:15px;padding:15px">
+      <div style="font-size:48px">${t.emoji}</div>
+      <div style="flex:1">
+        <div style="font-size:16px;font-weight:500">${t.title}</div>
+        <div style="font-size:12px;color:var(--ash);margin-top:4px">${t.views} views</div>
+      </div>
+    </div>
+  </div>
+`).join('');
+
+// Render Catalog
+const catalog = [
+  {topic: 'Penthouse Serenity', feeling: 'Calm & Elevated'},
+  {topic: 'Golden Hour Lounge', feeling: 'Warm & Rich'},
+  {topic: 'The Marble Sanctuary', feeling: 'Pure & High-End'},
+  {topic: 'Obsidian Executive Suite', feeling: 'Power & Focus'},
+  {topic: 'Champagne Dining', feeling: 'Elegant & Social'},
+  {topic: 'Midnight Master Suite', feeling: 'Deep & Exclusive'}
+];
+
+document.getElementById('ep-grid').innerHTML = catalog.map(c => `
+  <div class="ep-cell" onclick="toast('${c.topic}')">
+    <div class="ep-cell-topic"><strong>TOPIC:</strong> ${c.topic}</div>
+    <div class="ep-cell-feeling"><strong>FEELING:</strong> ${c.feeling}</div>
+    <div class="ep-placeholder-ico">🖼️</div>
+    <div class="ep-placeholder-lbl">Tap to view</div>
+  </div>
+`).join('');
+
+// Render Designers
+const designers = [
+  {name: 'Clinton Ayooluwa', initials: 'CA', specialty: 'Lead Designer · Luxury Residential', online: true, tags: ['Modern', 'Classic']},
+  {name: 'Amara Osei', initials: 'AO', specialty: 'Interior Styling · West African', online: false, tags: ['Bohemian', 'Art Deco']}
+];
+
+document.getElementById('des-grid').innerHTML = designers.map(d => `
+  <div class="dc-card">
+    <div class="dc-av">${d.initials}<div class="dc-dot ${d.online?'':'off'}"></div></div>
+    <div class="dc-info">
+      <div class="dc-name">${d.name}</div>
+      <div class="dc-spec">${d.specialty}</div>
+      <div class="dc-tags">${d.tags.map(t => `<span class="dc-tag">${t}</span>`).join('')}</div>
+    </div>
+    <button class="dc-btn" onclick="toast('Chat with ${d.name}')">${d.online?'Chat':'Book'}</button>
+  </div>
+`).join('');
+
+// Render Portfolio
+const portfolio = ['🛋️', '🏛️', '🪴', '🛏️', '🍽️', '🛁', '🖼️', '✨'];
+
+document.getElementById('pf-grid').innerHTML = portfolio.map(p => `
+  <div class="pf-item" onclick="toast('Portfolio item')">${p}</div>
+`).join('');
 </script>
+
 </body>
 </html>
