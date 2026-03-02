@@ -1,1523 +1,1663 @@
+<!-- admin.html - Billy Living Admin Dashboard -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Billy Living Interior - Admin Dashboard</title>
+    <title>Billy Living - Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         :root {
-            --bg-primary: #0f0f0f;
-            --bg-secondary: #1a1a1a;
-            --bg-card: #242424;
-            --bg-hover: #2d2d2d;
-            --text-primary: #ffffff;
-            --text-secondary: #9ca3af;
-            --text-muted: #6b7280;
-            --accent-gold: #c9a227;
-            --accent-gold-light: #d4af37;
-            --border-color: #2d2d2d;
-            --border-light: #3d3d3d;
+            --bg-primary: #120D06;
+            --bg-card: #1E160C;
+            --bg-secondary: #2A1F14;
+            --text-primary: #F5F0E8;
+            --text-secondary: #A89B8C;
+            --gold: #C9A84C;
+            --gold-light: #E8D5A3;
+            --success: #2E5B3C;
+            --danger: #8B0000;
         }
-        
+
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--bg-primary);
+            font-family: 'Jost', sans-serif;
+            background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
-            overflow: hidden;
-        }
-        
-        .app-container {
             display: flex;
-            height: 100vh;
         }
-        
+
+        /* Sidebar */
         .sidebar {
-            width: 260px;
-            background-color: var(--bg-secondary);
-            border-right: 1px solid var(--border-color);
+            width: 280px;
+            background: var(--bg-card);
+            border-right: 1px solid rgba(201, 169, 98, 0.1);
+            padding: 24px;
             display: flex;
             flex-direction: column;
+            gap: 32px;
+            position: fixed;
+            height: 100vh;
             overflow-y: auto;
         }
-        
+
         .sidebar-header {
-            padding: 20px;
             display: flex;
             align-items: center;
             gap: 12px;
-            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 24px;
+            border-bottom: 1px solid rgba(201, 169, 98, 0.1);
         }
-        
-        .menu-btn {
-            width: 20px;
-            height: 14px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            cursor: pointer;
-        }
-        
-        .menu-btn span {
-            height: 2px;
-            background-color: var(--text-primary);
-            border-radius: 1px;
-        }
-        
-        .menu-btn span:nth-child(1) { width: 20px; }
-        .menu-btn span:nth-child(2) { width: 16px; }
-        .menu-btn span:nth-child(3) { width: 18px; }
-        
-        .sidebar-title {
-            font-size: 15px;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-        }
-        
-        .sidebar-section {
-            padding: 8px 0;
-        }
-        
-        .sidebar-divider {
-            height: 1px;
-            background-color: var(--border-color);
-            margin: 8px 0;
-        }
-        
-        .sidebar-item {
-            display: flex;
-            align-items: center;
-            padding: 10px 20px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 13px;
-            color: var(--text-secondary);
-            gap: 12px;
-        }
-        
-        .sidebar-item:hover {
-            background-color: var(--bg-hover);
-            color: var(--text-primary);
-        }
-        
-        .sidebar-item.active {
-            background-color: var(--bg-hover);
-            color: var(--text-primary);
-            border-left: 3px solid var(--accent-gold);
-            padding-left: 17px;
-        }
-        
-        .sidebar-icon {
-            width: 18px;
-            height: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-        }
-        
-        .sidebar-badge {
-            margin-left: auto;
-            background-color: var(--accent-gold);
-            color: var(--bg-primary);
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 700;
-        }
-        
-        .section-label {
-            padding: 16px 20px 8px;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-        
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            background-color: var(--bg-primary);
-        }
-        
-        .top-bar {
-            height: 64px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 24px;
-            border-bottom: 1px solid var(--border-color);
-            background-color: var(--bg-secondary);
-        }
-        
-        .page-title {
-            font-size: 18px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-        
-        .top-actions {
-            display: flex;
-            gap: 12px;
-        }
-        
-        .icon-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-light);
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 16px;
-        }
-        
-        .icon-btn:hover {
-            background-color: var(--bg-hover);
-            color: var(--text-primary);
-            border-color: var(--accent-gold);
-        }
-        
-        .content-grid {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 1fr 360px;
-            gap: 20px;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        
-        .center-col, .right-col {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-        
-        .card {
-            background-color: var(--bg-secondary);
+
+        .sidebar-logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--gold), #B8860B);
             border-radius: 12px;
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-        }
-        
-        .card-header {
-            padding: 16px 20px;
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
         }
-        
-        .card-title-group {
-            flex: 1;
+
+        .sidebar-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--gold);
         }
-        
-        .card-label {
+
+        .nav-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .nav-section-title {
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            color: var(--text-muted);
+            color: var(--text-secondary);
+            margin-bottom: 8px;
             font-weight: 600;
-            margin-bottom: 4px;
         }
-        
-        .card-title {
-            font-size: 15px;
-            font-weight: 600;
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-secondary);
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: rgba(201, 169, 98, 0.1);
             color: var(--text-primary);
         }
-        
-        .card-subtitle {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-top: 2px;
+
+        .nav-item.active {
+            background: rgba(201, 169, 98, 0.15);
+            color: var(--gold);
         }
-        
-        .card-actions {
+
+        .nav-badge {
+            position: absolute;
+            right: 16px;
+            background: var(--gold);
+            color: var(--bg-primary);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 32px;
+            min-height: 100vh;
+        }
+
+        .page-header {
             display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 36px;
+            font-weight: 600;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: none;
+            font-family: 'Jost', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
             gap: 8px;
         }
-        
-        .card-body {
-            padding: 0 20px 20px;
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold), #B8860B);
+            color: var(--bg-primary);
         }
-        
-        .hero-card {
-            position: relative;
-            height: 240px;
-            border-radius: 12px;
-            overflow: hidden;
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(201, 169, 98, 0.3);
         }
-        
-        .hero-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-primary);
+            border: 1px solid rgba(201, 169, 98, 0.3);
         }
-        
-        .hero-gradient {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
         }
-        
-        .hero-content {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(201, 169, 98, 0.1);
+            border-radius: 16px;
             padding: 24px;
         }
-        
-        .hero-title {
-            font-size: 22px;
-            font-weight: 600;
+
+        .stat-value {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--gold);
             margin-bottom: 8px;
         }
-        
-        .hero-meta {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            font-size: 13px;
+
+        .stat-label {
             color: var(--text-secondary);
+            font-size: 14px;
         }
-        
-        .hero-meta span {
+
+        /* Quick Actions */
+        .quick-actions {
             display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .image-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
             gap: 12px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
         }
-        
-        .image-card {
-            background-color: var(--bg-card);
-            border-radius: 8px;
+
+        /* Content Panels */
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Lists */
+        .list-container {
+            background: var(--bg-card);
+            border: 1px solid rgba(201, 169, 98, 0.1);
+            border-radius: 16px;
             overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s;
-            border: 1px solid transparent;
         }
-        
-        .image-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--accent-gold);
-        }
-        
-        .image-card img {
-            width: 100%;
-            height: 90px;
-            object-fit: cover;
-        }
-        
-        .image-card-info {
-            padding: 10px;
-        }
-        
-        .image-card-title {
-            font-size: 12px;
-            font-weight: 500;
-            margin-bottom: 2px;
-        }
-        
-        .image-card-sub {
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-        
+
         .list-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 12px;
-            background-color: var(--bg-card);
-            border-radius: 8px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            transition: border-color 0.2s;
-            border: 1px solid transparent;
-        }
-        
-        .list-item:hover {
-            border-color: var(--accent-gold);
-        }
-        
-        .list-icon {
-            width: 36px;
-            height: 36px;
-            background-color: var(--bg-secondary);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-        }
-        
-        .list-content {
-            flex: 1;
-        }
-        
-        .list-title {
-            font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 2px;
-        }
-        
-        .list-desc {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-        
-        .list-arrow {
-            color: var(--text-muted);
-            font-size: 18px;
-        }
-        
-        .btn-gold {
-            background-color: var(--accent-gold);
-            color: #000;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            width: 100%;
-        }
-        
-        .btn-gold:hover {
-            background-color: var(--accent-gold-light);
-        }
-        
-        .btn-outline {
-            background-color: transparent;
-            border: 1px solid var(--border-light);
-            color: var(--text-primary);
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s;
-            width: 100%;
-        }
-        
-        .btn-outline:hover {
-            border-color: var(--accent-gold);
-            color: var(--accent-gold);
-        }
-        
-        .form-group {
-            margin-bottom: 16px;
-        }
-        
-        .form-label {
-            display: block;
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .form-input, .form-select {
-            width: 100%;
-            padding: 12px;
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-light);
-            border-radius: 6px;
-            color: var(--text-primary);
-            font-size: 14px;
-            transition: border-color 0.2s;
-        }
-        
-        .form-input:focus, .form-select:focus {
-            outline: none;
-            border-color: var(--accent-gold);
-        }
-        
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-        
-        .upload-box {
-            border: 2px dashed var(--border-light);
-            border-radius: 8px;
-            padding: 40px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .upload-box:hover {
-            border-color: var(--accent-gold);
-            background-color: rgba(201, 162, 39, 0.05);
-        }
-        
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .data-table th {
-            text-align: left;
-            padding: 12px;
-            font-size: 11px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .data-table td {
-            padding: 12px;
-            font-size: 13px;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--text-secondary);
-        }
-        
-        .data-table tr:hover td {
-            background-color: var(--bg-hover);
-            color: var(--text-primary);
-        }
-        
-        .tabs {
-            display: flex;
-            gap: 4px;
-            padding: 0 20px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .tab {
-            padding: 12px 16px;
-            font-size: 13px;
-            color: var(--text-muted);
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s;
-        }
-        
-        .tab.active {
-            color: var(--accent-gold);
-            border-bottom-color: var(--accent-gold);
-        }
-        
-        .tab:hover {
-            color: var(--text-primary);
-        }
-        
-        .catalog-container {
             padding: 20px;
+            border-bottom: 1px solid rgba(201, 169, 98, 0.1);
+            gap: 16px;
         }
-        
-        .catalog-grid {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 8px;
+
+        .list-item:last-child {
+            border-bottom: none;
         }
-        
-        .catalog-slot {
-            aspect-ratio: 1;
-            background-color: var(--bg-card);
-            border: 1px dashed var(--border-light);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
+
+        .list-item:hover {
+            background: rgba(201, 169, 98, 0.05);
+        }
+
+        .list-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            background: var(--bg-secondary);
             overflow: hidden;
+            flex-shrink: 0;
         }
-        
-        .catalog-slot:hover {
-            border-color: var(--accent-gold);
-            border-style: solid;
-        }
-        
-        .catalog-slot.filled {
-            border-style: solid;
-            border-color: var(--accent-gold);
-        }
-        
-        .catalog-slot img {
+
+        .list-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
-        
-        .slot-num {
-            position: absolute;
-            top: 4px;
-            left: 4px;
-            background: rgba(0,0,0,0.8);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 10px;
+
+        .list-info {
+            flex: 1;
         }
-        
-        .modal-overlay {
+
+        .list-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .list-meta {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .list-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .toggle-switch {
+            width: 48px;
+            height: 26px;
+            background: var(--bg-secondary);
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: var(--success);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            left: 24px;
+        }
+
+        /* Forms */
+        .form-modal {
             display: none;
             position: fixed;
-            inset: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: rgba(0,0,0,0.8);
             z-index: 1000;
             align-items: center;
             justify-content: center;
             padding: 20px;
         }
-        
-        .modal-overlay.active {
+
+        .form-modal.active {
             display: flex;
         }
-        
-        .modal {
-            background: var(--bg-secondary);
-            border-radius: 12px;
+
+        .form-container {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 32px;
             width: 100%;
-            max-width: 480px;
-            border: 1px solid var(--border-color);
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(201, 169, 98, 0.2);
         }
-        
-        .modal-header {
+
+        .form-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 28px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(201, 169, 98, 0.2);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'Jost', sans-serif;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            border-color: var(--gold);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .image-upload {
+            border: 2px dashed rgba(201, 169, 98, 0.3);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .image-upload:hover {
+            border-color: var(--gold);
+            background: rgba(201, 169, 98, 0.05);
+        }
+
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 10px;
+            margin-top: 12px;
+        }
+
+        /* VIP Manager */
+        .vip-form {
+            background: var(--bg-card);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(201, 169, 98, 0.1);
+        }
+
+        .vip-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .vip-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(201, 169, 98, 0.1);
+            border-radius: 16px;
             padding: 20px;
-            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .vip-card.status-pending {
+            border-left: 4px solid var(--gold);
+        }
+
+        .vip-card.status-active {
+            border-left: 4px solid var(--success);
+        }
+
+        .vip-card.status-rejected {
+            border-left: 4px solid var(--danger);
+        }
+
+        .vip-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .vip-phone {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .vip-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .vip-btn {
+            flex: 1;
+            padding: 8px;
+            border-radius: 8px;
+            border: none;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* Chat Layout */
+        .chat-layout {
+            display: flex;
+            height: calc(100vh - 140px);
+            background: var(--bg-card);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(201, 169, 98, 0.1);
+        }
+
+        .chat-sidebar {
+            width: 35%;
+            border-right: 1px solid rgba(201, 169, 98, 0.1);
+            overflow-y: auto;
+        }
+
+        .chat-conversation {
+            padding: 16px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(201, 169, 98, 0.1);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .chat-conversation:hover {
+            background: rgba(201, 169, 98, 0.05);
+        }
+
+        .chat-conversation.active {
+            background: rgba(201, 169, 98, 0.1);
+            border-left: 3px solid var(--gold);
+        }
+
+        .chat-conversation.unread::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            right: 16px;
+            width: 8px;
+            height: 8px;
+            background: var(--gold);
+            border-radius: 50%;
+        }
+
+        .conversation-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .conversation-preview {
+            font-size: 13px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .conversation-meta {
             display: flex;
             justify-content: space-between;
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header-bar {
+            padding: 20px;
+            border-bottom: 1px solid rgba(201, 169, 98, 0.1);
+            display: flex;
             align-items: center;
+            gap: 12px;
         }
-        
-        .modal-title {
-            font-size: 16px;
-            font-weight: 600;
+
+        .chat-messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
-        
-        .modal-close {
-            background: none;
+
+        .chat-message {
+            max-width: 70%;
+            padding: 14px 18px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .chat-message.customer {
+            align-self: flex-start;
+            background: #2D2114;
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-message.designer {
+            align-self: flex-end;
+            background: var(--gold);
+            color: var(--bg-primary);
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-message-portfolio {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .chat-message-portfolio-item {
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .chat-message-portfolio-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .portfolio-label {
+            font-size: 11px;
+            color: var(--gold);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .chat-input-area {
+            padding: 20px;
+            border-top: 1px solid rgba(201, 169, 98, 0.1);
+            display: flex;
+            gap: 12px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 14px 18px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(201, 169, 98, 0.2);
+            border-radius: 24px;
+            color: var(--text-primary);
+            font-family: 'Jost', sans-serif;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .chat-send-btn {
+            width: 48px;
+            height: 48px;
+            background: var(--gold);
             border: none;
-            color: var(--text-muted);
-            font-size: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--bg-primary);
+            font-size: 20px;
             cursor: pointer;
         }
-        
-        .modal-body {
-            padding: 20px;
+
+        /* Catalog Image Manager */
+        .image-manager {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-top: 16px;
         }
-        
+
+        .managed-image {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            background: var(--bg-secondary);
+        }
+
+        .managed-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .managed-image-delete {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            background: var(--danger);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .add-image-slot {
+            aspect-ratio: 1;
+            border: 2px dashed rgba(201, 169, 98, 0.3);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-secondary);
+        }
+
+        .add-image-slot:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Toast */
         .toast {
             position: fixed;
-            bottom: 24px;
-            right: 24px;
-            background: var(--accent-gold);
-            color: #000;
-            padding: 14px 24px;
-            border-radius: 8px;
-            font-weight: 600;
+            bottom: 32px;
+            right: 32px;
+            background: var(--bg-card);
+            color: var(--gold);
+            padding: 16px 24px;
+            border-radius: 12px;
+            border: 1px solid rgba(201, 169, 98, 0.3);
             font-size: 14px;
-            display: none;
             z-index: 2000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s;
         }
-        
+
         .toast.show {
-            display: block;
-            animation: slideIn 0.3s ease;
+            opacity: 1;
+            transform: translateY(0);
         }
-        
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        .section-content {
-            display: none;
-        }
-        
-        .section-content.active {
-            display: contents;
-        }
-        
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: var(--bg-primary);
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: var(--border-light);
-            border-radius: 3px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--text-muted);
-        }
-        
+
+        /* Responsive */
         @media (max-width: 1200px) {
-            .content-grid {
-                grid-template-columns: 1fr;
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
-            .right-col {
-                order: -1;
+            .vip-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
-            .catalog-grid {
-                grid-template-columns: repeat(4, 1fr);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            body {
+                flex-direction: column;
             }
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <nav class="sidebar">
-            <div class="sidebar-header">
-                <div class="menu-btn">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-                <span class="sidebar-title">Hidden Dashboard</span>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">👑</div>
+            <div class="sidebar-title">Billy Living</div>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">Overview</div>
+            <div class="nav-item active" onclick="showPanel('dashboard', this)">
+                <span>📊</span>
+                <span>Dashboard</span>
             </div>
-            
-            <div class="sidebar-section">
-                <div class="sidebar-item active" onclick="navigate('dashboard')">
-                    <span class="sidebar-icon">1.</span>
-                    <span>Hidden Dashboard</span>
-                </div>
-                <div class="sidebar-item" onclick="navigate('brief')">
-                    <span class="sidebar-icon">📋</span>
-                    <span>Brief Manager</span>
-                </div>
-                <div class="sidebar-item" onclick="navigate('smart')">
-                    <span class="sidebar-icon">🏷️</span>
-                    <span>Smart Tags (Folio to Hot)</span>
-                    <span class="sidebar-badge">NEW</span>
-                </div>
-                <div class="sidebar-item">
-                    <span class="sidebar-icon">🎨</span>
-                    <span>Untitled (Opacity/Position)</span>
-                </div>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">Content</div>
+            <div class="nav-item" onclick="showPanel('home', this)">
+                <span>🏠</span>
+                <span>Home</span>
             </div>
-            
-            <div class="sidebar-divider"></div>
-            
-            <div class="section-label">Admin Panels</div>
-            <div class="sidebar-section">
-                <div class="sidebar-item" onclick="navigate('content')">
-                    <span class="sidebar-icon">📝</span>
-                    <span>Mood to Multify</span>
-                </div>
-                <div class="sidebar-item">
-                    <span class="sidebar-icon">📊</span>
-                    <span>Deconde Daily (story/ Mngm)</span>
-                </div>
-                <div class="sidebar-item">
-                    <span class="sidebar-icon">🚀</span>
-                    <span>Project Heros</span>
-                </div>
+            <div class="nav-item" onclick="showPanel('catalog', this)">
+                <span>📁</span>
+                <span>Catalog</span>
             </div>
-            
-            <div class="sidebar-divider"></div>
-            
-            <div class="section-label">Trends</div>
-            <div class="sidebar-section">
-                <div class="sidebar-item" onclick="navigate('catalog')">
-                    <span class="sidebar-icon">📁</span>
-                    <span>High- Deposibly HDF</span>
-                </div>
-                <div class="sidebar-item">
-                    <span class="sidebar-icon">🎨</span>
-                    <span>Branding</span>
-                </div>
-                <div class="sidebar-item" onclick="navigate('vault')">
-                    <span class="sidebar-icon">🔒</span>
-                    <span>Vault</span>
-                </div>
-                <div class="sidebar-item">
-                    <span class="sidebar-icon">📐</span>
-                    <span>Untensils</span>
-                </div>
-                <div class="sidebar-item">
-                    <span class="sidebar-icon">⚡</span>
-                    <span>High Durability</span>
-                </div>
-                <div class="sidebar-item">
-                    <span class="sidebar-icon">🎵</span>
-                    <span>Personafr Muzik</span>
-                </div>
-                <div class="sidebar-item">
-                    <span class="sidebar-icon">📋</span>
-                    <span>Project Tracker</span>
-                </div>
-                <div class="sidebar-item">
-                    <span class="sidebar-icon">🎯</span>
-                    <span>D'Loofer Hsueh Mposds</span>
-                </div>
-                <div class="sidebar-item">
-                    <span class="sidebar-icon">📱</span>
-                    <span>Responsive UI</span>
-                </div>
+            <div class="nav-item" onclick="showPanel('trending', this)">
+                <span>🔥</span>
+                <span>Trending</span>
             </div>
-        </nav>
+            <div class="nav-item" onclick="showPanel('portfolio', this)">
+                <span>🖼️</span>
+                <span>Portfolio</span>
+            </div>
+            <div class="nav-item" onclick="showPanel('designers', this)">
+                <span>👔</span>
+                <span>Designers</span>
+            </div>
+        </div>
 
-        <main class="main-content">
-            <header class="top-bar">
-                <h1 class="page-title" id="page-title">The Billy Living</h1>
-                <div class="top-actions">
-                    <button class="icon-btn">🔍</button>
-                    <button class="icon-btn">🔔</button>
-                    <button class="icon-btn">👤</button>
+        <div class="nav-section">
+            <div class="nav-section-title">Clients</div>
+            <div class="nav-item" onclick="showPanel('vip', this)">
+                <span>⭐</span>
+                <span>VIP Manager</span>
+                <span class="nav-badge" id="vipBadge">0</span>
+            </div>
+            <div class="nav-item" onclick="showPanel('chats', this)">
+                <span>💬</span>
+                <span>Chats</span>
+                <span class="nav-badge" id="chatBadge">0</span>
+            </div>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">System</div>
+            <div class="nav-item" onclick="showPanel('settings', this)">
+                <span>⚙️</span>
+                <span>Settings</span>
+            </div>
+            <div class="nav-item" onclick="showPanel('security', this)">
+                <span>🔒</span>
+                <span>Security</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard Panel -->
+        <div class="panel active" id="panel-dashboard">
+            <div class="page-header">
+                <h1 class="page-title">Dashboard</h1>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="statPosts">0</div>
+                    <div class="stat-label">Total Posts</div>
                 </div>
-            </header>
-
-            <div class="content-grid">
-                <div id="dashboard-view" class="section-content active">
-                    <div class="center-col">
-                        <div class="card hero-card">
-                            <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1200" class="hero-image" alt="Hero">
-                            <div class="hero-gradient"></div>
-                            <div class="hero-content">
-                                <h2 class="hero-title">Featured Project</h2>
-                                <div class="hero-meta">
-                                    <span>🏷️ Smart Tech Tag</span>
-                                    <span>●</span>
-                                    <span>Day / Glow</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title-group">
-                                    <div class="card-label">CATALOGS</div>
-                                    <div class="card-title">The Handover Ceremony</div>
-                                </div>
-                                <div class="card-actions">
-                                    <button class="icon-btn">⚙️</button>
-                                    <button class="icon-btn">📤</button>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <div class="image-grid">
-                                    <div class="image-card" onclick="openCatalog(1)">
-                                        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400" alt="">
-                                        <div class="image-card-info">
-                                            <div class="image-card-title">12 Wood</div>
-                                            <div class="image-card-sub">Interior Design</div>
-                                        </div>
-                                    </div>
-                                    <div class="image-card" onclick="openCatalog(2)">
-                                        <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400" alt="">
-                                        <div class="image-card-info">
-                                            <div class="image-card-title">Nexdene Gallery</div>
-                                            <div class="image-card-sub">Palette A-B</div>
-                                        </div>
-                                    </div>
-                                    <div class="image-card" onclick="openCatalog(3)">
-                                        <img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=400" alt="">
-                                        <div class="image-card-info">
-                                            <div class="image-card-title">Day Watch</div>
-                                            <div class="image-card-sub">Digital Art</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title-group">
-                                    <div class="card-label">THE RODLY</div>
-                                    <div class="card-title">Prehistoric Seraids</div>
-                                    <div class="card-subtitle">6 BDSB sensors | 3 sensor Toggles</div>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <div class="list-item">
-                                    <div class="list-icon">🖼️</div>
-                                    <div class="list-content">
-                                        <div class="list-title">Preview My Space</div>
-                                        <div class="list-desc">Day / Black</div>
-                                    </div>
-                                    <span class="list-arrow">›</span>
-                                </div>
-                                <div class="list-item">
-                                    <div class="list-icon">🎨</div>
-                                    <div class="list-content">
-                                        <div class="list-title">9 scale in</div>
-                                        <div class="list-desc">but My Space</div>
-                                    </div>
-                                    <span class="list-arrow">›</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title-group">
-                                    <div class="card-label">SELECTION</div>
-                                    <div class="card-title">The Bones of Scenes</div>
-                                </div>
-                                <div class="card-actions">
-                                    <button class="icon-btn">⚙️</button>
-                                    <button class="icon-btn">📤</button>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <div class="image-grid">
-                                    <div class="image-card">
-                                        <img src="https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=400" alt="">
-                                        <div class="image-card-info">
-                                            <div class="image-card-title">12 Mosaic D'dene</div>
-                                            <div class="image-card-sub">Int. Arch /AB</div>
-                                        </div>
-                                    </div>
-                                    <div class="image-card">
-                                        <img src="https://images.unsplash.com/photo-1600573472550-8090b5e0745e?w=400" alt="">
-                                        <div class="image-card-info">
-                                            <div class="image-card-title">12 Sheer Past</div>
-                                            <div class="image-card-sub">View Arch /AB</div>
-                                        </div>
-                                    </div>
-                                    <div class="image-card">
-                                        <img src="https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=400" alt="">
-                                        <div class="image-card-info">
-                                            <div class="image-card-title">11.9 E' Galleymore</div>
-                                            <div class="image-card-sub">Palette A-A</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title-group">
-                                    <div class="card-title">Behind and Scenes</div>
-                                </div>
-                                <div class="card-actions">
-                                    <button class="icon-btn">⚙️</button>
-                                    <button class="icon-btn">📤</button>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <div class="image-grid">
-                                    <div class="image-card">
-                                        <img src="https://images.unsplash.com/photo-1600210491892-03d54c0aaf87?w=400" alt="">
-                                        <div class="image-card-info">
-                                            <div class="image-card-title">12 A'mond VIP</div>
-                                            <div class="image-card-sub">Interior Arch</div>
-                                        </div>
-                                    </div>
-                                    <div class="image-card">
-                                        <img src="https://images.unsplash.com/photo-1600585154363-67eb9e2e2099?w=400" alt="">
-                                        <div class="image-card-info">
-                                            <div class="image-card-title">18 Silver Galaxy</div>
-                                            <div class="image-card-sub">Palette/B</div>
-                                        </div>
-                                    </div>
-                                    <div class="image-card">
-                                        <img src="https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=400" alt="">
-                                        <div class="image-card-info">
-                                            <div class="image-card-title">Velvet black</div>
-                                            <div class="image-card-sub">Impactful</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="right-col">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title-group">
-                                    <div class="card-title">The Handover Ceremony</div>
-                                    <div class="card-subtitle">Color Mixer Pediatry</div>
-                                </div>
-                                <div class="card-actions">
-                                    <button class="icon-btn">⚙️</button>
-                                    <button class="icon-btn">📤</button>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <div class="image-grid">
-                                    <div class="image-card">
-                                        <img src="https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=400" alt="">
-                                        <div class="image-card-info">
-                                            <div class="image-card-title">Smart Living</div>
-                                            <div class="image-card-sub">Interior Arch</div>
-                                        </div>
-                                    </div>
-                                    <div class="image-card">
-                                        <img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=400" alt="">
-                                        <div class="image-card-info">
-                                            <div class="image-card-title">Nexdene Gallery</div>
-                                            <div class="image-card-sub">Palette A-B</div>
-                                        </div>
-                                    </div>
-                                    <div class="image-card">
-                                        <img src="https://images.unsplash.com/photo-1600585152220-90363fe7e115?w=400" alt="">
-                                        <div class="image-card-info">
-                                            <div class="image-card-title">Velvet black 1k</div>
-                                            <div class="image-card-sub">Interior Arch</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title-group">
-                                    <div class="card-label">MOOODS</div>
-                                    <div class="card-title">Monthly Trend Report</div>
-                                </div>
-                                <div class="card-actions">
-                                    <button class="icon-btn">🔔</button>
-                                    <button class="icon-btn">⚙️</button>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <div class="image-grid">
-                                    <div class="image-card">
-                                        <img src="https://images.unsplash.com/photo-1600210491369-e753d80a41f3?w=400" alt="">
-                                        <div class="image-card-info">
-                                            <div class="image-card-title">12 March & more</div>
-                                            <div class="image-card-sub">Watch Arch</div>
-                                        </div>
-                                    </div>
-                                    <div class="image-card">
-                                        <img src="https://images.unsplash.com/photo-1600566752229-250ed79470f8?w=400" alt="">
-                                        <div class="image-card-info">
-                                            <div class="image-card-title">Day Wear</div>
-                                            <div class="image-card-sub">the Best ABD</div>
-                                        </div>
-                                    </div>
-                                    <div class="image-card">
-                                        <img src="https://images.unsplash.com/photo-1600607688969-a5bfcd646154?w=400" alt="">
-                                        <div class="image-card-info">
-                                            <div class="image-card-title">Day Glow</div>
-                                            <div class="image-card-sub">Prismatic A</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="list-item" style="margin-top: 12px;">
-                                    <div class="list-icon">📊</div>
-                                    <div class="list-content">
-                                        <div class="list-title">Load Stickers</div>
-                                    </div>
-                                    <span class="list-arrow">›</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title-group">
-                                    <div class="card-label">THE VAULT</div>
-                                    <div class="card-title">Investment Guide</div>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px;">
-                                    Designed Brief Architectural<br>
-                                    If you want to know more about the brief, click the button below.
-                                </p>
-                                <button class="btn-gold" style="margin-bottom: 16px;">VIEW BRIEF</button>
-                                
-                                <div class="list-item">
-                                    <div class="list-icon">💬</div>
-                                    <div class="list-content">
-                                        <div class="list-title">Chat/Appt</div>
-                                        <div class="list-desc">Designer Chat Button</div>
-                                    </div>
-                                </div>
-                                <div style="padding: 12px; background: var(--bg-card); border-radius: 6px; margin-top: 12px;">
-                                    <div style="font-size: 12px; color: var(--text-muted);">PWD: 2345671770</div>
-                                </div>
-                                <button class="btn-outline" style="margin-top: 16px;">+ Schedule Now</button>
-                            </div>
-                        </div>
-
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title">Speak with Clinton</div>
-                            </div>
-                            <div style="padding: 0;">
-                                <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=600" style="width: 100%; height: 180px; object-fit: cover;">
-                                <div style="padding: 16px; text-align: right;">
-                                    <span style="font-family: Georgia, serif; font-style: italic; color: var(--accent-gold); font-size: 14px;">Signature here</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statTrending">0</div>
+                    <div class="stat-label">Total Trending</div>
                 </div>
-
-                <div id="content-view" class="section-content" style="grid-column: 1 / -1;">
-                    <div style="max-width: 900px; margin: 0 auto;">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title-group">
-                                    <div class="card-title">Add New Post</div>
-                                    <div class="card-subtitle">Create content for Home or Trending feeds</div>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <form id="post-form">
-                                    <input type="hidden" id="post-id">
-                                    <div class="form-row">
-                                        <div class="form-group">
-                                            <label class="form-label">Topic</label>
-                                            <input type="text" class="form-input" id="topic" placeholder="e.g., Modern Living Room" required>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">Feeling/Mood</label>
-                                            <input type="text" class="form-input" id="feeling" placeholder="e.g., Cozy, Luxurious" required>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Location</label>
-                                        <input type="text" class="form-input" id="location" placeholder="e.g., Lekki, Abuja" required>
-                                    </div>
-                                    
-                                    <div class="form-row">
-                                        <div class="form-group">
-                                            <label class="form-label">Feed Type</label>
-                                            <select class="form-select" id="feed-type" required>
-                                                <option value="">Select Feed Type</option>
-                                                <option value="Home">Home Feed</option>
-                                                <option value="Trending">Trending</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">Posted Date</label>
-                                            <input type="date" class="form-input" id="posted-date" required>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                                            <input type="checkbox" id="is-vip" style="width: 18px; height: 18px; accent-color: var(--accent-gold);">
-                                            <span style="font-size: 14px;">VIP Content Only</span>
-                                        </label>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Image / Video</label>
-                                        <div class="upload-box" onclick="document.getElementById('media-file').click()">
-                                            <div style="font-size: 32px; margin-bottom: 8px;">📁</div>
-                                            <div style="font-size: 14px; margin-bottom: 4px;">Click to upload media</div>
-                                            <div style="font-size: 12px; color: var(--text-muted);">Supports JPG, PNG, MP4</div>
-                                        </div>
-                                        <input type="file" id="media-file" accept="image/*,video/*" style="display: none;" onchange="previewMedia(this)">
-                                        <img id="media-preview" style="max-width: 100%; max-height: 200px; margin-top: 16px; border-radius: 8px; display: none;">
-                                    </div>
-                                    
-                                    <div style="display: flex; gap: 12px;">
-                                        <button type="submit" class="btn-gold" style="width: auto;">Publish Post</button>
-                                        <button type="button" class="btn-outline" style="width: auto;" onclick="resetForm()">Cancel</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-
-                        <div class="card">
-                            <div class="tabs">
-                                <div class="tab active" onclick="filterPosts('all')">All Posts</div>
-                                <div class="tab" onclick="filterPosts('Home')">Home Feed</div>
-                                <div class="tab" onclick="filterPosts('Trending')">Trending</div>
-                                <div class="tab" onclick="filterPosts('VIP')">VIP Only</div>
-                            </div>
-                            <div style="padding: 20px;">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Media</th>
-                                            <th>Topic</th>
-                                            <th>Feed</th>
-                                            <th>VIP</th>
-                                            <th>Likes</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="posts-table-body"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statDesigners">0</div>
+                    <div class="stat-label">Total Designers</div>
                 </div>
-
-                <div id="catalog-view" class="section-content" style="grid-column: 1 / -1;">
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title-group">
-                                <div class="card-title">Catalog Management</div>
-                                <div class="card-subtitle">168 Slots Available</div>
-                            </div>
-                            <button class="btn-gold" style="width: auto;" onclick="openCatalogModal()">+ Add Item</button>
-                        </div>
-                        <div class="catalog-container">
-                            <div class="catalog-grid" id="catalog-grid"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="vault-view" class="section-content" style="grid-column: 1 / -1;">
-                    <div style="max-width: 900px; margin: 0 auto;">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title-group">
-                                    <div class="card-title">Register VIP Client</div>
-                                    <div class="card-subtitle">Create VIP access credentials</div>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <form id="vip-form">
-                                    <div class="form-row">
-                                        <div class="form-group">
-                                            <label class="form-label">Phone Number</label>
-                                            <input type="tel" class="form-input" id="vip-phone" placeholder="+234..." required>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">Client Name</label>
-                                            <input type="text" class="form-input" id="vip-name" placeholder="Full name" required>
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Password</label>
-                                        <div style="display: flex; gap: 12px;">
-                                            <input type="text" class="form-input" id="vip-password" placeholder="Auto-generated or custom" required style="flex: 1;">
-                                            <button type="button" class="btn-outline" style="width: auto;" onclick="generatePassword()">Generate</button>
-                                        </div>
-                                    </div>
-                                    <button type="submit" class="btn-gold" style="width: auto;">Register VIP</button>
-                                </form>
-                            </div>
-                        </div>
-
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title">VIP Clients</div>
-                            </div>
-                            <div style="padding: 20px;">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Phone</th>
-                                            <th>Status</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="vip-table-body"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statPendingVIP">0</div>
+                    <div class="stat-label">Pending VIP Requests</div>
                 </div>
             </div>
-        </main>
-    </div>
-
-    <div class="modal-overlay" id="catalog-modal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title">Add to Catalog</h3>
-                <button class="modal-close" onclick="closeCatalogModal()">&times;</button>
+            <div class="quick-actions">
+                <button class="btn btn-primary" onclick="openForm('post')">+ Add Post</button>
+                <button class="btn btn-primary" onclick="openForm('trending')">+ Add Trending</button>
+                <button class="btn btn-primary" onclick="openForm('designer')">+ Add Designer</button>
+                <button class="btn btn-secondary" onclick="showPanel('vip', null)">View VIP Requests</button>
             </div>
-            <div class="modal-body">
-                <form id="catalog-form">
+        </div>
+
+        <!-- Home Panel -->
+        <div class="panel" id="panel-home">
+            <div class="page-header">
+                <h1 class="page-title">Home Posts</h1>
+                <button class="btn btn-primary" onclick="openForm('post')">+ Add Post</button>
+            </div>
+            <div class="list-container" id="homeList"></div>
+        </div>
+
+        <!-- Catalog Panel -->
+        <div class="panel" id="panel-catalog">
+            <div class="page-header">
+                <h1 class="page-title">Catalog Manager</h1>
+                <button class="btn btn-primary" onclick="openForm('category')">+ Add Category</button>
+            </div>
+            <div class="list-container" id="catalogList"></div>
+        </div>
+
+        <!-- Trending Panel -->
+        <div class="panel" id="panel-trending">
+            <div class="page-header">
+                <h1 class="page-title">Trending Items</h1>
+                <button class="btn btn-primary" onclick="openForm('trending')">+ Add Trending</button>
+            </div>
+            <div class="list-container" id="trendingList"></div>
+        </div>
+
+        <!-- Portfolio Panel -->
+        <div class="panel" id="panel-portfolio">
+            <div class="page-header">
+                <h1 class="page-title">Portfolio Items</h1>
+                <button class="btn btn-primary" onclick="openForm('portfolio')">+ Add Item</button>
+            </div>
+            <div class="list-container" id="portfolioList"></div>
+        </div>
+
+        <!-- Designers Panel -->
+        <div class="panel" id="panel-designers">
+            <div class="page-header">
+                <h1 class="page-title">Designers</h1>
+                <button class="btn btn-primary" onclick="openForm('designer')">+ Add Designer</button>
+            </div>
+            <div class="list-container" id="designersList"></div>
+        </div>
+
+        <!-- VIP Manager Panel -->
+        <div class="panel" id="panel-vip">
+            <div class="page-header">
+                <h1 class="page-title">VIP Manager</h1>
+            </div>
+            <div class="vip-form">
+                <h3 style="margin-bottom: 16px; color: var(--gold);">Register New VIP</h3>
+                <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Slot Number (1-168)</label>
-                        <input type="number" class="form-input" id="catalog-slot" min="1" max="168" required>
+                        <label class="form-label">Phone Number (10 digits)</label>
+                        <input type="tel" class="form-input" id="vipPhone" placeholder="08012345678" maxlength="10">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Title/Label</label>
-                        <input type="text" class="form-input" id="catalog-label" placeholder="e.g., Modern Minimalist" required>
+                        <label class="form-label">4-Digit Code</label>
+                        <input type="text" class="form-input" id="vipCode" placeholder="4521" maxlength="4">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Image</label>
-                        <input type="file" class="form-input" id="catalog-image" accept="image/*" required onchange="previewCatalogImage(this)">
-                        <img id="catalog-preview" style="max-width: 100%; max-height: 150px; margin-top: 12px; border-radius: 6px; display: none;">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-input" id="vipName" placeholder="Mr. Adeyemi">
                     </div>
-                    <div style="display: flex; gap: 12px;">
-                        <button type="submit" class="btn-gold" style="width: auto;">Save</button>
-                        <button type="button" class="btn-outline" style="width: auto;" onclick="closeCatalogModal()">Cancel</button>
+                </div>
+                <button class="btn btn-primary" onclick="addVIP()" style="margin-top: 16px;">Add VIP Member</button>
+            </div>
+            <h3 style="margin: 32px 0 16px; color: var(--gold);">Registered VIPs</h3>
+            <div class="vip-grid" id="vipGrid"></div>
+        </div>
+
+        <!-- Chats Panel -->
+        <div class="panel" id="panel-chats">
+            <div class="page-header">
+                <h1 class="page-title">Client Messages</h1>
+            </div>
+            <div class="chat-layout">
+                <div class="chat-sidebar" id="chatSidebar"></div>
+                <div class="chat-main" id="chatMain">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💬</div>
+                        <p>Select a conversation to view messages</p>
                     </div>
-                </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Panel -->
+        <div class="panel" id="panel-settings">
+            <div class="page-header">
+                <h1 class="page-title">Settings</h1>
+            </div>
+            <div class="form-container" style="max-width: 600px;">
+                <div class="form-group">
+                    <label class="form-label">App Name</label>
+                    <input type="text" class="form-input" id="settingAppName" value="Billy Living">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">WhatsApp Number</label>
+                    <input type="text" class="form-input" id="settingWhatsApp" value="+2348084410220">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">WhatsApp Message</label>
+                    <input type="text" class="form-input" id="settingWhatsAppMsg" value="Hello, I'm interested in your interior design services">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Booking Link</label>
+                    <input type="text" class="form-input" id="settingBooking" value="https://calendly.com/billyliving">
+                </div>
+                <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+            </div>
+        </div>
+
+        <!-- Security Panel -->
+        <div class="panel" id="panel-security">
+            <div class="page-header">
+                <h1 class="page-title">Security</h1>
+            </div>
+            <div class="form-container" style="max-width: 600px;">
+                <div class="form-group">
+                    <label class="form-label">Current Admin Password</label>
+                    <input type="text" class="form-input" id="currentPassword" value="admin123" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">New Password</label>
+                    <input type="password" class="form-input" id="newPassword" placeholder="Enter new password">
+                </div>
+                <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Form Modal -->
+    <div class="form-modal" id="formModal">
+        <div class="form-container">
+            <h2 class="form-title" id="formTitle">Add New</h2>
+            <div id="formContent"></div>
+            <div style="display: flex; gap: 12px; margin-top: 24px;">
+                <button class="btn btn-secondary" onclick="closeForm()" style="flex: 1;">Cancel</button>
+                <button class="btn btn-primary" onclick="submitForm()" style="flex: 1;">Save</button>
             </div>
         </div>
     </div>
 
+    <!-- Toast -->
     <div class="toast" id="toast"></div>
 
     <script>
-        let posts = JSON.parse(localStorage.getItem('billy_posts')) || [];
-        let vipUsers = JSON.parse(localStorage.getItem('billy_vip_users')) || [];
-        let catalogItems = JSON.parse(localStorage.getItem('billy_catalog')) || {};
+        let currentForm = null;
+        let currentChat = null;
+        let currentCatalogBox = null;
 
+        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            renderPosts();
-            renderVIPUsers();
-            renderCatalog();
-            document.getElementById('posted-date').valueAsDate = new Date();
+            initData();
+            updateStats();
+            renderHomeList();
+            renderCatalogList();
+            renderTrendingList();
+            renderPortfolioList();
+            renderDesignersList();
+            renderVIPList();
+            renderChatList();
+            updateBadges();
         });
 
-        function navigate(view) {
-            document.querySelectorAll('.section-content').forEach(el => {
-                el.classList.remove('active');
-                el.style.display = 'none';
-            });
-            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
-            
-            event.target.classList.add('active');
-            
-            const viewEl = document.getElementById(view + '-view');
-            if (viewEl) {
-                viewEl.style.display = 'contents';
-                setTimeout(() => viewEl.classList.add('active'), 10);
+        function initData() {
+            if (!localStorage.getItem('tbl_posts')) {
+                localStorage.setItem('tbl_posts', JSON.stringify([]));
             }
-            
-            const titles = {
-                'dashboard': 'The Billy Living',
-                'content': 'Content Management',
-                'catalog': 'Catalog Management',
-                'vault': 'VIP Management'
-            };
-            document.getElementById('page-title').textContent = titles[view] || 'The Billy Living';
+            if (!localStorage.getItem('tbl_trending')) {
+                localStorage.setItem('tbl_trending', JSON.stringify([]));
+            }
+            if (!localStorage.getItem('tbl_catalog_boxes')) {
+                localStorage.setItem('tbl_catalog_boxes', JSON.stringify([]));
+            }
+            if (!localStorage.getItem('tbl_portfolio')) {
+                localStorage.setItem('tbl_portfolio', JSON.stringify([]));
+            }
+            if (!localStorage.getItem('tbl_designers')) {
+                localStorage.setItem('tbl_designers', JSON.stringify([]));
+            }
+            if (!localStorage.getItem('tbl_vip_users')) {
+                localStorage.setItem('tbl_vip_users', JSON.stringify([]));
+            }
+            if (!localStorage.getItem('tbl_designer_chats')) {
+                localStorage.setItem('tbl_designer_chats', JSON.stringify([]));
+            }
+            if (!localStorage.getItem('tbl_settings')) {
+                localStorage.setItem('tbl_settings', JSON.stringify({
+                    appName: 'Billy Living',
+                    whatsapp: '+2348084410220',
+                    whatsappMessage: 'Hello, I am interested in your interior design services',
+                    bookingLink: 'https://calendly.com/billyliving'
+                }));
+            }
         }
 
-        document.getElementById('post-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const postId = document.getElementById('post-id').value;
-            const mediaFile = document.getElementById('media-file').files[0];
+        // Navigation - Fixed to handle both nav items and button clicks
+        function showPanel(panelName, navElement) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             
-            const postData = {
-                id: postId || Date.now(),
-                topic: document.getElementById('topic').value,
-                feeling: document.getElementById('feeling').value,
-                location: document.getElementById('location').value,
-                feedType: document.getElementById('feed-type').value,
-                postedDate: document.getElementById('posted-date').value,
-                isVip: document.getElementById('is-vip').checked,
-                likes: 0
-            };
+            document.getElementById('panel-' + panelName).classList.add('active');
+            
+            // Only update nav item if clicked from sidebar
+            if (navElement) {
+                navElement.classList.add('active');
+            }
+            
+            if (panelName === 'chats') {
+                renderChatList();
+                updateBadges();
+            } else if (panelName === 'vip') {
+                renderVIPList();
+                updateStats();
+            }
+        }
 
-            if (mediaFile) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    postData.image = e.target.result;
-                    savePost(postData);
-                };
-                reader.readAsDataURL(mediaFile);
-            } else if (postId) {
-                const existing = posts.find(p => p.id == postId);
-                postData.image = existing?.image;
-                postData.likes = existing?.likes || 0;
-                savePost(postData);
+        // Stats
+        function updateStats() {
+            const posts = JSON.parse(localStorage.getItem('tbl_posts') || '[]');
+            const trending = JSON.parse(localStorage.getItem('tbl_trending') || '[]');
+            const designers = JSON.parse(localStorage.getItem('tbl_designers') || '[]');
+            const vips = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
+            
+            document.getElementById('statPosts').textContent = posts.length;
+            document.getElementById('statTrending').textContent = trending.length;
+            document.getElementById('statDesigners').textContent = designers.length;
+            document.getElementById('statPendingVIP').textContent = vips.filter(v => v.status === 'pending').length;
+        }
+
+        // Render Lists
+        function renderHomeList() {
+            const posts = JSON.parse(localStorage.getItem('tbl_posts') || '[]');
+            const container = document.getElementById('homeList');
+            
+            if (posts.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏠</div><p>No posts yet. Add your first post!</p></div>';
+                return;
+            }
+            
+            container.innerHTML = posts.map(post => `
+                <div class="list-item">
+                    <div class="list-image">
+                        ${post.imageData ? `<img src="${post.imageData}" alt="">` : `<div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 32px;">${post.emoji}</div>`}
+                    </div>
+                    <div class="list-info">
+                        <div class="list-title">${post.emoji} ${post.title}</div>
+                        <div class="list-meta">${post.location} • ${post.category} • ❤️ ${post.likes} • ↗️ ${post.shares}</div>
+                    </div>
+                    <div class="list-actions">
+                        <div class="toggle-switch ${post.published ? 'active' : ''}" onclick="togglePublished('posts', '${post.id}')"></div>
+                        <button class="btn btn-danger" onclick="deleteItem('posts', '${post.id}')" style="padding: 8px 12px;">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderCatalogList() {
+            const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+            const container = document.getElementById('catalogList');
+            
+            if (boxes.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📁</div><p>No categories yet. Add your first category!</p></div>';
+                return;
+            }
+            
+            container.innerHTML = boxes.map(box => `
+                <div class="list-item" style="flex-direction: column; align-items: flex-start; gap: 16px;">
+                    <div style="display: flex; align-items: center; gap: 16px; width: 100%;">
+                        <div class="list-image">
+                            ${box.images && box.images[0] ? `<img src="${box.images[0]}" alt="">` : `<div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 32px;">📦</div>`}
+                        </div>
+                        <div class="list-info">
+                            <div class="list-title">${box.label}: ${box.value}</div>
+                            <div class="list-meta">${box.count} • ${box.images ? box.images.length : 0} images</div>
+                        </div>
+                        <button class="btn btn-primary" onclick="openCatalogImageManager('${box.id}')" style="margin-left: auto;">Manage Images</button>
+                        <button class="btn btn-danger" onclick="deleteItem('catalog_boxes', '${box.id}')" style="padding: 8px 12px;">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderTrendingList() {
+            const items = JSON.parse(localStorage.getItem('tbl_trending') || '[]');
+            const container = document.getElementById('trendingList');
+            
+            if (items.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔥</div><p>No trending items yet. Add your first!</p></div>';
+                return;
+            }
+            
+            container.innerHTML = items.map(item => `
+                <div class="list-item">
+                    <div class="list-image">
+                        ${item.imageData ? `<img src="${item.imageData}" alt="">` : `<div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 32px;">${item.emoji}</div>`}
+                    </div>
+                    <div class="list-info">
+                        <div class="list-title">${item.emoji} ${item.title}</div>
+                        <div class="list-meta">👁 ${item.views} • ❤️ ${item.likes} • ↗️ ${item.shares} • Badge: ${item.badge}</div>
+                    </div>
+                    <div class="list-actions">
+                        <div class="toggle-switch active" onclick="showToast('Cannot unpublish trending')"></div>
+                        <button class="btn btn-danger" onclick="deleteItem('trending', '${item.id}')" style="padding: 8px 12px;">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderPortfolioList() {
+            const items = JSON.parse(localStorage.getItem('tbl_portfolio') || '[]');
+            const container = document.getElementById('portfolioList');
+            
+            if (items.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🖼️</div><p>No portfolio items yet. Add your first!</p></div>';
+                return;
+            }
+            
+            container.innerHTML = items.map(item => `
+                <div class="list-item">
+                    <div class="list-image">
+                        ${item.imageData ? `<img src="${item.imageData}" alt="">` : `<div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 32px;">🖼️</div>`}
+                    </div>
+                    <div class="list-info">
+                        <div class="list-title">${item.emoji} ${item.title}</div>
+                        <div class="list-meta">${item.description}</div>
+                    </div>
+                    <button class="btn btn-danger" onclick="deleteItem('portfolio', '${item.id}')" style="padding: 8px 12px;">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        function renderDesignersList() {
+            const designers = JSON.parse(localStorage.getItem('tbl_designers') || '[]');
+            const container = document.getElementById('designersList');
+            
+            if (designers.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👔</div><p>No designers yet. Add your first!</p></div>';
+                return;
+            }
+            
+            container.innerHTML = designers.map(d => `
+                <div class="list-item">
+                    <div class="list-image" style="display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; background: var(--gold); color: var(--bg-primary);">
+                        ${d.initials}
+                    </div>
+                    <div class="list-info">
+                        <div class="list-title">${d.name}</div>
+                        <div class="list-meta">${d.specialty} • WhatsApp: ${d.whatsapp}</div>
+                    </div>
+                    <div class="list-actions">
+                        <div class="toggle-switch ${d.online ? 'active' : ''}" onclick="toggleDesignerStatus('${d.id}')"></div>
+                        <button class="btn btn-danger" onclick="deleteItem('designers', '${d.id}')" style="padding: 8px 12px;">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // VIP Manager
+        function renderVIPList() {
+            const vips = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
+            const container = document.getElementById('vipGrid');
+            
+            if (vips.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1; padding: 40px;"><p>No VIP members registered yet</p></div>';
+                return;
+            }
+            
+            container.innerHTML = vips.map(vip => `
+                <div class="vip-card status-${vip.status}">
+                    <div class="vip-name">${vip.name}</div>
+                    <div class="vip-phone">${vip.phone}</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">Code: ••••</div>
+                    <div class="vip-actions">
+                        ${vip.status === 'pending' ? `
+                            <button class="vip-btn btn-success" onclick="approveVIP('${vip.id}')">Approve</button>
+                            <button class="vip-btn btn-danger" onclick="rejectVIP('${vip.id}')">Reject</button>
+                        ` : `
+                            <button class="vip-btn btn-secondary" onclick="resetVIPPassword('${vip.id}')">Reset Code</button>
+                            <button class="vip-btn btn-danger" onclick="deleteVIP('${vip.id}')">Remove</button>
+                        `}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addVIP() {
+            const phone = document.getElementById('vipPhone').value;
+            const code = document.getElementById('vipCode').value;
+            const name = document.getElementById('vipName').value;
+            
+            if (phone.length !== 10 || code.length !== 4 || !name) {
+                showToast('Please fill all fields correctly');
+                return;
+            }
+            
+            const vips = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
+            vips.push({
+                id: 'vip_' + Date.now(),
+                phone: phone,
+                password: code,
+                name: name,
+                status: 'active',
+                createdAt: Date.now(),
+                milestones: [
+                    { name: 'Planning', complete: true, date: new Date().toISOString().split('T')[0] },
+                    { name: 'Design', complete: false, date: null },
+                    { name: 'Procurement', complete: false, date: null },
+                    { name: 'Installation', complete: false, date: null },
+                    { name: 'Complete', complete: false, date: null }
+                ]
+            });
+            
+            localStorage.setItem('tbl_vip_users', JSON.stringify(vips));
+            
+            document.getElementById('vipPhone').value = '';
+            document.getElementById('vipCode').value = '';
+            document.getElementById('vipName').value = '';
+            
+            renderVIPList();
+            updateStats();
+            showToast('VIP member added successfully');
+        }
+
+        function approveVIP(id) {
+            const vips = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
+            const vip = vips.find(v => v.id === id);
+            if (vip) {
+                vip.status = 'active';
+                localStorage.setItem('tbl_vip_users', JSON.stringify(vips));
+                renderVIPList();
+                updateStats();
+                showToast('VIP approved');
+            }
+        }
+
+        function rejectVIP(id) {
+            if (!confirm('Reject this VIP request?')) return;
+            const vips = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
+            const vip = vips.find(v => v.id === id);
+            if (vip) {
+                vip.status = 'rejected';
+                localStorage.setItem('tbl_vip_users', JSON.stringify(vips));
+                renderVIPList();
+                updateStats();
+                showToast('VIP rejected');
+            }
+        }
+
+        function resetVIPPassword(id) {
+            const newCode = prompt('Enter new 4-digit code:');
+            if (newCode && newCode.length === 4) {
+                const vips = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
+                const vip = vips.find(v => v.id === id);
+                if (vip) {
+                    vip.password = newCode;
+                    localStorage.setItem('tbl_vip_users', JSON.stringify(vips));
+                    showToast('Password reset successfully');
+                }
             } else {
-                showToast('Please select an image');
-            }
-        });
-
-        function savePost(postData) {
-            const idx = posts.findIndex(p => p.id == postData.id);
-            idx >= 0 ? posts[idx] = postData : posts.push(postData);
-            localStorage.setItem('billy_posts', JSON.stringify(posts));
-            resetForm();
-            renderPosts();
-            showToast('Post published!');
-        }
-
-        function resetForm() {
-            document.getElementById('post-form').reset();
-            document.getElementById('post-id').value = '';
-            document.getElementById('media-preview').style.display = 'none';
-            document.getElementById('posted-date').valueAsDate = new Date();
-        }
-
-        function previewMedia(input) {
-            if (input.files?.[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const preview = document.getElementById('media-preview');
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        function renderPosts(filter = 'all') {
-            const tbody = document.getElementById('posts-table-body');
-            tbody.innerHTML = '';
-            
-            let filtered = posts;
-            if (filter !== 'all') {
-                filtered = filter === 'VIP' ? posts.filter(p => p.isVip) : posts.filter(p => p.feedType === filter);
-            }
-
-            filtered.forEach(post => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><img src="${post.image || ''}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;"></td>
-                    <td>${post.topic}</td>
-                    <td>${post.feedType}</td>
-                    <td>${post.isVip ? '✓' : ''}</td>
-                    <td>${post.likes}</td>
-                    <td>
-                        <button class="btn-outline" style="padding: 6px 12px; font-size: 12px;" onclick="editPost(${post.id})">Edit</button>
-                        <button class="btn-outline" style="padding: 6px 12px; font-size: 12px; margin-left: 8px;" onclick="deletePost(${post.id})">Delete</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        function filterPosts(type) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
-            renderPosts(type);
-        }
-
-        function editPost(id) {
-            const post = posts.find(p => p.id == id);
-            if (!post) return;
-            document.getElementById('post-id').value = post.id;
-            document.getElementById('topic').value = post.topic;
-            document.getElementById('feeling').value = post.feeling;
-            document.getElementById('location').value = post.location;
-            document.getElementById('feed-type').value = post.feedType;
-            document.getElementById('posted-date').value = post.postedDate;
-            document.getElementById('is-vip').checked = post.isVip;
-            if (post.image) {
-                const preview = document.getElementById('media-preview');
-                preview.src = post.image;
-                preview.style.display = 'block';
-            }
-        }
-
-        function deletePost(id) {
-            if (!confirm('Delete this post?')) return;
-            posts = posts.filter(p => p.id != id);
-            localStorage.setItem('billy_posts', JSON.stringify(posts));
-            renderPosts();
-            showToast('Post deleted');
-        }
-
-        document.getElementById('vip-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const vipData = {
-                id: Date.now(),
-                name: document.getElementById('vip-name').value,
-                phone: document.getElementById('vip-phone').value,
-                password: document.getElementById('vip-password').value,
-                status: 'active'
-            };
-            vipUsers.push(vipData);
-            localStorage.setItem('billy_vip_users', JSON.stringify(vipUsers));
-            document.getElementById('vip-form').reset();
-            renderVIPUsers();
-            showToast('VIP registered!');
-        });
-
-        function generatePassword() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            let pwd = '';
-            for (let i = 0; i < 8; i++) pwd += chars.charAt(Math.floor(Math.random() * chars.length));
-            document.getElementById('vip-password').value = pwd;
-        }
-
-        function renderVIPUsers() {
-            const tbody = document.getElementById('vip-table-body');
-            tbody.innerHTML = '';
-            vipUsers.forEach(user => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${user.name}</td>
-                    <td>${user.phone}</td>
-                    <td><span style="color: ${user.status === 'active' ? 'var(--accent-gold)' : 'var(--text-muted)'}">${user.status}</span></td>
-                    <td>
-                        <button class="btn-outline" style="padding: 6px 12px; font-size: 12px;" onclick="toggleVIP(${user.id})">${user.status === 'active' ? 'Deactivate' : 'Activate'}</button>
-                        <button class="btn-outline" style="padding: 6px 12px; font-size: 12px; margin-left: 8px;" onclick="deleteVIP(${user.id})">Remove</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        function toggleVIP(id) {
-            const user = vipUsers.find(u => u.id == id);
-            if (user) {
-                user.status = user.status === 'active' ? 'inactive' : 'active';
-                localStorage.setItem('billy_vip_users', JSON.stringify(vipUsers));
-                renderVIPUsers();
+                showToast('Please enter a valid 4-digit code');
             }
         }
 
         function deleteVIP(id) {
-            if (!confirm('Remove this VIP?')) return;
-            vipUsers = vipUsers.filter(u => u.id != id);
-            localStorage.setItem('billy_vip_users', JSON.stringify(vipUsers));
-            renderVIPUsers();
+            if (!confirm('Remove this VIP member?')) return;
+            const vips = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
+            const filtered = vips.filter(v => v.id !== id);
+            localStorage.setItem('tbl_vip_users', JSON.stringify(filtered));
+            renderVIPList();
+            updateStats();
         }
 
-        function renderCatalog() {
-            const grid = document.getElementById('catalog-grid');
-            grid.innerHTML = '';
-            for (let i = 1; i <= 168; i++) {
-                const item = catalogItems[i];
-                const slot = document.createElement('div');
-                slot.className = 'catalog-slot' + (item ? ' filled' : '');
-                slot.onclick = () => openCatalogModal(i);
-                slot.innerHTML = item 
-                    ? `<span class="slot-num">${i}</span><img src="${item.image}" alt="">`
-                    : `<span class="slot-num">${i}</span><span style="color: var(--text-muted); font-size: 11px;">+</span>`;
-                grid.appendChild(slot);
+        // Chats
+        function renderChatList() {
+            const messages = JSON.parse(localStorage.getItem('tbl_designer_chats') || '[]');
+            const conversations = {};
+            
+            messages.forEach(msg => {
+                const key = msg.senderName;
+                if (!conversations[key]) {
+                    conversations[key] = {
+                        name: key,
+                        lastMessage: msg,
+                        unread: 0
+                    };
+                }
+                if (!msg.isDesigner && !msg.read) {
+                    conversations[key].unread++;
+                }
+            });
+            
+            const container = document.getElementById('chatSidebar');
+            const convArray = Object.values(conversations).sort((a, b) => b.lastMessage.timestamp - a.lastMessage.timestamp);
+            
+            if (convArray.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="padding: 40px 20px;"><p>No conversations yet</p></div>';
+                return;
+            }
+            
+            container.innerHTML = convArray.map(conv => `
+                <div class="chat-conversation ${conv.unread > 0 ? 'unread' : ''} ${currentChat === conv.name ? 'active' : ''}" onclick="openConversation('${conv.name}')">
+                    <div class="conversation-name">${conv.name}</div>
+                    <div class="conversation-preview">${conv.lastMessage.message}</div>
+                    <div class="conversation-meta">
+                        <span>${formatTime(conv.lastMessage.timestamp)}</span>
+                        ${conv.unread > 0 ? `<span style="color: var(--gold); font-weight: 600;">${conv.unread} new</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openConversation(name) {
+            currentChat = name;
+            renderChatList();
+            
+            const messages = JSON.parse(localStorage.getItem('tbl_designer_chats') || '[]');
+            const chatMessages = messages.filter(m => m.senderName === name || (m.isDesigner && m.recipient === name));
+            
+            // Mark as read
+            messages.forEach(m => {
+                if (m.senderName === name && !m.isDesigner) {
+                    m.read = true;
+                }
+            });
+            localStorage.setItem('tbl_designer_chats', JSON.stringify(messages));
+            updateBadges();
+            
+            document.getElementById('chatMain').innerHTML = `
+                <div class="chat-header-bar">
+                    <div style="width: 40px; height: 40px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--bg-primary); font-weight: 600;">
+                        ${name.charAt(0)}
+                    </div>
+                    <div>
+                        <div style="font-weight: 600;">${name}</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Client</div>
+                    </div>
+                </div>
+                <div class="chat-messages-area" id="chatThread">
+                    ${chatMessages.map(msg => `
+                        <div class="chat-message ${msg.isDesigner ? 'designer' : 'customer'}">
+                            ${msg.portfolioItems && msg.portfolioItems.length ? `
+                                <div class="portfolio-label">📎 Shared Portfolio</div>
+                                <div class="chat-message-portfolio">
+                                    ${msg.portfolioItems.map(item => `
+                                        <div class="chat-message-portfolio-item">
+                                            <img src="${item.image}" alt="${item.title}">
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                            ${msg.imageData ? `<img src="${msg.imageData}" style="max-width: 200px; border-radius: 10px; margin-bottom: 8px; display: block;">` : ''}
+                            ${msg.message}
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" class="chat-input" id="adminChatInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendAdminMessage()">
+                    <button class="chat-send-btn" onclick="sendAdminMessage()">➤</button>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                const thread = document.getElementById('chatThread');
+                if (thread) thread.scrollTop = thread.scrollHeight;
+            }, 100);
+        }
+
+        function sendAdminMessage() {
+            const input = document.getElementById('adminChatInput');
+            const message = input.value.trim();
+            if (!message || !currentChat) return;
+            
+            const messages = JSON.parse(localStorage.getItem('tbl_designer_chats') || '[]');
+            messages.push({
+                id: 'msg_' + Date.now(),
+                senderName: 'Lead Designer',
+                recipient: currentChat,
+                message: message,
+                imageData: null,
+                portfolioItems: [],
+                isDesigner: true,
+                read: false,
+                timestamp: Date.now()
+            });
+            
+            localStorage.setItem('tbl_designer_chats', JSON.stringify(messages));
+            input.value = '';
+            openConversation(currentChat);
+        }
+
+        function updateBadges() {
+            const messages = JSON.parse(localStorage.getItem('tbl_designer_chats') || '[]');
+            const unread = messages.filter(m => !m.isDesigner && !m.read).length;
+            const badge = document.getElementById('chatBadge');
+            badge.textContent = unread;
+            badge.style.display = unread > 0 ? 'block' : 'none';
+        }
+
+        // Forms
+        function openForm(type) {
+            currentForm = type;
+            const modal = document.getElementById('formModal');
+            const title = document.getElementById('formTitle');
+            const content = document.getElementById('formContent');
+            
+            modal.classList.add('active');
+            
+            switch(type) {
+                case 'post':
+                    title.textContent = 'Add New Post';
+                    content.innerHTML = `
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Title</label>
+                                <input type="text" class="form-input" id="formTitleInput">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Emoji</label>
+                                <input type="text" class="form-input" id="formEmoji" maxlength="2" placeholder="🏠">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Caption</label>
+                            <input type="text" class="form-input" id="formCaption">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Location</label>
+                                <input type="text" class="form-input" id="formLocation">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Category</label>
+                                <input type="text" class="form-input" id="formCategory">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Image</label>
+                            <input type="file" class="form-input" id="formImage" accept="image/*" onchange="previewImage(this)">
+                            <img id="imagePreview" class="image-preview" style="display: none;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Video URL (optional)</label>
+                            <input type="text" class="form-input" id="formVideo">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Likes Count</label>
+                                <input type="number" class="form-input" id="formLikes" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Shares Count</label>
+                                <input type="number" class="form-input" id="formShares" value="0">
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'trending':
+                    title.textContent = 'Add Trending Item';
+                    content.innerHTML = `
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Title</label>
+                                <input type="text" class="form-input" id="formTitleInput">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Emoji</label>
+                                <input type="text" class="form-input" id="formEmoji" maxlength="2" placeholder="🔥">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Caption</label>
+                            <input type="text" class="form-input" id="formCaption">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Image</label>
+                            <input type="file" class="form-input" id="formImage" accept="image/*" onchange="previewImage(this)">
+                            <img id="imagePreview" class="image-preview" style="display: none;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Video URL (optional)</label>
+                            <input type="text" class="form-input" id="formVideo">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Views</label>
+                                <input type="number" class="form-input" id="formViews" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Badge</label>
+                                <input type="text" class="form-input" id="formBadge" value="Trending">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Likes Count</label>
+                                <input type="number" class="form-input" id="formLikes" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Shares Count</label>
+                                <input type="number" class="form-input" id="formShares" value="0">
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'category':
+                    title.textContent = 'Add Catalog Category';
+                    content.innerHTML = `
+                        <div class="form-group">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-input" id="formName">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Label (Topic/Feeling/Room)</label>
+                            <select class="form-select" id="formLabel">
+                                <option value="Topic">Topic</option>
+                                <option value="Feeling">Feeling</option>
+                                <option value="Room">Room</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Description</label>
+                            <input type="text" class="form-input" id="formDesc">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'portfolio':
+                    title.textContent = 'Add Portfolio Item';
+                    content.innerHTML = `
+                        <div class="form-group">
+                            <label class="form-label">Title</label>
+                            <input type="text" class="form-input" id="formTitleInput">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Emoji</label>
+                            <input type="text" class="form-input" id="formEmoji" maxlength="2" placeholder="🖼️">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Image</label>
+                            <input type="file" class="form-input" id="formImage" accept="image/*" onchange="previewImage(this)">
+                            <img id="imagePreview" class="image-preview" style="display: none;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-textarea" id="formDesc"></textarea>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'designer':
+                    title.textContent = 'Add Designer';
+                    content.innerHTML = `
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-input" id="formName">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Initials (2 letters)</label>
+                            <input type="text" class="form-input" id="formInitials" maxlength="2">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Specialty</label>
+                            <input type="text" class="form-input" id="formSpecialty">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">WhatsApp Number</label>
+                            <input type="text" class="form-input" id="formWhatsApp">
+                        </div>
+                    `;
+                    break;
             }
         }
 
-        function openCatalogModal(slotNum) {
-            document.getElementById('catalog-modal').classList.add('active');
-            if (slotNum) document.getElementById('catalog-slot').value = slotNum;
+        function closeForm() {
+            document.getElementById('formModal').classList.remove('active');
+            currentForm = null;
         }
 
-        function closeCatalogModal() {
-            document.getElementById('catalog-modal').classList.remove('active');
-            document.getElementById('catalog-form').reset();
-            document.getElementById('catalog-preview').style.display = 'none';
-        }
-
-        function previewCatalogImage(input) {
-            if (input.files?.[0]) {
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = (e) => {
-                    const preview = document.getElementById('catalog-preview');
+                reader.onload = function(e) {
+                    const preview = document.getElementById('imagePreview');
                     preview.src = e.target.result;
                     preview.style.display = 'block';
                 };
@@ -1525,32 +1665,236 @@
             }
         }
 
-        document.getElementById('catalog-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const slot = document.getElementById('catalog-slot').value;
-            const label = document.getElementById('catalog-label').value;
-            const fileInput = document.getElementById('catalog-image');
-            
-            if (fileInput.files?.[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    catalogItems[slot] = { label, image: e.target.result };
-                    localStorage.setItem('billy_catalog', JSON.stringify(catalogItems));
-                    renderCatalog();
-                    closeCatalogModal();
-                    showToast('Added to catalog!');
-                };
-                reader.readAsDataURL(fileInput.files[0]);
+        function submitForm() {
+            switch(currentForm) {
+                case 'post':
+                    const post = {
+                        id: 'post_' + Date.now(),
+                        title: document.getElementById('formTitleInput').value,
+                        emoji: document.getElementById('formEmoji').value || '🏠',
+                        caption: document.getElementById('formCaption').value,
+                        location: document.getElementById('formLocation').value,
+                        category: document.getElementById('formCategory').value,
+                        imageData: document.getElementById('imagePreview')?.src || null,
+                        videoUrl: document.getElementById('formVideo').value,
+                        likes: parseInt(document.getElementById('formLikes').value) || 0,
+                        shares: parseInt(document.getElementById('formShares').value) || 0,
+                        published: true
+                    };
+                    const posts = JSON.parse(localStorage.getItem('tbl_posts') || '[]');
+                    posts.push(post);
+                    localStorage.setItem('tbl_posts', JSON.stringify(posts));
+                    renderHomeList();
+                    updateStats();
+                    break;
+                    
+                case 'trending':
+                    const trending = {
+                        id: 'trend_' + Date.now(),
+                        title: document.getElementById('formTitleInput').value,
+                        emoji: document.getElementById('formEmoji').value || '🔥',
+                        caption: document.getElementById('formCaption').value,
+                        imageData: document.getElementById('imagePreview')?.src || null,
+                        videoUrl: document.getElementById('formVideo').value,
+                        views: parseInt(document.getElementById('formViews').value) || 0,
+                        badge: document.getElementById('formBadge').value || 'Trending',
+                        likes: parseInt(document.getElementById('formLikes').value) || 0,
+                        shares: parseInt(document.getElementById('formShares').value) || 0
+                    };
+                    const trendingItems = JSON.parse(localStorage.getItem('tbl_trending') || '[]');
+                    trendingItems.push(trending);
+                    localStorage.setItem('tbl_trending', JSON.stringify(trendingItems));
+                    renderTrendingList();
+                    updateStats();
+                    break;
+                    
+                case 'category':
+                    const box = {
+                        id: 'box_' + Date.now(),
+                        value: document.getElementById('formName').value,
+                        label: document.getElementById('formLabel').value,
+                        count: '0 images',
+                        description: document.getElementById('formDesc').value,
+                        images: []
+                    };
+                    const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+                    boxes.push(box);
+                    localStorage.setItem('tbl_catalog_boxes', JSON.stringify(boxes));
+                    renderCatalogList();
+                    break;
+                    
+                case 'portfolio':
+                    const portfolio = {
+                        id: 'port_' + Date.now(),
+                        title: document.getElementById('formTitleInput').value,
+                        emoji: document.getElementById('formEmoji').value || '🖼️',
+                        imageData: document.getElementById('imagePreview')?.src || null,
+                        description: document.getElementById('formDesc').value
+                    };
+                    const portfolios = JSON.parse(localStorage.getItem('tbl_portfolio') || '[]');
+                    portfolios.push(portfolio);
+                    localStorage.setItem('tbl_portfolio', JSON.stringify(portfolios));
+                    renderPortfolioList();
+                    break;
+                    
+                case 'designer':
+                    const designer = {
+                        id: 'des_' + Date.now(),
+                        name: document.getElementById('formName').value,
+                        initials: document.getElementById('formInitials').value,
+                        specialty: document.getElementById('formSpecialty').value,
+                        whatsapp: document.getElementById('formWhatsApp').value,
+                        online: true
+                    };
+                    const designers = JSON.parse(localStorage.getItem('tbl_designers') || '[]');
+                    designers.push(designer);
+                    localStorage.setItem('tbl_designers', JSON.stringify(designers));
+                    renderDesignersList();
+                    updateStats();
+                    break;
             }
-        });
-
-        function openCatalog(n) {
-            navigate('catalog');
+            
+            closeForm();
+            showToast('Saved successfully!');
         }
 
-        function showToast(msg) {
+        // Catalog Image Manager
+        function openCatalogImageManager(boxId) {
+            currentCatalogBox = boxId;
+            const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+            const box = boxes.find(b => b.id === boxId);
+            
+            const modal = document.getElementById('formModal');
+            document.getElementById('formTitle').textContent = `Manage Images: ${box.value}`;
+            
+            const imagesHtml = box.images ? box.images.map((img, idx) => `
+                <div class="managed-image">
+                    <img src="${img}" alt="">
+                    <button class="managed-image-delete" onclick="deleteCatalogImage(${idx})">×</button>
+                </div>
+            `).join('') : '';
+            
+            document.getElementById('formContent').innerHTML = `
+                <div class="image-manager" id="imageManager">
+                    ${imagesHtml}
+                    <div class="add-image-slot" onclick="document.getElementById('catalogImageInput').click()">
+                        <div style="font-size: 32px; margin-bottom: 8px;">+</div>
+                        <div>Add Image</div>
+                    </div>
+                </div>
+                <input type="file" id="catalogImageInput" accept="image/*" style="display: none;" onchange="addCatalogImage(this)">
+            `;
+            
+            modal.classList.add('active');
+            
+            // Override close button
+            document.querySelector('.form-container .btn-secondary').onclick = closeCatalogManager;
+            document.querySelector('.form-container .btn-primary').onclick = closeCatalogManager;
+        }
+
+        function addCatalogImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+                    const box = boxes.find(b => b.id === currentCatalogBox);
+                    if (!box.images) box.images = [];
+                    box.images.push(e.target.result);
+                    box.count = box.images.length + ' images';
+                    localStorage.setItem('tbl_catalog_boxes', JSON.stringify(boxes));
+                    openCatalogImageManager(currentCatalogBox);
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function deleteCatalogImage(index) {
+            const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+            const box = boxes.find(b => b.id === currentCatalogBox);
+            box.images.splice(index, 1);
+            box.count = box.images.length + ' images';
+            localStorage.setItem('tbl_catalog_boxes', JSON.stringify(boxes));
+            openCatalogImageManager(currentCatalogBox);
+        }
+
+        function closeCatalogManager() {
+            closeForm();
+            renderCatalogList();
+        }
+
+        // Actions
+        function togglePublished(type, id) {
+            const items = JSON.parse(localStorage.getItem('tbl_' + type) || '[]');
+            const item = items.find(i => i.id === id);
+            if (item) {
+                item.published = !item.published;
+                localStorage.setItem('tbl_' + type, JSON.stringify(items));
+                renderHomeList();
+            }
+        }
+
+        function toggleDesignerStatus(id) {
+            const designers = JSON.parse(localStorage.getItem('tbl_designers') || '[]');
+            const designer = designers.find(d => d.id === id);
+            if (designer) {
+                designer.online = !designer.online;
+                localStorage.setItem('tbl_designers', JSON.stringify(designers));
+                renderDesignersList();
+            }
+        }
+
+        function deleteItem(type, id) {
+            if (!confirm('Delete this item?')) return;
+            const items = JSON.parse(localStorage.getItem('tbl_' + type) || '[]');
+            const filtered = items.filter(i => i.id !== id);
+            localStorage.setItem('tbl_' + type, JSON.stringify(filtered));
+            
+            switch(type) {
+                case 'posts': renderHomeList(); break;
+                case 'catalog_boxes': renderCatalogList(); break;
+                case 'trending': renderTrendingList(); break;
+                case 'portfolio': renderPortfolioList(); break;
+                case 'designers': renderDesignersList(); break;
+            }
+            updateStats();
+            showToast('Deleted');
+        }
+
+        function saveSettings() {
+            const settings = {
+                appName: document.getElementById('settingAppName').value,
+                whatsapp: document.getElementById('settingWhatsApp').value,
+                whatsappMessage: document.getElementById('settingWhatsAppMsg').value,
+                bookingLink: document.getElementById('settingBooking').value
+            };
+            localStorage.setItem('tbl_settings', JSON.stringify(settings));
+            showToast('Settings saved');
+        }
+
+        function changePassword() {
+            const newPass = document.getElementById('newPassword').value;
+            if (newPass) {
+                document.getElementById('currentPassword').value = newPass;
+                document.getElementById('newPassword').value = '';
+                showToast('Password updated');
+            }
+        }
+
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = (now - date) / 1000;
+            
+            if (diff < 60) return 'Just now';
+            if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+            if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+            return date.toLocaleDateString();
+        }
+
+        function showToast(message) {
             const toast = document.getElementById('toast');
-            toast.textContent = msg;
+            toast.textContent = message;
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
