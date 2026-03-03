@@ -1,382 +1,2161 @@
+<!-- client.html - Billy Living Client App -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#120D06">
-  <title>The Billy Living</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <style>
-    :root{--ink:#120D06;--ink-mid:#1E160C;--gold:#C9A84C;--gold-dk:#8C6F2A;--ash:#8A7F72;--ash-lt:#B0A898;--white:#FDFAF4;--nav-h:68px;--top-h:58px}
-    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-    html,body{height:100%;width:100%;background:var(--ink);font-family:'Jost',sans-serif;color:var(--white);overflow:hidden}
-    #app{position:fixed;inset:0;display:flex;flex-direction:column}
-    .top-bar{position:fixed;top:0;left:0;right:0;z-index:200;height:var(--top-h);background:rgba(18,13,6,.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(201,168,76,.1);display:flex;align-items:center;justify-content:space-between;padding:0 20px}
-    .top-wm{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold);letter-spacing:.06em}
-    .top-wm em{font-style:italic;color:var(--white)}
-    .screen{position:fixed;top:var(--top-h);left:0;right:0;bottom:var(--nav-h);overflow-y:auto;padding:14px;opacity:0;pointer-events:none;transition:opacity .22s}
-    .screen.active{opacity:1;pointer-events:all}
-    .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:rgba(30,22,12,.97);border-top:1px solid rgba(201,168,76,.12);display:flex;align-items:center;z-index:500}
-    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0;cursor:pointer}
-    .nav-ico{font-size:20px;filter:grayscale(1) opacity(.45)}
-    .nav-lbl{font-size:9.5px;color:var(--ash)}
-    .nav-item.active .nav-ico{filter:none}
-    .nav-item.active .nav-lbl{color:var(--gold)}
-    .three-cols-bar{width:100%;height:54px;background:rgba(18,13,6,.97);border-bottom:1px solid rgba(201,168,76,.1);display:flex;align-items:center;justify-content:space-around;padding:0 16px;margin-bottom:14px}
-    .col-btn{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;flex:1}
-    .col-ring{width:36px;height:36px;border-radius:50%;padding:2px;background:linear-gradient(135deg,var(--gold),var(--gold-dk))}
-    .col-ring-ai{background:linear-gradient(135deg,#4B3BCC,#7A5AF8)}
-    .col-ring-designer{background:linear-gradient(135deg,#2E9E60,#1A6B40)}
-    .col-av{width:100%;height:100%;border-radius:50%;background:var(--ink-mid);display:flex;align-items:center;justify-content:center;font-size:16px}
-    .col-lbl{font-size:9px;color:var(--ash-lt)}
-    .stories-row{display:flex;gap:11px;padding:0 0 14px;overflow-x:auto;margin-bottom:14px}
-    .story-wrap{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer}
-    .story-ring{width:58px;height:58px;border-radius:50%;padding:2.5px;background:linear-gradient(135deg,var(--gold),var(--gold-dk))}
-    .story-inner{width:100%;height:100%;border-radius:50%;background:var(--ink-mid);display:flex;align-items:center;justify-content:center;font-size:22px}
-    .story-lbl{font-size:9.5px;color:var(--ash-lt);max-width:58px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .post{margin-bottom:20px;border-radius:14px;background:var(--ink-mid);overflow:hidden;padding:14px}
-    .post-head{display:flex;align-items:center;gap:9px;margin-bottom:10px}
-    .post-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dk));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--ink)}
-    .post-author-info{flex:1}
-    .post-author-name{font-size:13px;font-weight:500}
-    .post-location{font-size:10px;color:var(--gold)}
-    .post-img{width:100%;aspect-ratio:4/5;background:linear-gradient(160deg,#2D2114,var(--ink-mid));display:flex;align-items:center;justify-content:center;font-size:72px;border-radius:8px;margin:10px 0}
-    .post-acts{display:flex;gap:14px;margin-top:10px}
-    .act-btn{background:none;border:none;color:var(--ash-lt);font-size:13px;display:flex;align-items:center;gap:5px;cursor:pointer}
-    .sec-h{padding:18px 18px 10px;font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300}
-    .sec-h em{color:var(--gold);font-style:italic}
-    .des-hero{margin:14px;border-radius:14px;background:linear-gradient(145deg,#2D2114,var(--ink-mid));padding:24px 22px;position:relative;overflow:hidden}
-    .live-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(46,158,96,.14);border:1px solid rgba(46,158,96,.3);border-radius:20px;padding:4px 12px;margin-bottom:14px}
-    .live-dot{width:7px;height:7px;border-radius:50%;background:#2E9E60;animation:pulse 2s infinite}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-    .live-lbl{font-size:11px;color:#2E9E60;font-weight:500}
-    .des-hero h2{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;margin-bottom:8px;line-height:1.2}
-    .des-hero p{font-size:13px;color:var(--ash-lt);line-height:1.7}
-    .cta-row{display:flex;gap:10px;margin-top:20px}
-    .btn-gold{flex:1;padding:13px;border-radius:30px;background:var(--gold);border:none;color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;font-family:'Jost',sans-serif}
-    .btn-outline{flex:1;padding:13px;border-radius:30px;background:transparent;border:1.5px solid var(--gold);color:var(--gold);font-size:13px;font-weight:500;cursor:pointer;font-family:'Jost',sans-serif}
-    .des-grid{padding:0 14px 14px;display:grid;gap:11px}
-    .dc-card{background:var(--ink-mid);border-radius:14px;padding:15px;display:flex;gap:13px;align-items:center}
-    .dc-av{width:54px;height:54px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--gold),var(--gold-dk));display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;color:var(--ink);position:relative}
-    .dc-dot{position:absolute;bottom:1px;right:1px;width:12px;height:12px;border-radius:50%;border:2px solid var(--ink-mid);background:#2E9E60}
-    .dc-dot.off{background:var(--ash)}
-    .dc-info{flex:1}
-    .dc-name{font-size:15px;font-weight:500;margin-bottom:2px}
-    .dc-spec{font-size:12px;color:var(--ash-lt)}
-    .dc-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
-    .dc-tag{font-size:10px;padding:2px 8px;border-radius:8px;background:rgba(201,168,76,.1);color:var(--gold);border:1px solid rgba(201,168,76,.18)}
-    .dc-btn{padding:7px 15px;border-radius:20px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.25);color:var(--gold);font-size:12px;font-weight:500;cursor:pointer}
-    .pf-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:0 3px}
-    .pf-item{aspect-ratio:1;background:linear-gradient(145deg,#2D2114,var(--ink-mid));display:flex;align-items:center;justify-content:center;font-size:44px;cursor:pointer;position:relative;overflow:hidden}
-    .ep-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:2px}
-    .ep-cell{position:relative;background:var(--ink-mid);border:1px solid rgba(201,168,76,.18);cursor:pointer;transition:border-color .2s;overflow:hidden;display:flex;flex-direction:column;padding:10px}
-    .ep-cell:active{border-color:var(--gold)}
-    .ep-cell-topic{font-size:9px;color:var(--ash-lt)}
-    .ep-cell-topic strong{color:var(--gold)}
-    .ep-cell-feeling{font-size:9px;color:var(--ash);margin-top:2px}
-    .ep-cell-feeling strong{color:var(--ash-lt)}
-    .ep-placeholder-ico{width:52px;height:52px;border:1.5px solid rgba(201,168,76,.3);border-radius:4px;display:flex;align-items:center;justify-content:center;margin:10px auto}
-    .ep-placeholder-lbl{font-size:8px;letter-spacing:.12em;color:var(--ash);text-transform:uppercase;text-align:center}
-    .vault-gate{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:32px;text-align:center;gap:16px}
-    .vault-icon{font-size:52px}
-    .vault-title{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300}
-    .vault-title em{color:var(--gold);font-style:italic}
-    .vault-desc{font-size:13px;color:var(--ash-lt);line-height:1.7;max-width:280px}
-    .vault-req-btn{margin-top:8px;padding:13px 32px;border-radius:30px;background:var(--gold);border:none;color:var(--ink);font-size:14px;font-weight:600;cursor:pointer;font-family:'Jost',sans-serif}
-    .profile-hero{padding:20px 16px 0;display:flex;flex-direction:column;align-items:center;gap:10px}
-    .profile-av-ring{width:80px;height:80px;border-radius:50%;padding:3px;background:linear-gradient(135deg,var(--gold),var(--gold-dk))}
-    .profile-av{width:100%;height:100%;border-radius:50%;background:var(--ink-mid);display:flex;align-items:center;justify-content:center;font-size:36px}
-    .profile-name{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300}
-    .profile-name em{color:var(--gold);font-style:italic}
-    .profile-vip-badge{background:linear-gradient(90deg,var(--gold-dk),var(--gold));color:var(--ink);font-size:10px;font-weight:700;letter-spacing:.14em;padding:4px 14px;border-radius:20px;text-transform:uppercase}
-    .profile-stats{display:flex;gap:0;width:100%;border:1px solid rgba(201,168,76,.15);border-radius:14px;overflow:hidden;margin-top:6px}
-    .pstat{flex:1;text-align:center;padding:13px 0;border-right:1px solid rgba(201,168,76,.1)}
-    .pstat:last-child{border-right:none}
-    .pstat-num{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold)}
-    .pstat-lbl{font-size:9px;color:var(--ash);text-transform:uppercase;letter-spacing:.1em;margin-top:2px}
-    .profile-actions{display:flex;gap:9px;width:100%;margin-top:4px}
-    .pa-btn{flex:1;padding:11px;border-radius:30px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Jost',sans-serif;letter-spacing:.04em}
-    .pa-gold{background:var(--gold);border:none;color:var(--ink)}
-    .pa-outline{background:transparent;border:1.5px solid var(--gold);color:var(--gold)}
-    .ai-chat-wrap{display:flex;flex-direction:column;height:100%}
-    .ai-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:11px}
-    .ai-msg{max-width:82%;padding:11px 14px;border-radius:16px;font-size:13px;line-height:1.6}
-    .ai-msg.bot{background:var(--ink-mid);align-self:flex-start;border-bottom-left-radius:4px}
-    .ai-msg.user{background:var(--gold);color:var(--ink);align-self:flex-end;border-bottom-right-radius:4px;font-weight:500}
-    .ai-input-row{display:flex;gap:8px;padding:11px 14px;background:rgba(18,13,6,.97);border-top:1px solid rgba(201,168,76,.1)}
-    .ai-inp{flex:1;background:var(--ink-mid);border:1px solid rgba(201,168,76,.2);border-radius:22px;padding:10px 16px;color:var(--white);font-size:14px;font-family:'Jost',sans-serif;outline:none}
-    .ai-inp::placeholder{color:var(--ash)}
-    .ai-send{width:40px;height:40px;border-radius:50%;background:var(--gold);border:none;color:var(--ink);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-    .toast{position:fixed;bottom:calc(var(--nav-h) + 14px);left:50%;transform:translateX(-50%);background:#2D2114;padding:10px 20px;border-radius:30px;font-size:12px;border:1px solid rgba(201,168,76,.2);z-index:9000;opacity:0;transition:opacity .28s;pointer-events:none}
-    .toast.show{opacity:1}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Billy Living - Luxury Interior Design</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        :root {
+            --bg-primary: #120D06;
+            --bg-card: #1E160C;
+            --bg-secondary: #2A1F14;
+            --text-primary: #F5F0E8;
+            --text-secondary: #A89B8C;
+            --gold: #C9A84C;
+            --nav-height: 80px;
+        }
+
+        body {
+            font-family: 'Jost', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+            padding-bottom: var(--nav-height);
+        }
+
+        .page {
+            display: none;
+            min-height: calc(100vh - var(--nav-height));
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* HOME PAGE */
+        .stories-row {
+            display: flex;
+            gap: 14px;
+            padding: 20px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            border-bottom: 1px solid rgba(201, 169, 98, 0.1);
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .stories-row::-webkit-scrollbar { display: none; }
+
+        .story-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            min-width: 60px;
+            flex-shrink: 0;
+        }
+
+        .story-item:active { transform: scale(0.95); }
+
+        .story-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 1px solid var(--gold);
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .story-circle img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .story-circle-ai {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--gold);
+            letter-spacing: 1px;
+            line-height: 1;
+        }
+
+        .story-circle-icon svg {
+            width: 22px;
+            height: 22px;
+            stroke: var(--gold);
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .story-label {
+            font-family: 'Jost', sans-serif;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            color: var(--gold);
+            text-align: center;
+            line-height: 1;
+        }
+
+        .story-item.cta-item { min-width: 60px; }
+
+        /* CONSULTATION BOTTOM SHEET */
+        .consult-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            z-index: 5000;
+            align-items: flex-end;
+            justify-content: center;
+            backdrop-filter: blur(3px);
+        }
+
+        .consult-overlay.active { display: flex; }
+
+        .consult-sheet {
+            width: 100%;
+            max-width: 520px;
+            background: #0E0A04;
+            border-top: 1px solid #C9A84C;
+            border-radius: 22px 22px 0 0;
+            padding-bottom: 36px;
+            animation: sheetUp 0.38s cubic-bezier(0.32,0.72,0,1);
+        }
+
+        @keyframes sheetUp {
+            from { transform: translateY(100%); }
+            to   { transform: translateY(0); }
+        }
+
+        .consult-handle {
+            width: 38px;
+            height: 3px;
+            background: rgba(201,168,76,0.28);
+            border-radius: 2px;
+            margin: 14px auto 0;
+        }
+
+        .consult-header {
+            padding: 22px 24px 16px;
+            border-bottom: 1px solid rgba(201,168,76,0.1);
+        }
+
+        .consult-eyebrow {
+            font-size: 9px;
+            letter-spacing: 4px;
+            color: rgba(201,168,76,0.5);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .consult-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 26px;
+            color: #C9A84C;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            line-height: 1.1;
+        }
+
+        .consult-subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 5px;
+            line-height: 1.5;
+        }
+
+        .consult-options {
+            padding: 20px 24px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .consult-option {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            border: 1px solid rgba(201,168,76,0.18);
+            border-radius: 12px;
+            background: #150F06;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s, transform 0.15s;
+            text-align: left;
+            width: 100%;
+        }
+
+        .consult-option:active {
+            transform: scale(0.98);
+            border-color: #C9A84C;
+            background: rgba(201,168,76,0.07);
+        }
+
+        .consult-option-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(201,168,76,0.08);
+            border: 1px solid rgba(201,168,76,0.22);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .consult-option-body { flex: 1; }
+
+        .consult-option-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 17px;
+            color: #C9A84C;
+            letter-spacing: 0.3px;
+            line-height: 1.2;
+        }
+
+        .consult-option-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 3px;
+            line-height: 1.4;
+        }
+
+        .consult-option-arrow {
+            font-size: 20px;
+            color: rgba(201,168,76,0.35);
+        }
+
+        .consult-dismiss {
+            display: block;
+            width: calc(100% - 48px);
+            margin: 16px 24px 0;
+            padding: 15px;
+            background: transparent;
+            border: 1px solid rgba(201,168,76,0.15);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-family: 'Jost', sans-serif;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s;
+        }
+
+        .consult-dismiss:hover { border-color: rgba(201,168,76,0.35); color: var(--text-primary); }
+
+        /* FEED */
+        .feed-container {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .feed-item {
+            background: var(--bg-card);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(201, 169, 98, 0.1);
+        }
+
+        .feed-image {
+            width: 100%;
+            aspect-ratio: 4/5;
+            background: var(--bg-secondary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feed-image img { width: 100%; height: 100%; object-fit: cover; }
+
+        .feed-overlay-top {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            padding: 20px;
+            background: linear-gradient(to bottom, rgba(18, 13, 6, 0.8), transparent);
+            z-index: 10;
+        }
+
+        .feed-overlay-topic {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--gold);
+            margin-bottom: 2px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            line-height: 1.2;
+        }
+
+        .feed-overlay-feeling {
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            line-height: 1.3;
+        }
+
+        .feed-overlay-location {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .feed-actions {
+            display: flex;
+            padding: 16px;
+            gap: 20px;
+            border-top: 1px solid rgba(201, 169, 98, 0.1);
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Jost', sans-serif;
+        }
+
+        .action-count { font-size: 13px; font-weight: 500; }
+
+        /* TIKTOK-STYLE TRENDING PAGE */
+        .trending-page {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            bottom: var(--nav-height);
+            background: #000;
+            z-index: 100;
+            display: none;
+        }
+
+        .trending-page.active { display: block; }
+
+        .trending-container {
+            height: 100%;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .trending-container::-webkit-scrollbar { display: none; }
+
+        .tiktok-item {
+            height: 100%;
+            scroll-snap-align: start;
+            position: relative;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .tiktok-item video, .tiktok-item img { width: 100%; height: 100%; object-fit: cover; }
+
+        .tiktok-actions {
+            position: absolute;
+            right: 12px;
+            bottom: 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            z-index: 20;
+        }
+
+        .tiktok-action {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: white;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: 'Jost', sans-serif;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .tiktok-action-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all 0.2s;
+        }
+
+        .tiktok-action:active .tiktok-action-icon { transform: scale(0.9); background: rgba(255,255,255,0.2); }
+        .tiktok-action-count { font-size: 12px; font-weight: 500; }
+
+        .tiktok-avatar-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid white;
+            overflow: hidden;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .tiktok-avatar-btn img { width: 100%; height: 100%; object-fit: cover; }
+
+        .tiktok-follow {
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #000;
+        }
+
+        .tiktok-info {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            padding: 80px 100px 20px 16px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            z-index: 15;
+        }
+
+        .tiktok-user { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .tiktok-username { font-weight: 600; font-size: 16px; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+
+        .tiktok-badge {
+            width: 16px; height: 16px;
+            background: var(--gold);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; color: #000;
+        }
+
+        .tiktok-caption { font-size: 14px; color: white; margin-bottom: 8px; line-height: 1.4; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .tiktok-music { display: flex; align-items: center; gap: 8px; color: white; font-size: 13px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .tiktok-music-icon { animation: spin 3s linear infinite; }
+
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .tiktok-music-text { flex: 1; overflow: hidden; white-space: nowrap; }
+        .tiktok-music-text span { display: inline-block; animation: scrollText 8s linear infinite; }
+
+        @keyframes scrollText { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        /* CATALOG */
+        #catalog { background: #080808; }
+
+        .elite-catalog-header {
+            padding: 32px 20px 0;
+            text-align: center;
+            border-bottom: 1px solid #C9A84C;
+        }
+
+        .elite-catalog-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 11px;
+            letter-spacing: 5px;
+            color: #C9A84C;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .elite-catalog-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 30px;
+            font-weight: 700;
+            color: #C9A84C;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .elite-catalog-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; padding: 0; }
+
+        .elite-collection-cell {
+            padding: 14px 10px 10px;
+            cursor: pointer;
+            border-right: 1px solid #C9A84C;
+            border-bottom: 1px solid #C9A84C;
+            transition: background 0.25s;
+            position: relative;
+        }
+
+        .elite-collection-cell:nth-child(even) { border-right: none; }
+        .elite-collection-cell:active, .elite-collection-cell:hover { background: rgba(201, 168, 76, 0.06); }
+
+        .elite-cell-meta { margin-bottom: 8px; }
+
+        .elite-cell-topic {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: #C9A84C;
+            letter-spacing: 0.5px;
+            line-height: 1.3;
+        }
+
+        .elite-cell-feeling {
+            font-size: 10px;
+            color: rgba(201, 168, 76, 0.6);
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+            font-style: italic;
+        }
+
+        .elite-cell-box {
+            width: 100%;
+            aspect-ratio: 1 / 0.85;
+            border: 1px solid rgba(201, 168, 76, 0.35);
+            background: #0A0A0A;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .elite-cell-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .elite-cell-box::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(160deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.008) 30%, transparent 55%, rgba(0,0,0,0.15) 100%);
+            z-index: 1;
+        }
+
+        .elite-cell-box::after {
+            content: '';
+            position: absolute;
+            left: -40%; top: -10%;
+            width: 55%; height: 130%;
+            background: linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.018) 40%, rgba(255,255,255,0.035) 50%, rgba(255,255,255,0.018) 60%, transparent 100%);
+            z-index: 2;
+            transform: skewX(-8deg);
+        }
+
+        .elite-cell-grain {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            background-image: repeating-linear-gradient(92deg, transparent, transparent 3px, rgba(255,255,255,0.006) 3px, rgba(255,255,255,0.006) 4px);
+        }
+
+        .elite-cell-arrow {
+            position: absolute;
+            bottom: 8px; right: 10px;
+            font-size: 14px;
+            color: rgba(201, 168, 76, 0.25);
+            z-index: 4;
+        }
+
+        /* INNER COLLECTION PAGE */
+        #catalogInner { background: #080808; display: none; }
+        #catalogInner.active { display: block; }
+
+        .inner-back-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 20px;
+            border-bottom: 1px solid #C9A84C;
+            background: #080808;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .inner-back-btn { background: none; border: none; color: #C9A84C; font-size: 22px; cursor: pointer; line-height: 1; }
+
+        .inner-collection-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: #C9A84C; letter-spacing: 1px; font-weight: 600; }
+        .inner-collection-feeling { font-size: 11px; color: rgba(201, 168, 76, 0.55); letter-spacing: 1px; font-style: italic; margin-top: 1px; }
+        .inner-section-label { font-size: 9px; letter-spacing: 4px; color: rgba(201, 168, 76, 0.5); text-transform: uppercase; padding: 16px 20px 8px; }
+        .inner-section-divider { height: 1px; background: #C9A84C; }
+
+        .color-config-area { padding: 16px 20px; border-bottom: 1px solid #C9A84C; }
+
+        .color-config-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 13px;
+            letter-spacing: 3px;
+            color: #C9A84C;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+        }
+
+        .color-mixtures-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .color-mixture-card {
+            border: 1px solid rgba(201, 168, 76, 0.35);
+            background: #0E0E0E;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .color-mixture-card:active, .color-mixture-card:hover { background: rgba(201, 168, 76, 0.08); border-color: #C9A84C; }
+        .color-mixture-card.active-palette { border-color: #C9A84C; background: rgba(201, 168, 76, 0.1); box-shadow: inset 0 0 0 1px #C9A84C; }
+
+        .color-mixture-card::after {
+            content: 'Tap to enter rooms ›';
+            display: block;
+            font-size: 8px;
+            letter-spacing: 1.5px;
+            color: rgba(201, 168, 76, 0.4);
+            text-align: right;
+            margin-top: 8px;
+            text-transform: uppercase;
+        }
+
+        .color-mixture-label { font-size: 9px; letter-spacing: 3px; color: rgba(201, 168, 76, 0.6); text-transform: uppercase; margin-bottom: 8px; }
+        .house-layout { width: 100%; aspect-ratio: 1; position: relative; }
+        .house-layout svg { width: 100%; height: 100%; }
+
+        /* ROOMS PAGE */
+        #catalogRooms { background: #080808; }
+        .room-gallery-area { padding: 0; }
+        .room-category-block { border-bottom: 1px solid rgba(201, 168, 76, 0.2); }
+
+        .room-category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(201, 168, 76, 0.1);
+        }
+
+        .room-category-name { font-family: 'Cormorant Garamond', serif; font-size: 17px; color: #C9A84C; letter-spacing: 2px; text-transform: uppercase; }
+
+        .room-single-slot {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: #0A0A0A;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .room-single-slot img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; pointer-events: none; }
+        .room-single-slot.selected { background: rgba(201, 168, 76, 0.15); box-shadow: inset 0 0 0 2px #C9A84C; }
+
+        .room-single-slot.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 8px; right: 8px;
+            width: 24px; height: 24px;
+            background: #C9A84C;
+            color: #0A0A0A;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 700;
+            z-index: 10;
+        }
+
+        .elite-slot-placeholder { display: flex; flex-direction: column; align-items: center; gap: 6px; transition: opacity 0.2s; }
+        .room-single-slot.selected .elite-slot-placeholder { opacity: 0.3; }
+        .elite-slot-icon { width: 28px; height: 28px; border: 1px solid rgba(201, 168, 76, 0.2); display: flex; align-items: center; justify-content: center; }
+        .elite-slot-icon svg { width: 14px; height: 14px; opacity: 0.3; }
+        .elite-slot-num { font-size: 9px; color: rgba(201, 168, 76, 0.2); letter-spacing: 1px; }
+
+        .long-press-indicator {
+            position: absolute;
+            inset: 0;
+            background: rgba(201, 168, 76, 0.1);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .long-press-indicator.active { opacity: 1; }
+
+        .long-press-indicator::before {
+            content: '';
+            width: 40px; height: 40px;
+            border: 3px solid rgba(201, 168, 76, 0.3);
+            border-top-color: #C9A84C;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* SELECTION MODE BAR */
+        .selection-mode-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            background: rgba(8, 8, 8, 0.98);
+            border-bottom: 1px solid #C9A84C;
+            padding: 16px 20px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+        }
+
+        .selection-mode-bar.active { display: flex; }
+        .selection-count { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: #C9A84C; }
+        .selection-actions { display: flex; gap: 12px; }
+
+        .selection-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid #C9A84C;
+            color: #C9A84C;
+            font-size: 12px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .selection-btn.primary { background: #C9A84C; color: #0A0A0A; }
+
+        /* VIEW MODAL */
+        .view-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .view-modal.active { display: flex; }
+        .view-modal-content { width: 90%; max-width: 400px; background: #0E0E0E; border: 1px solid #C9A84C; border-radius: 8px; overflow: hidden; }
+        .view-modal-image { width: 100%; aspect-ratio: 1; background: #1A1A1A; display: flex; align-items: center; justify-content: center; position: relative; }
+        .view-modal-image img { width: 100%; height: 100%; object-fit: cover; }
+        .view-modal-placeholder { display: flex; flex-direction: column; align-items: center; gap: 12px; color: rgba(201, 168, 76, 0.4); }
+        .view-modal-info { padding: 20px; }
+        .view-modal-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: #C9A84C; margin-bottom: 8px; }
+        .view-modal-meta { font-size: 12px; color: rgba(201, 168, 76, 0.6); letter-spacing: 1px; }
+
+        .view-modal-close {
+            position: absolute;
+            top: 20px; right: 20px;
+            width: 44px; height: 44px;
+            background: rgba(201, 168, 76, 0.1);
+            border: 1px solid #C9A84C;
+            border-radius: 50%;
+            color: #C9A84C;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* VAULT PAGE */
+        .vault-login-container { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; background: #0A1628; }
+        .vault-logo { width: 100px; height: 100px; background: linear-gradient(135deg, var(--gold), #B8860B); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 48px; margin-bottom: 32px; box-shadow: 0 20px 60px rgba(201, 169, 98, 0.3); }
+        .vault-title { font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold); margin-bottom: 8px; text-align: center; }
+        .vault-subtitle { color: #6B7B8F; font-size: 14px; margin-bottom: 40px; text-align: center; }
+        .vault-form { width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 20px; }
+        .vault-input { width: 100%; padding: 18px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(201, 169, 98, 0.3); border-radius: 12px; color: var(--text-primary); font-size: 16px; outline: none; font-family: 'Jost', sans-serif; }
+        .vault-input:focus { border-color: var(--gold); background: rgba(255,255,255,0.08); }
+        .vault-btn { padding: 18px; background: linear-gradient(135deg, var(--gold), #B8860B); border: none; border-radius: 12px; color: #0A1628; font-weight: 600; font-size: 16px; cursor: pointer; }
+        .vault-phone-wrapper { width: 100%; display: flex; align-items: stretch; background: rgba(255,255,255,0.05); border: 1px solid rgba(201, 169, 98, 0.3); border-radius: 12px; overflow: hidden; transition: border-color 0.2s; }
+        .vault-phone-wrapper:focus-within { border-color: var(--gold); background: rgba(255,255,255,0.08); }
+        .vault-phone-prefix { display: flex; align-items: center; padding: 0 14px; background: rgba(201, 169, 98, 0.08); border-right: 1px solid rgba(201, 169, 98, 0.2); color: var(--gold); font-family: 'Jost', sans-serif; font-size: 15px; font-weight: 500; letter-spacing: 0.5px; white-space: nowrap; flex-shrink: 0; }
+        .vault-phone-input { flex: 1; padding: 18px 16px; background: transparent; border: none; color: var(--text-primary); font-size: 16px; outline: none; font-family: 'Jost', sans-serif; min-width: 0; }
+        .vault-error { color: #ff6b6b; font-size: 13px; text-align: center; margin-top: 10px; display: none; }
+
+        /* PORTFOLIO PAGE */
+        .portfolio-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; padding: 20px; }
+
+        .portfolio-item {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            background: #0A0A0A;
+            border: 1px solid rgba(201, 168, 76, 0.2);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.6), 0 0 0 0.5px rgba(201,168,76,0.08) inset;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+        }
+
+        .portfolio-item:active { transform: scale(0.97); border-color: rgba(201,168,76,0.55); box-shadow: 0 4px 20px rgba(0,0,0,0.7), 0 0 0 0.5px rgba(201,168,76,0.15) inset; }
+        .portfolio-item:hover { border-color: rgba(201,168,76,0.35); box-shadow: 0 6px 24px rgba(0,0,0,0.65), 0 0 14px rgba(201,168,76,0.05), 0 0 0 0.5px rgba(201,168,76,0.12) inset; }
+        .portfolio-item.selected { border-color: #C9A84C; box-shadow: 0 0 0 1.5px #C9A84C, 0 8px 32px rgba(201,168,76,0.18), 0 2px 8px rgba(0,0,0,0.5); }
+        .portfolio-item img { width: 100%; height: 100%; object-fit: cover; }
+
+        .portfolio-item.empty-state { display: flex; align-items: center; justify-content: center; background: #0C0804; border: 1px solid rgba(201,168,76,0.15); box-shadow: 0 2px 12px rgba(0,0,0,0.7), inset 0 0 40px rgba(0,0,0,0.5); transition: border-color 0.35s ease, box-shadow 0.35s ease; }
+        .portfolio-item.empty-state:hover, .portfolio-item.empty-state:active { border-color: rgba(201,168,76,0.4); box-shadow: 0 4px 20px rgba(0,0,0,0.65), 0 0 16px rgba(201,168,76,0.06), inset 0 0 40px rgba(0,0,0,0.3); }
+
+        .empty-state-content { display: flex; flex-direction: column; align-items: center; gap: 14px; opacity: 0.55; transition: opacity 0.35s ease, transform 0.35s ease; }
+        .portfolio-item.empty-state:hover .empty-state-content, .portfolio-item.empty-state:active .empty-state-content { opacity: 1; transform: scale(1.04); }
+
+        .empty-state-icon { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; position: relative; }
+        .empty-state-icon svg { width: 100%; height: 100%; overflow: visible; }
+        .empty-state-text { font-family: 'Cormorant Garamond', serif; font-size: 11px; letter-spacing: 2.5px; color: rgba(201,168,76,0.65); text-transform: uppercase; text-align: center; line-height: 1.6; }
+        .empty-state-subtext { font-family: 'Jost', sans-serif; font-size: 9px; letter-spacing: 1.5px; color: rgba(201,168,76,0.35); text-transform: uppercase; margin-top: -8px; }
+
+        .portfolio-select { position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; background: rgba(0,0,0,0.5); border: 2px solid rgba(201,168,76,0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: transparent; font-size: 14px; transition: all 0.2s; }
+        .portfolio-item.selected .portfolio-select { background: #C9A84C; border-color: #C9A84C; color: #0A0A0A; }
+
+        .portfolio-actions { position: fixed; bottom: calc(var(--nav-height) + 20px); right: 20px; display: none; flex-direction: column; gap: 12px; z-index: 100; }
+        .portfolio-actions.active { display: flex; }
+
+        .portfolio-action-btn { width: 56px; height: 56px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.3); transition: transform 0.2s; }
+        .portfolio-action-btn:active { transform: scale(0.95); }
+        .portfolio-action-btn.chat { background: #C9A84C; color: #0A1628; }
+        .portfolio-action-btn.whatsapp { background: #25D366; color: white; }
+        .portfolio-action-btn.share { background: #0A0A0A; color: #C9A84C; border: 2px solid #C9A84C; }
+
+        /* DESIGNER CHAT */
+        .chat-container { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-primary); z-index: 2000; flex-direction: column; }
+        .chat-container.active { display: flex; }
+        .chat-header { background: var(--bg-card); padding: 16px 20px; display: flex; align-items: center; gap: 16px; border-bottom: 1px solid rgba(201,169,98,0.1); }
+        .chat-back { background: none; border: none; color: var(--text-primary); font-size: 24px; cursor: pointer; }
+        .chat-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), #B8860B); display: flex; align-items: center; justify-content: center; }
+        .chat-name { font-weight: 600; color: var(--gold); }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+        .message { max-width: 75%; padding: 12px 16px; border-radius: 18px; font-size: 15px; }
+        .message.customer { align-self: flex-end; background: var(--gold); color: #0A1628; }
+        .message.designer { align-self: flex-start; background: #2D2114; color: var(--text-primary); }
+        .chat-input-container { background: var(--bg-card); padding: 16px 20px; border-top: 1px solid rgba(201,169,98,0.1); }
+        .chat-input-wrapper { display: flex; gap: 12px; }
+        .chat-input { flex: 1; background: var(--bg-secondary); border: 1px solid rgba(201,169,98,0.1); border-radius: 24px; padding: 12px 20px; color: var(--text-primary); font-size: 15px; }
+        .chat-attach { width: 44px; height: 44px; background: rgba(201,169,98,0.08); border: 1px solid rgba(201,169,98,0.2); border-radius: 50%; color: var(--gold); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s, border-color 0.2s; }
+        .chat-attach:active { background: rgba(201,169,98,0.18); border-color: var(--gold); }
+        .chat-attach-input { display: none; }
+        .chat-attachment-preview { display: flex; gap: 8px; padding: 8px 0 0; overflow-x: auto; scrollbar-width: none; }
+        .chat-attachment-preview::-webkit-scrollbar { display: none; }
+        .chat-attachment-preview:empty { display: none; }
+        .attachment-thumb { position: relative; flex-shrink: 0; width: 64px; height: 64px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(201,169,98,0.3); }
+        .attachment-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .attachment-thumb-doc { width: 64px; height: 64px; border-radius: 8px; background: rgba(201,169,98,0.08); border: 1px solid rgba(201,169,98,0.3); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; flex-shrink: 0; }
+        .attachment-thumb-doc span { font-size: 9px; color: var(--gold); letter-spacing: 0.5px; text-align: center; padding: 0 4px; word-break: break-all; line-height: 1.2; }
+        .attachment-remove { position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; background: rgba(0,0,0,0.7); border-radius: 50%; color: white; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; }
+        .message-attachment { margin-top: 8px; border-radius: 10px; overflow: hidden; max-width: 180px; }
+        .message-attachment img { width: 100%; display: block; }
+        .message-doc-chip { display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.15); border-radius: 8px; padding: 6px 10px; margin-top: 6px; font-size: 11px; }
+        .chat-send { width: 44px; height: 44px; background: var(--gold); border: none; border-radius: 50%; color: #0A1628; font-size: 20px; cursor: pointer; }
+
+        /* BOTTOM NAVIGATION */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-height); background: rgba(18,13,6,0.98); display: flex; justify-content: space-around; align-items: center; z-index: 1000; border-top: 1px solid rgba(201,169,98,0.1); }
+        .bottom-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-secondary); font-size: 11px; cursor: pointer; padding: 8px 12px; border: none; background: none; }
+        .bottom-nav-item.active { color: var(--gold); }
+        .bottom-nav-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
+        .bottom-nav-icon svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.2s ease, filter 0.2s ease; }
+        .bottom-nav-item.active .bottom-nav-icon svg { stroke: var(--gold); filter: drop-shadow(0 0 5px rgba(201,168,76,0.4)); }
+
+        /* TOAST */
+        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--bg-card); color: var(--gold); padding: 16px 24px; border-radius: 12px; opacity: 0; transition: all 0.3s; z-index: 10000; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        /* IMAGE MODAL */
+        .image-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); z-index: 4000; align-items: center; justify-content: center; }
+        .image-modal.active { display: flex; }
+        .image-modal img { max-width: 90%; max-height: 90%; object-fit: contain; }
+        .image-modal-close { position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 32px; cursor: pointer; }
+
+        /* MY PROFILE SCREEN */
+        .profile-screen {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 3000;
+            flex-direction: column;
+            overflow-y: auto;
+            scrollbar-width: none;
+            padding-bottom: 40px;
+            background: #0A0804;
+        }
+        .profile-screen::-webkit-scrollbar { display: none; }
+        .profile-screen.active { display: flex; animation: fadeIn 0.3s ease; }
+
+        .profile-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(201,168,76,0.15);
+            position: sticky;
+            top: 0;
+            background: #0A0804;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+        .profile-topbar-back { background: none; border: none; color: var(--gold); font-size: 22px; cursor: pointer; line-height: 1; width: 36px; }
+        .profile-topbar-title { font-family: 'Jost', sans-serif; font-size: 9px; letter-spacing: 5px; color: rgba(201,168,76,0.5); text-transform: uppercase; }
+        .profile-topbar-spacer { width: 36px; }
+
+        .profile-identity { display: flex; flex-direction: column; align-items: center; padding: 36px 20px 28px; border-bottom: 1px solid rgba(201,168,76,0.1); }
+        .profile-ornament { font-family: 'Cormorant Garamond', serif; font-size: 10px; letter-spacing: 5px; color: rgba(201,168,76,0.3); text-transform: uppercase; margin-bottom: 20px; }
+
+        .profile-avatar-ring { width: 92px; height: 92px; border-radius: 50%; border: 2px solid var(--gold); padding: 3px; transition: border-width 0.4s ease, box-shadow 0.5s ease; flex-shrink: 0; position: relative; cursor: pointer; }
+        .profile-avatar-camera { position: absolute; bottom: 2px; right: 2px; width: 24px; height: 24px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #0A0804; z-index: 2; cursor: pointer; transition: transform 0.2s, background 0.2s; }
+        .profile-avatar-camera:active { transform: scale(0.9); }
+        .profile-avatar-camera svg { width: 11px; height: 11px; stroke: #0A0804; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .profile-avatar-placeholder { width: 100%; height: 100%; border-radius: 50%; background: #130E06; display: flex; align-items: flex-end; justify-content: center; overflow: hidden; }
+        .profile-avatar-placeholder svg { width: 68%; height: 80%; }
+        .profile-container.is-vip .profile-avatar-ring { border-width: 3px; box-shadow: 0 0 0 1px rgba(201,168,76,0.25), 0 0 20px rgba(201,168,76,0.5), 0 0 50px rgba(201,168,76,0.2); }
+        .profile-avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
+
+        .profile-name-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; position: relative; }
+        .profile-client-name { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 600; color: var(--gold); letter-spacing: 1px; text-align: center; background: transparent; border: none; outline: none; width: 220px; -webkit-user-select: text; user-select: text; }
+        .profile-client-name::placeholder { color: rgba(201,168,76,0.35); }
+        .profile-client-name:focus { border-bottom: 1px solid rgba(201,168,76,0.3); }
+        .profile-name-pencil { flex-shrink: 0; opacity: 0.3; pointer-events: none; }
+        .profile-name-pencil svg { width: 13px; height: 13px; stroke: var(--gold); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+        .profile-standard-tag { margin-top: 8px; font-family: 'Jost', sans-serif; font-size: 10px; letter-spacing: 3px; color: rgba(168,155,140,0.45); text-transform: uppercase; transition: opacity 0.3s ease, max-height 0.3s ease; max-height: 30px; overflow: hidden; }
+        .profile-container.is-vip .profile-standard-tag { opacity: 0; max-height: 0; margin: 0; }
+
+        .profile-vip-badge { display: flex; flex-direction: column; align-items: center; margin-top: 0; max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.45s ease, opacity 0.4s ease, margin-top 0.3s ease; }
+        .profile-container.is-vip .profile-vip-badge { max-height: 100px; opacity: 1; margin-top: 14px; }
+
+        .vip-badge-shield { position: relative; background: linear-gradient(160deg, #1C1400 0%, #0C0900 50%, #1C1400 100%); border: 1px solid var(--gold); border-radius: 4px 4px 10px 10px; padding: 10px 22px 13px; text-align: center; box-shadow: 0 0 20px rgba(201,168,76,0.3), inset 0 1px 0 rgba(201,168,76,0.2), inset 0 -1px 0 rgba(201,168,76,0.1); }
+        .vip-badge-shield::before, .vip-badge-shield::after { content: '◆'; position: absolute; top: -7px; font-size: 10px; color: var(--gold); text-shadow: 0 0 6px rgba(201,168,76,0.8); }
+        .vip-badge-shield::before { left: 10px; }
+        .vip-badge-shield::after { right: 10px; }
+        .vip-badge-line1 { font-family: 'Cormorant Garamond', serif; font-size: 13px; font-weight: 700; color: var(--gold); letter-spacing: 2.5px; text-transform: uppercase; line-height: 1.3; }
+        .vip-badge-divider { width: 65%; height: 1px; background: linear-gradient(to right, transparent, rgba(201,168,76,0.7), transparent); margin: 5px auto; }
+        .vip-badge-line2 { font-family: 'Jost', sans-serif; font-size: 8px; font-weight: 500; color: rgba(201,168,76,0.7); letter-spacing: 4px; text-transform: uppercase; }
+
+        .profile-dashboard { display: flex; gap: 12px; padding: 20px 20px 0; }
+        .dash-card { flex: 1; background: #080808; border: 1px solid rgba(201,168,76,0.15); border-radius: 10px; padding: 16px 14px; position: relative; overflow: hidden; }
+        .dash-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(to right, transparent, rgba(201,168,76,0.35), transparent); }
+        .dash-card-eyebrow { font-family: 'Jost', sans-serif; font-size: 8px; letter-spacing: 3px; color: rgba(201,168,76,0.4); text-transform: uppercase; margin-bottom: 10px; }
+        .dash-card-value { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; color: var(--gold); line-height: 1.1; margin-bottom: 5px; }
+        .dash-card-label { font-family: 'Jost', sans-serif; font-size: 10px; color: rgba(168,155,140,0.55); letter-spacing: 0.3px; line-height: 1.5; }
+
+        .profile-section-header { padding: 22px 20px 8px; font-family: 'Jost', sans-serif; font-size: 9px; letter-spacing: 4px; color: rgba(201,168,76,0.38); text-transform: uppercase; }
+        .profile-fields { margin: 0 20px; border: 1px solid rgba(201,168,76,0.1); border-radius: 10px; overflow: hidden; background: #080808; }
+        .profile-field-row { display: flex; align-items: center; padding: 0 16px; border-bottom: 1px solid rgba(201,168,76,0.08); position: relative; min-height: 60px; }
+        .profile-field-row:last-child { border-bottom: none; }
+        .profile-field-label { font-family: 'Jost', sans-serif; font-size: 9px; letter-spacing: 2.5px; color: rgba(201,168,76,0.65); text-transform: uppercase; white-space: nowrap; width: 100px; flex-shrink: 0; }
+        .profile-field-input { flex: 1; background: transparent; border: none; outline: none; color: var(--text-primary); font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 400; letter-spacing: 0.3px; padding: 18px 32px 18px 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; -webkit-user-select: text; user-select: text; }
+        .profile-field-input::placeholder { color: rgba(168,155,140,0.25); }
+        .profile-field-input:focus { color: var(--gold); white-space: normal; }
+        .profile-field-select { flex: 1; background: transparent; border: none; outline: none; color: var(--text-primary); font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 400; letter-spacing: 0.3px; padding: 18px 32px 18px 0; appearance: none; -webkit-appearance: none; cursor: pointer; min-width: 0; }
+        .profile-field-select option { background: #160F04; color: var(--text-primary); }
+        .profile-field-pencil { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); pointer-events: none; opacity: 0.3; }
+        .profile-field-pencil svg { width: 13px; height: 13px; stroke: var(--gold); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+        .profile-actions { padding: 24px 20px 0; display: flex; flex-direction: column; gap: 12px; }
+        .profile-btn-primary { width: 100%; padding: 17px; background: var(--gold); border: none; border-radius: 10px; color: #0A0804; font-family: 'Jost', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; cursor: pointer; transition: opacity 0.2s, transform 0.15s; }
+        .profile-btn-primary:active { opacity: 0.82; transform: scale(0.99); }
+        .profile-btn-ghost { width: 100%; padding: 17px; background: transparent; border: 1px solid var(--gold); border-radius: 10px; color: var(--gold); font-family: 'Jost', sans-serif; font-size: 11px; font-weight: 400; letter-spacing: 2.5px; text-transform: uppercase; cursor: pointer; transition: background 0.2s, transform 0.15s; }
+        .profile-btn-ghost:active { background: rgba(201,168,76,0.06); transform: scale(0.99); }
+        .profile-btn-text { width: 100%; padding: 14px; background: none; border: none; color: rgba(168,155,140,0.35); font-family: 'Jost', sans-serif; font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; cursor: pointer; transition: color 0.2s; margin-top: 4px; margin-bottom: 36px; }
+        .profile-btn-text:active { color: rgba(168,155,140,0.7); }
+
+        /* VAULT ENHANCEMENTS */
+        .input-error { border-color: #ff5555 !important; box-shadow: 0 0 0 1px rgba(255,85,85,0.3) !important; }
+        .vault-input { transition: border-color 0.2s, box-shadow 0.2s; }
+        .vault-phone-input { transition: border-color 0.2s; }
+
+        #vault-login-form { opacity: 1; transition: opacity 0.5s ease; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        #vault-success-state { opacity: 1; transition: opacity 0.5s ease; width: 100%; display: none; flex-direction: column; align-items: center; }
+
+        .vault-success-icon { margin-bottom: 28px; animation: vaultGlow 3s ease-in-out infinite alternate; }
+        @keyframes vaultGlow { from { filter: drop-shadow(0 0 12px rgba(201,168,76,0.25)); } to { filter: drop-shadow(0 0 28px rgba(201,168,76,0.6)); } }
+        .vault-success-eyebrow { font-family: 'Jost', sans-serif; font-size: 9px; letter-spacing: 6px; color: rgba(201,168,76,0.5); text-transform: uppercase; margin-bottom: 14px; }
+        .vault-success-title { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 600; color: var(--gold); letter-spacing: 1px; line-height: 1.3; margin-bottom: 20px; }
+        .vault-success-divider { width: 60px; height: 1px; background: linear-gradient(to right, transparent, rgba(201,168,76,0.6), transparent); margin: 0 auto 20px; }
+        .vault-success-sub { font-family: 'Jost', sans-serif; font-size: 13px; color: var(--text-secondary); line-height: 1.7; letter-spacing: 0.3px; margin-bottom: 28px; }
+        .vault-success-badges { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 280px; }
+        .vault-badge-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.18); border-radius: 8px; font-family: 'Jost', sans-serif; font-size: 12px; color: var(--text-primary); letter-spacing: 1px; }
+        .vault-badge-icon { color: var(--gold); font-size: 14px; flex-shrink: 0; }
+        .vault-pin-input-wrapper { width: 100%; position: relative; }
+    </style>
 </head>
 <body>
 
-<div id="app">
-  <div class="top-bar">
-    <div class="top-wm">The Billy <em>Living</em></div>
-    <div style="color:var(--white)">🔍 🔔</div>
-  </div>
-  
-  <!-- HOME -->
-  <div class="screen active" id="sc-home">
-    <div class="three-cols-bar">
-      <div class="col-btn" onclick="nav('profile')">
-        <div class="col-ring"><div class="col-av">👤</div></div>
-        <span class="col-lbl">My Profile</span>
-      </div>
-      <div class="col-btn" onclick="nav('aichat')">
-        <div class="col-ring col-ring-ai"><div class="col-av">🤖</div></div>
-        <span class="col-lbl">AI Chat</span>
-      </div>
-      <div class="col-btn" onclick="nav('designer')">
-        <div class="col-ring col-ring-designer"><div class="col-av">👗</div></div>
-        <span class="col-lbl">Lead Designer</span>
-      </div>
+    <!-- SELECTION MODE BAR -->
+    <div class="selection-mode-bar" id="selectionModeBar">
+        <div class="selection-count" id="selectionCount">0 Selected</div>
+        <div class="selection-actions">
+            <button class="selection-btn" onclick="clearSelection()">Clear</button>
+            <button class="selection-btn primary" onclick="shareSelection()">Share</button>
+        </div>
     </div>
-    
-    <div class="stories-row" id="stories-row"></div>
-    <div id="posts-wrap"></div>
-  </div>
-  
-  <!-- TRENDING -->
-  <div class="screen" id="sc-trending">
-    <div class="sec-h">Trending <em>Now</em></div>
-    <div id="trend-feed"></div>
-  </div>
-  
-  <!-- CATALOG -->
-  <div class="screen" id="sc-catalog">
-    <div class="ep-header" style="padding:18px 14px 10px;text-align:center">
-      <div class="sec-h" style="padding:0">The Elite <em>Preformats</em></div>
+
+    <!-- HOME PAGE -->
+    <div id="home" class="page active">
+        <div class="stories-row">
+            <div class="story-item" onclick="openProfile()">
+                <div class="story-circle">
+                    <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:38px;height:38px;">
+                        <circle cx="30" cy="22" r="10" fill="rgba(201,168,76,0.18)" stroke="#C9A84C" stroke-width="1.5"/>
+                        <path d="M10 54c0-11.046 8.954-20 20-20s20 8.954 20 20" fill="rgba(201,168,76,0.15)" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <span class="story-label">My Profile</span>
+            </div>
+            <div class="story-item" onclick="showStory('ai')">
+                <div class="story-circle">
+                    <span class="story-circle-ai">AI</span>
+                </div>
+                <span class="story-label">AI Chat</span>
+            </div>
+            <div class="story-item cta-item" onclick="openConsultSheet()">
+                <div class="story-circle">
+                    <span class="story-circle-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="3" y="4" width="18" height="17" rx="2"/>
+                            <path d="M16 2v4M8 2v4M3 10h18"/>
+                            <path d="M9 16l2 2 4-4"/>
+                        </svg>
+                    </span>
+                </div>
+                <span class="story-label">Book</span>
+            </div>
+        </div>
+
+        <div class="feed-container" id="homeFeed">
+            <!-- Home feed items will be loaded from localStorage -->
+        </div>
     </div>
-    <div class="ep-grid" id="ep-grid"></div>
-  </div>
-  
-  <!-- LIVE DESIGNER -->
-  <div class="screen" id="sc-designer">
-    <div class="des-hero">
-      <div class="live-badge"><div class="live-dot"></div><span class="live-lbl">Designers Online</span></div>
-      <h2>Your Personal<br>Design Consultant</h2>
-      <p>Real-time styling advice from our curated team of luxury interior designers. Available 9am–9pm WAT.</p>
-      <div class="cta-row">
-        <button class="btn-gold" onclick="toast('Opening WhatsApp...')">💬 Chat Now</button>
-        <button class="btn-outline" onclick="nav('catalog')">Browse Catalog</button>
-      </div>
+
+    <!-- MY PROFILE SCREEN -->
+    <div class="profile-screen" id="profileScreen">
+        <div class="profile-container" id="profileContainer">
+            <div class="profile-topbar">
+                <button class="profile-topbar-back" onclick="closeProfile()">←</button>
+                <span class="profile-topbar-title">My Profile</span>
+                <div class="profile-topbar-spacer"></div>
+            </div>
+            <div class="profile-identity">
+                <div class="profile-ornament">— Billy Living —</div>
+                <div class="profile-avatar-ring" onclick="document.getElementById('avatarFileInput').click()">
+                    <div class="profile-avatar-placeholder" id="avatarPlaceholder">
+                        <svg viewBox="0 0 60 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="30" cy="20" r="13" fill="rgba(201,168,76,0.18)" stroke="rgba(201,168,76,0.3)" stroke-width="1"/>
+                            <path d="M4 70c0-14.36 11.64-26 26-26s26 11.64 26 26" fill="rgba(201,168,76,0.15)" stroke="rgba(201,168,76,0.3)" stroke-width="1"/>
+                        </svg>
+                    </div>
+                    <img class="profile-avatar-img" id="profileAvatarImg" src="" alt="" style="display:none;"
+                         onerror="this.style.display='none'; document.getElementById('avatarPlaceholder').style.display='flex';">
+                    <div class="profile-avatar-camera">
+                        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </div>
+                    <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
+                </div>
+                <div class="profile-name-row">
+                    <input class="profile-client-name" type="text" value="" placeholder="Enter Your Name" id="profileNameInput">
+                    <span class="profile-name-pencil">
+                        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </span>
+                </div>
+                <span class="profile-standard-tag">Standard Access</span>
+                <div class="profile-vip-badge">
+                    <div class="vip-badge-shield">
+                        <div class="vip-badge-line1">★ Billy Living VIP ★</div>
+                        <div class="vip-badge-divider"></div>
+                        <div class="vip-badge-line2">Verified Elite</div>
+                    </div>
+                </div>
+            </div>
+            <div class="profile-dashboard">
+                <div class="dash-card">
+                    <div class="dash-card-eyebrow">Active Projects</div>
+                    <div class="dash-card-value">1</div>
+                    <div class="dash-card-label">Lekki Penthouse<br>Staging</div>
+                </div>
+                <div class="dash-card">
+                    <div class="dash-card-eyebrow">Portfolio Saves</div>
+                    <div class="dash-card-value" id="dashSavesCount">0</div>
+                    <div class="dash-card-label">Catalog designs<br>saved</div>
+                </div>
+            </div>
+            <div class="profile-section-header">Account Details</div>
+            <div class="profile-fields">
+                <div class="profile-field-row">
+                    <span class="profile-field-label">Residence</span>
+                    <input class="profile-field-input" type="text" value="Lekki Phase 1, Lagos" placeholder="Primary address">
+                    <span class="profile-field-pencil"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
+                </div>
+                <div class="profile-field-row">
+                    <span class="profile-field-label">Mobile</span>
+                    <input class="profile-field-input" type="tel" value="+234 801 234 5678" placeholder="+234 …">
+                    <span class="profile-field-pencil"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
+                </div>
+                <div class="profile-field-row">
+                    <span class="profile-field-label">Measurement</span>
+                    <select class="profile-field-select">
+                        <option value="inches" selected>Inches — US Standard</option>
+                        <option value="cm">Centimeters</option>
+                    </select>
+                    <span class="profile-field-pencil"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
+                </div>
+                <div class="profile-field-row">
+                    <span class="profile-field-label">Vault PIN</span>
+                    <input class="profile-field-input" type="password" value="4521" maxlength="4" placeholder="4-digit code">
+                    <span class="profile-field-pencil"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
+                </div>
+            </div>
+            <div class="profile-actions">
+                <button class="profile-btn-primary" onclick="saveProfileUpdates()">Save Profile Updates</button>
+                <button class="profile-btn-ghost" onclick="requestConciergeSupport()">Request Concierge Support</button>
+                <button class="profile-btn-text" onclick="handleLogout()">Log Out</button>
+            </div>
+        </div>
     </div>
-    <div class="sec-h" style="padding-bottom:8px">Our <em>Consultants</em></div>
-    <div class="des-grid" id="des-grid"></div>
-  </div>
-  
-  <!-- PORTFOLIO -->
-  <div class="screen" id="sc-portfolio">
-    <div class="sec-h">My <em>Portfolio</em></div>
-    <div class="pf-grid" id="pf-grid"></div>
-  </div>
-  
-  <!-- VIP VAULT -->
-  <div class="screen" id="sc-vault">
-    <div class="vault-gate">
-      <div class="vault-icon">💎</div>
-      <div class="vault-title">The VIP <em>Vault</em></div>
-      <div class="vault-desc">Exclusive access to private design collections, early releases, and bespoke services.</div>
-      <button class="vault-req-btn" onclick="toast('VIP Access Requested!')">Request VIP Access</button>
+
+    <!-- CONSULTATION BOTTOM SHEET -->
+    <div class="consult-overlay" id="consultOverlay" onclick="closeConsultSheet(event)">
+        <div class="consult-sheet">
+            <div class="consult-handle"></div>
+            <div class="consult-header">
+                <div class="consult-eyebrow">Billy Living Concierge</div>
+                <div class="consult-title">Begin Your Project</div>
+                <div class="consult-subtitle">Our designers are ready to transform your space. Choose how you'd like to start.</div>
+            </div>
+            <div class="consult-options">
+                <button class="consult-option" onclick="handleConsultOption('call')">
+                    <div class="consult-option-icon">📞</div>
+                    <div class="consult-option-body">
+                        <div class="consult-option-title">Book a Free Call</div>
+                        <div class="consult-option-desc">30-minute discovery session with a senior designer. No commitment required.</div>
+                    </div>
+                    <span class="consult-option-arrow">›</span>
+                </button>
+                <button class="consult-option" onclick="handleConsultOption('quote')">
+                    <div class="consult-option-icon">📋</div>
+                    <div class="consult-option-body">
+                        <div class="consult-option-title">Request a Quote</div>
+                        <div class="consult-option-desc">Share your space details and receive a bespoke proposal within 24 hours.</div>
+                    </div>
+                    <span class="consult-option-arrow">›</span>
+                </button>
+                <button class="consult-option" onclick="handleConsultOption('whatsapp')">
+                    <div class="consult-option-icon">💬</div>
+                    <div class="consult-option-body">
+                        <div class="consult-option-title">Chat on WhatsApp</div>
+                        <div class="consult-option-desc">Reach us directly for a quick conversation about your vision.</div>
+                    </div>
+                    <span class="consult-option-arrow">›</span>
+                </button>
+            </div>
+            <button class="consult-dismiss" onclick="closeConsultSheet()">Dismiss</button>
+        </div>
     </div>
-  </div>
-  
-  <!-- PROFILE -->
-  <div class="screen" id="sc-profile">
-    <div class="profile-hero">
-      <div class="profile-av-ring"><div class="profile-av" id="prof-av">👤</div></div>
-      <div class="profile-name">The Billy <em>Living</em></div>
-      <div class="profile-vip-badge">Guest</div>
-      <div class="profile-stats">
-        <div class="pstat"><div class="pstat-num">0</div><div class="pstat-lbl">Saved</div></div>
-        <div class="pstat"><div class="pstat-num">—</div><div class="pstat-lbl">Tier</div></div>
-        <div class="pstat"><div class="pstat-num">Guest</div><div class="pstat-lbl">Status</div></div>
-      </div>
-      <div class="profile-actions">
-        <button class="pa-btn pa-gold" onclick="toast('Chat Designer')">💬 Chat Designer</button>
-        <button class="pa-btn pa-outline" onclick="nav('vault')">💎 VIP Vault</button>
-      </div>
+
+    <!-- TIKTOK-STYLE TRENDING PAGE -->
+    <div id="trending" class="trending-page">
+        <div class="trending-container" id="trendingContainer">
+            <!-- Trending items will be loaded from localStorage -->
+        </div>
     </div>
-  </div>
-  
-  <!-- AI CHAT -->
-  <div class="screen" id="sc-aichat">
-    <div class="ai-chat-wrap">
-      <div class="ai-msgs" id="ai-msgs">
-        <div class="ai-msg bot">👋 Hello! I am The Billy Living AI design assistant. Ask me anything about interior design, room styling, colour palettes, furniture placement, or Nigerian luxury aesthetics.</div>
-      </div>
-      <div class="ai-input-row">
-        <input class="ai-inp" id="ai-inp" placeholder="Ask about design, colours, furniture…" onkeydown="if(event.key==='Enter')sendAI()">
-        <button class="ai-send" onclick="sendAI()">↑</button>
-      </div>
+
+    <!-- CATALOG PAGE -->
+    <div id="catalog" class="page">
+        <div class="elite-catalog-header">
+            <div class="elite-catalog-name">Billy Living Presents</div>
+            <div class="elite-catalog-title">The Elite Preformats</div>
+        </div>
+        <div class="elite-catalog-grid" id="eliteCatalogGrid"></div>
     </div>
-  </div>
-  
-  <nav class="bottom-nav">
-    <div class="nav-item active" onclick="nav('home')"><span class="nav-ico">🏠</span><span class="nav-lbl">Home</span></div>
-    <div class="nav-item" onclick="nav('trending')"><span class="nav-ico">🔥</span><span class="nav-lbl">Trending</span></div>
-    <div class="nav-item" onclick="nav('catalog')"><span class="nav-ico">🗂️</span><span class="nav-lbl">Catalog</span></div>
-    <div class="nav-item" onclick="nav('designer')"><span class="nav-ico">👗</span><span class="nav-lbl">Live Designer</span></div>
-    <div class="nav-item" onclick="nav('portfolio')"><span class="nav-ico">🖼️</span><span class="nav-lbl">Portfolio</span></div>
-  </nav>
-</div>
 
-<div class="toast" id="toast"></div>
-
-<script>
-// Navigation
-function nav(screen) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const sc = document.getElementById('sc-' + screen);
-  if (sc) sc.classList.add('active');
-  const navItems = {'home':0, 'trending':1, 'catalog':2, 'designer':3, 'portfolio':4};
-  if (navItems[screen] !== undefined) {
-    document.querySelectorAll('.nav-item')[navItems[screen]].classList.add('active');
-  }
-}
-
-// Toast
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2600);
-}
-
-// AI Chat
-function sendAI() {
-  const inp = document.getElementById('ai-inp');
-  const q = inp.value.trim();
-  if (!q) return;
-  const msgs = document.getElementById('ai-msgs');
-  msgs.innerHTML += `<div class="ai-msg user">${q}</div>`;
-  inp.value = '';
-  msgs.scrollTop = msgs.scrollHeight;
-  setTimeout(() => {
-    const replies = [
-      'For Nigerian luxury interiors, warm earth tones paired with gold accents create an elegant atmosphere.',
-      'Open-plan living works beautifully in Lagos homes. Try using a statement rug to define spaces.',
-      'For bedrooms, soft lighting with pendant lamps adds a boutique hotel feel.',
-      'Marble surfaces in the kitchen pair wonderfully with dark cabinetry.',
-      'Consider louvred shutters for windows — traditional and timeless in Nigerian architecture.'
-    ];
-    msgs.innerHTML += `<div class="ai-msg bot">${replies[Math.floor(Math.random()*replies.length)]}</div>`;
-    msgs.scrollTop = msgs.scrollHeight;
-  }, 800);
-}
-
-// Render Stories
-const stories = [
-  {emoji: '➕', name: 'Your Story'},
-  {emoji: '🏛️', name: 'Studio'},
-  {emoji: '✨', name: 'New Work'},
-  {emoji: '🌿', name: 'Nature'},
-  {emoji: '🏠', name: 'Penthouse'},
-  {emoji: '🌊', name: 'Ocean'}
-];
-
-document.getElementById('stories-row').innerHTML = stories.map(s => `
-  <div class="story-wrap" onclick="toast('${s.name}')">
-    <div class="story-ring"><div class="story-inner">${s.emoji}</div></div>
-    <div class="story-lbl">${s.name}</div>
-  </div>
-`).join('');
-
-// Render Posts
-const posts = [
-  {emoji: '🛋️', author: 'The Billy Living', location: 'Lagos Island', caption: 'Luxury living redefined. Every detail crafted for the discerning eye.', likes: 124},
-  {emoji: '🏛️', author: 'The Billy Living', location: 'Victoria Island', caption: 'Where elegance meets comfort. Our signature penthouse collection.', likes: 89},
-  {emoji: '🪴', author: 'The Billy Living', location: 'Lekki', caption: 'Bringing nature indoors — biophilic design at its finest.', likes: 210}
-];
-
-document.getElementById('posts-wrap').innerHTML = posts.map(p => `
-  <div class="post">
-    <div class="post-head">
-      <div class="post-av">${p.author[0]}</div>
-      <div class="post-author-info">
-        <div class="post-author-name">${p.author}</div>
-        <div class="post-location">📍 ${p.location}</div>
-      </div>
+    <!-- INNER COLLECTION PAGE -->
+    <div id="catalogInner" class="page">
+        <div class="inner-back-bar">
+            <button class="inner-back-btn" onclick="closeCatalogInner()">←</button>
+            <div>
+                <div class="inner-collection-title" id="innerCollectionTitle">—</div>
+                <div class="inner-collection-feeling" id="innerCollectionFeeling">—</div>
+            </div>
+        </div>
+        <div class="color-config-area">
+            <div class="inner-section-label">Section A</div>
+            <div class="color-config-title">Four Mixture of Colors</div>
+            <div class="color-mixtures-row" id="colorMixturesRow"></div>
+        </div>
     </div>
-    <div class="post-img">${p.emoji}</div>
-    <div class="post-acts">
-      <button class="act-btn" onclick="toast('Liked!')">❤️ ${p.likes}</button>
-      <button class="act-btn" onclick="toast('Shared!')">↗️ Share</button>
-      <button class="act-btn" onclick="toast('Saved!')">🔖 Save</button>
+
+    <!-- CATALOG ROOMS PAGE -->
+    <div id="catalogRooms" class="page">
+        <div class="inner-back-bar">
+            <button class="inner-back-btn" onclick="closeCatalogRooms()">←</button>
+            <div>
+                <div class="inner-collection-title" id="roomsPageTitle">ROOMS</div>
+                <div class="inner-collection-feeling" id="roomsPageSubtitle">—</div>
+            </div>
+        </div>
+        <div class="room-gallery-area" id="roomGalleryArea"></div>
     </div>
-    <div style="font-size:13px;line-height:1.6;color:#DDD1B8;margin-top:10px"><strong>${p.author}</strong> ${p.caption}</div>
-  </div>
-`).join('');
 
-// Render Trending
-const trending = [
-  {emoji: '🏙️', title: 'Lagos Penthouse Reveal', views: '24.5K'},
-  {emoji: '🌿', title: 'Biophilic Living 2025', views: '18.2K'},
-  {emoji: '🕯️', title: 'Moody Interiors', views: '12.1K'},
-  {emoji: '🪑', title: 'Minimal Luxury Chairs', views: '9.8K'}
-];
-
-document.getElementById('trend-feed').innerHTML = trending.map(t => `
-  <div class="post" style="margin-bottom:10px" onclick="toast('${t.title}')">
-    <div style="display:flex;align-items:center;gap:15px;padding:15px">
-      <div style="font-size:48px">${t.emoji}</div>
-      <div style="flex:1">
-        <div style="font-size:16px;font-weight:500">${t.title}</div>
-        <div style="font-size:12px;color:var(--ash);margin-top:4px">${t.views} views</div>
-      </div>
+    <!-- VIEW MODAL -->
+    <div class="view-modal" id="viewModal">
+        <button class="view-modal-close" onclick="closeViewModal()">×</button>
+        <div class="view-modal-content">
+            <div class="view-modal-image" id="viewModalImage">
+                <div class="view-modal-placeholder">
+                    <div class="elite-slot-icon" style="width:48px;height:48px;border-color:rgba(201,168,76,0.4);">
+                        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px;">
+                            <rect x="1" y="1" width="14" height="14" stroke="#C9A84C" stroke-width="1"/>
+                            <path d="M1 11l4-4 3 3 3-4 4 5" stroke="#C9A84C" stroke-width="1" fill="none"/>
+                            <circle cx="11" cy="5" r="1.5" fill="#C9A84C"/>
+                        </svg>
+                    </div>
+                    <span style="font-size:14px;">Image Preview</span>
+                </div>
+            </div>
+            <div class="view-modal-info">
+                <div class="view-modal-title" id="viewModalTitle">Room Design</div>
+                <div class="view-modal-meta" id="viewModalMeta">Collection • Room</div>
+            </div>
+        </div>
     </div>
-  </div>
-`).join('');
 
-// Render Catalog
-const catalog = [
-  {topic: 'Penthouse Serenity', feeling: 'Calm & Elevated'},
-  {topic: 'Golden Hour Lounge', feeling: 'Warm & Rich'},
-  {topic: 'The Marble Sanctuary', feeling: 'Pure & High-End'},
-  {topic: 'Obsidian Executive Suite', feeling: 'Power & Focus'},
-  {topic: 'Champagne Dining', feeling: 'Elegant & Social'},
-  {topic: 'Midnight Master Suite', feeling: 'Deep & Exclusive'}
-];
-
-document.getElementById('ep-grid').innerHTML = catalog.map(c => `
-  <div class="ep-cell" onclick="toast('${c.topic}')">
-    <div class="ep-cell-topic"><strong>TOPIC:</strong> ${c.topic}</div>
-    <div class="ep-cell-feeling"><strong>FEELING:</strong> ${c.feeling}</div>
-    <div class="ep-placeholder-ico">🖼️</div>
-    <div class="ep-placeholder-lbl">Tap to view</div>
-  </div>
-`).join('');
-
-// Render Designers
-const designers = [
-  {name: 'Clinton Ayooluwa', initials: 'CA', specialty: 'Lead Designer · Luxury Residential', online: true, tags: ['Modern', 'Classic']},
-  {name: 'Amara Osei', initials: 'AO', specialty: 'Interior Styling · West African', online: false, tags: ['Bohemian', 'Art Deco']}
-];
-
-document.getElementById('des-grid').innerHTML = designers.map(d => `
-  <div class="dc-card">
-    <div class="dc-av">${d.initials}<div class="dc-dot ${d.online?'':'off'}"></div></div>
-    <div class="dc-info">
-      <div class="dc-name">${d.name}</div>
-      <div class="dc-spec">${d.specialty}</div>
-      <div class="dc-tags">${d.tags.map(t => `<span class="dc-tag">${t}</span>`).join('')}</div>
+    <!-- DESIGNER CHAT -->
+    <div id="designerChat" class="chat-container">
+        <div class="chat-header">
+            <button class="chat-back" onclick="closeChat()">←</button>
+            <div class="chat-avatar"></div>
+            <div>
+                <div class="chat-name">Concierge</div>
+                <div style="font-size:12px;color:var(--text-secondary);">Online</div>
+            </div>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-container">
+            <div class="chat-attachment-preview" id="chatAttachmentPreview"></div>
+            <div class="chat-input-wrapper">
+                <label class="chat-attach" title="Attach file">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;">
+                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66L9.41 17.41a2 2 0 01-2.83-2.83l8.49-8.48"/>
+                    </svg>
+                    <input type="file" class="chat-attach-input" id="chatFileInput" multiple accept="image/*,.pdf,.jpg,.jpeg,.png,.gif,.webp" onchange="handleFileAttach(event)">
+                </label>
+                <input type="text" class="chat-input" id="chatInput" placeholder="Describe your space or ask anything...">
+                <button class="chat-send" onclick="sendChatMessage()">➤</button>
+            </div>
+        </div>
     </div>
-    <button class="dc-btn" onclick="toast('Chat with ${d.name}')">${d.online?'Chat':'Book'}</button>
-  </div>
-`).join('');
 
-// Render Portfolio
-const portfolio = ['🛋️', '🏛️', '🪴', '🛏️', '🍽️', '🛁', '🖼️', '✨'];
+    <!-- VAULT PAGE -->
+    <div id="vault" class="page">
+        <div class="vault-login-container" id="vaultLogin">
+            <div id="vault-login-form">
+                <div class="vault-logo">🔒</div>
+                <h1 class="vault-title">THE VAULT</h1>
+                <p class="vault-subtitle">Exclusive Access for VIP Members</p>
+                <div class="vault-form">
+                    <div class="vault-phone-wrapper">
+                        <span class="vault-phone-prefix">+234</span>
+                        <input type="tel" class="vault-phone-input" id="vault-phone" placeholder="8012345678" maxlength="10">
+                    </div>
+                    <div class="vault-pin-input-wrapper">
+                        <input type="password" class="vault-input" id="vault-pin" placeholder="4-Digit VIP PIN" maxlength="4"
+                               oninput="clearVaultError()"
+                               style="transition: border-color 0.2s, box-shadow 0.2s, transform 0.1s;">
+                        <p id="vault-error" style="display:none; color:#ff5555; font-size:12px; text-align:center; margin-top:10px; letter-spacing:0.3px; line-height:1.6;">Access Denied. Please contact the Concierge<br>for VIP consideration.</p>
+                    </div>
+                    <button id="vault-btn" class="vault-btn" onclick="handleVaultUnlock()">UNLOCK</button>
+                </div>
+            </div>
+            <div id="vault-success-state">
+                <div class="vault-success-icon">
+                    <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:80px;height:80px;">
+                        <circle cx="40" cy="40" r="38" stroke="#C9A84C" stroke-width="1.5" fill="rgba(201,168,76,0.06)"/>
+                        <path d="M29 36 L29 26 Q29 16 40 16 Q51 16 51 26 L51 30" stroke="#C9A84C" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                        <rect x="22" y="36" width="36" height="27" rx="4" fill="rgba(201,168,76,0.1)" stroke="#C9A84C" stroke-width="1.5"/>
+                        <circle cx="40" cy="47" r="4" stroke="#C9A84C" stroke-width="1.5" fill="rgba(201,168,76,0.15)"/>
+                        <line x1="40" y1="51" x2="40" y2="57" stroke="#C9A84C" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="vault-success-eyebrow">Access Granted</div>
+                <h2 class="vault-success-title">Welcome to<br>The Inner Circle.</h2>
+                <div class="vault-success-divider"></div>
+                <p class="vault-success-sub">Your VIP status has been verified.<br>Exclusive content is now unlocked.</p>
+                <div class="vault-success-badges">
+                    <div class="vault-badge-item"><span class="vault-badge-icon">✦</span><span>Elite Collections</span></div>
+                    <div class="vault-badge-item"><span class="vault-badge-icon">✦</span><span>Priority Concierge</span></div>
+                    <div class="vault-badge-item"><span class="vault-badge-icon">✦</span><span>Private Previews</span></div>
+                </div>
+                <button class="vault-btn" style="margin-top:32px;max-width:280px;width:100%;" onclick="handleVaultLogout()">SIGN OUT OF VAULT</button>
+            </div>
+        </div>
+    </div>
 
-document.getElementById('pf-grid').innerHTML = portfolio.map(p => `
-  <div class="pf-item" onclick="toast('Portfolio item')">${p}</div>
-`).join('');
-</script>
+    <!-- PORTFOLIO PAGE -->
+    <div id="portfolio" class="page">
+        <div style="padding:32px 20px 20px;text-align:center;border-bottom:1px solid rgba(201,168,76,0.12);">
+            <div style="font-family:'Jost',sans-serif;font-size:9px;letter-spacing:5px;color:rgba(201,168,76,0.5);text-transform:uppercase;margin-bottom:10px;">Billy Living</div>
+            <h1 style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:400;color:#C9A84C;letter-spacing:4px;text-transform:uppercase;line-height:1.1;">Portfolio</h1>
+            <div style="width:32px;height:1px;background:rgba(201,168,76,0.4);margin:12px auto 10px;"></div>
+            <p style="font-family:'Jost',sans-serif;color:rgba(168,155,140,0.7);font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:300;">Long press to select designs</p>
+        </div>
+        <div class="portfolio-grid" id="portfolioGrid"></div>
+        <div class="portfolio-actions" id="portfolioActions">
+            <button class="portfolio-action-btn chat" onclick="shareToDesigner()">💬</button>
+            <button class="portfolio-action-btn whatsapp" onclick="shareToWhatsApp()">📱</button>
+            <button class="portfolio-action-btn share" onclick="shareNative()">↗️</button>
+        </div>
+    </div>
 
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="bottom-nav">
+        <button class="bottom-nav-item active" onclick="showPage('home')">
+            <span class="bottom-nav-icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H15v-5h-6v5H4a1 1 0 01-1-1V10.5z"/></svg>
+            </span>
+            <span>Home</span>
+        </button>
+        <button class="bottom-nav-item" onclick="showPage('trending')">
+            <span class="bottom-nav-icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C12 2 7 8 7 13a5 5 0 0010 0c0-5-5-11-5-11z"/><path d="M9.5 15.5c.5-1.5 2-2.5 2.5-4"/></svg>
+            </span>
+            <span>Trending</span>
+        </button>
+        <button class="bottom-nav-item" onclick="showPage('catalog')">
+            <span class="bottom-nav-icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="7" height="7" rx="0.5"/><rect x="14" y="3" width="7" height="7" rx="0.5"/><rect x="3" y="14" width="7" height="7" rx="0.5"/><rect x="14" y="14" width="7" height="7" rx="0.5"/></svg>
+            </span>
+            <span>Catalog</span>
+        </button>
+        <button class="bottom-nav-item" onclick="openChat()">
+            <span class="bottom-nav-icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="7" r="4"/><path d="M4 21v-1a8 8 0 0116 0v1"/></svg>
+            </span>
+            <span>Concierge</span>
+        </button>
+        <button class="bottom-nav-item" onclick="showPage('vault')">
+            <span class="bottom-nav-icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="11" width="14" height="11" rx="1"/><path d="M8 11V7a4 4 0 018 0v4"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/></svg>
+            </span>
+            <span>Vault</span>
+        </button>
+        <button class="bottom-nav-item" onclick="showPage('portfolio')">
+            <span class="bottom-nav-icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+            </span>
+            <span>Portfolio</span>
+        </button>
+    </nav>
+
+    <div class="toast" id="toast"></div>
+    <div class="image-modal" id="imageModal" onclick="closeImageModal()">
+        <button class="image-modal-close">×</button>
+        <img src="" id="modalImage">
+    </div>
+
+    <script>
+        const db = {
+            currentVIP: null,
+            selectedPortfolioItems: new Set(),
+            portfolio: [],
+            selectedCatalogItems: new Set(),
+            isSelectionMode: false,
+            currentCollectionIndex: 0,
+            activePaletteIndex: null
+        };
+
+        // Default catalog data - used if localStorage is empty
+        const defaultCatalogData = [
+            { topic: 'Penthouse Serenity',      feeling: 'Calm & Elevated' },
+            { topic: 'Golden Hour Lounge',       feeling: 'Warm & Rich' },
+            { topic: 'The Marble Sanctuary',     feeling: 'Pure & High-End' },
+            { topic: 'Obsidian Executive Suite', feeling: 'Power & Focus' },
+            { topic: 'Champagne Dining',         feeling: 'Elegant & Social' },
+            { topic: 'Midnight Master Suite',    feeling: 'Deep & Exclusive' },
+            { topic: 'The Ivory Atrium',         feeling: 'Breathable Opulence' },
+            { topic: 'Emerald Oasis',            feeling: 'Lush & Private' },
+            { topic: 'Sapphire Pavilion',        feeling: 'Bold & Majestic' },
+            { topic: 'Walnut Grandeur',          feeling: 'Earthy & Timeless' },
+            { topic: 'Velvet Monolith',          feeling: 'Soft & Imposing' },
+            { topic: 'Cashmere Quarters',        feeling: 'Warm & Tailored' },
+            { topic: 'Platinum Foyer',           feeling: 'Sleek & Welcoming' },
+            { topic: 'The Quartz Gallery',       feeling: 'Sharp & Brilliant' },
+            { topic: 'Onyx Corridor',            feeling: 'Dark & Seamless' },
+            { topic: 'Gilded Solarium',          feeling: 'Sunlit & Lavish' },
+            { topic: 'The Pearl Alcove',         feeling: 'Luminous & Rare' },
+            { topic: 'Charcoal Minimalist',      feeling: 'Striking & Clean' },
+            { topic: 'Alabaster Haven',          feeling: 'Bright & Weightless' },
+            { topic: 'The Greige Estate',        feeling: 'Balanced & Wealthy' },
+            { topic: 'Brass Horizon',            feeling: 'Reflective & Infinite' },
+            { topic: 'The Monarch Suite',        feeling: 'Absolute Pinnacle' },
+        ];
+
+        // Default home feed data
+        const defaultHomeFeed = [
+            {
+                id: 'feed_1',
+                topic: 'Modern Minimalist',
+                feeling: 'Serene & Calm',
+                location: '📍 Lekki Phase 1',
+                image: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800',
+                likes: 234,
+                shares: 45
+            }
+        ];
+
+        // Default trending data
+        const defaultTrending = [
+            {
+                id: 'trend_1',
+                type: 'video',
+                src: 'https://assets.mixkit.co/videos/preview/mixkit-living-room-with-a-modern-interior-design-4747-large.mp4',
+                poster: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800',
+                username: '@billyliving',
+                caption: 'Modern minimalist living room design 🏠✨ Perfect for Lekki homes! #InteriorDesign #LuxuryLiving',
+                music: 'original sound - Billy Living Interiors',
+                likes: '12.5K',
+                comments: '342'
+            },
+            {
+                id: 'trend_2',
+                type: 'image',
+                src: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=800',
+                username: '@billyliving',
+                caption: 'Luxury bedroom vibes 😴💫 Abuja penthouse project completed! #BedroomGoals #NigeriaHomes',
+                music: 'Luxury Living - Billy Living Interiors',
+                likes: '8.2K',
+                comments: '156'
+            },
+            {
+                id: 'trend_3',
+                type: 'video',
+                src: 'https://assets.mixkit.co/videos/preview/mixkit-modern-kitchen-interior-design-4748-large.mp4',
+                poster: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800',
+                username: '@billyliving',
+                caption: 'Gourmet kitchen goals 👨‍🍳🔥 Marble countertops + brass fixtures = perfection #KitchenDesign #LuxuryHomes',
+                music: 'Cooking Vibes - Billy Living Interiors',
+                likes: '24.1K',
+                comments: '892'
+            }
+        ];
+
+        // Initialize localStorage with default data if empty
+        function initLocalStorage() {
+            // Initialize catalog boxes
+            if (!localStorage.getItem('tbl_catalog_boxes')) {
+                const catalogBoxes = defaultCatalogData.map((item, index) => ({
+                    id: 'box_' + (index + 1),
+                    value: item.topic,
+                    label: 'Topic',
+                    count: '0 images',
+                    description: item.feeling,
+                    images: [],
+                    feeling: item.feeling
+                }));
+                localStorage.setItem('tbl_catalog_boxes', JSON.stringify(catalogBoxes));
+            }
+
+            // Initialize home feed
+            if (!localStorage.getItem('tbl_posts')) {
+                localStorage.setItem('tbl_posts', JSON.stringify(defaultHomeFeed));
+            }
+
+            // Initialize trending
+            if (!localStorage.getItem('tbl_trending')) {
+                localStorage.setItem('tbl_trending', JSON.stringify(defaultTrending));
+            }
+
+            // Initialize portfolio
+            if (!localStorage.getItem('tbl_portfolio')) {
+                localStorage.setItem('tbl_portfolio', JSON.stringify([]));
+            }
+
+            // Initialize designers
+            if (!localStorage.getItem('tbl_designers')) {
+                localStorage.setItem('tbl_designers', JSON.stringify([]));
+            }
+
+            // Initialize VIP users
+            if (!localStorage.getItem('tbl_vip_users')) {
+                localStorage.setItem('tbl_vip_users', JSON.stringify([]));
+            }
+
+            // Initialize chats
+            if (!localStorage.getItem('tbl_designer_chats')) {
+                localStorage.setItem('tbl_designer_chats', JSON.stringify([]));
+            }
+
+            // Initialize settings
+            if (!localStorage.getItem('tbl_settings')) {
+                localStorage.setItem('tbl_settings', JSON.stringify({
+                    appName: 'Billy Living',
+                    whatsapp: '+2348084410220',
+                    whatsappMessage: 'Hello, I am interested in your interior design services',
+                    bookingLink: 'https://calendly.com/billyliving'
+                }));
+            }
+        }
+
+        // Get catalog data from localStorage
+        function getCatalogData() {
+            const stored = localStorage.getItem('tbl_catalog_boxes');
+            if (stored) {
+                const boxes = JSON.parse(stored);
+                return boxes.map(box => ({
+                    topic: box.value,
+                    feeling: box.description || box.feeling,
+                    id: box.id,
+                    images: box.images || []
+                }));
+            }
+            return defaultCatalogData;
+        }
+
+        // Get home feed from localStorage
+        function getHomeFeed() {
+            const stored = localStorage.getItem('tbl_posts');
+            return stored ? JSON.parse(stored) : defaultHomeFeed;
+        }
+
+        // Get trending from localStorage
+        function getTrending() {
+            const stored = localStorage.getItem('tbl_trending');
+            return stored ? JSON.parse(stored) : defaultTrending;
+        }
+
+        function showPage(page) {
+            if (page === 'designer') { openChat(); return; }
+            if (page === 'trending') {
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.querySelectorAll('.trending-page').forEach(p => p.classList.remove('active'));
+                document.getElementById('trending').classList.add('active');
+                document.querySelectorAll('.bottom-nav-item').forEach(n => n.classList.remove('active'));
+                document.querySelectorAll('.bottom-nav-item')[1].classList.add('active');
+                renderTrending();
+                return;
+            }
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.trending-page').forEach(p => p.classList.remove('active'));
+            document.getElementById(page).classList.add('active');
+            document.querySelectorAll('.bottom-nav-item').forEach(n => n.classList.remove('active'));
+            const map = { home: 0, catalog: 2, vault: 4, portfolio: 5 };
+            if (map[page] !== undefined) document.querySelectorAll('.bottom-nav-item')[map[page]].classList.add('active');
+            
+            if (page === 'home') renderHomeFeed();
+            if (page === 'catalog') renderCatalogGrid();
+        }
+
+        function renderHomeFeed() {
+            const container = document.getElementById('homeFeed');
+            const posts = getHomeFeed();
+            
+            if (posts.length === 0) {
+                container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary);">No posts yet</div>';
+                return;
+            }
+            
+            container.innerHTML = posts.map(post => `
+                <div class="feed-item">
+                    <div class="feed-image">
+                        <img src="${post.image || 'https://via.placeholder.com/800x1000/1a1a1a/C9A84C?text=No+Image'}" alt="${post.topic}">
+                        <div class="feed-overlay-top">
+                            <div class="feed-overlay-topic">${post.topic}</div>
+                            <div class="feed-overlay-feeling">${post.feeling}</div>
+                            <div class="feed-overlay-location">${post.location}</div>
+                        </div>
+                    </div>
+                    <div class="feed-actions">
+                        <button class="action-btn">❤️ <span class="action-count">${post.likes || 0}</span></button>
+                        <button class="action-btn">↗️ <span class="action-count">${post.shares || 0}</span></button>
+                        <button class="action-btn">💬</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderTrending() {
+            const container = document.getElementById('trendingContainer');
+            const items = getTrending();
+            
+            container.innerHTML = items.map(item => `
+                <div class="tiktok-item">
+                    ${item.type === 'video' 
+                        ? `<video src="${item.src}" poster="${item.poster}" loop muted playsinline></video>`
+                        : `<img src="${item.src}" alt="Trending">`
+                    }
+                    <div class="tiktok-actions">
+                        <div class="tiktok-avatar-btn">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150" alt="User">
+                            <div class="tiktok-follow">+</div>
+                        </div>
+                        <button class="tiktok-action"><div class="tiktok-action-icon">❤️</div><span class="tiktok-action-count">${item.likes}</span></button>
+                        <button class="tiktok-action"><div class="tiktok-action-icon">💬</div><span class="tiktok-action-count">${item.comments}</span></button>
+                        <button class="tiktok-action"><div class="tiktok-action-icon">↗️</div><span class="tiktok-action-count">Share</span></button>
+                    </div>
+                    <div class="tiktok-info">
+                        <div class="tiktok-user"><span class="tiktok-username">${item.username}</span><div class="tiktok-badge">✓</div></div>
+                        <div class="tiktok-caption">${item.caption}</div>
+                        <div class="tiktok-music"><span class="tiktok-music-icon">🎵</span><div class="tiktok-music-text"><span>${item.music}</span></div></div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Re-initialize video observer
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const video = entry.target.querySelector('video');
+                    if (video) { entry.isIntersecting ? video.play() : video.pause(); }
+                });
+            }, { threshold: 0.6 });
+            document.querySelectorAll('.tiktok-item').forEach(item => observer.observe(item));
+        }
+
+        function showStory(type) { showToast(type + ' story clicked'); }
+
+        function openProfile() {
+            document.getElementById('dashSavesCount').textContent = db.portfolio.length + db.selectedCatalogItems.size;
+            document.getElementById('profileScreen').classList.add('active');
+        }
+
+        function closeProfile() { document.getElementById('profileScreen').classList.remove('active'); }
+        function saveProfileUpdates() { showToast('Profile updated successfully'); }
+
+        function handleAvatarUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.getElementById('profileAvatarImg');
+                const placeholder = document.getElementById('avatarPlaceholder');
+                img.src = e.target.result;
+                img.style.display = 'block';
+                placeholder.style.display = 'none';
+                showToast('Profile photo updated');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function requestConciergeSupport() {
+            closeProfile();
+            openChat();
+            setTimeout(() => appendMessage('customer', "Hi, I need some concierge support with my profile."), 500);
+        }
+
+        function handleLogout() { closeProfile(); showToast('You have been logged out'); }
+
+        function toggleVIPStatus(force) {
+            const c = document.getElementById('profileContainer');
+            const activate = (force !== undefined) ? force : !c.classList.contains('is-vip');
+            c.classList.toggle('is-vip', activate);
+            showToast(activate ? '★ VIP Status Activated' : 'Standard Access Restored');
+        }
+
+        function openConsultSheet() { document.getElementById('consultOverlay').classList.add('active'); }
+
+        function closeConsultSheet(e) {
+            if (!e || e.target === document.getElementById('consultOverlay')) {
+                document.getElementById('consultOverlay').classList.remove('active');
+            }
+        }
+
+        function handleConsultOption(type) {
+            document.getElementById('consultOverlay').classList.remove('active');
+            if (type === 'call') {
+                openChat();
+                setTimeout(() => appendMessage('customer', "Hi, I'd like to book a free 30-minute consultation call."), 600);
+            } else if (type === 'quote') {
+                openChat();
+                setTimeout(() => appendMessage('customer', "I'd like to request a quote for my project."), 600);
+            } else if (type === 'whatsapp') {
+                window.open('https://wa.me/2348084410220?text=Hi%2C%20I%E2%80%99d%20like%20to%20discuss%20a%20project%20with%20Billy%20Living.', '_blank');
+            }
+        }
+
+        let pendingAttachments = [];
+
+        function openChat() {
+            document.getElementById('designerChat').classList.add('active');
+            document.querySelectorAll('.bottom-nav-item')[3].classList.add('active');
+            const msgs = document.getElementById('chatMessages');
+            if (msgs.children.length === 0) {
+                setTimeout(() => { appendMessage('designer', 'Welcome to The Billy Living Concierge. How can we elevate your space today?'); }, 400);
+            }
+        }
+
+        function closeChat() {
+            document.getElementById('designerChat').classList.remove('active');
+            document.querySelectorAll('.bottom-nav-item')[3].classList.remove('active');
+        }
+
+        function appendMessage(role, text, attachments) {
+            const msgs = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.className = `message ${role}`;
+            if (text) div.textContent = text;
+            if (attachments && attachments.length) {
+                attachments.forEach(att => {
+                    if (att.type === 'image') {
+                        const wrap = document.createElement('div');
+                        wrap.className = 'message-attachment';
+                        const img = document.createElement('img');
+                        img.src = att.dataUrl;
+                        wrap.appendChild(img);
+                        div.appendChild(wrap);
+                    } else {
+                        const chip = document.createElement('div');
+                        chip.className = 'message-doc-chip';
+                        chip.innerHTML = `📎 <span style="opacity:0.85">${att.name}</span>`;
+                        div.appendChild(chip);
+                    }
+                });
+            }
+            msgs.appendChild(div);
+            msgs.scrollTop = msgs.scrollHeight;
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text && pendingAttachments.length === 0) return;
+            appendMessage('customer', text, pendingAttachments);
+            input.value = '';
+            pendingAttachments = [];
+            document.getElementById('chatAttachmentPreview').innerHTML = '';
+            document.getElementById('chatFileInput').value = '';
+        }
+
+        function handleFileAttach(event) {
+            const files = Array.from(event.target.files);
+            const preview = document.getElementById('chatAttachmentPreview');
+            files.forEach(file => {
+                const reader = new FileReader();
+                const isImage = file.type.startsWith('image/');
+                reader.onload = (e) => {
+                    const att = { type: isImage ? 'image' : 'doc', name: file.name, dataUrl: e.target.result };
+                    pendingAttachments.push(att);
+                    if (isImage) {
+                        const wrap = document.createElement('div');
+                        wrap.className = 'attachment-thumb';
+                        wrap.innerHTML = `<img src="${e.target.result}"><button class="attachment-remove" onclick="removeAttachment(this,'${att.name}')">×</button>`;
+                        preview.appendChild(wrap);
+                    } else {
+                        const wrap = document.createElement('div');
+                        wrap.className = 'attachment-thumb-doc';
+                        wrap.innerHTML = `📎<span>${file.name.length > 12 ? file.name.slice(0,10)+'…' : file.name}</span><button class="attachment-remove" style="position:relative;top:0;right:0;width:14px;height:14px;font-size:9px;margin-top:2px;" onclick="removeAttachment(this,'${att.name}')">×</button>`;
+                        preview.appendChild(wrap);
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removeAttachment(btn, name) {
+            pendingAttachments = pendingAttachments.filter(a => a.name !== name);
+            btn.closest('.attachment-thumb, .attachment-thumb-doc').remove();
+        }
+
+        function clearVaultError() {
+            document.getElementById('vault-pin').classList.remove('input-error');
+            document.getElementById('vault-error').style.display = 'none';
+        }
+
+        function handleVaultUnlock() {
+            const pin = document.getElementById('vault-pin').value.trim();
+            const pinInput = document.getElementById('vault-pin');
+            const errorEl = document.getElementById('vault-error');
+            const btn = document.getElementById('vault-btn');
+            if (pin === '8888') {
+                localStorage.setItem('isVaultUnlocked', 'true');
+                btn.textContent = '✦ GRANTED';
+                btn.style.opacity = '0.6';
+                btn.style.pointerEvents = 'none';
+                showToast('Welcome to The Inner Circle');
+                const loginForm = document.getElementById('vault-login-form');
+                const successState = document.getElementById('vault-success-state');
+                loginForm.style.opacity = '0';
+                setTimeout(() => {
+                    loginForm.style.display = 'none';
+                    successState.style.display = 'flex';
+                    successState.style.opacity = '0';
+                    requestAnimationFrame(() => { requestAnimationFrame(() => { successState.style.opacity = '1'; }); });
+                }, 500);
+            } else {
+                pinInput.classList.add('input-error');
+                errorEl.style.display = 'block';
+                pinInput.style.transform = 'translateX(-7px)';
+                setTimeout(() => { pinInput.style.transform = 'translateX(7px)'; }, 80);
+                setTimeout(() => { pinInput.style.transform = 'translateX(-4px)'; }, 160);
+                setTimeout(() => { pinInput.style.transform = 'translateX(4px)'; }, 220);
+                setTimeout(() => { pinInput.style.transform = 'translateX(0)'; }, 290);
+                pinInput.value = '';
+                pinInput.focus();
+            }
+        }
+
+        function handleVaultLogout() {
+            localStorage.removeItem('isVaultUnlocked');
+            const loginForm = document.getElementById('vault-login-form');
+            const successState = document.getElementById('vault-success-state');
+            successState.style.opacity = '0';
+            setTimeout(() => {
+                successState.style.display = 'none';
+                document.getElementById('vault-pin').value = '';
+                document.getElementById('vault-phone').value = '';
+                clearVaultError();
+                const btn = document.getElementById('vault-btn');
+                btn.textContent = 'UNLOCK';
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+                loginForm.style.display = 'flex';
+                loginForm.style.opacity = '0';
+                requestAnimationFrame(() => { requestAnimationFrame(() => { loginForm.style.opacity = '1'; }); });
+            }, 500);
+        }
+
+        function checkVaultOnLoad() {
+            if (localStorage.getItem('isVaultUnlocked') === 'true') {
+                const loginForm = document.getElementById('vault-login-form');
+                const successState = document.getElementById('vault-success-state');
+                if (loginForm && successState) {
+                    loginForm.style.display = 'none';
+                    successState.style.display = 'flex';
+                    successState.style.opacity = '1';
+                }
+            }
+        }
+
+        function renderPortfolio() {
+            const container = document.getElementById('portfolioGrid');
+            const totalSlots = 1;
+            let html = '';
+            db.portfolio.forEach(item => {
+                html += `<div class="portfolio-item ${db.selectedPortfolioItems.has(item.id) ? 'selected' : ''}" onclick="togglePortfolioSelection(${item.id})">
+                    <img src="${item.image}" alt="${item.title}">
+                    <div class="portfolio-select">✓</div>
+                </div>`;
+            });
+            const emptySlots = totalSlots - db.portfolio.length;
+            for (let i = 0; i < emptySlots; i++) {
+                html += `<div class="portfolio-item empty-state" onclick="showToast('Save designs from the catalog to add them here')">
+                    <div class="empty-state-content">
+                        <div class="empty-state-icon">
+                            <svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="4" y="4" width="44" height="44" stroke="rgba(201,168,76,0.25)" stroke-width="0.75" rx="1"/>
+                                <path d="M4 12 L4 4 L12 4" stroke="rgba(201,168,76,0.6)" stroke-width="1.2" fill="none" stroke-linecap="square"/>
+                                <path d="M40 4 L48 4 L48 12" stroke="rgba(201,168,76,0.6)" stroke-width="1.2" fill="none" stroke-linecap="square"/>
+                                <path d="M48 40 L48 48 L40 48" stroke="rgba(201,168,76,0.6)" stroke-width="1.2" fill="none" stroke-linecap="square"/>
+                                <path d="M12 48 L4 48 L4 40" stroke="rgba(201,168,76,0.6)" stroke-width="1.2" fill="none" stroke-linecap="square"/>
+                                <line x1="26" y1="18" x2="26" y2="34" stroke="rgba(201,168,76,0.75)" stroke-width="1.5" stroke-linecap="round"/>
+                                <line x1="18" y1="26" x2="34" y2="26" stroke="rgba(201,168,76,0.75)" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="empty-state-text">Save to Portfolio</div>
+                        <div class="empty-state-subtext">Add a Design</div>
+                    </div>
+                </div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function togglePortfolioSelection(id) {
+            db.selectedPortfolioItems.has(id) ? db.selectedPortfolioItems.delete(id) : db.selectedPortfolioItems.add(id);
+            renderPortfolio();
+            document.getElementById('portfolioActions').classList.toggle('active', db.selectedPortfolioItems.size > 0);
+        }
+
+        function shareToDesigner() {
+            openChat(); showToast('Portfolio shared to designer');
+            db.selectedPortfolioItems.clear(); renderPortfolio();
+            document.getElementById('portfolioActions').classList.remove('active');
+        }
+
+        function shareToWhatsApp() {
+            window.open('https://wa.me/2348084410220?text=Check out these designs from Billy Living', '_blank');
+            db.selectedPortfolioItems.clear(); renderPortfolio();
+            document.getElementById('portfolioActions').classList.remove('active');
+        }
+
+        function shareNative() {
+            if (navigator.share) { navigator.share({ title: 'Billy Living', text: 'Check out these designs' }); }
+            else { showToast('Link copied'); }
+            db.selectedPortfolioItems.clear(); renderPortfolio();
+            document.getElementById('portfolioActions').classList.remove('active');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function closeImageModal() { document.getElementById('imageModal').classList.remove('active'); }
+
+        const roomCategories = ['Living Room','Dining Room','Bed Room','Kitchen','Toilet','Passage Way','Rest Room'];
+
+        function buildHouseSVG(palette) {
+            const [c1, c2, c3, c4] = palette.q;
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="50,8 92,40 8,40" fill="${c1}" stroke="#C9A84C" stroke-width="0.8"/>
+                <rect x="8" y="40" width="40" height="50" fill="${c2}" stroke="#C9A84C" stroke-width="0.8"/>
+                <rect x="48" y="40" width="44" height="50" fill="${c3}" stroke="#C9A84C" stroke-width="0.8"/>
+                <rect x="40" y="62" width="20" height="28" fill="${c4}" stroke="#C9A84C" stroke-width="0.8"/>
+                <rect x="14" y="48" width="14" height="12" fill="${c4}" stroke="#C9A84C" stroke-width="0.5" opacity="0.7"/>
+                <rect x="58" y="48" width="14" height="12" fill="${c1}" stroke="#C9A84C" stroke-width="0.5" opacity="0.7"/>
+            </svg>`;
+        }
+
+        function renderCatalogGrid() {
+            const grid = document.getElementById('eliteCatalogGrid');
+            if (!grid) return;
+            
+            const collections = getCatalogData();
+            
+            grid.innerHTML = collections.map((c, i) => `
+                <div class="elite-collection-cell" onclick="openCatalogInner(${i})">
+                    <div class="elite-cell-meta">
+                        <div class="elite-cell-topic">${c.topic}</div>
+                        <div class="elite-cell-feeling">${c.feeling}</div>
+                    </div>
+                    <div class="elite-cell-box">
+                        ${c.images && c.images[0] ? `<img src="${c.images[0]}" alt="${c.topic}">` : ''}
+                        <div class="elite-cell-grain"></div>
+                        <span class="elite-cell-arrow">›</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function buildPalette(index, mi) {
+            const offset = (index + mi) % 5;
+            if (mi === 0) return { q: [`hsl(${30+offset*8},${15+offset}%,${10+offset}%)`,`hsl(${42+offset*3},${60+offset*2}%,${46+offset}%)`,`hsl(${30+offset*5},${10+offset}%,${15+offset}%)`,`hsl(${45+offset*2},${70+offset}%,${75+offset}%)`], labels: ['Primary','Accent','Secondary','Trim'] };
+            if (mi === 1) return { q: [`hsl(${0+offset*10},0%,${5+offset}%)`,`hsl(${35+offset*4},${40+offset*3}%,${35+offset*2}%)`,`hsl(${40+offset*2},${20+offset}%,${85+offset}%)`,`hsl(${43+offset},${55+offset*3}%,${55+offset*2}%)`], labels: ['Base Tone','Warm Stone','Light Field','Gold Detail'] };
+            if (mi === 2) return { q: [`hsl(${200+offset*5},${20+offset}%,${8+offset}%)`,`hsl(${38+offset*2},${50+offset*2}%,${40+offset}%)`,`hsl(${25+offset*3},${15+offset}%,${20+offset}%)`,`hsl(${46+offset},${65+offset*2}%,${70+offset}%)`], labels: ['Cool Base','Bronze','Dark Field','Warm Glow'] };
+            return { q: [`hsl(${15+offset*6},${25+offset}%,${12+offset}%)`,`hsl(${44+offset*2},${55+offset}%,${50+offset}%)`,`hsl(0,0%,${18+offset}%)`,`hsl(${48+offset},${80+offset}%,${80+offset}%)`], labels: ['Deep Tone','Rich Gold','Neutral','Highlight'] };
+        }
+
+        function openCatalogInner(index) {
+            db.currentCollectionIndex = index;
+            db.activePaletteIndex = null;
+            const collections = getCatalogData();
+            const c = collections[index];
+            document.getElementById('innerCollectionTitle').textContent = c.topic;
+            document.getElementById('innerCollectionFeeling').textContent = c.feeling;
+            const mixturesRow = document.getElementById('colorMixturesRow');
+            mixturesRow.innerHTML = [0,1,2,3].map(mi => {
+                const p = buildPalette(index, mi);
+                return `<div class="color-mixture-card" id="paletteCard${mi}" onclick="openPaletteRooms(${mi})">
+                    <div class="color-mixture-label">Mixture ${mi+1}</div>
+                    <div class="house-layout">${buildHouseSVG(p)}</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px;">
+                        ${p.q.map((col, qi) => `<div style="display:flex;align-items:center;gap:4px;">
+                            <div style="width:10px;height:10px;background:${col};border:1px solid rgba(201,168,76,0.3);flex-shrink:0;"></div>
+                            <span style="font-size:8px;color:rgba(201,168,76,0.5);letter-spacing:0.5px;">${p.labels[qi]}</span>
+                        </div>`).join('')}
+                    </div>
+                </div>`;
+            }).join('');
+            document.getElementById('catalog').classList.remove('active');
+            const inner = document.getElementById('catalogInner');
+            inner.classList.add('active');
+            inner.scrollTop = 0;
+        }
+
+        function openPaletteRooms(paletteIndex) {
+            db.activePaletteIndex = paletteIndex;
+            const collections = getCatalogData();
+            const c = collections[db.currentCollectionIndex];
+            document.getElementById('roomsPageTitle').textContent = `${c.topic} — Mixture ${paletteIndex + 1}`;
+            document.getElementById('roomsPageSubtitle').textContent = c.feeling;
+            const roomArea = document.getElementById('roomGalleryArea');
+            
+            // Get images for this collection if they exist
+            const collectionImages = c.images || [];
+            
+            roomArea.innerHTML = roomCategories.map((roomName, roomIndex) => {
+                const slotId = `${db.currentCollectionIndex}-${paletteIndex}-${roomIndex}`;
+                const isSelected = db.selectedCatalogItems.has(slotId);
+                const roomImage = collectionImages[roomIndex] || null;
+                
+                return `<div class="room-category-block">
+                    <div class="room-category-header"><div class="room-category-name">${roomName}</div></div>
+                    <div class="room-single-slot ${isSelected ? 'selected' : ''}"
+                         data-collection="${db.currentCollectionIndex}" data-palette="${paletteIndex}"
+                         data-room="${roomName}" data-room-index="${roomIndex}" data-slot-id="${slotId}"
+                         ontouchstart="handleTouchStart(this,event)" ontouchend="handleTouchEnd(this,event)"
+                         onmousedown="handleMouseDown(this,event)" onmouseup="handleMouseUp(this,event)"
+                         oncontextmenu="return false;">
+                        <div class="long-press-indicator"></div>
+                        ${roomImage ? `<img src="${roomImage}" alt="${roomName}">` : ''}
+                        <div class="elite-slot-placeholder" style="${roomImage ? 'opacity:0;' : ''}">
+                            <div class="elite-slot-icon">
+                                <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="1" y="1" width="14" height="14" stroke="#C9A84C" stroke-width="1"/>
+                                    <path d="M1 11l4-4 3 3 3-4 4 5" stroke="#C9A84C" stroke-width="1" fill="none"/>
+                                    <circle cx="11" cy="5" r="1.5" fill="#C9A84C"/>
+                                </svg>
+                            </div>
+                            <div class="elite-slot-num">${roomName}</div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+            
+            document.getElementById('catalogInner').classList.remove('active');
+            const roomsPage = document.getElementById('catalogRooms');
+            roomsPage.classList.add('active');
+            roomsPage.scrollTop = 0;
+        }
+
+        function closeCatalogRooms() {
+            document.getElementById('catalogRooms').classList.remove('active');
+            document.getElementById('catalogInner').classList.add('active');
+            exitSelectionMode();
+        }
+
+        function closeCatalogInner() {
+            document.getElementById('catalogInner').classList.remove('active');
+            document.getElementById('catalogRooms').classList.remove('active');
+            document.getElementById('catalog').classList.add('active');
+            exitSelectionMode();
+        }
+
+        let pressTimer, isLongPress = false, touchStartTime, touchStartX, touchStartY;
+        const LONG_PRESS_DURATION = 500, MOVE_THRESHOLD = 10;
+
+        function handleTouchStart(element, event) {
+            touchStartTime = Date.now();
+            touchStartX = event.touches[0].clientX;
+            touchStartY = event.touches[0].clientY;
+            isLongPress = false;
+            pressTimer = setTimeout(() => { isLongPress = true; triggerLongPress(element); }, LONG_PRESS_DURATION);
+        }
+
+        function handleTouchEnd(element, event) {
+            clearTimeout(pressTimer);
+            const pressDuration = Date.now() - touchStartTime;
+            if (event.changedTouches.length > 0) {
+                const dx = event.changedTouches[0].clientX - touchStartX;
+                const dy = event.changedTouches[0].clientY - touchStartY;
+                if (Math.sqrt(dx*dx + dy*dy) > MOVE_THRESHOLD) return;
+            }
+            if (!isLongPress && pressDuration < LONG_PRESS_DURATION) triggerTap(element);
+        }
+
+        function handleMouseDown(element, event) {
+            if (event.button !== 0) return;
+            touchStartTime = Date.now();
+            isLongPress = false;
+            pressTimer = setTimeout(() => { isLongPress = true; triggerLongPress(element); }, LONG_PRESS_DURATION);
+        }
+
+        function handleMouseUp(element, event) {
+            clearTimeout(pressTimer);
+            const pressDuration = Date.now() - touchStartTime;
+            if (!isLongPress && pressDuration < LONG_PRESS_DURATION) triggerTap(element);
+        }
+
+        function triggerTap(element) {
+            const slotId = element.dataset.slotId;
+            const roomName = element.dataset.room;
+            const collectionName = getCatalogData()[db.currentCollectionIndex].topic;
+            const paletteNum = parseInt(element.dataset.palette) + 1;
+            if (db.isSelectionMode) { toggleSlotSelection(element, slotId); }
+            else { showViewModal(collectionName, roomName, paletteNum); }
+        }
+
+        function triggerLongPress(element) {
+            if (!db.isSelectionMode) enterSelectionMode();
+            toggleSlotSelection(element, element.dataset.slotId);
+            if (navigator.vibrate) navigator.vibrate(50);
+        }
+
+        function enterSelectionMode() {
+            db.isSelectionMode = true;
+            document.getElementById('selectionModeBar').classList.add('active');
+            updateSelectionCount();
+        }
+
+        function exitSelectionMode() {
+            db.isSelectionMode = false;
+            db.selectedCatalogItems.clear();
+            document.getElementById('selectionModeBar').classList.remove('active');
+            document.querySelectorAll('.room-single-slot.selected').forEach(slot => slot.classList.remove('selected'));
+        }
+
+        function toggleSlotSelection(element, slotId) {
+            if (db.selectedCatalogItems.has(slotId)) { db.selectedCatalogItems.delete(slotId); element.classList.remove('selected'); }
+            else { db.selectedCatalogItems.add(slotId); element.classList.add('selected'); }
+            updateSelectionCount();
+            if (db.selectedCatalogItems.size === 0) exitSelectionMode();
+        }
+
+        function updateSelectionCount() { document.getElementById('selectionCount').textContent = db.selectedCatalogItems.size + ' Selected'; }
+
+        function clearSelection() {
+            db.selectedCatalogItems.clear();
+            document.querySelectorAll('.room-single-slot.selected').forEach(slot => slot.classList.remove('selected'));
+            exitSelectionMode();
+        }
+
+        function shareSelection() {
+            const count = db.selectedCatalogItems.size;
+            showToast(`Sharing ${count} items to designer`);
+            setTimeout(() => { exitSelectionMode(); openChat(); }, 500);
+        }
+
+        function showViewModal(collection, room, paletteNum) {
+            document.getElementById('viewModalTitle').textContent = room + ' Design';
+            document.getElementById('viewModalMeta').textContent = `${collection} • Mixture ${paletteNum}`;
+            document.getElementById('viewModal').classList.add('active');
+        }
+
+        function closeViewModal() { document.getElementById('viewModal').classList.remove('active'); }
+
+        document.addEventListener('contextmenu', (e) => { if (e.target.closest('.room-single-slot')) e.preventDefault(); });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initLocalStorage();
+            renderPortfolio();
+            renderCatalogGrid();
+            renderHomeFeed();
+            checkVaultOnLoad();
+        });
+    </script>
 </body>
 </html>
