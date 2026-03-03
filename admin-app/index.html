@@ -1022,6 +1022,32 @@
         let currentChat = null;
         let currentCatalogBox = null;
 
+        // Default catalog data for initialization
+        const defaultCatalogData = [
+            { topic: 'Penthouse Serenity',      feeling: 'Calm & Elevated' },
+            { topic: 'Golden Hour Lounge',       feeling: 'Warm & Rich' },
+            { topic: 'The Marble Sanctuary',     feeling: 'Pure & High-End' },
+            { topic: 'Obsidian Executive Suite', feeling: 'Power & Focus' },
+            { topic: 'Champagne Dining',         feeling: 'Elegant & Social' },
+            { topic: 'Midnight Master Suite',    feeling: 'Deep & Exclusive' },
+            { topic: 'The Ivory Atrium',         feeling: 'Breathable Opulence' },
+            { topic: 'Emerald Oasis',            feeling: 'Lush & Private' },
+            { topic: 'Sapphire Pavilion',        feeling: 'Bold & Majestic' },
+            { topic: 'Walnut Grandeur',          feeling: 'Earthy & Timeless' },
+            { topic: 'Velvet Monolith',          feeling: 'Soft & Imposing' },
+            { topic: 'Cashmere Quarters',        feeling: 'Warm & Tailored' },
+            { topic: 'Platinum Foyer',           feeling: 'Sleek & Welcoming' },
+            { topic: 'The Quartz Gallery',       feeling: 'Sharp & Brilliant' },
+            { topic: 'Onyx Corridor',            feeling: 'Dark & Seamless' },
+            { topic: 'Gilded Solarium',          feeling: 'Sunlit & Lavish' },
+            { topic: 'The Pearl Alcove',         feeling: 'Luminous & Rare' },
+            { topic: 'Charcoal Minimalist',      feeling: 'Striking & Clean' },
+            { topic: 'Alabaster Haven',          feeling: 'Bright & Weightless' },
+            { topic: 'The Greige Estate',        feeling: 'Balanced & Wealthy' },
+            { topic: 'Brass Horizon',            feeling: 'Reflective & Infinite' },
+            { topic: 'The Monarch Suite',        feeling: 'Absolute Pinnacle' },
+        ];
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             initData();
@@ -1037,14 +1063,26 @@
         });
 
         function initData() {
+            // Initialize catalog boxes with default data if empty
+            if (!localStorage.getItem('tbl_catalog_boxes')) {
+                const catalogBoxes = defaultCatalogData.map((item, index) => ({
+                    id: 'box_' + (index + 1),
+                    value: item.topic,
+                    label: 'Topic',
+                    count: '0 images',
+                    description: item.feeling,
+                    images: [],
+                    feeling: item.feeling
+                }));
+                localStorage.setItem('tbl_catalog_boxes', JSON.stringify(catalogBoxes));
+            }
+
+            // Initialize other tables if empty
             if (!localStorage.getItem('tbl_posts')) {
                 localStorage.setItem('tbl_posts', JSON.stringify([]));
             }
             if (!localStorage.getItem('tbl_trending')) {
                 localStorage.setItem('tbl_trending', JSON.stringify([]));
-            }
-            if (!localStorage.getItem('tbl_catalog_boxes')) {
-                localStorage.setItem('tbl_catalog_boxes', JSON.stringify([]));
             }
             if (!localStorage.getItem('tbl_portfolio')) {
                 localStorage.setItem('tbl_portfolio', JSON.stringify([]));
@@ -1068,14 +1106,13 @@
             }
         }
 
-        // Navigation - Fixed to handle both nav items and button clicks
+        // Navigation
         function showPanel(panelName, navElement) {
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             
             document.getElementById('panel-' + panelName).classList.add('active');
             
-            // Only update nav item if clicked from sidebar
             if (navElement) {
                 navElement.classList.add('active');
             }
@@ -1391,7 +1428,6 @@
             const messages = JSON.parse(localStorage.getItem('tbl_designer_chats') || '[]');
             const chatMessages = messages.filter(m => m.senderName === name || (m.isDesigner && m.recipient === name));
             
-            // Mark as read
             messages.forEach(m => {
                 if (m.senderName === name && !m.isDesigner) {
                     m.read = true;
@@ -1787,7 +1823,6 @@
             
             modal.classList.add('active');
             
-            // Override close button
             document.querySelector('.form-container .btn-secondary').onclick = closeCatalogManager;
             document.querySelector('.form-container .btn-primary').onclick = closeCatalogManager;
         }
