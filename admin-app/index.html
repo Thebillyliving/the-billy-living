@@ -2093,15 +2093,16 @@
         function startAdminFirebaseListener() {
             if (!window._fbReady) return;
             try {
-                const q = window._fbQuery(
-                    window._fbCollection(window._fbDb, 'chats'),
-                    window._fbOrderBy('timestamp', 'asc')
-                );
-                window._fbOnSnapshot(q, (snapshot) => {
+                const col = window._fbCollection(window._fbDb, 'chats');
+                window._fbOnSnapshot(col, (snapshot) => {
                     const all = [];
                     snapshot.forEach(d => all.push({ id: d.id, ...d.data() }));
+                    // Sort client-side — no Firestore index needed
+                    all.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
                     // Sync to localStorage
                     localStorage.setItem('tbl_designer_chats', JSON.stringify(all));
+
                     // Refresh UI
                     updateBadges();
                     renderWAConvList();
