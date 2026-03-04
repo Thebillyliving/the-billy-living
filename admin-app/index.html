@@ -1484,6 +1484,7 @@
                 <h1 class="page-title">Client Messages</h1>
                 <button class="btn btn-primary" onclick="openWAChat()">Open Chats</button>
             </div>
+            <div id="fbStatusBar" style="text-align:center;padding:8px;margin-bottom:12px;border-radius:8px;font-size:12px;background:rgba(255,165,0,0.1);color:orange;letter-spacing:1px;">⏳ Connecting to Firebase...</div>
             <div style="text-align:center;padding:60px 20px;color:var(--text-secondary);">
                 <div style="font-size:48px;margin-bottom:16px;opacity:0.3;">💬</div>
                 <div style="font-size:13px;letter-spacing:1px;">Click "Open Chats" to view all messages</div>
@@ -2029,7 +2030,22 @@
 
         function openWAChat() {
             document.getElementById('waChatWrap').classList.add('active');
-            renderWAConvList();
+
+            // If Firebase is ready, fetch fresh data directly then render
+            if (window._fbReady) {
+                try {
+                    window._fbGetDocs(window._fbCollection(window._fbDb, 'chats')).then(snapshot => {
+                        const all = [];
+                        snapshot.forEach(d => all.push({ id: d.id, ...d.data() }));
+                        all.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+                        localStorage.setItem('tbl_designer_chats', JSON.stringify(all));
+                        renderWAConvList();
+                        updateBadges();
+                    }).catch(() => renderWAConvList());
+                } catch(e) { renderWAConvList(); }
+            } else {
+                renderWAConvList();
+            }
         }
 
         function closeWAChat() {
@@ -2091,25 +2107,43 @@
 
         // ── Firebase real-time listener for admin ─────────────────────
         function startAdminFirebaseListener() {
-            if (!window._fbReady) return;
+            if (!window._fbReady) {
+                setTimeout(startAdminFirebaseListener, 500);
+                return;
+            }
+            const statusBar = document.getElementById('fbStatusBar');
             try {
                 const col = window._fbCollection(window._fbDb, 'chats');
                 window._fbOnSnapshot(col, (snapshot) => {
                     const all = [];
                     snapshot.forEach(d => all.push({ id: d.id, ...d.data() }));
-                    // Sort client-side — no Firestore index needed
                     all.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-
-                    // Sync to localStorage
                     localStorage.setItem('tbl_designer_chats', JSON.stringify(all));
 
-                    // Refresh UI
+                    // Show connected status
+                    if (statusBar) {
+                        statusBar.style.background = 'rgba(0,200,0,0.1)';
+                        statusBar.style.color = '#00C800';
+                        statusBar.textContent = '🟢 Firebase connected — ' + all.length + ' message(s) synced';
+                    }
+
                     updateBadges();
                     renderWAConvList();
-                    // If a thread is open, refresh it too
                     if (waCurrentChat) openWAThread(waCurrentChat);
+                }, (error) => {
+                    if (statusBar) {
+                        statusBar.style.background = 'rgba(255,0,0,0.1)';
+                        statusBar.style.color = '#ff4444';
+                        statusBar.textContent = '🔴 Firebase error: ' + error.message;
+                    }
                 });
-            } catch(e) { console.warn('Admin Firebase listener error:', e); }
+            } catch(e) {
+                if (statusBar) {
+                    statusBar.style.background = 'rgba(255,0,0,0.1)';
+                    statusBar.style.color = '#ff4444';
+                    statusBar.textContent = '🔴 Firebase failed: ' + e.message;
+                }
+            }
         }
 
         function openWAThread(name) {
