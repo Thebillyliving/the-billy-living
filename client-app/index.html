@@ -1313,13 +1313,10 @@
         .tiktok-action.liked .tiktok-action-icon svg { stroke: #ed4956; fill: #ed4956; }
 
     </style>
-    <!-- ── Firebase SDK ───────────────────────────────────────────── -->
-    <script type="module">
-        import { initializeApp }   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc }
-            from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
-        // ── PASTE YOUR FIREBASE CONFIG HERE ──────────────────────────
+    <!-- Firebase compat SDK (works without bundler) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script>
         const firebaseConfig = {
             apiKey:            "AIzaSyD-ZCaYTLvvaaNFd8G4S8_InyRcSQ9qk8s",
             authDomain:        "the-billy-living-ee243.firebaseapp.com",
@@ -1329,22 +1326,14 @@
             appId:             "1:454031913213:web:d68fc786f556b6e49c8e94",
             measurementId:     "G-F7RKJK3R1D"
         };
-        // ─────────────────────────────────────────────────────────────
+        firebase.initializeApp(firebaseConfig);
+        window._db = firebase.firestore();
+        window._fbReady = true;
 
-        const fbApp = initializeApp(firebaseConfig);
-        const fbDb  = getFirestore(fbApp);
-
-        window._fbDb         = fbDb;
-        window._fbCollection = collection;
-        window._fbAddDoc     = addDoc;
-        window._fbOnSnapshot = onSnapshot;
-        window._fbQuery      = query;
-        window._fbOrderBy    = orderBy;
-        window._fbDoc        = doc;
-        window._fbUpdateDoc  = updateDoc;
-        window._fbReady      = true;
-
-        window.addEventListener('load', () => setTimeout(startFirebaseListener, 800));
+        // Start listener after DOM loads
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(startFirebaseListener, 600);
+        });
     </script>
 </head>
 <body>
@@ -2255,19 +2244,56 @@
             const sender  = profile.name || 'Client';
             const msgs    = document.getElementById('chatMessages');
             msgs.innerHTML = '';
+            _renderedMsgIds = new Set();
 
-            if (window._fbReady) {
-                // Firebase: real-time listener already started via startFirebaseListener()
-                // Just render what we have in localStorage right now as initial state
+            if (window._fbReady && window._db) {
+                // Load fresh from Firestore
+                window._db.collection('chats').orderBy('timestamp', 'asc').get()
+                    .then(snapshot => {
+                        const all = [];
+                        snapshot.forEach(d => all.push({ id: d.id, ...d.data() }));
+                        localStorage.setItem('tbl_designer_chats', JSON.stringify(all));
+
+                        const myMsgs = all.filter(m =>
+                            m.senderName === sender || (m.isDesigner && m.recipient === sender)
+                        );
+                        msgs.innerHTML = '';
+                        _renderedMsgIds = new Set();
+
+                        if (myMsgs.length === 0) {
+                            // Show welcome — but don't save it to Firestore
+                            const div = document.createElement('div');
+                            div.className = 'message designer';
+                            div.textContent = 'Welcome to The Billy Living Concierge. How can we elevate your space today?';
+                            msgs.appendChild(div);
+                        } else {
+                            myMsgs.forEach(m => {
+                                _renderedMsgIds.add(m.id);
+                                const role = m.isDesigner ? 'designer' : 'customer';
+                                const atts = m.imageData ? [{ type: 'image', dataUrl: m.imageData }] : [];
+                                appendMessageDOM(role, m.message, atts);
+                            });
+                        }
+                        msgs.scrollTop = msgs.scrollHeight;
+                    })
+                    .catch(() => loadFromLocalStorage());
+            } else {
+                loadFromLocalStorage();
             }
+        }
 
-            const stored = JSON.parse(localStorage.getItem('tbl_designer_chats') || '[]');
-            const myMsgs = stored.filter(m => m.senderName === sender || (m.isDesigner && m.recipient === sender));
+        function loadFromLocalStorage() {
+            const profile = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
+            const sender  = profile.name || 'Client';
+            const msgs    = document.getElementById('chatMessages');
+            const stored  = JSON.parse(localStorage.getItem('tbl_designer_chats') || '[]');
+            const myMsgs  = stored.filter(m => m.senderName === sender || (m.isDesigner && m.recipient === sender));
 
             if (myMsgs.length === 0) {
                 setTimeout(() => appendMessage('designer', 'Welcome to The Billy Living Concierge. How can we elevate your space today?'), 400);
             } else {
                 myMsgs.forEach(m => {
+                    _renderedMsgIds.add(m.id);
                     const role = m.isDesigner ? 'designer' : 'customer';
                     const atts = m.imageData ? [{ type: 'image', dataUrl: m.imageData }] : [];
                     appendMessageDOM(role, m.message, atts);
@@ -2280,38 +2306,35 @@
         let _renderedMsgIds = new Set();
 
         function startFirebaseListener() {
-            if (!window._fbReady) return;
+            if (!window._fbReady || !window._db) return;
             try {
-                const col = window._fbCollection(window._fbDb, 'chats');
-                window._fbOnSnapshot(col, (snapshot) => {
-                    const all = [];
-                    snapshot.forEach(d => all.push({ id: d.id, ...d.data() }));
-                    // Sort client-side — avoids needing a Firestore index
-                    all.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+                window._db.collection('chats').orderBy('timestamp', 'asc')
+                    .onSnapshot((snapshot) => {
+                        const all = [];
+                        snapshot.forEach(d => all.push({ id: d.id, ...d.data() }));
 
-                    // Sync to localStorage
-                    localStorage.setItem('tbl_designer_chats', JSON.stringify(all));
+                        // Sync to localStorage
+                        localStorage.setItem('tbl_designer_chats', JSON.stringify(all));
 
-                    const profile  = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
-                    const sender   = profile.name || 'Client';
-                    const chatOpen = document.getElementById('designerChat').classList.contains('active');
+                        const profile  = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
+                        const sender   = profile.name || 'Client';
+                        const chatOpen = document.getElementById('designerChat').classList.contains('active');
 
-                    if (chatOpen) {
-                        const myMsgs = all.filter(m =>
-                            m.senderName === sender || (m.isDesigner && m.recipient === sender)
-                        );
-                        // Only append messages not already shown — never clear DOM
-                        myMsgs.forEach(m => {
-                            if (!_renderedMsgIds.has(m.id)) {
-                                _renderedMsgIds.add(m.id);
-                                const role = m.isDesigner ? 'designer' : 'customer';
-                                const atts = m.imageData ? [{ type: 'image', dataUrl: m.imageData }] : [];
-                                appendMessageDOM(role, m.message, atts);
-                            }
-                        });
-                    }
-                });
-            } catch(e) { console.warn('Firebase listener error:', e); }
+                        if (chatOpen) {
+                            const myMsgs = all.filter(m =>
+                                m.senderName === sender || (m.isDesigner && m.recipient === sender)
+                            );
+                            myMsgs.forEach(m => {
+                                if (!_renderedMsgIds.has(m.id)) {
+                                    _renderedMsgIds.add(m.id);
+                                    const role = m.isDesigner ? 'designer' : 'customer';
+                                    const atts = m.imageData ? [{ type: 'image', dataUrl: m.imageData }] : [];
+                                    appendMessageDOM(role, m.message, atts);
+                                }
+                            });
+                        }
+                    }, (err) => console.warn('Client Firebase error:', err));
+            } catch(e) { console.warn('Firebase listener failed:', e); }
         }
 
         // Renders to DOM only
@@ -2367,12 +2390,10 @@
             stored.push(msgObj);
             localStorage.setItem('tbl_designer_chats', JSON.stringify(stored));
 
-            // Save to Firestore
-            if (window._fbReady) {
-                try {
-                    window._fbAddDoc(window._fbCollection(window._fbDb, 'chats'), msgObj)
-                        .catch(e => console.warn('Firestore write error:', e));
-                } catch(e) { console.warn('Firestore error:', e); }
+            // Save to Firestore using compat SDK
+            if (window._fbReady && window._db) {
+                window._db.collection('chats').add(msgObj)
+                    .catch(e => console.warn('Firestore write error:', e));
             }
         }
 
