@@ -509,177 +509,279 @@
         }
 
         /* Chat Layout */
-        .chat-layout {
+        /* ── WhatsApp-style Chat — full screen overlay ──────────────────────── */
+        .wa-chat-wrap {
+            position: fixed;
+            inset: 0;
+            z-index: 1500;
+            display: none;
+            flex-direction: column;
+            background: #111B21;
+            font-family: 'Jost', sans-serif;
+        }
+        .wa-chat-wrap.active { display: flex; }
+
+        /* ── Top search bar (list view) ───────────────────── */
+        .wa-topbar {
+            background: #202C33;
+            padding: 14px 16px 10px;
+            flex-shrink: 0;
+        }
+        .wa-topbar-row {
             display: flex;
-            height: calc(100vh - 140px);
-            background: var(--bg-card);
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid rgba(201, 169, 98, 0.1);
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
         }
-
-        .chat-sidebar {
-            width: 35%;
-            border-right: 1px solid rgba(201, 169, 98, 0.1);
-            overflow-y: auto;
+        .wa-topbar-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #E9EDF0;
+            font-family: 'Cormorant Garamond', serif;
+            letter-spacing: 0.5px;
         }
+        .wa-topbar-icons { display: flex; gap: 20px; }
+        .wa-topbar-icons svg { width: 22px; height: 22px; stroke: #AEBAC1; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; cursor: pointer; }
 
-        .chat-conversation {
-            padding: 16px;
+        .wa-search {
+            background: #2A3942;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+        }
+        .wa-search svg { width: 18px; height: 18px; stroke: #8696A0; fill: none; flex-shrink: 0; }
+        .wa-search input {
+            background: none;
+            border: none;
+            outline: none;
+            color: #E9EDF0;
+            font-size: 15px;
+            font-family: 'Jost', sans-serif;
+            flex: 1;
+        }
+        .wa-search input::placeholder { color: #8696A0; }
+
+        /* ── Conversation list ────────────────────────────── */
+        .wa-conv-list { flex: 1; overflow-y: auto; }
+
+        .wa-conv-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
             cursor: pointer;
-            border-bottom: 1px solid rgba(201, 169, 98, 0.1);
-            transition: all 0.3s;
+            border-bottom: 1px solid rgba(134,150,160,0.06);
+            transition: background 0.15s;
             position: relative;
         }
+        .wa-conv-item:active { background: rgba(134,150,160,0.08); }
 
-        .chat-conversation:hover {
-            background: rgba(201, 169, 98, 0.05);
-        }
-
-        .chat-conversation.active {
-            background: rgba(201, 169, 98, 0.1);
-            border-left: 3px solid var(--gold);
-        }
-
-        .chat-conversation.unread::before {
-            content: '';
-            position: absolute;
-            top: 20px;
-            right: 16px;
-            width: 8px;
-            height: 8px;
-            background: var(--gold);
+        .wa-avatar {
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-        }
-
-        .conversation-name {
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .conversation-preview {
-            font-size: 13px;
-            color: var(--text-secondary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .conversation-meta {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 8px;
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .chat-main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chat-header-bar {
-            padding: 20px;
-            border-bottom: 1px solid rgba(201, 169, 98, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .chat-messages-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .chat-message {
-            max-width: 70%;
-            padding: 14px 18px;
-            border-radius: 18px;
-            font-size: 15px;
-            line-height: 1.5;
-        }
-
-        .chat-message.customer {
-            align-self: flex-start;
-            background: #2D2114;
-            color: var(--text-primary);
-            border-bottom-left-radius: 4px;
-        }
-
-        .chat-message.designer {
-            align-self: flex-end;
-            background: var(--gold);
-            color: var(--bg-primary);
-            border-bottom-right-radius: 4px;
-        }
-
-        .chat-message-portfolio {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-
-        .chat-message-portfolio-item {
-            width: 80px;
-            height: 80px;
-            border-radius: 10px;
-            overflow: hidden;
-            border: 2px solid rgba(255,255,255,0.2);
-        }
-
-        .chat-message-portfolio-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .portfolio-label {
-            font-size: 11px;
-            color: var(--gold);
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .chat-input-area {
-            padding: 20px;
-            border-top: 1px solid rgba(201, 169, 98, 0.1);
-            display: flex;
-            gap: 12px;
-        }
-
-        .chat-input {
-            flex: 1;
-            padding: 14px 18px;
-            background: var(--bg-secondary);
-            border: 1px solid rgba(201, 169, 98, 0.2);
-            border-radius: 24px;
-            color: var(--text-primary);
-            font-family: 'Jost', sans-serif;
-            font-size: 15px;
-            outline: none;
-        }
-
-        .chat-send-btn {
-            width: 48px;
-            height: 48px;
-            background: var(--gold);
-            border: none;
-            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold), #8B6914);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--bg-primary);
             font-size: 20px;
-            cursor: pointer;
+            font-weight: 700;
+            color: #111B21;
+            flex-shrink: 0;
+            text-transform: uppercase;
         }
+
+        .wa-conv-body { flex: 1; min-width: 0; }
+        .wa-conv-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3px; }
+        .wa-conv-name { font-size: 16px; font-weight: 600; color: #E9EDF0; }
+        .wa-conv-time { font-size: 12px; color: #8696A0; flex-shrink: 0; }
+        .wa-conv-time.unread { color: var(--gold); }
+
+        .wa-conv-bottom { display: flex; align-items: center; justify-content: space-between; }
+        .wa-conv-preview { font-size: 13px; color: #8696A0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+        .wa-unread-badge {
+            background: var(--gold);
+            color: #111B21;
+            font-size: 11px;
+            font-weight: 700;
+            min-width: 20px;
+            height: 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 6px;
+            flex-shrink: 0;
+        }
+
+        /* ── Thread view ──────────────────────────────────── */
+        .wa-thread-wrap {
+            position: absolute;
+            inset: 0;
+            background: #0B141A;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+        }
+        .wa-thread-wrap.open { transform: translateX(0); }
+
+        .wa-thread-header {
+            background: #202C33;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            flex-shrink: 0;
+        }
+        .wa-back-btn {
+            background: none;
+            border: none;
+            color: #AEBAC1;
+            font-size: 22px;
+            cursor: pointer;
+            line-height: 1;
+            padding: 4px 6px 4px 0;
+        }
+        .wa-thread-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold), #8B6914);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: #111B21;
+            flex-shrink: 0;
+        }
+        .wa-thread-info { flex: 1; }
+        .wa-thread-name { font-size: 16px; font-weight: 600; color: #E9EDF0; line-height: 1.2; }
+        .wa-thread-status { font-size: 12px; color: #8696A0; }
+        .wa-thread-actions { display: flex; gap: 18px; }
+        .wa-thread-actions svg { width: 22px; height: 22px; stroke: #AEBAC1; fill: none; stroke-width: 1.8; cursor: pointer; }
+
+        /* Chat wallpaper */
+        .wa-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            background: #0B141A url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M30 5 L55 20 L55 40 L30 55 L5 40 L5 20 Z' fill='none' stroke='rgba(255,255,255,0.015)' stroke-width='1'/%3E%3C/svg%3E");
+        }
+
+        .wa-date-divider {
+            align-self: center;
+            background: #182229;
+            color: #8696A0;
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 8px;
+            margin: 8px 0;
+        }
+
+        .wa-bubble {
+            max-width: 75%;
+            padding: 8px 12px 6px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+            position: relative;
+            word-break: break-word;
+        }
+        .wa-bubble.incoming {
+            align-self: flex-start;
+            background: #202C33;
+            color: #E9EDF0;
+            border-top-left-radius: 0;
+        }
+        .wa-bubble.outgoing {
+            align-self: flex-end;
+            background: #005C4B;
+            color: #E9EDF0;
+            border-top-right-radius: 0;
+        }
+        .wa-bubble-time {
+            font-size: 11px;
+            color: rgba(233,237,240,0.5);
+            text-align: right;
+            margin-top: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+        }
+        .wa-bubble.outgoing .wa-bubble-time svg { width: 16px; height: 16px; stroke: #53BDEB; fill: none; stroke-width: 2; }
+        .wa-bubble img { max-width: 200px; border-radius: 6px; display: block; margin-bottom: 4px; }
+
+        .wa-portfolio-label { font-size: 11px; color: var(--gold); margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+        .wa-portfolio-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+        .wa-portfolio-thumb { width: 70px; height: 70px; border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
+        .wa-portfolio-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Input bar */
+        .wa-input-bar {
+            background: #202C33;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            flex-shrink: 0;
+        }
+        .wa-input-emoji {
+            background: none;
+            border: none;
+            color: #8696A0;
+            font-size: 22px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .wa-input-field {
+            flex: 1;
+            background: #2A3942;
+            border: none;
+            border-radius: 24px;
+            padding: 10px 16px;
+            color: #E9EDF0;
+            font-size: 15px;
+            font-family: 'Jost', sans-serif;
+            outline: none;
+            min-height: 44px;
+            resize: none;
+        }
+        .wa-input-field::placeholder { color: #8696A0; }
+        .wa-send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--gold);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: transform 0.15s;
+        }
+        .wa-send-btn:active { transform: scale(0.9); }
+        .wa-send-btn svg { width: 20px; height: 20px; stroke: #111B21; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        .wa-empty-thread {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: #8696A0;
+        }
+        .wa-empty-thread svg { width: 64px; height: 64px; stroke: rgba(134,150,160,0.3); fill: none; stroke-width: 1; }
+        .wa-empty-thread p { font-size: 14px; letter-spacing: 0.5px; }
 
         /* Catalog Image Manager */
         .image-manager {
@@ -772,6 +874,313 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        /* Elite Catalog Grid (matches client app) */
+        .elite-catalog-header {
+            padding: 24px 0 0;
+            text-align: center;
+            border-bottom: 1px solid #C9A84C;
+            margin-bottom: 0;
+        }
+
+        .elite-catalog-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 11px;
+            letter-spacing: 5px;
+            color: #C9A84C;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .elite-catalog-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: #C9A84C;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .elite-catalog-grid-admin {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0;
+            padding: 0;
+        }
+
+        .elite-collection-cell-admin {
+            padding: 14px 10px 10px;
+            border-right: 1px solid #C9A84C;
+            border-bottom: 1px solid #C9A84C;
+            transition: background 0.25s;
+            position: relative;
+            background: var(--bg-primary);
+        }
+
+        .elite-collection-cell-admin:nth-child(even) { border-right: none; }
+        .elite-collection-cell-admin:hover { background: rgba(201, 168, 76, 0.04); }
+        .elite-collection-cell-admin.pressing { background: rgba(201,168,76,0.08); }
+
+        /* Long-press context menu */
+        .cell-context-menu {
+            display: none;
+            position: fixed;
+            z-index: 9000;
+            background: #1A1208;
+            border: 1px solid rgba(201,168,76,0.4);
+            border-radius: 14px;
+            overflow: hidden;
+            min-width: 200px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.7), 0 0 0 1px rgba(201,168,76,0.1);
+            animation: menuPop 0.18s cubic-bezier(0.34,1.56,0.64,1);
+        }
+
+        @keyframes menuPop {
+            from { opacity: 0; transform: scale(0.88); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        .cell-context-menu.active { display: block; }
+
+        .context-menu-header {
+            padding: 12px 16px 10px;
+            border-bottom: 1px solid rgba(201,168,76,0.15);
+        }
+
+        .context-menu-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 14px;
+            color: #C9A84C;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
+        }
+
+        .context-menu-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: background 0.15s;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            color: var(--text-primary);
+            font-family: 'Jost', sans-serif;
+            font-size: 14px;
+            font-weight: 400;
+            border-bottom: 1px solid rgba(201,168,76,0.08);
+        }
+
+        .context-menu-option:last-child { border-bottom: none; }
+        .context-menu-option:hover { background: rgba(201,168,76,0.08); }
+        .context-menu-option:active { background: rgba(201,168,76,0.14); }
+
+        .context-menu-option.danger { color: #ff5555; }
+        .context-menu-option.danger:hover { background: rgba(255,85,85,0.08); }
+
+        .context-menu-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 16px;
+        }
+
+        .context-menu-icon.gold { background: rgba(201,168,76,0.12); }
+        .context-menu-icon.red  { background: rgba(255,85,85,0.12); }
+
+        /* Backdrop to dismiss menu */
+        .context-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 8999;
+        }
+
+        .context-backdrop.active { display: block; }
+
+        /* Long-press highlight for room slots and mixture cards */
+        .room-single-slot.pressing,
+        .color-mixture-card.pressing {
+            outline: 2px solid rgba(201,168,76,0.6);
+            background: rgba(201,168,76,0.06) !important;
+        }
+
+        .elite-cell-meta-admin { margin-bottom: 8px; }
+
+        .elite-cell-topic-admin {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: #C9A84C;
+            letter-spacing: 0.5px;
+            line-height: 1.3;
+        }
+
+        .elite-cell-feeling-admin {
+            font-size: 10px;
+            color: rgba(201, 168, 76, 0.6);
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+            font-style: italic;
+        }
+
+        .elite-cell-box-admin {
+            width: 100%;
+            aspect-ratio: 1 / 0.85;
+            border: 1px solid rgba(201, 168, 76, 0.35);
+            background: #0A0A0A;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .elite-cell-box-admin img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .elite-cell-box-admin::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(160deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.008) 30%, transparent 55%, rgba(0,0,0,0.15) 100%);
+            z-index: 1;
+        }
+
+        .elite-cell-box-admin::after {
+            content: '';
+            position: absolute;
+            left: -40%; top: -10%;
+            width: 55%; height: 130%;
+            background: linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.018) 40%, rgba(255,255,255,0.035) 50%, rgba(255,255,255,0.018) 60%, transparent 100%);
+            z-index: 2;
+            transform: skewX(-8deg);
+        }
+
+        .elite-cell-grain-admin {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            background-image: repeating-linear-gradient(92deg, transparent, transparent 3px, rgba(255,255,255,0.006) 3px, rgba(255,255,255,0.006) 4px);
+        }
+
+        .elite-cell-img-count {
+            position: absolute;
+            top: 6px; left: 6px;
+            background: rgba(0,0,0,0.7);
+            color: #C9A84C;
+            font-size: 9px;
+            letter-spacing: 1px;
+            padding: 3px 7px;
+            border: 1px solid rgba(201,168,76,0.3);
+            z-index: 5;
+        }
+
+        .elite-cell-actions-admin {
+            display: flex;
+            gap: 6px;
+        }
+
+        .elite-cell-actions-admin .btn {
+            flex: 1;
+            padding: 8px 6px;
+            font-size: 11px;
+            justify-content: center;
+        }
+
+        .elite-cell-actions-admin .btn-danger {
+            flex: 0 0 36px;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        /* Elite Catalog Inner Pages (overlay) */
+        .catalog-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #080808;
+            z-index: 2000;
+            overflow-y: auto;
+            flex-direction: column;
+        }
+        .catalog-overlay.active { display: flex; flex-direction: column; animation: fadeIn 0.25s ease; }
+
+        .inner-back-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 20px;
+            border-bottom: 1px solid #C9A84C;
+            background: #080808;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            flex-shrink: 0;
+        }
+
+        .inner-back-btn { background: none; border: none; color: #C9A84C; font-size: 22px; cursor: pointer; line-height: 1; }
+        .inner-collection-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: #C9A84C; letter-spacing: 1px; font-weight: 600; }
+        .inner-collection-feeling { font-size: 11px; color: rgba(201,168,76,0.55); letter-spacing: 1px; font-style: italic; margin-top: 1px; }
+        .inner-section-label { font-size: 9px; letter-spacing: 4px; color: rgba(201,168,76,0.5); text-transform: uppercase; padding: 16px 20px 8px; }
+
+        .color-config-area { padding: 16px 20px; border-bottom: 1px solid #C9A84C; }
+        .color-config-title { font-family: 'Cormorant Garamond', serif; font-size: 13px; letter-spacing: 3px; color: #C9A84C; text-transform: uppercase; margin-bottom: 14px; }
+        .color-mixtures-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .color-mixture-card {
+            border: 1px solid rgba(201,168,76,0.35);
+            background: #0E0E0E;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .color-mixture-card:hover { background: rgba(201,168,76,0.08); border-color: #C9A84C; }
+        .color-mixture-card::after { content: 'Click to enter rooms ›'; display: block; font-size: 8px; letter-spacing: 1.5px; color: rgba(201,168,76,0.4); text-align: right; margin-top: 8px; text-transform: uppercase; }
+        .color-mixture-label { font-size: 9px; letter-spacing: 3px; color: rgba(201,168,76,0.6); text-transform: uppercase; margin-bottom: 8px; }
+        .house-layout { width: 100%; aspect-ratio: 1; position: relative; }
+        .house-layout svg { width: 100%; height: 100%; }
+
+        .room-gallery-area { padding: 0; flex: 1; }
+        .room-category-block { border-bottom: 1px solid rgba(201,168,76,0.2); }
+        .room-category-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid rgba(201,168,76,0.1); }
+        .room-category-name { font-family: 'Cormorant Garamond', serif; font-size: 17px; color: #C9A84C; letter-spacing: 2px; text-transform: uppercase; }
+
+        .room-single-slot {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: #0A0A0A;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .room-single-slot img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; pointer-events: none; }
+
+        .elite-slot-placeholder { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .elite-slot-icon { width: 28px; height: 28px; border: 1px solid rgba(201,168,76,0.2); display: flex; align-items: center; justify-content: center; }
+        .elite-slot-icon svg { width: 14px; height: 14px; opacity: 0.3; }
+        .elite-slot-num { font-size: 9px; color: rgba(201,168,76,0.2); letter-spacing: 1px; }
 
         /* Responsive */
         @media (max-width: 1200px) {
@@ -969,7 +1378,13 @@
                 <h1 class="page-title">Catalog Manager</h1>
                 <button class="btn btn-primary" onclick="openForm('category')">+ Add Category</button>
             </div>
-            <div class="list-container" id="catalogList"></div>
+            <div style="background: var(--bg-primary); border: 1px solid rgba(201,168,76,0.15); border-radius: 16px; overflow: hidden;">
+                <div class="elite-catalog-header">
+                    <div class="elite-catalog-name">Billy Living Presents</div>
+                    <div class="elite-catalog-title">The Elite Preformats</div>
+                </div>
+                <div class="elite-catalog-grid-admin" id="catalogList"></div>
+            </div>
         </div>
 
         <!-- Trending Panel -->
@@ -1028,18 +1443,62 @@
 
         <!-- Chats Panel -->
         <div class="panel" id="panel-chats">
-            <div class="page-header">
+            <!-- Trigger button shown in panel -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
                 <h1 class="page-title">Client Messages</h1>
+                <button class="btn btn-primary" onclick="openWAChat()">Open Chats</button>
             </div>
-            <div class="chat-layout">
-                <div class="chat-sidebar" id="chatSidebar"></div>
-                <div class="chat-main" id="chatMain">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">💬</div>
-                        <p>Select a conversation to view messages</p>
+            <div style="text-align:center;padding:60px 20px;color:var(--text-secondary);">
+                <div style="font-size:48px;margin-bottom:16px;opacity:0.3;">💬</div>
+                <div style="font-size:13px;letter-spacing:1px;">Click "Open Chats" to view all messages</div>
+            </div>
+        </div>
+
+        <!-- WhatsApp-style full screen chat overlay -->
+        <div class="wa-chat-wrap" id="waChatWrap">
+
+            <!-- List view -->
+            <div id="waListView" style="display:flex;flex-direction:column;height:100%;">
+                <div class="wa-topbar">
+                    <div class="wa-topbar-row">
+                        <div class="wa-topbar-title">Billy Living</div>
+                        <div style="display:flex;align-items:center;gap:14px;">
+                            <div class="wa-topbar-icons">
+                                <svg viewBox="0 0 24 24" onclick="closeWAChat()"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="wa-search">
+                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="text" placeholder="Search or start new chat" id="waSearchInput" oninput="filterWAConvs(this.value)">
                     </div>
                 </div>
+                <div class="wa-conv-list" id="waConvList"></div>
             </div>
+
+            <!-- Thread view (slides in) -->
+            <div class="wa-thread-wrap" id="waThreadWrap">
+                <div class="wa-thread-header">
+                    <button class="wa-back-btn" onclick="closeWAThread()">←</button>
+                    <div class="wa-thread-avatar" id="waThreadAvatar">?</div>
+                    <div class="wa-thread-info">
+                        <div class="wa-thread-name" id="waThreadName">—</div>
+                        <div class="wa-thread-status">Client</div>
+                    </div>
+                    <div class="wa-thread-actions">
+                        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.1 1.23 2 2 0 012.11 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"/></svg>
+                    </div>
+                </div>
+                <div class="wa-messages" id="waMessages"></div>
+                <div class="wa-input-bar">
+                    <button class="wa-input-emoji">😊</button>
+                    <input class="wa-input-field" id="waInputField" placeholder="Message" onkeypress="if(event.key==='Enter')sendWAMessage()">
+                    <button class="wa-send-btn" onclick="sendWAMessage()">
+                        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    </button>
+                </div>
+            </div>
+
         </div>
 
         <!-- Settings Panel -->
@@ -1097,6 +1556,50 @@
                 <button class="btn btn-primary" onclick="submitForm()" style="flex: 1;">Save</button>
             </div>
         </div>
+    </div>
+
+    <!-- Long-press context backdrop -->
+    <div class="context-backdrop" id="contextBackdrop" onclick="closeContextMenu()"></div>
+
+    <!-- Long-press context menu (shared, content swapped by JS) -->
+    <div class="cell-context-menu" id="cellContextMenu">
+        <div class="context-menu-header">
+            <div class="context-menu-title" id="contextMenuTitle">—</div>
+        </div>
+        <div id="contextMenuOptions"></div>
+    </div>
+
+    <!-- Hidden file inputs -->
+    <input type="file" id="contextImageInput"     accept="image/*" multiple style="display:none;" onchange="handleContextImageUpload(this)">
+    <input type="file" id="contextRoomImgInput"   accept="image/*"          style="display:none;" onchange="handleRoomImageUpload(this)">
+    <input type="file" id="contextMixImgInput"    accept="image/*" multiple style="display:none;" onchange="handleContextImageUpload(this)">
+
+    <!-- Catalog Inner Overlay — Layer 2: Color Mixtures -->
+    <div class="catalog-overlay" id="catalogInnerOverlay">
+        <div class="inner-back-bar">
+            <button class="inner-back-btn" onclick="closeAdminCatalogInner()">←</button>
+            <div>
+                <div class="inner-collection-title" id="adminInnerTitle">—</div>
+                <div class="inner-collection-feeling" id="adminInnerFeeling">—</div>
+            </div>
+        </div>
+        <div class="color-config-area">
+            <div class="inner-section-label">Section A</div>
+            <div class="color-config-title">Four Mixture of Colors</div>
+            <div class="color-mixtures-row" id="adminColorMixturesRow"></div>
+        </div>
+    </div>
+
+    <!-- Catalog Rooms Overlay — Layer 3: Rooms -->
+    <div class="catalog-overlay" id="catalogRoomsOverlay">
+        <div class="inner-back-bar">
+            <button class="inner-back-btn" onclick="closeAdminCatalogRooms()">←</button>
+            <div>
+                <div class="inner-collection-title" id="adminRoomsTitle">ROOMS</div>
+                <div class="inner-collection-feeling" id="adminRoomsSubtitle">—</div>
+            </div>
+        </div>
+        <div class="room-gallery-area" id="adminRoomGalleryArea"></div>
     </div>
 
     <!-- Toast -->
@@ -1203,6 +1706,7 @@
             }
             
             if (panelName === 'chats') {
+                openWAChat();
                 renderChatList();
                 updateBadges();
             } else if (panelName === 'vip') {
@@ -1254,27 +1758,43 @@
         function renderCatalogList() {
             const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
             const container = document.getElementById('catalogList');
-            
+
             if (boxes.length === 0) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📁</div><p>No categories yet. Add your first category!</p></div>';
+                container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">📁</div><p>No categories yet. Add your first category!</p></div>';
                 return;
             }
-            
-            container.innerHTML = boxes.map(box => `
-                <div class="list-item" style="flex-direction: column; align-items: flex-start; gap: 16px;">
-                    <div style="display: flex; align-items: center; gap: 16px; width: 100%;">
-                        <div class="list-image">
-                            ${box.images && box.images[0] ? `<img src="${box.images[0]}" alt="">` : `<div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 32px;">📦</div>`}
-                        </div>
-                        <div class="list-info">
-                            <div class="list-title">${box.label}: ${box.value}</div>
-                            <div class="list-meta">${box.count} • ${box.images ? box.images.length : 0} images</div>
-                        </div>
-                        <button class="btn btn-primary" onclick="openCatalogImageManager('${box.id}')" style="margin-left: auto;">Manage Images</button>
-                        <button class="btn btn-danger" onclick="deleteItem('catalog_boxes', '${box.id}')" style="padding: 8px 12px;">🗑️</button>
+
+            container.innerHTML = boxes.map(box => {
+                const topic   = box.value || '';
+                const feeling = box.description || box.feeling || '';
+                const imgSrc  = box.images && box.images[0] ? box.images[0] : '';
+                const count   = box.images ? box.images.length : 0;
+
+                return `
+                <div class="elite-collection-cell-admin"
+                     onclick="openAdminCatalogInner(${JSON.stringify(boxes.indexOf(box))}, event)"
+                     onmousedown="startCellPress('${box.id}', '${topic.replace(/'/g,"\\'")}', event)"
+                     onmouseup="cancelCellPress()"
+                     onmouseleave="cancelCellPress()"
+                     ontouchstart="startCellPress('${box.id}', '${topic.replace(/'/g,"\\'")}', event)"
+                     ontouchend="cancelCellPress()"
+                     ontouchmove="cancelCellPress()"
+                     oncontextmenu="return false;">
+                    <div class="elite-cell-meta-admin">
+                        <div class="elite-cell-topic-admin">${topic}</div>
+                        <div class="elite-cell-feeling-admin">${feeling}</div>
                     </div>
-                </div>
-            `).join('');
+                    <div class="elite-cell-box-admin">
+                        ${imgSrc ? `<img src="${imgSrc}" alt="${topic}">` : ''}
+                        <div class="elite-cell-grain-admin"></div>
+                        <div class="elite-cell-img-count">${count} img${count !== 1 ? 's' : ''}</div>
+                    </div>
+                    <div class="elite-cell-actions-admin" onclick="event.stopPropagation()">
+                        <button class="btn btn-primary" onclick="openCatalogImageManager('${box.id}')">Manage Images</button>
+                        <button class="btn btn-danger" onclick="deleteItem('catalog_boxes', '${box.id}')">🗑️</button>
+                    </div>
+                </div>`;
+            }).join('');
         }
 
         function renderTrendingList() {
@@ -1467,122 +1987,157 @@
             updateStats();
         }
 
-        // Chats
-        function renderChatList() {
+        // ─── WhatsApp-style Chat ──────────────────────────────────────────────────
+        let waCurrentChat = null;
+        let waAllConvs    = [];
+
+        function openWAChat() {
+            document.getElementById('waChatWrap').classList.add('active');
+            renderWAConvList();
+        }
+
+        function closeWAChat() {
+            document.getElementById('waChatWrap').classList.remove('active');
+            closeWAThread();
+        }
+
+        function buildWAConversations() {
             const messages = JSON.parse(localStorage.getItem('tbl_designer_chats') || '[]');
-            const conversations = {};
-            
+            const map = {};
             messages.forEach(msg => {
-                const key = msg.senderName;
-                if (!conversations[key]) {
-                    conversations[key] = {
-                        name: key,
-                        lastMessage: msg,
-                        unread: 0
-                    };
-                }
-                if (!msg.isDesigner && !msg.read) {
-                    conversations[key].unread++;
-                }
+                const key = msg.isDesigner ? msg.recipient : msg.senderName;
+                if (!key) return;
+                if (!map[key]) map[key] = { name: key, messages: [], unread: 0 };
+                map[key].messages.push(msg);
+                if (!msg.isDesigner && !msg.read) map[key].unread++;
             });
-            
-            const container = document.getElementById('chatSidebar');
-            const convArray = Object.values(conversations).sort((a, b) => b.lastMessage.timestamp - a.lastMessage.timestamp);
-            
-            if (convArray.length === 0) {
-                container.innerHTML = '<div class="empty-state" style="padding: 40px 20px;"><p>No conversations yet</p></div>';
+            return Object.values(map).sort((a, b) => {
+                const la = a.messages[a.messages.length - 1];
+                const lb = b.messages[b.messages.length - 1];
+                return (lb?.timestamp || 0) - (la?.timestamp || 0);
+            });
+        }
+
+        function renderWAConvList(filter = '') {
+            waAllConvs = buildWAConversations();
+            const list = document.getElementById('waConvList');
+            const shown = filter
+                ? waAllConvs.filter(c => c.name.toLowerCase().includes(filter.toLowerCase()))
+                : waAllConvs;
+
+            if (shown.length === 0) {
+                list.innerHTML = `<div style="text-align:center;padding:60px 20px;color:#8696A0;font-size:14px;">No conversations yet</div>`;
                 return;
             }
-            
-            container.innerHTML = convArray.map(conv => `
-                <div class="chat-conversation ${conv.unread > 0 ? 'unread' : ''} ${currentChat === conv.name ? 'active' : ''}" onclick="openConversation('${conv.name}')">
-                    <div class="conversation-name">${conv.name}</div>
-                    <div class="conversation-preview">${conv.lastMessage.message}</div>
-                    <div class="conversation-meta">
-                        <span>${formatTime(conv.lastMessage.timestamp)}</span>
-                        ${conv.unread > 0 ? `<span style="color: var(--gold); font-weight: 600;">${conv.unread} new</span>` : ''}
+
+            list.innerHTML = shown.map(conv => {
+                const last = conv.messages[conv.messages.length - 1];
+                const preview = last?.message || (last?.imageData ? '📷 Photo' : '');
+                const initials = conv.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+                return `
+                <div class="wa-conv-item" onclick="openWAThread('${conv.name.replace(/'/g,"\\'")}')">
+                    <div class="wa-avatar">${initials}</div>
+                    <div class="wa-conv-body">
+                        <div class="wa-conv-top">
+                            <div class="wa-conv-name">${conv.name}</div>
+                            <div class="wa-conv-time ${conv.unread > 0 ? 'unread' : ''}">${formatTime(last?.timestamp)}</div>
+                        </div>
+                        <div class="wa-conv-bottom">
+                            <div class="wa-conv-preview">${preview}</div>
+                            ${conv.unread > 0 ? `<div class="wa-unread-badge">${conv.unread}</div>` : ''}
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
-        function openConversation(name) {
-            currentChat = name;
-            renderChatList();
-            
+        function filterWAConvs(val) { renderWAConvList(val); }
+
+        function openWAThread(name) {
+            waCurrentChat = name;
+
+            // Mark messages read
             const messages = JSON.parse(localStorage.getItem('tbl_designer_chats') || '[]');
-            const chatMessages = messages.filter(m => m.senderName === name || (m.isDesigner && m.recipient === name));
-            
-            messages.forEach(m => {
-                if (m.senderName === name && !m.isDesigner) {
-                    m.read = true;
-                }
-            });
+            messages.forEach(m => { if (m.senderName === name && !m.isDesigner) m.read = true; });
             localStorage.setItem('tbl_designer_chats', JSON.stringify(messages));
             updateBadges();
-            
-            document.getElementById('chatMain').innerHTML = `
-                <div class="chat-header-bar">
-                    <div style="width: 40px; height: 40px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--bg-primary); font-weight: 600;">
-                        ${name.charAt(0)}
-                    </div>
-                    <div>
-                        <div style="font-weight: 600;">${name}</div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">Client</div>
-                    </div>
-                </div>
-                <div class="chat-messages-area" id="chatThread">
-                    ${chatMessages.map(msg => `
-                        <div class="chat-message ${msg.isDesigner ? 'designer' : 'customer'}">
-                            ${msg.portfolioItems && msg.portfolioItems.length ? `
-                                <div class="portfolio-label">📎 Shared Portfolio</div>
-                                <div class="chat-message-portfolio">
-                                    ${msg.portfolioItems.map(item => `
-                                        <div class="chat-message-portfolio-item">
-                                            <img src="${item.image}" alt="${item.title}">
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            ` : ''}
-                            ${msg.imageData ? `<img src="${msg.imageData}" style="max-width: 200px; border-radius: 10px; margin-bottom: 8px; display: block;">` : ''}
-                            ${msg.message}
-                        </div>
-                    `).join('')}
-                </div>
-                <div class="chat-input-area">
-                    <input type="text" class="chat-input" id="adminChatInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendAdminMessage()">
-                    <button class="chat-send-btn" onclick="sendAdminMessage()">➤</button>
-                </div>
-            `;
-            
-            setTimeout(() => {
-                const thread = document.getElementById('chatThread');
-                if (thread) thread.scrollTop = thread.scrollHeight;
-            }, 100);
+            renderWAConvList();
+
+            // Header
+            const initials = name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('waThreadAvatar').textContent = initials;
+            document.getElementById('waThreadName').textContent   = name;
+
+            // Messages
+            const thread = messages.filter(m => m.senderName === name || (m.isDesigner && m.recipient === name));
+            const msgArea = document.getElementById('waMessages');
+
+            if (thread.length === 0) {
+                msgArea.innerHTML = `<div class="wa-empty-thread">
+                    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                    <p>No messages yet</p></div>`;
+            } else {
+                let lastDate = '';
+                msgArea.innerHTML = thread.map(msg => {
+                    const d    = new Date(msg.timestamp);
+                    const dStr = d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+                    let divider = '';
+                    if (dStr !== lastDate) { divider = `<div class="wa-date-divider">${dStr}</div>`; lastDate = dStr; }
+                    const timeStr = d.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+                    const dir = msg.isDesigner ? 'outgoing' : 'incoming';
+
+                    const portfolioHtml = msg.portfolioItems?.length ? `
+                        <div class="wa-portfolio-label">📎 Portfolio</div>
+                        <div class="wa-portfolio-row">
+                            ${msg.portfolioItems.map(p => `<div class="wa-portfolio-thumb"><img src="${p.image}" alt="${p.title}"></div>`).join('')}
+                        </div>` : '';
+
+                    const imgHtml = msg.imageData ? `<img src="${msg.imageData}" alt="">` : '';
+
+                    const tick = dir === 'outgoing' ? `<svg viewBox="0 0 16 11"><polyline points="1,6 5,10 15,1"/><polyline points="5,6 9,10 15,1"/></svg>` : '';
+
+                    return `${divider}<div class="wa-bubble ${dir}">
+                        ${portfolioHtml}${imgHtml}
+                        ${msg.message}
+                        <div class="wa-bubble-time">${timeStr} ${tick}</div>
+                    </div>`;
+                }).join('');
+            }
+
+            setTimeout(() => { msgArea.scrollTop = msgArea.scrollHeight; }, 80);
+            document.getElementById('waThreadWrap').classList.add('open');
         }
 
-        function sendAdminMessage() {
-            const input = document.getElementById('adminChatInput');
-            const message = input.value.trim();
-            if (!message || !currentChat) return;
-            
+        function closeWAThread() {
+            document.getElementById('waThreadWrap').classList.remove('open');
+            waCurrentChat = null;
+        }
+
+        function sendWAMessage() {
+            const input = document.getElementById('waInputField');
+            const text  = input.value.trim();
+            if (!text || !waCurrentChat) return;
             const messages = JSON.parse(localStorage.getItem('tbl_designer_chats') || '[]');
             messages.push({
                 id: 'msg_' + Date.now(),
                 senderName: 'Lead Designer',
-                recipient: currentChat,
-                message: message,
-                imageData: null,
+                recipient:  waCurrentChat,
+                message:    text,
+                imageData:  null,
                 portfolioItems: [],
                 isDesigner: true,
                 read: false,
                 timestamp: Date.now()
             });
-            
             localStorage.setItem('tbl_designer_chats', JSON.stringify(messages));
             input.value = '';
-            openConversation(currentChat);
+            openWAThread(waCurrentChat);
         }
+
+        // Legacy shims (keep old panel-chats badge system working)
+        function renderChatList() { renderWAConvList(); }
+        function openConversation(name) { openWAThread(name); }
+        function sendAdminMessage() { sendWAMessage(); }
 
         function updateBadges() {
             const messages = JSON.parse(localStorage.getItem('tbl_designer_chats') || '[]');
@@ -2018,6 +2573,369 @@
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
+        // ─── Catalog Inner Navigation (3-layer flow) ─────────────────────────────
+        let adminCurrentCollectionIndex = 0;
+        let adminActivePaletteIndex = null;
+        const adminRoomCategories = ['Living Room','Dining Room','Bed Room','Kitchen','Toilet','Passage Way','Rest Room'];
+
+        function buildAdminHouseSVG(palette) {
+            const [c1, c2, c3, c4] = palette.q;
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="50,8 92,40 8,40" fill="${c1}" stroke="#C9A84C" stroke-width="0.8"/>
+                <rect x="8" y="40" width="40" height="50" fill="${c2}" stroke="#C9A84C" stroke-width="0.8"/>
+                <rect x="48" y="40" width="44" height="50" fill="${c3}" stroke="#C9A84C" stroke-width="0.8"/>
+                <rect x="40" y="62" width="20" height="28" fill="${c4}" stroke="#C9A84C" stroke-width="0.8"/>
+                <rect x="14" y="48" width="14" height="12" fill="${c4}" stroke="#C9A84C" stroke-width="0.5" opacity="0.7"/>
+                <rect x="58" y="48" width="14" height="12" fill="${c1}" stroke="#C9A84C" stroke-width="0.5" opacity="0.7"/>
+            </svg>`;
+        }
+
+        function buildAdminPalette(index, mi) {
+            const offset = (index + mi) % 5;
+            if (mi === 0) return { q: [`hsl(${30+offset*8},${15+offset}%,${10+offset}%)`,`hsl(${42+offset*3},${60+offset*2}%,${46+offset}%)`,`hsl(${30+offset*5},${10+offset}%,${15+offset}%)`,`hsl(${45+offset*2},${70+offset}%,${75+offset}%)`], labels: ['Primary','Accent','Secondary','Trim'] };
+            if (mi === 1) return { q: [`hsl(${0+offset*10},0%,${5+offset}%)`,`hsl(${35+offset*4},${40+offset*3}%,${35+offset*2}%)`,`hsl(${40+offset*2},${20+offset}%,${85+offset}%)`,`hsl(${43+offset},${55+offset*3}%,${55+offset*2}%)`], labels: ['Base Tone','Warm Stone','Light Field','Gold Detail'] };
+            if (mi === 2) return { q: [`hsl(${200+offset*5},${20+offset}%,${8+offset}%)`,`hsl(${38+offset*2},${50+offset*2}%,${40+offset}%)`,`hsl(${25+offset*3},${15+offset}%,${20+offset}%)`,`hsl(${46+offset},${65+offset*2}%,${70+offset}%)`], labels: ['Cool Base','Bronze','Dark Field','Warm Glow'] };
+            return { q: [`hsl(${15+offset*6},${25+offset}%,${12+offset}%)`,`hsl(${44+offset*2},${55+offset}%,${50+offset}%)`,`hsl(0,0%,${18+offset}%)`,`hsl(${48+offset},${80+offset}%,${80+offset}%)`], labels: ['Deep Tone','Rich Gold','Neutral','Highlight'] };
+        }
+
+        function openAdminCatalogInner(index, event) {
+            adminCurrentCollectionIndex = index;
+            adminActivePaletteIndex = null;
+            const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+            const box = boxes[index];
+            if (!box) return;
+
+            document.getElementById('adminInnerTitle').textContent   = box.value || '';
+            document.getElementById('adminInnerFeeling').textContent = box.description || box.feeling || '';
+
+            const mixturesRow = document.getElementById('adminColorMixturesRow');
+            mixturesRow.innerHTML = [0,1,2,3].map(mi => {
+                const p = buildAdminPalette(index, mi);
+                return `<div class="color-mixture-card"
+                     onclick="openAdminPaletteRooms(${mi})"
+                     onmousedown="startMixPress(${index}, ${mi}, event)"
+                     onmouseup="cancelCellPress()"
+                     onmouseleave="cancelCellPress()"
+                     ontouchstart="startMixPress(${index}, ${mi}, event)"
+                     ontouchend="cancelCellPress()"
+                     ontouchmove="cancelCellPress()"
+                     oncontextmenu="return false;">
+                    <div class="color-mixture-label">Mixture ${mi+1}</div>
+                    <div class="house-layout">${buildAdminHouseSVG(p)}</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px;">
+                        ${p.q.map((col, qi) => `<div style="display:flex;align-items:center;gap:4px;">
+                            <div style="width:10px;height:10px;background:${col};border:1px solid rgba(201,168,76,0.3);flex-shrink:0;"></div>
+                            <span style="font-size:8px;color:rgba(201,168,76,0.5);letter-spacing:0.5px;">${p.labels[qi]}</span>
+                        </div>`).join('')}
+                    </div>
+                </div>`;
+            }).join('');
+
+            document.getElementById('catalogInnerOverlay').classList.add('active');
+            document.getElementById('catalogInnerOverlay').scrollTop = 0;
+        }
+
+        function openAdminPaletteRooms(paletteIndex) {
+            adminActivePaletteIndex = paletteIndex;
+            const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+            const box = boxes[adminCurrentCollectionIndex];
+            if (!box) return;
+
+            document.getElementById('adminRoomsTitle').textContent    = `${box.value} — Mixture ${paletteIndex + 1}`;
+            document.getElementById('adminRoomsSubtitle').textContent = box.description || box.feeling || '';
+
+            const roomArea = document.getElementById('adminRoomGalleryArea');
+            const collectionImages = box.images || [];
+
+            roomArea.innerHTML = adminRoomCategories.map((roomName, roomIndex) => {
+                const roomImage = collectionImages[roomIndex] || null;
+                return `<div class="room-category-block">
+                    <div class="room-category-header">
+                        <div class="room-category-name">${roomName}</div>
+                    </div>
+                    <div class="room-single-slot"
+                         onmousedown="startRoomPress(${adminCurrentCollectionIndex}, ${paletteIndex}, ${roomIndex}, '${roomName}', event)"
+                         onmouseup="cancelCellPress()"
+                         onmouseleave="cancelCellPress()"
+                         ontouchstart="startRoomPress(${adminCurrentCollectionIndex}, ${paletteIndex}, ${roomIndex}, '${roomName}', event)"
+                         ontouchend="cancelCellPress()"
+                         ontouchmove="cancelCellPress()"
+                         oncontextmenu="return false;">
+                        ${roomImage ? `<img src="${roomImage}" alt="${roomName}">` : ''}
+                        <div class="elite-slot-placeholder" style="${roomImage ? 'opacity:0;' : ''}">
+                            <div class="elite-slot-icon">
+                                <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="1" y="1" width="14" height="14" stroke="#C9A84C" stroke-width="1"/>
+                                    <path d="M1 11l4-4 3 3 3-4 4 5" stroke="#C9A84C" stroke-width="1" fill="none"/>
+                                    <circle cx="11" cy="5" r="1.5" fill="#C9A84C"/>
+                                </svg>
+                            </div>
+                            <div class="elite-slot-num">${roomName}</div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            document.getElementById('catalogRoomsOverlay').classList.add('active');
+            document.getElementById('catalogRoomsOverlay').scrollTop = 0;
+        }
+
+        function closeAdminCatalogInner() {
+            document.getElementById('catalogInnerOverlay').classList.remove('active');
+        }
+
+        function closeAdminCatalogRooms() {
+            document.getElementById('catalogRoomsOverlay').classList.remove('active');
+        }
+
+        // ─── Long-press context menu ──────────────────────────────────────────────
+        let cellPressTimer = null;
+        let cellPressTarget = null;
+        let cellPressName   = null;
+        let cellPressEl     = null;
+        const CELL_LONG_MS  = 500;
+
+        function startCellPress(boxId, boxName, event) {
+            cancelCellPress();
+            cellPressTarget = boxId;
+            cellPressName   = boxName;
+            cellPressEl     = event.currentTarget || event.target.closest('.elite-collection-cell-admin');
+
+            cellPressEl.classList.add('pressing');
+
+            cellPressTimer = setTimeout(() => {
+                cellPressEl.classList.remove('pressing');
+                if (navigator.vibrate) navigator.vibrate(60);
+                showCellContextMenu(boxId, boxName, event);
+            }, CELL_LONG_MS);
+        }
+
+        function cancelCellPress() {
+            clearTimeout(cellPressTimer);
+            cellPressTimer = null;
+            if (cellPressEl) { cellPressEl.classList.remove('pressing'); cellPressEl = null; }
+        }
+
+        function showCellContextMenu(title, options, event) {
+            document.addEventListener('click', blockNextClick, true);
+
+            document.getElementById('contextMenuTitle').textContent = title;
+            document.getElementById('contextMenuOptions').innerHTML = options.map(o => `
+                <button class="context-menu-option ${o.danger ? 'danger' : ''}" onclick="${o.fn}">
+                    <span class="context-menu-icon ${o.danger ? 'red' : 'gold'}">${o.icon}</span>
+                    <span>${o.label}</span>
+                </button>`).join('');
+
+            const menu     = document.getElementById('cellContextMenu');
+            const backdrop = document.getElementById('contextBackdrop');
+
+            let x, y;
+            if (event.touches && event.touches[0]) {
+                x = event.touches[0].clientX; y = event.touches[0].clientY;
+            } else if (event.changedTouches && event.changedTouches[0]) {
+                x = event.changedTouches[0].clientX; y = event.changedTouches[0].clientY;
+            } else {
+                x = event.clientX || window.innerWidth / 2;
+                y = event.clientY || window.innerHeight / 2;
+            }
+
+            menu.style.display = 'block';
+            const mw = menu.offsetWidth  || 220;
+            const mh = menu.offsetHeight || 180;
+            menu.style.display = '';
+
+            x = Math.min(Math.max(x, 12), window.innerWidth  - mw - 12);
+            y = Math.min(Math.max(y, 12), window.innerHeight - mh - 12);
+            menu.style.left = x + 'px';
+            menu.style.top  = y + 'px';
+
+            menu.classList.add('active');
+            backdrop.classList.add('active');
+        }
+
+        // ── Catalog grid cell (Layer 1) ────────────────────────────────────────
+        function startCellPressOld(boxId, boxName, event) {
+            // kept for reference — replaced below
+        }
+
+        // Rewire startCellPress to use the new showCellContextMenu
+        function startCellPress(boxId, boxName, ev) {
+            cancelCellPress();
+            cellPressTarget = boxId;
+            cellPressName   = boxName;
+            cellPressEl = ev.currentTarget || ev.target.closest('.elite-collection-cell-admin');
+            if (cellPressEl) cellPressEl.classList.add('pressing');
+            const savedEv = { clientX: ev.clientX, clientY: ev.clientY,
+                              touches: ev.touches ? [{clientX: ev.touches[0].clientX, clientY: ev.touches[0].clientY}] : null };
+            cellPressTimer = setTimeout(() => {
+                if (cellPressEl) cellPressEl.classList.remove('pressing');
+                if (navigator.vibrate) navigator.vibrate(60);
+                showCellContextMenu(boxName, [
+                    { icon:'🖼️', label:'Add Picture',        fn:'contextAddPicture()' },
+                    { icon:'📂', label:'Manage All Images',  fn:'contextManageImages()' },
+                    { icon:'🗑️', label:'Delete Collection',  fn:'contextDeleteBox()', danger: true }
+                ], savedEv);
+            }, CELL_LONG_MS);
+        }
+
+        // ── Mixture card (Layer 2) ─────────────────────────────────────────────
+        let ctxMixBoxIndex = null;
+
+        function startMixPress(collectionIndex, mixIndex, ev) {
+            cancelCellPress();
+            ctxMixBoxIndex  = collectionIndex;
+            cellPressEl = ev.currentTarget || ev.target.closest('.color-mixture-card');
+            if (cellPressEl) cellPressEl.classList.add('pressing');
+            const savedEv = { clientX: ev.clientX, clientY: ev.clientY,
+                              touches: ev.touches ? [{clientX: ev.touches[0].clientX, clientY: ev.touches[0].clientY}] : null };
+            cellPressTimer = setTimeout(() => {
+                if (cellPressEl) cellPressEl.classList.remove('pressing');
+                if (navigator.vibrate) navigator.vibrate(60);
+                const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+                const box   = boxes[collectionIndex];
+                const name  = box ? `${box.value} — Mixture ${mixIndex + 1}` : `Mixture ${mixIndex + 1}`;
+                showCellContextMenu(name, [
+                    { icon:'🖼️', label:'Add Images to Collection', fn:`contextAddPicture()` }
+                ], savedEv);
+                // point target at the parent box so contextAddPicture works
+                cellPressTarget = box ? box.id : null;
+                cellPressName   = name;
+            }, CELL_LONG_MS);
+        }
+
+        // ── Room slot (Layer 3) ────────────────────────────────────────────────
+        let ctxRoomCollIdx  = null;
+        let ctxRoomPalIdx   = null;
+        let ctxRoomSlotIdx  = null;
+        let ctxRoomName     = null;
+
+        function startRoomPress(collectionIndex, paletteIndex, roomIndex, roomName, ev) {
+            cancelCellPress();
+            ctxRoomCollIdx = collectionIndex;
+            ctxRoomPalIdx  = paletteIndex;
+            ctxRoomSlotIdx = roomIndex;
+            ctxRoomName    = roomName;
+            cellPressEl = ev.currentTarget || ev.target.closest('.room-single-slot');
+            if (cellPressEl) cellPressEl.classList.add('pressing');
+            const savedEv = { clientX: ev.clientX, clientY: ev.clientY,
+                              touches: ev.touches ? [{clientX: ev.touches[0].clientX, clientY: ev.touches[0].clientY}] : null };
+            cellPressTimer = setTimeout(() => {
+                if (cellPressEl) cellPressEl.classList.remove('pressing');
+                if (navigator.vibrate) navigator.vibrate(60);
+                // Check if image already exists
+                const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+                const box   = boxes[collectionIndex];
+                const hasImg = box && box.images && box.images[roomIndex];
+                const opts = [
+                    { icon:'📷', label: hasImg ? 'Replace Image' : 'Add Image', fn:'contextRoomAddImage()' }
+                ];
+                if (hasImg) opts.push({ icon:'🗑️', label:'Remove Image', fn:'contextRoomRemoveImage()', danger: true });
+                showCellContextMenu(roomName, opts, savedEv);
+            }, CELL_LONG_MS);
+        }
+
+        function contextRoomAddImage() {
+            closeContextMenu();
+            const input = document.getElementById('contextRoomImgInput');
+            input.value = '';
+            input.click();
+        }
+
+        function handleRoomImageUpload(input) {
+            if (!input.files || !input.files[0]) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+                const box   = boxes[ctxRoomCollIdx];
+                if (!box) return;
+                if (!box.images) box.images = [];
+                // Pad array if needed
+                while (box.images.length <= ctxRoomSlotIdx) box.images.push(null);
+                box.images[ctxRoomSlotIdx] = e.target.result;
+                box.count = box.images.filter(Boolean).length + ' images';
+                localStorage.setItem('tbl_catalog_boxes', JSON.stringify(boxes));
+                // Re-render the rooms page
+                openAdminPaletteRooms(ctxRoomPalIdx);
+                showToast(`${ctxRoomName} image updated ✓`);
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        function contextRoomRemoveImage() {
+            closeContextMenu();
+            const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+            const box   = boxes[ctxRoomCollIdx];
+            if (!box || !box.images) return;
+            box.images[ctxRoomSlotIdx] = null;
+            box.count = box.images.filter(Boolean).length + ' images';
+            localStorage.setItem('tbl_catalog_boxes', JSON.stringify(boxes));
+            openAdminPaletteRooms(ctxRoomPalIdx);
+            showToast(`${ctxRoomName} image removed`);
+        }
+
+        function blockNextClick(e) {
+            e.stopPropagation();
+            document.removeEventListener('click', blockNextClick, true);
+        }
+
+        function closeContextMenu() {
+            document.getElementById('cellContextMenu').classList.remove('active');
+            document.getElementById('contextBackdrop').classList.remove('active');
+        }
+
+        function contextAddPicture() {
+            closeContextMenu();
+            if (!cellPressTarget) return;
+            currentCatalogBox = cellPressTarget;   // reuse existing manager state
+            const input = document.getElementById('contextImageInput');
+            input.value = '';
+            input.click();
+        }
+
+        function handleContextImageUpload(input) {
+            if (!input.files || !input.files.length || !currentCatalogBox) return;
+            const files = Array.from(input.files);
+            let loaded = 0;
+
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+                    const box   = boxes.find(b => b.id === currentCatalogBox);
+                    if (box) {
+                        if (!box.images) box.images = [];
+                        box.images.push(e.target.result);
+                        box.count = box.images.length + ' images';
+                        localStorage.setItem('tbl_catalog_boxes', JSON.stringify(boxes));
+                    }
+                    loaded++;
+                    if (loaded === files.length) {
+                        renderCatalogList();
+                        showToast(`${loaded} image${loaded > 1 ? 's' : ''} added ✓`);
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function contextManageImages() {
+            closeContextMenu();
+            if (!cellPressTarget) return;
+            openCatalogImageManager(cellPressTarget);
+        }
+
+        function contextDeleteBox() {
+            closeContextMenu();
+            if (!cellPressTarget) return;
+            if (!confirm(`Delete "${cellPressName}"? This cannot be undone.`)) return;
+            const boxes    = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+            const filtered = boxes.filter(b => b.id !== cellPressTarget);
+            localStorage.setItem('tbl_catalog_boxes', JSON.stringify(filtered));
+            renderCatalogList();
+            updateStats();
+            showToast('Collection deleted');
+        }
+
     </script>
 </body>
 </html>
