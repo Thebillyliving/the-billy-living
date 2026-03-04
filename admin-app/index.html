@@ -1206,6 +1206,42 @@
             }
         }
     </style>
+    <!-- ── Firebase SDK ───────────────────────────────────────────── -->
+    <script type="module">
+        import { initializeApp }   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, writeBatch, getDocs }
+            from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+        // ── PASTE YOUR FIREBASE CONFIG HERE ──────────────────────────
+        const firebaseConfig = {
+            apiKey:            "AIzaSyD-ZCaYTLvvaaNFd8G4S8_InyRcSQ9qk8s",
+            authDomain:        "the-billy-living-ee243.firebaseapp.com",
+            projectId:         "the-billy-living-ee243",
+            storageBucket:     "the-billy-living-ee243.firebasestorage.app",
+            messagingSenderId: "454031913213",
+            appId:             "1:454031913213:web:d68fc786f556b6e49c8e94",
+            measurementId:     "G-F7RKJK3R1D"
+        };
+        // ─────────────────────────────────────────────────────────────
+
+        const fbApp = initializeApp(firebaseConfig);
+        const fbDb  = getFirestore(fbApp);
+
+        window._fbDb         = fbDb;
+        window._fbCollection = collection;
+        window._fbAddDoc     = addDoc;
+        window._fbOnSnapshot = onSnapshot;
+        window._fbQuery      = query;
+        window._fbOrderBy    = orderBy;
+        window._fbDoc        = doc;
+        window._fbUpdateDoc  = updateDoc;
+        window._fbWriteBatch = writeBatch;
+        window._fbGetDocs    = getDocs;
+        window._fbReady      = true;
+
+        // Start real-time listener as soon as page loads
+        window.addEventListener('load', () => setTimeout(startAdminFirebaseListener, 800));
+    </script>
 </head>
 <body>
     <!-- Sidebar -->
@@ -2053,10 +2089,32 @@
 
         function filterWAConvs(val) { renderWAConvList(val); }
 
+        // ── Firebase real-time listener for admin ─────────────────────
+        function startAdminFirebaseListener() {
+            if (!window._fbReady) return;
+            try {
+                const q = window._fbQuery(
+                    window._fbCollection(window._fbDb, 'chats'),
+                    window._fbOrderBy('timestamp', 'asc')
+                );
+                window._fbOnSnapshot(q, (snapshot) => {
+                    const all = [];
+                    snapshot.forEach(d => all.push({ id: d.id, ...d.data() }));
+                    // Sync to localStorage
+                    localStorage.setItem('tbl_designer_chats', JSON.stringify(all));
+                    // Refresh UI
+                    updateBadges();
+                    renderWAConvList();
+                    // If a thread is open, refresh it too
+                    if (waCurrentChat) openWAThread(waCurrentChat);
+                });
+            } catch(e) { console.warn('Admin Firebase listener error:', e); }
+        }
+
         function openWAThread(name) {
             waCurrentChat = name;
 
-            // Mark messages read
+            // Mark messages read in localStorage
             const messages = JSON.parse(localStorage.getItem('tbl_designer_chats') || '[]');
             messages.forEach(m => { if (m.senderName === name && !m.isDesigner) m.read = true; });
             localStorage.setItem('tbl_designer_chats', JSON.stringify(messages));
@@ -2069,7 +2127,7 @@
             document.getElementById('waThreadName').textContent   = name;
 
             // Messages
-            const thread = messages.filter(m => m.senderName === name || (m.isDesigner && m.recipient === name));
+            const thread  = messages.filter(m => m.senderName === name || (m.isDesigner && m.recipient === name));
             const msgArea = document.getElementById('waMessages');
 
             if (thread.length === 0) {
@@ -2093,7 +2151,6 @@
                         </div>` : '';
 
                     const imgHtml = msg.imageData ? `<img src="${msg.imageData}" alt="">` : '';
-
                     const tick = dir === 'outgoing' ? `<svg viewBox="0 0 16 11"><polyline points="1,6 5,10 15,1"/><polyline points="5,6 9,10 15,1"/></svg>` : '';
 
                     return `${divider}<div class="wa-bubble ${dir}">
@@ -2117,19 +2174,32 @@
             const input = document.getElementById('waInputField');
             const text  = input.value.trim();
             if (!text || !waCurrentChat) return;
-            const messages = JSON.parse(localStorage.getItem('tbl_designer_chats') || '[]');
-            messages.push({
-                id: 'msg_' + Date.now(),
+
+            const msgObj = {
+                id:         'msg_' + Date.now(),
                 senderName: 'Lead Designer',
                 recipient:  waCurrentChat,
                 message:    text,
                 imageData:  null,
                 portfolioItems: [],
                 isDesigner: true,
-                read: false,
-                timestamp: Date.now()
-            });
+                read:       false,
+                timestamp:  Date.now()
+            };
+
+            // Save to localStorage
+            const messages = JSON.parse(localStorage.getItem('tbl_designer_chats') || '[]');
+            messages.push(msgObj);
             localStorage.setItem('tbl_designer_chats', JSON.stringify(messages));
+
+            // Save to Firestore
+            if (window._fbReady) {
+                try {
+                    window._fbAddDoc(window._fbCollection(window._fbDb, 'chats'), msgObj)
+                        .catch(e => console.warn('Firestore write error:', e));
+                } catch(e) { console.warn('Firestore error:', e); }
+            }
+
             input.value = '';
             openWAThread(waCurrentChat);
         }
