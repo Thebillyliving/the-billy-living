@@ -2885,7 +2885,8 @@
             const designerWA  = '2348084410220';
 
             if (type === 'whatsapp_direct') {
-                window.open(`https://wa.me/${designerWA}?text=${encodedText}`, '_blank');
+                const prefilledMsg = encodeURIComponent("Hello! I'm reaching out from your portfolio site. I saw your trending catalog and would like to get a quote/more details on the items listed. Thanks!");
+                window.open(`https://wa.me/2348084410220?text=${prefilledMsg}`, '_blank');
 
             } else if (type === 'whatsapp') {
                 window.open(`https://wa.me/?text=${encodedText}`, '_blank');
