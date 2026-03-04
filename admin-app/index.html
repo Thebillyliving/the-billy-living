@@ -1206,13 +1206,10 @@
             }
         }
     </style>
-    <!-- ── Firebase SDK ───────────────────────────────────────────── -->
-    <script type="module">
-        import { initializeApp }   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, writeBatch, getDocs }
-            from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
-        // ── PASTE YOUR FIREBASE CONFIG HERE ──────────────────────────
+    <!-- Firebase compat SDK (works without bundler) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script>
         const firebaseConfig = {
             apiKey:            "AIzaSyD-ZCaYTLvvaaNFd8G4S8_InyRcSQ9qk8s",
             authDomain:        "the-billy-living-ee243.firebaseapp.com",
@@ -1222,25 +1219,13 @@
             appId:             "1:454031913213:web:d68fc786f556b6e49c8e94",
             measurementId:     "G-F7RKJK3R1D"
         };
-        // ─────────────────────────────────────────────────────────────
+        firebase.initializeApp(firebaseConfig);
+        window._db = firebase.firestore();
+        window._fbReady = true;
 
-        const fbApp = initializeApp(firebaseConfig);
-        const fbDb  = getFirestore(fbApp);
-
-        window._fbDb         = fbDb;
-        window._fbCollection = collection;
-        window._fbAddDoc     = addDoc;
-        window._fbOnSnapshot = onSnapshot;
-        window._fbQuery      = query;
-        window._fbOrderBy    = orderBy;
-        window._fbDoc        = doc;
-        window._fbUpdateDoc  = updateDoc;
-        window._fbWriteBatch = writeBatch;
-        window._fbGetDocs    = getDocs;
-        window._fbReady      = true;
-
-        // Start real-time listener as soon as page loads
-        window.addEventListener('load', () => setTimeout(startAdminFirebaseListener, 800));
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(startAdminFirebaseListener, 600);
+        });
     </script>
 </head>
 <body>
@@ -2031,18 +2016,15 @@
         function openWAChat() {
             document.getElementById('waChatWrap').classList.add('active');
 
-            // If Firebase is ready, fetch fresh data directly then render
-            if (window._fbReady) {
-                try {
-                    window._fbGetDocs(window._fbCollection(window._fbDb, 'chats')).then(snapshot => {
+            if (window._fbReady && window._db) {
+                window._db.collection('chats').orderBy('timestamp', 'asc').get()
+                    .then(snapshot => {
                         const all = [];
                         snapshot.forEach(d => all.push({ id: d.id, ...d.data() }));
-                        all.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
                         localStorage.setItem('tbl_designer_chats', JSON.stringify(all));
                         renderWAConvList();
                         updateBadges();
                     }).catch(() => renderWAConvList());
-                } catch(e) { renderWAConvList(); }
             } else {
                 renderWAConvList();
             }
@@ -2107,36 +2089,33 @@
 
         // ── Firebase real-time listener for admin ─────────────────────
         function startAdminFirebaseListener() {
-            if (!window._fbReady) {
+            if (!window._fbReady || !window._db) {
                 setTimeout(startAdminFirebaseListener, 500);
                 return;
             }
             const statusBar = document.getElementById('fbStatusBar');
             try {
-                const col = window._fbCollection(window._fbDb, 'chats');
-                window._fbOnSnapshot(col, (snapshot) => {
-                    const all = [];
-                    snapshot.forEach(d => all.push({ id: d.id, ...d.data() }));
-                    all.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-                    localStorage.setItem('tbl_designer_chats', JSON.stringify(all));
+                window._db.collection('chats').orderBy('timestamp', 'asc')
+                    .onSnapshot((snapshot) => {
+                        const all = [];
+                        snapshot.forEach(d => all.push({ id: d.id, ...d.data() }));
+                        localStorage.setItem('tbl_designer_chats', JSON.stringify(all));
 
-                    // Show connected status
-                    if (statusBar) {
-                        statusBar.style.background = 'rgba(0,200,0,0.1)';
-                        statusBar.style.color = '#00C800';
-                        statusBar.textContent = '🟢 Firebase connected — ' + all.length + ' message(s) synced';
-                    }
-
-                    updateBadges();
-                    renderWAConvList();
-                    if (waCurrentChat) openWAThread(waCurrentChat);
-                }, (error) => {
-                    if (statusBar) {
-                        statusBar.style.background = 'rgba(255,0,0,0.1)';
-                        statusBar.style.color = '#ff4444';
-                        statusBar.textContent = '🔴 Firebase error: ' + error.message;
-                    }
-                });
+                        if (statusBar) {
+                            statusBar.style.background = 'rgba(0,200,0,0.1)';
+                            statusBar.style.color = '#00C800';
+                            statusBar.textContent = '🟢 Firebase connected — ' + all.length + ' message(s) synced';
+                        }
+                        updateBadges();
+                        renderWAConvList();
+                        if (waCurrentChat) openWAThread(waCurrentChat);
+                    }, (error) => {
+                        if (statusBar) {
+                            statusBar.style.background = 'rgba(255,0,0,0.1)';
+                            statusBar.style.color = '#ff4444';
+                            statusBar.textContent = '🔴 Firebase error: ' + error.message;
+                        }
+                    });
             } catch(e) {
                 if (statusBar) {
                     statusBar.style.background = 'rgba(255,0,0,0.1)';
@@ -2227,12 +2206,10 @@
             messages.push(msgObj);
             localStorage.setItem('tbl_designer_chats', JSON.stringify(messages));
 
-            // Save to Firestore
-            if (window._fbReady) {
-                try {
-                    window._fbAddDoc(window._fbCollection(window._fbDb, 'chats'), msgObj)
-                        .catch(e => console.warn('Firestore write error:', e));
-                } catch(e) { console.warn('Firestore error:', e); }
+            // Save to Firestore using compat SDK
+            if (window._fbReady && window._db) {
+                window._db.collection('chats').add(msgObj)
+                    .catch(e => console.warn('Firestore write error:', e));
             }
 
             input.value = '';
