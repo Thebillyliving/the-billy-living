@@ -497,18 +497,145 @@
         .tiktok-action-icon {
             width: 48px;
             height: 48px;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
+            background: rgba(22,22,22,0.6);
+            backdrop-filter: blur(12px);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
             transition: all 0.2s;
         }
 
-        .tiktok-action:active .tiktok-action-icon { transform: scale(0.9); background: rgba(255,255,255,0.2); }
-        .tiktok-action-count { font-size: 12px; font-weight: 500; }
+        .tiktok-action-icon svg {
+            width: 26px;
+            height: 26px;
+            stroke: #fff;
+            fill: none;
+            stroke-width: 1.6;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: stroke 0.2s, fill 0.2s;
+            filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6));
+        }
+
+        .tiktok-action.liked .tiktok-action-icon { background: rgba(237,73,86,0.25); }
+        .tiktok-action.liked .tiktok-action-icon svg { stroke: #ed4956; fill: #ed4956; }
+        .tiktok-action:active .tiktok-action-icon { transform: scale(0.88); background: rgba(255,255,255,0.18); }
+        .tiktok-action-count { font-size: 12px; font-weight: 600; letter-spacing: 0.3px; }
+
+        /* ── TikTok-style share sheet ─────────────────────────────────── */
+        .tiktok-share-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 3000;
+            backdrop-filter: blur(2px);
+        }
+        .tiktok-share-backdrop.active { display: block; }
+
+        .tiktok-share-sheet {
+            position: fixed;
+            bottom: -100%;
+            left: 0; right: 0;
+            background: #1A1A1A;
+            border-radius: 20px 20px 0 0;
+            z-index: 3001;
+            padding: 0 0 32px;
+            transition: bottom 0.35s cubic-bezier(0.4,0,0.2,1);
+        }
+        .tiktok-share-sheet.active { bottom: 0; }
+
+        .share-sheet-handle {
+            width: 40px; height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            margin: 12px auto 16px;
+        }
+
+        .share-sheet-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 13px;
+            letter-spacing: 3px;
+            color: rgba(255,255,255,0.4);
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Top row — Send To icons */
+        .share-send-row {
+            display: flex;
+            gap: 0;
+            padding: 0 8px 4px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .share-send-row::-webkit-scrollbar { display: none; }
+
+        .share-send-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            flex: 0 0 72px;
+            cursor: pointer;
+            padding: 4px 0 8px;
+        }
+
+        .share-send-avatar {
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            background: #2A2A2A;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            overflow: hidden;
+            position: relative;
+            border: 1.5px solid rgba(255,255,255,0.08);
+            transition: transform 0.15s;
+        }
+        .share-send-avatar:active { transform: scale(0.9); }
+        .share-send-avatar svg {
+            width: 26px; height: 26px;
+            stroke: #fff; fill: none;
+            stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+        }
+        .share-send-avatar.whatsapp { background: #128C7E; }
+        .share-send-avatar.concierge { background: linear-gradient(135deg, #C9A84C, #8B6914); }
+        .share-send-avatar.portfolio { background: #2A1F14; border-color: rgba(201,168,76,0.4); }
+        .share-send-avatar.portfolio svg { stroke: #C9A84C; }
+        .share-send-name {
+            font-size: 10px;
+            color: rgba(255,255,255,0.55);
+            letter-spacing: 0.3px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        /* Divider */
+        .share-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 4px 0 8px; }
+
+        /* Action rows */
+        .share-action-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 20px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .share-action-row:active { background: rgba(255,255,255,0.05); }
+        .share-action-icon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            background: #2A2A2A;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .share-action-icon svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+        .share-action-label { font-size: 14px; color: #E9EDF0; }
 
         .tiktok-avatar-btn {
             width: 48px;
@@ -1096,6 +1223,95 @@
         .vault-badge-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.18); border-radius: 8px; font-family: 'Jost', sans-serif; font-size: 12px; color: var(--text-primary); letter-spacing: 1px; }
         .vault-badge-icon { color: var(--gold); font-size: 14px; flex-shrink: 0; }
         .vault-pin-input-wrapper { width: 100%; position: relative; }
+        /* ── TikTok-style share sheet ──────────────────────────── */
+        .share-backdrop {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.55); z-index: 4000;
+        }
+        .share-backdrop.active { display: block; }
+
+        .share-sheet {
+            position: fixed; bottom: -100%; left: 0; right: 0;
+            background: #1C1C1E; border-radius: 22px 22px 0 0;
+            z-index: 4001; padding-bottom: env(safe-area-inset-bottom,20px);
+            transition: bottom 0.32s cubic-bezier(0.4,0,0.2,1);
+        }
+        .share-sheet.active { bottom: 0; }
+
+        .share-handle {
+            width: 36px; height: 4px; background: rgba(255,255,255,0.18);
+            border-radius: 2px; margin: 10px auto 0;
+        }
+        .share-sheet-label {
+            text-align: center; font-size: 11px; letter-spacing: 3px;
+            color: rgba(255,255,255,0.3); text-transform: uppercase;
+            padding: 12px 0 16px;
+        }
+
+        /* Quick-send row */
+        .share-quick-row {
+            display: flex; padding: 0 6px 6px;
+            overflow-x: auto; gap: 0; scrollbar-width: none;
+        }
+        .share-quick-row::-webkit-scrollbar { display: none; }
+        .share-quick-item {
+            flex: 0 0 76px; display: flex; flex-direction: column;
+            align-items: center; gap: 7px; padding: 6px 0 10px;
+            cursor: pointer;
+        }
+        .share-quick-item:active .share-quick-icon { transform: scale(0.88); }
+        .share-quick-icon {
+            width: 54px; height: 54px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.15s;
+        }
+        .share-quick-icon svg {
+            width: 26px; height: 26px;
+            stroke: #fff; fill: none;
+            stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
+        }
+        .sqi-concierge { background: linear-gradient(135deg,#C9A84C,#7A5C10); }
+        .sqi-portfolio  { background: #1E160A; border: 1.5px solid rgba(201,168,76,0.45); }
+        .sqi-portfolio svg { stroke: #C9A84C; }
+        .sqi-whatsapp  { background: #25D366; }
+        .sqi-copy      { background: #3A3A3C; }
+        .sqi-more      { background: #3A3A3C; }
+        .share-quick-name {
+            font-size: 10px; color: rgba(255,255,255,0.5);
+            letter-spacing: 0.3px; text-align: center;
+        }
+
+        .share-divider { height: 1px; background: rgba(255,255,255,0.07); margin: 2px 0; }
+
+        /* Action list rows */
+        .share-action-item {
+            display: flex; align-items: center; gap: 15px;
+            padding: 15px 20px; cursor: pointer;
+            transition: background 0.12s;
+        }
+        .share-action-item:active { background: rgba(255,255,255,0.06); }
+        .share-action-item-icon {
+            width: 42px; height: 42px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .share-action-item-icon svg {
+            width: 22px; height: 22px;
+            stroke: #fff; fill: none;
+            stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
+        }
+        .share-action-item-label { font-size: 15px; color: #E5E5E5; }
+
+        /* Override tiktok icon to use SVG properly */
+        .tiktok-action-icon svg {
+            width: 26px; height: 26px;
+            stroke: #fff; fill: none;
+            stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+            filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5));
+        }
+        .tiktok-action.liked .tiktok-action-icon { background: rgba(237,73,86,0.25); }
+        .tiktok-action.liked .tiktok-action-icon svg { stroke: #ed4956; fill: #ed4956; }
+
     </style>
 </head>
 <body>
@@ -1468,6 +1684,62 @@
         <img src="" id="modalImage">
     </div>
 
+    <!-- TikTok-style Share Sheet -->
+    <div class="tiktok-share-backdrop" id="shareBackdrop" onclick="closeShareSheet()"></div>
+    <div class="tiktok-share-sheet" id="shareSheet">
+        <div class="share-sheet-handle"></div>
+        <div class="share-sheet-title">Share</div>
+
+        <!-- Send To row: Concierge · Portfolio · WhatsApp · Copy Link -->
+        <div class="share-send-row">
+            <div class="share-send-item" onclick="shareToAction('concierge')">
+                <div class="share-send-avatar concierge">
+                    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                </div>
+                <span class="share-send-name">Concierge</span>
+            </div>
+            <div class="share-send-item" onclick="shareToAction('portfolio')">
+                <div class="share-send-avatar portfolio">
+                    <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+                </div>
+                <span class="share-send-name">Portfolio</span>
+            </div>
+            <div class="share-send-item" onclick="shareToAction('whatsapp')">
+                <div class="share-send-avatar whatsapp">
+                    <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+                </div>
+                <span class="share-send-name">WhatsApp</span>
+            </div>
+            <div class="share-send-item" onclick="shareToAction('copy')">
+                <div class="share-send-avatar" style="background:#2A2A2A;">
+                    <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                </div>
+                <span class="share-send-name">Copy Link</span>
+            </div>
+            <div class="share-send-item" onclick="shareToAction('native')">
+                <div class="share-send-avatar" style="background:#2A2A2A;">
+                    <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                </div>
+                <span class="share-send-name">More</span>
+            </div>
+        </div>
+
+        <div class="share-divider"></div>
+
+        <div class="share-action-row" onclick="shareToAction('whatsapp')">
+            <div class="share-action-icon" style="background:#128C7E;">
+                <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+            </div>
+            <span class="share-action-label">Share to WhatsApp</span>
+        </div>
+        <div class="share-action-row" onclick="shareToAction('copy')">
+            <div class="share-action-icon">
+                <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+            </div>
+            <span class="share-action-label">Copy Link</span>
+        </div>
+    </div>
+
     <script>
         const db = {
             currentVIP: null,
@@ -1585,8 +1857,9 @@
         }
 
         // ─── FIX: Home feed — map admin field names correctly ────────────────────
-        const feedLiked      = new Set();
-        const feedBookmarked = new Set();
+        const feedLiked      = new Set(JSON.parse(localStorage.getItem('tbl_liked_posts')      || '[]'));
+        const feedBookmarked = new Set(JSON.parse(localStorage.getItem('tbl_bookmarked_posts') || '[]'));
+        const trendingLiked  = new Set(JSON.parse(localStorage.getItem('tbl_liked_trending')   || '[]'));
 
         function renderHomeFeed() {
             const container = document.getElementById('homeFeed');
@@ -1660,15 +1933,30 @@
             if (feedLiked.has(postId)) {
                 feedLiked.delete(postId);
                 btn.classList.remove('liked');
-                countEl.textContent = Math.max(0, current - 1);
+                current = Math.max(0, current - 1);
             } else {
                 feedLiked.add(postId);
                 btn.classList.add('liked');
-                countEl.textContent = current + 1;
+                current = current + 1;
             }
+            countEl.textContent = current;
+            // Persist liked set
+            localStorage.setItem('tbl_liked_posts', JSON.stringify([...feedLiked]));
+            // Write updated like count back to the post record
+            const posts = JSON.parse(localStorage.getItem('tbl_posts') || '[]');
+            const post  = posts.find(p => (p.id || p.title || '') === postId);
+            if (post) { post.likes = current; localStorage.setItem('tbl_posts', JSON.stringify(posts)); }
         }
 
         function shareFeedPost(postId) {
+            const posts = JSON.parse(localStorage.getItem('tbl_posts') || '[]');
+            const post  = posts.find(p => (p.id || p.title || '') === postId);
+            if (post) {
+                post.shares = (post.shares || 0) + 1;
+                localStorage.setItem('tbl_posts', JSON.stringify(posts));
+                const shareEl = document.getElementById('shares-' + postId);
+                if (shareEl) shareEl.textContent = post.shares;
+            }
             if (navigator.share) {
                 navigator.share({ title: 'Billy Living', text: 'Check out this design from Billy Living' });
             } else {
@@ -1704,7 +1992,46 @@
             showToast('Saved to Portfolio \u2605');
         }
 
-        // ─── FIX: Trending — map admin field names correctly ─────────────────────
+        // ─── Trending interactions ────────────────────────────────────────────────
+        function toggleTrendingLike(itemId, btn) {
+            const countEl = document.getElementById('tlikes-' + itemId);
+            let current   = parseInt(countEl.textContent) || 0;
+            const icon    = btn.querySelector('.tiktok-action-icon');
+
+            if (trendingLiked.has(itemId)) {
+                trendingLiked.delete(itemId);
+                btn.classList.remove('tiktok-liked');
+                current = Math.max(0, current - 1);
+                if (icon) icon.style.fontSize = '24px';
+            } else {
+                trendingLiked.add(itemId);
+                btn.classList.add('tiktok-liked');
+                current = current + 1;
+                if (icon) icon.style.fontSize = '28px';
+            }
+            countEl.textContent = current;
+            localStorage.setItem('tbl_liked_trending', JSON.stringify([...trendingLiked]));
+            // Write back to tbl_trending
+            const items = JSON.parse(localStorage.getItem('tbl_trending') || '[]');
+            const item  = items.find(i => (i.id || i.title || '') === itemId);
+            if (item) { item.likes = current; localStorage.setItem('tbl_trending', JSON.stringify(items)); }
+        }
+
+        function shareTrendingPost(itemId) {
+            const items = JSON.parse(localStorage.getItem('tbl_trending') || '[]');
+            const item  = items.find(i => (i.id || i.title || '') === itemId);
+            if (item) {
+                item.shares = (item.shares || 0) + 1;
+                localStorage.setItem('tbl_trending', JSON.stringify(items));
+                const shareEl = document.getElementById('tshares-' + itemId);
+                if (shareEl) shareEl.textContent = item.shares;
+            }
+            if (navigator.share) {
+                navigator.share({ title: 'Billy Living', text: 'Check out this trending design!' });
+            } else {
+                showToast('Link copied to clipboard');
+            }
+        }
         function renderTrending() {
             const container = document.getElementById('trendingContainer');
             const items = getTrending();
@@ -1719,16 +2046,16 @@
             }
 
             container.innerHTML = items.map(item => {
-                // Admin saves: title / imageData / videoUrl / caption / likes
-                // Legacy default data uses: type / src / poster / username / music / comments
                 const isVideo  = item.type === 'video' || (!!item.videoUrl && !item.imageData);
                 const mediaSrc = item.src || item.videoUrl || item.imageData || '';
                 const poster   = item.poster || item.imageData || '';
                 const username = item.username || '@billyliving';
                 const caption  = item.caption || item.title || '';
                 const music    = item.music || 'Billy Living Interiors';
-                const likes    = item.likes || '0';
-                const comments = item.comments || '0';
+                const likes    = item.likes || 0;
+                const itemId   = item.id || item.title || mediaSrc.slice(-12);
+                const isLiked  = trendingLiked.has(itemId);
+                const safeCaption = caption.replace(/'/g,"\\'").replace(/`/g,'');
 
                 return `
                 <div class="tiktok-item">
@@ -1738,12 +2065,21 @@
                     }
                     <div class="tiktok-actions">
                         <div class="tiktok-avatar-btn">
-                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150" alt="User">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150" alt="BL">
                             <div class="tiktok-follow">+</div>
                         </div>
-                        <button class="tiktok-action"><div class="tiktok-action-icon">❤️</div><span class="tiktok-action-count">${likes}</span></button>
-                        <button class="tiktok-action"><div class="tiktok-action-icon">💬</div><span class="tiktok-action-count">${comments}</span></button>
-                        <button class="tiktok-action"><div class="tiktok-action-icon">↗️</div><span class="tiktok-action-count">Share</span></button>
+                        <button class="tiktok-action ${isLiked ? 'liked' : ''}" onclick="toggleTrendingLike('${itemId}',this)">
+                            <div class="tiktok-action-icon">
+                                <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+                            </div>
+                            <span class="tiktok-action-count" id="tlikes-${itemId}">${likes}</span>
+                        </button>
+                        <button class="tiktok-action" onclick="openShareSheet('${itemId}','${safeCaption}','${mediaSrc}')">
+                            <div class="tiktok-action-icon">
+                                <svg viewBox="0 0 24 24" stroke-width="1.8"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                            </div>
+                            <span class="tiktok-action-count" id="tshares-${itemId}">${item.shares || 0}</span>
+                        </button>
                     </div>
                     <div class="tiktok-info">
                         <div class="tiktok-user"><span class="tiktok-username">${username}</span><div class="tiktok-badge">✓</div></div>
@@ -1834,21 +2170,50 @@
         }
 
         function closeProfile() { document.getElementById('profileScreen').classList.remove('active'); }
-        function saveProfileUpdates() { showToast('Profile updated successfully'); }
+        function saveProfileUpdates() {
+            const name   = document.getElementById('profileNameInput').value.trim();
+            const avatar = document.getElementById('profileAvatarImg').src;
+            const profile = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
+            if (name)   profile.name   = name;
+            if (avatar && avatar !== window.location.href) profile.avatar = avatar;
+            localStorage.setItem('tbl_profile', JSON.stringify(profile));
+            showToast('Profile updated successfully');
+        }
 
         function handleAvatarUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
             reader.onload = (e) => {
-                const img = document.getElementById('profileAvatarImg');
+                const img         = document.getElementById('profileAvatarImg');
                 const placeholder = document.getElementById('avatarPlaceholder');
-                img.src = e.target.result;
+                img.src           = e.target.result;
                 img.style.display = 'block';
                 placeholder.style.display = 'none';
+                // Persist immediately
+                const profile = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
+                profile.avatar = e.target.result;
+                localStorage.setItem('tbl_profile', JSON.stringify(profile));
                 showToast('Profile photo updated');
             };
             reader.readAsDataURL(file);
+        }
+
+        function loadProfileData() {
+            const profile = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
+            if (profile.name) {
+                const nameEl = document.getElementById('profileNameInput');
+                if (nameEl) nameEl.value = profile.name;
+            }
+            if (profile.avatar) {
+                const img         = document.getElementById('profileAvatarImg');
+                const placeholder = document.getElementById('avatarPlaceholder');
+                if (img) {
+                    img.src           = profile.avatar;
+                    img.style.display = 'block';
+                    if (placeholder) placeholder.style.display = 'none';
+                }
+            }
         }
 
         function requestConciergeSupport() {
@@ -1896,7 +2261,7 @@
             document.querySelectorAll('.bottom-nav-item')[3].classList.add('active');
             const msgs = document.getElementById('chatMessages');
             if (msgs.children.length === 0) {
-                setTimeout(() => appendMessage('designer', 'Welcome to The Billy Living Concierge. How can we elevate your space today?'), 400);
+                loadChatHistory();
             }
         }
 
@@ -1905,9 +2270,31 @@
             document.querySelectorAll('.bottom-nav-item')[3].classList.remove('active');
         }
 
-        function appendMessage(role, text, attachments) {
+        function loadChatHistory() {
+            const profile  = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
+            const sender   = profile.name || 'Client';
+            const stored   = JSON.parse(localStorage.getItem('tbl_designer_chats') || '[]');
+            const myMsgs   = stored.filter(m => m.senderName === sender || (m.isDesigner && m.recipient === sender));
+
             const msgs = document.getElementById('chatMessages');
-            const div = document.createElement('div');
+            msgs.innerHTML = '';
+
+            if (myMsgs.length === 0) {
+                setTimeout(() => appendMessage('designer', 'Welcome to The Billy Living Concierge. How can we elevate your space today?'), 400);
+            } else {
+                myMsgs.forEach(m => {
+                    const role = m.isDesigner ? 'designer' : 'customer';
+                    const atts = m.imageData ? [{ type: 'image', dataUrl: m.imageData }] : [];
+                    appendMessageDOM(role, m.message, atts);
+                });
+            }
+            msgs.scrollTop = msgs.scrollHeight;
+        }
+
+        // Renders to DOM only (used by loadChatHistory to avoid double-saving)
+        function appendMessageDOM(role, text, attachments) {
+            const msgs = document.getElementById('chatMessages');
+            const div  = document.createElement('div');
             div.className = `message ${role}`;
             if (text) div.textContent = text;
             if (attachments && attachments.length) {
@@ -1916,7 +2303,7 @@
                         const wrap = document.createElement('div');
                         wrap.className = 'message-attachment';
                         const img = document.createElement('img');
-                        img.src = att.dataUrl;
+                        img.src = att.dataUrl || att.data || '';
                         wrap.appendChild(img);
                         div.appendChild(wrap);
                     } else {
@@ -1931,9 +2318,34 @@
             msgs.scrollTop = msgs.scrollHeight;
         }
 
+        function appendMessage(role, text, attachments) {
+            appendMessageDOM(role, text, attachments);
+
+            // Persist to localStorage
+            const profile  = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
+            const sender   = profile.name || 'Client';
+            const stored   = JSON.parse(localStorage.getItem('tbl_designer_chats') || '[]');
+
+            const imageData = (attachments || []).find(a => a.type === 'image')?.dataUrl || null;
+
+            stored.push({
+                id:         'msg_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+                senderName: role === 'customer' ? sender : 'Lead Designer',
+                recipient:  role === 'customer' ? 'Lead Designer' : sender,
+                message:    text || '',
+                imageData:  imageData,
+                portfolioItems: [],
+                isDesigner: role === 'designer',
+                read:       role === 'designer',
+                timestamp:  Date.now()
+            });
+
+            localStorage.setItem('tbl_designer_chats', JSON.stringify(stored));
+        }
+
         function sendChatMessage() {
             const input = document.getElementById('chatInput');
-            const text = input.value.trim();
+            const text  = input.value.trim();
             if (!text && pendingAttachments.length === 0) return;
             appendMessage('customer', text, pendingAttachments);
             input.value = '';
@@ -2313,7 +2725,131 @@
             renderCatalogGrid();
             renderHomeFeed();
             checkVaultOnLoad();
+            loadProfileData();
+            loadChatHistory();
         });
+    </script>
+    <!-- Share Sheet -->
+    <div class="share-backdrop" id="shareBackdrop" onclick="closeShareSheet()"></div>
+    <div class="share-sheet" id="shareSheet">
+        <div class="share-handle"></div>
+        <div class="share-sheet-label">Share to</div>
+
+        <!-- Quick send row: Concierge · Portfolio · WhatsApp · Copy · More -->
+        <div class="share-quick-row">
+            <div class="share-quick-item" onclick="shareToAction('concierge')">
+                <div class="share-quick-icon sqi-concierge">
+                    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                </div>
+                <span class="share-quick-name">Concierge</span>
+            </div>
+            <div class="share-quick-item" onclick="shareToAction('portfolio')">
+                <div class="share-quick-icon sqi-portfolio">
+                    <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+                </div>
+                <span class="share-quick-name">Portfolio</span>
+            </div>
+            <div class="share-quick-item" onclick="shareToAction('whatsapp')">
+                <div class="share-quick-icon sqi-whatsapp">
+                    <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+                </div>
+                <span class="share-quick-name">WhatsApp</span>
+            </div>
+            <div class="share-quick-item" onclick="shareToAction('copy')">
+                <div class="share-quick-icon sqi-copy">
+                    <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                </div>
+                <span class="share-quick-name">Copy Link</span>
+            </div>
+            <div class="share-quick-item" onclick="shareToAction('native')">
+                <div class="share-quick-icon sqi-more">
+                    <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                </div>
+                <span class="share-quick-name">More</span>
+            </div>
+        </div>
+
+        <div class="share-divider"></div>
+
+        <div class="share-action-item" onclick="shareToAction('whatsapp')">
+            <div class="share-action-item-icon" style="background:#25D366;">
+                <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+            </div>
+            <span class="share-action-item-label">Share to WhatsApp</span>
+        </div>
+        <div class="share-action-item" onclick="shareToAction('copy')">
+            <div class="share-action-item-icon" style="background:#3A3A3C;">
+                <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+            </div>
+            <span class="share-action-item-label">Copy Link</span>
+        </div>
+        <div class="share-action-item" onclick="shareToAction('native')">
+            <div class="share-action-item-icon" style="background:#3A3A3C;">
+                <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            </div>
+            <span class="share-action-item-label">Share via...</span>
+        </div>
+    </div>
+
+    <script>
+        // ── Share sheet state ─────────────────────────────────────────────────────
+        let shareContext = { itemId: null, caption: '', imgSrc: '' };
+
+        function openShareSheet(itemId, caption, imgSrc) {
+            shareContext = { itemId, caption, imgSrc };
+            document.getElementById('shareBackdrop').classList.add('active');
+            document.getElementById('shareSheet').classList.add('active');
+            // Increment share count
+            const items = JSON.parse(localStorage.getItem('tbl_trending') || '[]');
+            const item  = items.find(i => (i.id || i.title || '') === itemId);
+            if (item) {
+                item.shares = (item.shares || 0) + 1;
+                localStorage.setItem('tbl_trending', JSON.stringify(items));
+                const el = document.getElementById('tshares-' + itemId);
+                if (el) el.textContent = item.shares;
+            }
+        }
+
+        function closeShareSheet() {
+            document.getElementById('shareBackdrop').classList.remove('active');
+            document.getElementById('shareSheet').classList.remove('active');
+        }
+
+        function shareToAction(type) {
+            closeShareSheet();
+            const { itemId, caption, imgSrc } = shareContext;
+            const text = `Check out this design from Billy Living! ${caption}`;
+            const url  = window.location.href;
+
+            if (type === 'whatsapp') {
+                window.open(`https://wa.me/?text=${encodeURIComponent(text + '\n' + url)}`, '_blank');
+
+            } else if (type === 'concierge') {
+                openChat();
+                setTimeout(() => appendMessage('customer', `I love this design — "${caption}". Can we discuss it?`), 400);
+
+            } else if (type === 'portfolio') {
+                const portfolio = JSON.parse(localStorage.getItem('tbl_portfolio') || '[]');
+                const pid = 'trend_' + itemId;
+                if (!portfolio.find(p => p.id === pid)) {
+                    portfolio.push({ id: pid, title: caption || 'Trending Design', emoji: '🔥', imageData: imgSrc, description: 'Saved from Trending' });
+                    localStorage.setItem('tbl_portfolio', JSON.stringify(portfolio));
+                }
+                feedBookmarked.add(pid);
+                localStorage.setItem('tbl_bookmarked_posts', JSON.stringify([...feedBookmarked]));
+                showToast('Saved to Portfolio ★');
+
+            } else if (type === 'copy') {
+                navigator.clipboard.writeText(url).then(() => showToast('Link copied!')).catch(() => showToast('Link copied!'));
+
+            } else if (type === 'native') {
+                if (navigator.share) {
+                    navigator.share({ title: 'Billy Living', text, url });
+                } else {
+                    navigator.clipboard.writeText(url).then(() => showToast('Link copied!'));
+                }
+            }
+        }
     </script>
 </body>
 </html>
