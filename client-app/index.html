@@ -278,17 +278,55 @@
 
         /* FEED */
         .feed-container {
-            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            gap: 0;
         }
 
         .feed-item {
-            background: var(--bg-card);
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid rgba(201, 169, 98, 0.1);
+            background: var(--bg-primary);
+            border-bottom: 1px solid rgba(201, 169, 98, 0.08);
+        }
+
+        .feed-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+        }
+
+        .feed-header-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold), #B8860B);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--bg-primary);
+            flex-shrink: 0;
+            border: 1.5px solid var(--gold);
+        }
+
+        .feed-header-name {
+            font-family: 'Jost', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .feed-header-more {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 4px;
+            letter-spacing: 1px;
         }
 
         .feed-image {
@@ -299,60 +337,104 @@
             overflow: hidden;
         }
 
-        .feed-image img { width: 100%; height: 100%; object-fit: cover; }
-
-        .feed-overlay-top {
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            padding: 20px;
-            background: linear-gradient(to bottom, rgba(18, 13, 6, 0.8), transparent);
-            z-index: 10;
+        .feed-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
-        .feed-overlay-topic {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 22px;
-            font-weight: 600;
-            color: var(--gold);
-            margin-bottom: 2px;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-            line-height: 1.2;
-        }
-
-        .feed-overlay-feeling {
-            font-size: 14px;
-            color: var(--text-primary);
-            margin-bottom: 2px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-            line-height: 1.3;
-        }
-
-        .feed-overlay-location {
-            font-size: 12px;
-            color: var(--text-secondary);
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        .feed-image-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-secondary);
+            font-size: 64px;
         }
 
         .feed-actions {
             display: flex;
-            padding: 16px;
-            gap: 20px;
-            border-top: 1px solid rgba(201, 169, 98, 0.1);
+            align-items: center;
+            padding: 10px 14px 6px;
+            gap: 16px;
         }
 
-        .action-btn {
+        .feed-action-btn {
             background: none;
             border: none;
-            color: var(--text-secondary);
-            font-size: 20px;
+            color: var(--text-primary);
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-family: 'Jost', sans-serif;
+            gap: 5px;
+            padding: 4px 0;
+            transition: opacity 0.2s, transform 0.15s;
         }
 
-        .action-count { font-size: 13px; font-weight: 500; }
+        .feed-action-btn:active { transform: scale(0.88); }
+
+        .feed-action-btn svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--text-primary);
+            fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: stroke 0.2s, fill 0.2s;
+        }
+
+        .feed-action-btn.liked svg { stroke: #ed4956; fill: #ed4956; }
+        .feed-action-btn.bookmarked svg { stroke: var(--gold); fill: var(--gold); }
+
+        .feed-action-count {
+            font-family: 'Jost', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .feed-action-spacer { flex: 1; }
+
+        .feed-caption { padding: 4px 14px 14px; }
+
+        .feed-caption-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gold);
+            margin-bottom: 2px;
+            line-height: 1.3;
+        }
+
+        .feed-caption-text {
+            font-family: 'Jost', sans-serif;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 4px;
+        }
+
+        .feed-caption-location {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-family: 'Jost', sans-serif;
+            font-size: 11px;
+            color: rgba(168,155,140,0.6);
+            letter-spacing: 0.3px;
+        }
+
+        .feed-caption-location svg {
+            width: 11px;
+            height: 11px;
+            stroke: rgba(168,155,140,0.5);
+            fill: none;
+            stroke-width: 2;
+            flex-shrink: 0;
+        }
 
         /* TIKTOK-STYLE TRENDING PAGE */
         .trending-page {
@@ -1060,7 +1142,7 @@
         </div>
 
         <div class="feed-container" id="homeFeed">
-            <!-- Home feed items will be loaded from localStorage -->
+            <!-- Home feed items loaded from localStorage -->
         </div>
     </div>
 
@@ -1190,9 +1272,7 @@
 
     <!-- TIKTOK-STYLE TRENDING PAGE -->
     <div id="trending" class="trending-page">
-        <div class="trending-container" id="trendingContainer">
-            <!-- Trending items will be loaded from localStorage -->
-        </div>
+        <div class="trending-container" id="trendingContainer"></div>
     </div>
 
     <!-- CATALOG PAGE -->
@@ -1332,7 +1412,7 @@
             <div style="font-family:'Jost',sans-serif;font-size:9px;letter-spacing:5px;color:rgba(201,168,76,0.5);text-transform:uppercase;margin-bottom:10px;">Billy Living</div>
             <h1 style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:400;color:#C9A84C;letter-spacing:4px;text-transform:uppercase;line-height:1.1;">Portfolio</h1>
             <div style="width:32px;height:1px;background:rgba(201,168,76,0.4);margin:12px auto 10px;"></div>
-            <p style="font-family:'Jost',sans-serif;color:rgba(168,155,140,0.7);font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:300;">Long press to select designs</p>
+            <p style="font-family:'Jost',sans-serif;color:rgba(168,155,140,0.7);font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:300;">Tap to select · Long press to share</p>
         </div>
         <div class="portfolio-grid" id="portfolioGrid"></div>
         <div class="portfolio-actions" id="portfolioActions">
@@ -1399,7 +1479,7 @@
             activePaletteIndex: null
         };
 
-        // Default catalog data - used if localStorage is empty
+        // ─── Default catalog data (used if localStorage is empty) ───────────────
         const defaultCatalogData = [
             { topic: 'Penthouse Serenity',      feeling: 'Calm & Elevated' },
             { topic: 'Golden Hour Lounge',       feeling: 'Warm & Rich' },
@@ -1425,58 +1505,8 @@
             { topic: 'The Monarch Suite',        feeling: 'Absolute Pinnacle' },
         ];
 
-        // Default home feed data
-        const defaultHomeFeed = [
-            {
-                id: 'feed_1',
-                topic: 'Modern Minimalist',
-                feeling: 'Serene & Calm',
-                location: '📍 Lekki Phase 1',
-                image: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800',
-                likes: 234,
-                shares: 45
-            }
-        ];
-
-        // Default trending data
-        const defaultTrending = [
-            {
-                id: 'trend_1',
-                type: 'video',
-                src: 'https://assets.mixkit.co/videos/preview/mixkit-living-room-with-a-modern-interior-design-4747-large.mp4',
-                poster: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800',
-                username: '@billyliving',
-                caption: 'Modern minimalist living room design 🏠✨ Perfect for Lekki homes! #InteriorDesign #LuxuryLiving',
-                music: 'original sound - Billy Living Interiors',
-                likes: '12.5K',
-                comments: '342'
-            },
-            {
-                id: 'trend_2',
-                type: 'image',
-                src: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=800',
-                username: '@billyliving',
-                caption: 'Luxury bedroom vibes 😴💫 Abuja penthouse project completed! #BedroomGoals #NigeriaHomes',
-                music: 'Luxury Living - Billy Living Interiors',
-                likes: '8.2K',
-                comments: '156'
-            },
-            {
-                id: 'trend_3',
-                type: 'video',
-                src: 'https://assets.mixkit.co/videos/preview/mixkit-modern-kitchen-interior-design-4748-large.mp4',
-                poster: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800',
-                username: '@billyliving',
-                caption: 'Gourmet kitchen goals 👨‍🍳🔥 Marble countertops + brass fixtures = perfection #KitchenDesign #LuxuryHomes',
-                music: 'Cooking Vibes - Billy Living Interiors',
-                likes: '24.1K',
-                comments: '892'
-            }
-        ];
-
-        // Initialize localStorage with default data if empty
+        // ─── localStorage helpers ────────────────────────────────────────────────
         function initLocalStorage() {
-            // Initialize catalog boxes
             if (!localStorage.getItem('tbl_catalog_boxes')) {
                 const catalogBoxes = defaultCatalogData.map((item, index) => ({
                     id: 'box_' + (index + 1),
@@ -1489,38 +1519,12 @@
                 }));
                 localStorage.setItem('tbl_catalog_boxes', JSON.stringify(catalogBoxes));
             }
-
-            // Initialize home feed
-            if (!localStorage.getItem('tbl_posts')) {
-                localStorage.setItem('tbl_posts', JSON.stringify(defaultHomeFeed));
-            }
-
-            // Initialize trending
-            if (!localStorage.getItem('tbl_trending')) {
-                localStorage.setItem('tbl_trending', JSON.stringify(defaultTrending));
-            }
-
-            // Initialize portfolio
-            if (!localStorage.getItem('tbl_portfolio')) {
-                localStorage.setItem('tbl_portfolio', JSON.stringify([]));
-            }
-
-            // Initialize designers
-            if (!localStorage.getItem('tbl_designers')) {
-                localStorage.setItem('tbl_designers', JSON.stringify([]));
-            }
-
-            // Initialize VIP users
-            if (!localStorage.getItem('tbl_vip_users')) {
-                localStorage.setItem('tbl_vip_users', JSON.stringify([]));
-            }
-
-            // Initialize chats
-            if (!localStorage.getItem('tbl_designer_chats')) {
-                localStorage.setItem('tbl_designer_chats', JSON.stringify([]));
-            }
-
-            // Initialize settings
+            if (!localStorage.getItem('tbl_posts'))           localStorage.setItem('tbl_posts', JSON.stringify([]));
+            if (!localStorage.getItem('tbl_trending'))        localStorage.setItem('tbl_trending', JSON.stringify([]));
+            if (!localStorage.getItem('tbl_portfolio'))       localStorage.setItem('tbl_portfolio', JSON.stringify([]));
+            if (!localStorage.getItem('tbl_designers'))       localStorage.setItem('tbl_designers', JSON.stringify([]));
+            if (!localStorage.getItem('tbl_vip_users'))       localStorage.setItem('tbl_vip_users', JSON.stringify([]));
+            if (!localStorage.getItem('tbl_designer_chats'))  localStorage.setItem('tbl_designer_chats', JSON.stringify([]));
             if (!localStorage.getItem('tbl_settings')) {
                 localStorage.setItem('tbl_settings', JSON.stringify({
                     appName: 'Billy Living',
@@ -1531,33 +1535,32 @@
             }
         }
 
-        // Get catalog data from localStorage
         function getCatalogData() {
             const stored = localStorage.getItem('tbl_catalog_boxes');
             if (stored) {
-                const boxes = JSON.parse(stored);
-                return boxes.map(box => ({
-                    topic: box.value,
+                return JSON.parse(stored).map(box => ({
+                    topic:  box.value,
                     feeling: box.description || box.feeling,
-                    id: box.id,
+                    id:     box.id,
                     images: box.images || []
                 }));
             }
             return defaultCatalogData;
         }
 
-        // Get home feed from localStorage
+        // ─── FIX: Read home posts using admin field names ────────────────────────
+        // Admin saves: title, caption, imageData, location, likes, shares
         function getHomeFeed() {
-            const stored = localStorage.getItem('tbl_posts');
-            return stored ? JSON.parse(stored) : defaultHomeFeed;
+            return JSON.parse(localStorage.getItem('tbl_posts') || '[]');
         }
 
-        // Get trending from localStorage
+        // ─── FIX: Read trending using admin field names ──────────────────────────
+        // Admin saves: title, caption, imageData, videoUrl, likes
         function getTrending() {
-            const stored = localStorage.getItem('tbl_trending');
-            return stored ? JSON.parse(stored) : defaultTrending;
+            return JSON.parse(localStorage.getItem('tbl_trending') || '[]');
         }
 
+        // ─── Page navigation ─────────────────────────────────────────────────────
         function showPage(page) {
             if (page === 'designer') { openChat(); return; }
             if (page === 'trending') {
@@ -1575,79 +1578,257 @@
             document.querySelectorAll('.bottom-nav-item').forEach(n => n.classList.remove('active'));
             const map = { home: 0, catalog: 2, vault: 4, portfolio: 5 };
             if (map[page] !== undefined) document.querySelectorAll('.bottom-nav-item')[map[page]].classList.add('active');
-            
-            if (page === 'home') renderHomeFeed();
-            if (page === 'catalog') renderCatalogGrid();
+
+            if (page === 'home')      renderHomeFeed();
+            if (page === 'catalog')   renderCatalogGrid();
+            if (page === 'portfolio') renderPortfolio();   // ← FIX: was missing
         }
+
+        // ─── FIX: Home feed — map admin field names correctly ────────────────────
+        const feedLiked      = new Set();
+        const feedBookmarked = new Set();
 
         function renderHomeFeed() {
             const container = document.getElementById('homeFeed');
             const posts = getHomeFeed();
-            
+
             if (posts.length === 0) {
-                container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary);">No posts yet</div>';
+                container.innerHTML = `
+                    <div style="text-align:center;padding:80px 20px;color:var(--text-secondary);">
+                        <div style="font-size:40px;margin-bottom:16px;opacity:0.3;">🏠</div>
+                        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;">No posts yet</div>
+                    </div>`;
                 return;
             }
-            
-            container.innerHTML = posts.map(post => `
-                <div class="feed-item">
+
+            container.innerHTML = posts.map(post => {
+                const imgSrc   = post.imageData || post.image || '';
+                const title    = post.title    || post.topic   || '';
+                const feeling  = post.caption  || post.feeling || '';
+                const location = post.location || '';
+                const likes    = post.likes    || 0;
+                const shares   = post.shares   || 0;
+                const postId   = post.id || title;
+                const isLiked  = feedLiked.has(postId);
+                const isSaved  = feedBookmarked.has(postId);
+
+                return `
+                <div class="feed-item" data-post-id="${postId}">
+                    <div class="feed-header">
+                        <div class="feed-header-avatar">BL</div>
+                        <div class="feed-header-name">billyliving</div>
+                        <button class="feed-header-more">···</button>
+                    </div>
                     <div class="feed-image">
-                        <img src="${post.image || 'https://via.placeholder.com/800x1000/1a1a1a/C9A84C?text=No+Image'}" alt="${post.topic}">
-                        <div class="feed-overlay-top">
-                            <div class="feed-overlay-topic">${post.topic}</div>
-                            <div class="feed-overlay-feeling">${post.feeling}</div>
-                            <div class="feed-overlay-location">${post.location}</div>
-                        </div>
+                        ${imgSrc
+                            ? `<img src="${imgSrc}" alt="${title}">`
+                            : `<div class="feed-image-placeholder">${post.emoji || '🏠'}</div>`
+                        }
                     </div>
                     <div class="feed-actions">
-                        <button class="action-btn">❤️ <span class="action-count">${post.likes || 0}</span></button>
-                        <button class="action-btn">↗️ <span class="action-count">${post.shares || 0}</span></button>
-                        <button class="action-btn">💬</button>
+                        <button class="feed-action-btn ${isLiked ? 'liked' : ''}" onclick="toggleFeedLike('${postId}', this)">
+                            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+                            <span class="feed-action-count" id="likes-${postId}">${likes}</span>
+                        </button>
+                        <button class="feed-action-btn" onclick="shareFeedPost('${postId}')">
+                            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                            <span class="feed-action-count">${shares}</span>
+                        </button>
+                        <button class="feed-action-btn" onclick="openConciergeFromPost('${title.replace(/'/g, "\\'")}')">
+                            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                        </button>
+                        <div class="feed-action-spacer"></div>
+                        <button class="feed-action-btn ${isSaved ? 'bookmarked' : ''}" onclick="savePostToPortfolio('${postId}', '${title.replace(/'/g, "\\'")}', '${imgSrc}', this)">
+                            <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+                        </button>
                     </div>
-                </div>
-            `).join('');
+                    <div class="feed-caption">
+                        ${title    ? `<div class="feed-caption-title">${title}</div>` : ''}
+                        ${feeling  ? `<div class="feed-caption-text">${feeling}</div>` : ''}
+                        ${location ? `<div class="feed-caption-location">
+                            <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                            ${location}
+                        </div>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
         }
 
+        function toggleFeedLike(postId, btn) {
+            const countEl = document.getElementById('likes-' + postId);
+            let current   = parseInt(countEl.textContent) || 0;
+            if (feedLiked.has(postId)) {
+                feedLiked.delete(postId);
+                btn.classList.remove('liked');
+                countEl.textContent = Math.max(0, current - 1);
+            } else {
+                feedLiked.add(postId);
+                btn.classList.add('liked');
+                countEl.textContent = current + 1;
+            }
+        }
+
+        function shareFeedPost(postId) {
+            if (navigator.share) {
+                navigator.share({ title: 'Billy Living', text: 'Check out this design from Billy Living' });
+            } else {
+                showToast('Link copied to clipboard');
+            }
+        }
+
+        function openConciergeFromPost(title) {
+            openChat();
+            if (title) {
+                setTimeout(() => appendMessage('customer', `Hi, I\u2019d love to know more about the \u201c${title}\u201d design.`), 500);
+            }
+        }
+
+        function savePostToPortfolio(postId, title, imgSrc, btn) {
+            if (feedBookmarked.has(postId)) {
+                showToast('Already saved to portfolio');
+                return;
+            }
+            feedBookmarked.add(postId);
+            btn.classList.add('bookmarked');
+            const portfolio = JSON.parse(localStorage.getItem('tbl_portfolio') || '[]');
+            if (!portfolio.find(p => p.id === 'post_save_' + postId)) {
+                portfolio.push({
+                    id:          'post_save_' + postId,
+                    title:       title || 'Design',
+                    emoji:       '🏠',
+                    imageData:   imgSrc,
+                    description: 'Saved from Home feed'
+                });
+                localStorage.setItem('tbl_portfolio', JSON.stringify(portfolio));
+            }
+            showToast('Saved to Portfolio \u2605');
+        }
+
+        // ─── FIX: Trending — map admin field names correctly ─────────────────────
         function renderTrending() {
             const container = document.getElementById('trendingContainer');
             const items = getTrending();
-            
-            container.innerHTML = items.map(item => `
+
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div style="height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;color:rgba(201,168,76,0.5);">
+                        <div style="font-size:48px;">🔥</div>
+                        <div style="font-size:13px;letter-spacing:2px;text-transform:uppercase;">No trending content yet</div>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = items.map(item => {
+                // Admin saves: title / imageData / videoUrl / caption / likes
+                // Legacy default data uses: type / src / poster / username / music / comments
+                const isVideo  = item.type === 'video' || (!!item.videoUrl && !item.imageData);
+                const mediaSrc = item.src || item.videoUrl || item.imageData || '';
+                const poster   = item.poster || item.imageData || '';
+                const username = item.username || '@billyliving';
+                const caption  = item.caption || item.title || '';
+                const music    = item.music || 'Billy Living Interiors';
+                const likes    = item.likes || '0';
+                const comments = item.comments || '0';
+
+                return `
                 <div class="tiktok-item">
-                    ${item.type === 'video' 
-                        ? `<video src="${item.src}" poster="${item.poster}" loop muted playsinline></video>`
-                        : `<img src="${item.src}" alt="Trending">`
+                    ${isVideo
+                        ? `<video src="${mediaSrc}" poster="${poster}" loop muted playsinline></video>`
+                        : `<img src="${mediaSrc}" alt="Trending">`
                     }
                     <div class="tiktok-actions">
                         <div class="tiktok-avatar-btn">
                             <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150" alt="User">
                             <div class="tiktok-follow">+</div>
                         </div>
-                        <button class="tiktok-action"><div class="tiktok-action-icon">❤️</div><span class="tiktok-action-count">${item.likes}</span></button>
-                        <button class="tiktok-action"><div class="tiktok-action-icon">💬</div><span class="tiktok-action-count">${item.comments}</span></button>
+                        <button class="tiktok-action"><div class="tiktok-action-icon">❤️</div><span class="tiktok-action-count">${likes}</span></button>
+                        <button class="tiktok-action"><div class="tiktok-action-icon">💬</div><span class="tiktok-action-count">${comments}</span></button>
                         <button class="tiktok-action"><div class="tiktok-action-icon">↗️</div><span class="tiktok-action-count">Share</span></button>
                     </div>
                     <div class="tiktok-info">
-                        <div class="tiktok-user"><span class="tiktok-username">${item.username}</span><div class="tiktok-badge">✓</div></div>
-                        <div class="tiktok-caption">${item.caption}</div>
-                        <div class="tiktok-music"><span class="tiktok-music-icon">🎵</span><div class="tiktok-music-text"><span>${item.music}</span></div></div>
+                        <div class="tiktok-user"><span class="tiktok-username">${username}</span><div class="tiktok-badge">✓</div></div>
+                        <div class="tiktok-caption">${caption}</div>
+                        <div class="tiktok-music"><span class="tiktok-music-icon">🎵</span><div class="tiktok-music-text"><span>${music}</span></div></div>
                     </div>
-                </div>
-            `).join('');
-            
-            // Re-initialize video observer
+                </div>`;
+            }).join('');
+
+            // Auto-play visible videos
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     const video = entry.target.querySelector('video');
                     if (video) { entry.isIntersecting ? video.play() : video.pause(); }
                 });
             }, { threshold: 0.6 });
-            document.querySelectorAll('.tiktok-item').forEach(item => observer.observe(item));
+            document.querySelectorAll('.tiktok-item').forEach(el => observer.observe(el));
+        }
+
+        // ─── FIX: Portfolio — load from localStorage, fix slots & image field ────
+        function renderPortfolio() {
+            // Always read fresh from localStorage so admin changes are reflected
+            db.portfolio = JSON.parse(localStorage.getItem('tbl_portfolio') || '[]');
+
+            const container = document.getElementById('portfolioGrid');
+
+            // Show all real items + exactly 1 empty slot
+            const emptyCount = 1;
+
+            let html = '';
+
+            db.portfolio.forEach(item => {
+                // Admin saves imageData; legacy might have image
+                const imgSrc  = item.imageData || item.image || '';
+                const isSelected = db.selectedPortfolioItems.has(item.id);
+
+                html += `<div class="portfolio-item ${isSelected ? 'selected' : ''}"
+                              onclick="togglePortfolioSelection('${item.id}')">
+                    ${imgSrc
+                        ? `<img src="${imgSrc}" alt="${item.title || ''}">`
+                        : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:40px;">${item.emoji || '🖼️'}</div>`
+                    }
+                    <div class="portfolio-select">✓</div>
+                </div>`;
+            });
+
+            for (let i = 0; i < emptyCount; i++) {
+                html += `<div class="portfolio-item empty-state"
+                              onclick="showToast('Add portfolio items from the admin dashboard')">
+                    <div class="empty-state-content">
+                        <div class="empty-state-icon">
+                            <svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="4" y="4" width="44" height="44" stroke="rgba(201,168,76,0.25)" stroke-width="0.75" rx="1"/>
+                                <path d="M4 12 L4 4 L12 4" stroke="rgba(201,168,76,0.6)" stroke-width="1.2" fill="none" stroke-linecap="square"/>
+                                <path d="M40 4 L48 4 L48 12" stroke="rgba(201,168,76,0.6)" stroke-width="1.2" fill="none" stroke-linecap="square"/>
+                                <path d="M48 40 L48 48 L40 48" stroke="rgba(201,168,76,0.6)" stroke-width="1.2" fill="none" stroke-linecap="square"/>
+                                <path d="M12 48 L4 48 L4 40" stroke="rgba(201,168,76,0.6)" stroke-width="1.2" fill="none" stroke-linecap="square"/>
+                                <line x1="26" y1="18" x2="26" y2="34" stroke="rgba(201,168,76,0.75)" stroke-width="1.5" stroke-linecap="round"/>
+                                <line x1="18" y1="26" x2="34" y2="26" stroke="rgba(201,168,76,0.75)" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="empty-state-text">Add to Portfolio</div>
+                        <div class="empty-state-subtext">Via Admin Dashboard</div>
+                    </div>
+                </div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // ─── FIX: togglePortfolioSelection — id is now always a string ───────────
+        function togglePortfolioSelection(id) {
+            if (db.selectedPortfolioItems.has(id)) {
+                db.selectedPortfolioItems.delete(id);
+            } else {
+                db.selectedPortfolioItems.add(id);
+            }
+            renderPortfolio();
+            document.getElementById('portfolioActions').classList.toggle('active', db.selectedPortfolioItems.size > 0);
         }
 
         function showStory(type) { showToast(type + ' story clicked'); }
 
         function openProfile() {
+            db.portfolio = JSON.parse(localStorage.getItem('tbl_portfolio') || '[]');
             document.getElementById('dashSavesCount').textContent = db.portfolio.length + db.selectedCatalogItems.size;
             document.getElementById('profileScreen').classList.add('active');
         }
@@ -1695,6 +1876,8 @@
 
         function handleConsultOption(type) {
             document.getElementById('consultOverlay').classList.remove('active');
+            const settings = JSON.parse(localStorage.getItem('tbl_settings') || '{}');
+            const waNumber = (settings.whatsapp || '+2348084410220').replace(/\D/g, '');
             if (type === 'call') {
                 openChat();
                 setTimeout(() => appendMessage('customer', "Hi, I'd like to book a free 30-minute consultation call."), 600);
@@ -1702,7 +1885,7 @@
                 openChat();
                 setTimeout(() => appendMessage('customer', "I'd like to request a quote for my project."), 600);
             } else if (type === 'whatsapp') {
-                window.open('https://wa.me/2348084410220?text=Hi%2C%20I%E2%80%99d%20like%20to%20discuss%20a%20project%20with%20Billy%20Living.', '_blank');
+                window.open(`https://wa.me/${waNumber}?text=Hi%2C%20I%E2%80%99d%20like%20to%20discuss%20a%20project%20with%20Billy%20Living.`, '_blank');
             }
         }
 
@@ -1713,7 +1896,7 @@
             document.querySelectorAll('.bottom-nav-item')[3].classList.add('active');
             const msgs = document.getElementById('chatMessages');
             if (msgs.children.length === 0) {
-                setTimeout(() => { appendMessage('designer', 'Welcome to The Billy Living Concierge. How can we elevate your space today?'); }, 400);
+                setTimeout(() => appendMessage('designer', 'Welcome to The Billy Living Concierge. How can we elevate your space today?'), 400);
             }
         }
 
@@ -1794,34 +1977,46 @@
             document.getElementById('vault-error').style.display = 'none';
         }
 
+        // ─── FIX: Vault — check against admin-registered VIP users ──────────────
         function handleVaultUnlock() {
-            const pin = document.getElementById('vault-pin').value.trim();
+            const pin      = document.getElementById('vault-pin').value.trim();
+            const phone    = document.getElementById('vault-phone').value.trim();
             const pinInput = document.getElementById('vault-pin');
-            const errorEl = document.getElementById('vault-error');
-            const btn = document.getElementById('vault-btn');
-            if (pin === '8888') {
+            const errorEl  = document.getElementById('vault-error');
+            const btn      = document.getElementById('vault-btn');
+
+            // Check against tbl_vip_users registered in admin
+            const vips     = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
+            const matched  = vips.find(v =>
+                v.password === pin &&
+                (v.phone === phone || v.phone === '0' + phone || phone === '') &&
+                v.status === 'active'
+            );
+
+            if (matched) {
                 localStorage.setItem('isVaultUnlocked', 'true');
                 btn.textContent = '✦ GRANTED';
                 btn.style.opacity = '0.6';
                 btn.style.pointerEvents = 'none';
-                showToast('Welcome to The Inner Circle');
-                const loginForm = document.getElementById('vault-login-form');
+                showToast('Welcome to The Inner Circle, ' + (matched.name || ''));
+                toggleVIPStatus(true);
+                const loginForm    = document.getElementById('vault-login-form');
                 const successState = document.getElementById('vault-success-state');
                 loginForm.style.opacity = '0';
                 setTimeout(() => {
                     loginForm.style.display = 'none';
                     successState.style.display = 'flex';
                     successState.style.opacity = '0';
-                    requestAnimationFrame(() => { requestAnimationFrame(() => { successState.style.opacity = '1'; }); });
+                    requestAnimationFrame(() => requestAnimationFrame(() => { successState.style.opacity = '1'; }));
                 }, 500);
             } else {
                 pinInput.classList.add('input-error');
                 errorEl.style.display = 'block';
                 pinInput.style.transform = 'translateX(-7px)';
-                setTimeout(() => { pinInput.style.transform = 'translateX(7px)'; }, 80);
+                setTimeout(() => { pinInput.style.transform = 'translateX(7px)';  }, 80);
                 setTimeout(() => { pinInput.style.transform = 'translateX(-4px)'; }, 160);
-                setTimeout(() => { pinInput.style.transform = 'translateX(4px)'; }, 220);
-                setTimeout(() => { pinInput.style.transform = 'translateX(0)'; }, 290);
+                setTimeout(() => { pinInput.style.transform = 'translateX(4px)';  }, 220);
+                setTimeout(() => { pinInput.style.transform = 'translateX(0)';    }, 290);
                 pinInput.value = '';
                 pinInput.focus();
             }
@@ -1829,12 +2024,12 @@
 
         function handleVaultLogout() {
             localStorage.removeItem('isVaultUnlocked');
-            const loginForm = document.getElementById('vault-login-form');
+            const loginForm    = document.getElementById('vault-login-form');
             const successState = document.getElementById('vault-success-state');
             successState.style.opacity = '0';
             setTimeout(() => {
                 successState.style.display = 'none';
-                document.getElementById('vault-pin').value = '';
+                document.getElementById('vault-pin').value   = '';
                 document.getElementById('vault-phone').value = '';
                 clearVaultError();
                 const btn = document.getElementById('vault-btn');
@@ -1843,13 +2038,13 @@
                 btn.style.pointerEvents = 'auto';
                 loginForm.style.display = 'flex';
                 loginForm.style.opacity = '0';
-                requestAnimationFrame(() => { requestAnimationFrame(() => { loginForm.style.opacity = '1'; }); });
+                requestAnimationFrame(() => requestAnimationFrame(() => { loginForm.style.opacity = '1'; }));
             }, 500);
         }
 
         function checkVaultOnLoad() {
             if (localStorage.getItem('isVaultUnlocked') === 'true') {
-                const loginForm = document.getElementById('vault-login-form');
+                const loginForm    = document.getElementById('vault-login-form');
                 const successState = document.getElementById('vault-success-state');
                 if (loginForm && successState) {
                     loginForm.style.display = 'none';
@@ -1859,61 +2054,28 @@
             }
         }
 
-        function renderPortfolio() {
-            const container = document.getElementById('portfolioGrid');
-            const totalSlots = 1;
-            let html = '';
-            db.portfolio.forEach(item => {
-                html += `<div class="portfolio-item ${db.selectedPortfolioItems.has(item.id) ? 'selected' : ''}" onclick="togglePortfolioSelection(${item.id})">
-                    <img src="${item.image}" alt="${item.title}">
-                    <div class="portfolio-select">✓</div>
-                </div>`;
-            });
-            const emptySlots = totalSlots - db.portfolio.length;
-            for (let i = 0; i < emptySlots; i++) {
-                html += `<div class="portfolio-item empty-state" onclick="showToast('Save designs from the catalog to add them here')">
-                    <div class="empty-state-content">
-                        <div class="empty-state-icon">
-                            <svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <rect x="4" y="4" width="44" height="44" stroke="rgba(201,168,76,0.25)" stroke-width="0.75" rx="1"/>
-                                <path d="M4 12 L4 4 L12 4" stroke="rgba(201,168,76,0.6)" stroke-width="1.2" fill="none" stroke-linecap="square"/>
-                                <path d="M40 4 L48 4 L48 12" stroke="rgba(201,168,76,0.6)" stroke-width="1.2" fill="none" stroke-linecap="square"/>
-                                <path d="M48 40 L48 48 L40 48" stroke="rgba(201,168,76,0.6)" stroke-width="1.2" fill="none" stroke-linecap="square"/>
-                                <path d="M12 48 L4 48 L4 40" stroke="rgba(201,168,76,0.6)" stroke-width="1.2" fill="none" stroke-linecap="square"/>
-                                <line x1="26" y1="18" x2="26" y2="34" stroke="rgba(201,168,76,0.75)" stroke-width="1.5" stroke-linecap="round"/>
-                                <line x1="18" y1="26" x2="34" y2="26" stroke="rgba(201,168,76,0.75)" stroke-width="1.5" stroke-linecap="round"/>
-                            </svg>
-                        </div>
-                        <div class="empty-state-text">Save to Portfolio</div>
-                        <div class="empty-state-subtext">Add a Design</div>
-                    </div>
-                </div>`;
-            }
-            container.innerHTML = html;
-        }
-
-        function togglePortfolioSelection(id) {
-            db.selectedPortfolioItems.has(id) ? db.selectedPortfolioItems.delete(id) : db.selectedPortfolioItems.add(id);
-            renderPortfolio();
-            document.getElementById('portfolioActions').classList.toggle('active', db.selectedPortfolioItems.size > 0);
-        }
-
         function shareToDesigner() {
-            openChat(); showToast('Portfolio shared to designer');
-            db.selectedPortfolioItems.clear(); renderPortfolio();
+            openChat();
+            showToast('Portfolio shared to designer');
+            db.selectedPortfolioItems.clear();
+            renderPortfolio();
             document.getElementById('portfolioActions').classList.remove('active');
         }
 
         function shareToWhatsApp() {
-            window.open('https://wa.me/2348084410220?text=Check out these designs from Billy Living', '_blank');
-            db.selectedPortfolioItems.clear(); renderPortfolio();
+            const settings  = JSON.parse(localStorage.getItem('tbl_settings') || '{}');
+            const waNumber  = (settings.whatsapp || '+2348084410220').replace(/\D/g, '');
+            window.open(`https://wa.me/${waNumber}?text=Check out these designs from Billy Living`, '_blank');
+            db.selectedPortfolioItems.clear();
+            renderPortfolio();
             document.getElementById('portfolioActions').classList.remove('active');
         }
 
         function shareNative() {
             if (navigator.share) { navigator.share({ title: 'Billy Living', text: 'Check out these designs' }); }
             else { showToast('Link copied'); }
-            db.selectedPortfolioItems.clear(); renderPortfolio();
+            db.selectedPortfolioItems.clear();
+            renderPortfolio();
             document.getElementById('portfolioActions').classList.remove('active');
         }
 
@@ -1943,9 +2105,7 @@
         function renderCatalogGrid() {
             const grid = document.getElementById('eliteCatalogGrid');
             if (!grid) return;
-            
             const collections = getCatalogData();
-            
             grid.innerHTML = collections.map((c, i) => `
                 <div class="elite-collection-cell" onclick="openCatalogInner(${i})">
                     <div class="elite-cell-meta">
@@ -2003,15 +2163,13 @@
             document.getElementById('roomsPageTitle').textContent = `${c.topic} — Mixture ${paletteIndex + 1}`;
             document.getElementById('roomsPageSubtitle').textContent = c.feeling;
             const roomArea = document.getElementById('roomGalleryArea');
-            
-            // Get images for this collection if they exist
             const collectionImages = c.images || [];
-            
+
             roomArea.innerHTML = roomCategories.map((roomName, roomIndex) => {
-                const slotId = `${db.currentCollectionIndex}-${paletteIndex}-${roomIndex}`;
+                const slotId    = `${db.currentCollectionIndex}-${paletteIndex}-${roomIndex}`;
                 const isSelected = db.selectedCatalogItems.has(slotId);
-                const roomImage = collectionImages[roomIndex] || null;
-                
+                const roomImage  = collectionImages[roomIndex] || null;
+
                 return `<div class="room-category-block">
                     <div class="room-category-header"><div class="room-category-name">${roomName}</div></div>
                     <div class="room-single-slot ${isSelected ? 'selected' : ''}"
@@ -2035,7 +2193,7 @@
                     </div>
                 </div>`;
             }).join('');
-            
+
             document.getElementById('catalogInner').classList.remove('active');
             const roomsPage = document.getElementById('catalogRooms');
             roomsPage.classList.add('active');
@@ -2091,10 +2249,10 @@
         }
 
         function triggerTap(element) {
-            const slotId = element.dataset.slotId;
-            const roomName = element.dataset.room;
+            const slotId         = element.dataset.slotId;
+            const roomName       = element.dataset.room;
             const collectionName = getCatalogData()[db.currentCollectionIndex].topic;
-            const paletteNum = parseInt(element.dataset.palette) + 1;
+            const paletteNum     = parseInt(element.dataset.palette) + 1;
             if (db.isSelectionMode) { toggleSlotSelection(element, slotId); }
             else { showViewModal(collectionName, roomName, paletteNum); }
         }
@@ -2141,7 +2299,7 @@
 
         function showViewModal(collection, room, paletteNum) {
             document.getElementById('viewModalTitle').textContent = room + ' Design';
-            document.getElementById('viewModalMeta').textContent = `${collection} • Mixture ${paletteNum}`;
+            document.getElementById('viewModalMeta').textContent  = `${collection} • Mixture ${paletteNum}`;
             document.getElementById('viewModal').classList.add('active');
         }
 
