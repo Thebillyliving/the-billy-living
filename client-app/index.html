@@ -2276,35 +2276,39 @@
             msgs.scrollTop = msgs.scrollHeight;
         }
 
-        // Firebase real-time listener — receives designer replies live
+        // Firebase real-time listener — only appends NEW messages, never wipes DOM
+        let _renderedMsgIds = new Set();
+
         function startFirebaseListener() {
             if (!window._fbReady) return;
             try {
-                const profile = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
-                const sender  = profile.name || 'Client';
-                const q = window._fbQuery(
-                    window._fbCollection(window._fbDb, 'chats'),
-                    window._fbOrderBy('timestamp', 'asc')
-                );
-                window._fbOnSnapshot(q, (snapshot) => {
+                const col = window._fbCollection(window._fbDb, 'chats');
+                window._fbOnSnapshot(col, (snapshot) => {
                     const all = [];
                     snapshot.forEach(d => all.push({ id: d.id, ...d.data() }));
+                    // Sort client-side — avoids needing a Firestore index
+                    all.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
                     // Sync to localStorage
                     localStorage.setItem('tbl_designer_chats', JSON.stringify(all));
 
-                    // If chat is open, refresh the view
+                    const profile  = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
+                    const sender   = profile.name || 'Client';
                     const chatOpen = document.getElementById('designerChat').classList.contains('active');
+
                     if (chatOpen) {
-                        const msgsEl = document.getElementById('chatMessages');
-                        const myMsgs = all.filter(m => m.senderName === sender || (m.isDesigner && m.recipient === sender));
-                        msgsEl.innerHTML = '';
+                        const myMsgs = all.filter(m =>
+                            m.senderName === sender || (m.isDesigner && m.recipient === sender)
+                        );
+                        // Only append messages not already shown — never clear DOM
                         myMsgs.forEach(m => {
-                            const role = m.isDesigner ? 'designer' : 'customer';
-                            const atts = m.imageData ? [{ type: 'image', dataUrl: m.imageData }] : [];
-                            appendMessageDOM(role, m.message, atts);
+                            if (!_renderedMsgIds.has(m.id)) {
+                                _renderedMsgIds.add(m.id);
+                                const role = m.isDesigner ? 'designer' : 'customer';
+                                const atts = m.imageData ? [{ type: 'image', dataUrl: m.imageData }] : [];
+                                appendMessageDOM(role, m.message, atts);
+                            }
                         });
-                        msgsEl.scrollTop = msgsEl.scrollHeight;
                     }
                 });
             } catch(e) { console.warn('Firebase listener error:', e); }
@@ -2338,8 +2342,6 @@
         }
 
         function appendMessage(role, text, attachments) {
-            appendMessageDOM(role, text, attachments);
-
             const profile   = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
             const sender    = profile.name || 'Client';
             const imageData = (attachments || []).find(a => a.type === 'image')?.dataUrl || null;
@@ -2356,12 +2358,16 @@
                 timestamp:  Date.now()
             };
 
+            // Mark as rendered so snapshot doesn't duplicate it
+            _renderedMsgIds.add(msgObj.id);
+            appendMessageDOM(role, text, attachments);
+
             // Save to localStorage
             const stored = JSON.parse(localStorage.getItem('tbl_designer_chats') || '[]');
             stored.push(msgObj);
             localStorage.setItem('tbl_designer_chats', JSON.stringify(stored));
 
-            // Save to Firestore if available
+            // Save to Firestore
             if (window._fbReady) {
                 try {
                     window._fbAddDoc(window._fbCollection(window._fbDb, 'chats'), msgObj)
