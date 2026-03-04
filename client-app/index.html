@@ -1685,61 +1685,6 @@
     </div>
 
     <!-- TikTok-style Share Sheet -->
-    <div class="tiktok-share-backdrop" id="shareBackdrop" onclick="closeShareSheet()"></div>
-    <div class="tiktok-share-sheet" id="shareSheet">
-        <div class="share-sheet-handle"></div>
-        <div class="share-sheet-title">Share</div>
-
-        <!-- Send To row: Concierge · Portfolio · WhatsApp · Copy Link -->
-        <div class="share-send-row">
-            <div class="share-send-item" onclick="shareToAction('concierge')">
-                <div class="share-send-avatar concierge">
-                    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-                </div>
-                <span class="share-send-name">Concierge</span>
-            </div>
-            <div class="share-send-item" onclick="shareToAction('portfolio')">
-                <div class="share-send-avatar portfolio">
-                    <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
-                </div>
-                <span class="share-send-name">Portfolio</span>
-            </div>
-            <div class="share-send-item" onclick="shareToAction('whatsapp')">
-                <div class="share-send-avatar whatsapp">
-                    <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
-                </div>
-                <span class="share-send-name">WhatsApp</span>
-            </div>
-            <div class="share-send-item" onclick="shareToAction('copy')">
-                <div class="share-send-avatar" style="background:#2A2A2A;">
-                    <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-                </div>
-                <span class="share-send-name">Copy Link</span>
-            </div>
-            <div class="share-send-item" onclick="shareToAction('native')">
-                <div class="share-send-avatar" style="background:#2A2A2A;">
-                    <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-                </div>
-                <span class="share-send-name">More</span>
-            </div>
-        </div>
-
-        <div class="share-divider"></div>
-
-        <div class="share-action-row" onclick="shareToAction('whatsapp')">
-            <div class="share-action-icon" style="background:#128C7E;">
-                <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
-            </div>
-            <span class="share-action-label">Share to WhatsApp</span>
-        </div>
-        <div class="share-action-row" onclick="shareToAction('copy')">
-            <div class="share-action-icon">
-                <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-            </div>
-            <span class="share-action-label">Copy Link</span>
-        </div>
-    </div>
-
     <script>
         const db = {
             currentVIP: null,
@@ -2733,10 +2678,9 @@
     <div class="share-backdrop" id="shareBackdrop" onclick="closeShareSheet()"></div>
     <div class="share-sheet" id="shareSheet">
         <div class="share-handle"></div>
-        <div class="share-sheet-label">Share to</div>
 
-        <!-- Quick send row: Concierge · Portfolio · WhatsApp · Copy · More -->
-        <div class="share-quick-row">
+        <!-- Row 1: Billy Living actions (keep as-is, already looks good) -->
+        <div style="display:flex;align-items:center;padding:2px 16px 10px;gap:0;overflow-x:auto;scrollbar-width:none;" id="shareTopRow">
             <div class="share-quick-item" onclick="shareToAction('concierge')">
                 <div class="share-quick-icon sqi-concierge">
                     <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
@@ -2757,42 +2701,159 @@
             </div>
             <div class="share-quick-item" onclick="shareToAction('copy')">
                 <div class="share-quick-icon sqi-copy">
-                    <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
                 </div>
                 <span class="share-quick-name">Copy Link</span>
             </div>
             <div class="share-quick-item" onclick="shareToAction('native')">
                 <div class="share-quick-icon sqi-more">
-                    <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" fill="#fff"/><circle cx="12" cy="12" r="1.5" fill="#fff"/><circle cx="19" cy="12" r="1.5" fill="#fff"/></svg>
                 </div>
                 <span class="share-quick-name">More</span>
             </div>
         </div>
 
-        <div class="share-divider"></div>
+        <!-- Divider with label -->
+        <div style="display:flex;align-items:center;gap:10px;padding:0 16px 10px;">
+            <div style="flex:1;height:1px;background:rgba(255,255,255,0.08);"></div>
+            <span style="font-size:10px;color:rgba(255,255,255,0.25);letter-spacing:2px;text-transform:uppercase;">Share via app</span>
+            <div style="flex:1;height:1px;background:rgba(255,255,255,0.08);"></div>
+        </div>
 
-        <div class="share-action-item" onclick="shareToAction('whatsapp')">
-            <div class="share-action-item-icon" style="background:#25D366;">
-                <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+        <!-- Row 2: Realistic app icons (TikTok style) -->
+        <div style="display:flex;padding:0 6px 10px;overflow-x:auto;scrollbar-width:none;gap:0;">
+
+            <!-- WhatsApp -->
+            <div class="share-quick-item" onclick="shareToAction('whatsapp')">
+                <div class="share-quick-icon" style="background:none;padding:0;width:54px;height:54px;">
+                    <svg viewBox="0 0 54 54" xmlns="http://www.w3.org/2000/svg" width="54" height="54">
+                        <rect width="54" height="54" rx="14" fill="#25D366"/>
+                        <path d="M27 12C18.716 12 12 18.716 12 27c0 2.94.81 5.7 2.22 8.06L12 42l7.14-2.18A14.96 14.96 0 0027 42c8.284 0 15-6.716 15-15S35.284 12 27 12zm7.44 20.56c-.3.84-1.78 1.62-2.44 1.68-.62.06-1.2.28-4.06-.84-3.4-1.36-5.56-4.84-5.72-5.06-.16-.22-1.32-1.76-1.32-3.36s.84-2.38 1.14-2.7c.3-.32.66-.4.88-.4h.64c.2 0 .48-.08.74.56l1.06 2.72c.08.18.04.38-.06.54l-.6.88c-.1.14-.2.3-.08.54.72 1.22 1.62 2.1 2.82 2.76.24.14.42.12.58-.06l.86-1.04c.16-.2.34-.24.54-.16l2.64 1.24c.24.12.4.18.46.28.06.48-.22 1.68-.52 2.12z" fill="white"/>
+                    </svg>
+                </div>
+                <span class="share-quick-name">WhatsApp</span>
             </div>
-            <span class="share-action-item-label">Share to WhatsApp</span>
+
+            <!-- Instagram -->
+            <div class="share-quick-item" onclick="shareToAction('instagram')">
+                <div class="share-quick-icon" style="background:none;padding:0;width:54px;height:54px;">
+                    <svg viewBox="0 0 54 54" xmlns="http://www.w3.org/2000/svg" width="54" height="54">
+                        <defs>
+                            <linearGradient id="ig" x1="0%" y1="100%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#FFDC80"/>
+                                <stop offset="25%" style="stop-color:#FCAF45"/>
+                                <stop offset="50%" style="stop-color:#F77737"/>
+                                <stop offset="75%" style="stop-color:#C13584"/>
+                                <stop offset="100%" style="stop-color:#833AB4"/>
+                            </linearGradient>
+                        </defs>
+                        <rect width="54" height="54" rx="14" fill="url(#ig)"/>
+                        <rect x="15" y="15" width="24" height="24" rx="7" stroke="white" stroke-width="2.2" fill="none"/>
+                        <circle cx="27" cy="27" r="5.5" stroke="white" stroke-width="2.2" fill="none"/>
+                        <circle cx="34" cy="20" r="1.5" fill="white"/>
+                    </svg>
+                </div>
+                <span class="share-quick-name">Instagram</span>
+            </div>
+
+            <!-- Facebook -->
+            <div class="share-quick-item" onclick="shareToAction('facebook')">
+                <div class="share-quick-icon" style="background:none;padding:0;width:54px;height:54px;">
+                    <svg viewBox="0 0 54 54" xmlns="http://www.w3.org/2000/svg" width="54" height="54">
+                        <rect width="54" height="54" rx="14" fill="#1877F2"/>
+                        <path d="M30.5 27h-2.5v9h-4v-9h-2v-3.5h2v-2c0-2.76 1.14-4.5 4.5-4.5H31v3.5h-1.5c-1 0-1 .38-1 1v2H31l-.5 3.5z" fill="white"/>
+                    </svg>
+                </div>
+                <span class="share-quick-name">Facebook</span>
+            </div>
+
+            <!-- Telegram -->
+            <div class="share-quick-item" onclick="shareToAction('telegram')">
+                <div class="share-quick-icon" style="background:none;padding:0;width:54px;height:54px;">
+                    <svg viewBox="0 0 54 54" xmlns="http://www.w3.org/2000/svg" width="54" height="54">
+                        <rect width="54" height="54" rx="14" fill="#2CA5E0"/>
+                        <path d="M12.5 26.5l6.5 2.5 2.5 7.5 3.5-3.5 6 4.5 5-18-23.5 7zm9 3l10-7-7.5 8 2.5 6-5-7z" fill="white"/>
+                    </svg>
+                </div>
+                <span class="share-quick-name">Telegram</span>
+            </div>
+
+            <!-- X / Twitter -->
+            <div class="share-quick-item" onclick="shareToAction('twitter')">
+                <div class="share-quick-icon" style="background:none;padding:0;width:54px;height:54px;">
+                    <svg viewBox="0 0 54 54" xmlns="http://www.w3.org/2000/svg" width="54" height="54">
+                        <rect width="54" height="54" rx="14" fill="#000"/>
+                        <path d="M30.5 24.5L38 15h-2l-6.5 7.5L24 15h-7l8 11.5L17 39h2l7-8 5.5 8H39l-8.5-14.5zM23.5 17l12 18h-2.5l-12-18h2.5z" fill="white"/>
+                    </svg>
+                </div>
+                <span class="share-quick-name">X</span>
+            </div>
+
+            <!-- SMS -->
+            <div class="share-quick-item" onclick="shareToAction('sms')">
+                <div class="share-quick-icon" style="background:none;padding:0;width:54px;height:54px;">
+                    <svg viewBox="0 0 54 54" xmlns="http://www.w3.org/2000/svg" width="54" height="54">
+                        <rect width="54" height="54" rx="14" fill="#4CD964"/>
+                        <rect x="13" y="16" width="28" height="18" rx="4" fill="white"/>
+                        <path d="M20 34l-7 4 2-4" fill="white"/>
+                        <rect x="19" y="23" width="4" height="4" rx="2" fill="#4CD964"/>
+                        <rect x="25" y="23" width="4" height="4" rx="2" fill="#4CD964"/>
+                        <rect x="31" y="23" width="4" height="4" rx="2" fill="#4CD964"/>
+                    </svg>
+                </div>
+                <span class="share-quick-name">Messages</span>
+            </div>
+
+            <!-- Email -->
+            <div class="share-quick-item" onclick="shareToAction('email')">
+                <div class="share-quick-icon" style="background:none;padding:0;width:54px;height:54px;">
+                    <svg viewBox="0 0 54 54" xmlns="http://www.w3.org/2000/svg" width="54" height="54">
+                        <rect width="54" height="54" rx="14" fill="#EA4335"/>
+                        <rect x="11" y="16" width="32" height="22" rx="2" fill="white"/>
+                        <path d="M11 18l16 11 16-11" stroke="#EA4335" stroke-width="2" fill="none"/>
+                    </svg>
+                </div>
+                <span class="share-quick-name">Email</span>
+            </div>
+        </div>
+
+        <!-- Divider -->
+        <div style="height:1px;background:rgba(255,255,255,0.07);margin:0 0 4px;"></div>
+
+        <!-- Action rows (Download + Copy Link + More) -->
+        <div class="share-action-item" onclick="shareToAction('download')">
+            <div class="share-action-item-icon" style="background:#3A3A3C;">
+                <svg viewBox="0 0 24 24" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+            </div>
+            <span class="share-action-item-label">Save to Device</span>
         </div>
         <div class="share-action-item" onclick="shareToAction('copy')">
             <div class="share-action-item-icon" style="background:#3A3A3C;">
-                <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                <svg viewBox="0 0 24 24" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+                </svg>
             </div>
             <span class="share-action-item-label">Copy Link</span>
         </div>
-        <div class="share-action-item" onclick="shareToAction('native')">
+        <div class="share-action-item" onclick="shareToAction('native')" style="margin-bottom:8px;">
             <div class="share-action-item-icon" style="background:#3A3A3C;">
-                <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                <svg viewBox="0 0 24 24" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </svg>
             </div>
             <span class="share-action-item-label">Share via...</span>
         </div>
     </div>
 
     <script>
-        // ── Share sheet state ─────────────────────────────────────────────────────
+        // ── Share sheet ───────────────────────────────────────────────────────────
         let shareContext = { itemId: null, caption: '', imgSrc: '' };
 
         function openShareSheet(itemId, caption, imgSrc) {
@@ -2820,9 +2881,29 @@
             const { itemId, caption, imgSrc } = shareContext;
             const text = `Check out this design from Billy Living! ${caption}`;
             const url  = window.location.href;
+            const encodedText = encodeURIComponent(text + '\n' + url);
 
             if (type === 'whatsapp') {
-                window.open(`https://wa.me/?text=${encodeURIComponent(text + '\n' + url)}`, '_blank');
+                window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+
+            } else if (type === 'instagram') {
+                // Instagram doesn't support direct URL share — open app store or app
+                navigator.clipboard.writeText(url).then(() => showToast('Link copied — paste in Instagram'));
+
+            } else if (type === 'facebook') {
+                window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+
+            } else if (type === 'telegram') {
+                window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, '_blank');
+
+            } else if (type === 'twitter') {
+                window.open(`https://twitter.com/intent/tweet?text=${encodedText}`, '_blank');
+
+            } else if (type === 'sms') {
+                window.open(`sms:?body=${encodedText}`, '_self');
+
+            } else if (type === 'email') {
+                window.open(`mailto:?subject=Billy Living Design&body=${encodedText}`, '_self');
 
             } else if (type === 'concierge') {
                 openChat();
@@ -2839,14 +2920,40 @@
                 localStorage.setItem('tbl_bookmarked_posts', JSON.stringify([...feedBookmarked]));
                 showToast('Saved to Portfolio ★');
 
+            } else if (type === 'download') {
+                if (imgSrc && imgSrc.startsWith('data:')) {
+                    // base64 image — create download link
+                    const a = document.createElement('a');
+                    a.href = imgSrc;
+                    a.download = 'billyliving-design.jpg';
+                    a.click();
+                    showToast('Saving to device...');
+                } else if (imgSrc) {
+                    // remote URL — fetch then download
+                    fetch(imgSrc)
+                        .then(r => r.blob())
+                        .then(blob => {
+                            const blobUrl = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = blobUrl;
+                            a.download = 'billyliving-design.jpg';
+                            a.click();
+                            URL.revokeObjectURL(blobUrl);
+                            showToast('Saved to device ✓');
+                        })
+                        .catch(() => showToast('Open image to save manually'));
+                } else {
+                    showToast('No image available to save');
+                }
+
             } else if (type === 'copy') {
-                navigator.clipboard.writeText(url).then(() => showToast('Link copied!')).catch(() => showToast('Link copied!'));
+                navigator.clipboard.writeText(url).then(() => showToast('Link copied ✓')).catch(() => showToast('Link copied ✓'));
 
             } else if (type === 'native') {
                 if (navigator.share) {
                     navigator.share({ title: 'Billy Living', text, url });
                 } else {
-                    navigator.clipboard.writeText(url).then(() => showToast('Link copied!'));
+                    navigator.clipboard.writeText(url).then(() => showToast('Link copied ✓'));
                 }
             }
         }
