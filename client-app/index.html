@@ -2693,17 +2693,11 @@
                 </div>
                 <span class="share-quick-name">Portfolio</span>
             </div>
-            <div class="share-quick-item" onclick="shareToAction('whatsapp')">
+            <div class="share-quick-item" onclick="shareToAction('whatsapp_direct')">
                 <div class="share-quick-icon sqi-whatsapp">
                     <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
                 </div>
                 <span class="share-quick-name">WhatsApp</span>
-            </div>
-            <div class="share-quick-item" onclick="shareToAction('copy')">
-                <div class="share-quick-icon sqi-copy">
-                    <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-                </div>
-                <span class="share-quick-name">Copy Link</span>
             </div>
             <div class="share-quick-item" onclick="shareToAction('native')">
                 <div class="share-quick-icon sqi-more">
@@ -2723,8 +2717,8 @@
         <!-- Row 2: Realistic app icons (TikTok style) -->
         <div style="display:flex;padding:0 6px 10px;overflow-x:auto;scrollbar-width:none;gap:0;">
 
-            <!-- WhatsApp -->
-            <div class="share-quick-item" onclick="shareToAction('whatsapp')">
+            <!-- WhatsApp — direct to designer number -->
+            <div class="share-quick-item" onclick="shareToAction('whatsapp_direct')">
                 <div class="share-quick-icon" style="background:none;padding:0;width:54px;height:54px;">
                     <svg viewBox="0 0 54 54" xmlns="http://www.w3.org/2000/svg" width="54" height="54">
                         <rect width="54" height="54" rx="14" fill="#25D366"/>
@@ -2734,37 +2728,22 @@
                 <span class="share-quick-name">WhatsApp</span>
             </div>
 
-            <!-- Instagram -->
-            <div class="share-quick-item" onclick="shareToAction('instagram')">
+            <!-- Facebook Messenger -->
+            <div class="share-quick-item" onclick="shareToAction('messenger')">
                 <div class="share-quick-icon" style="background:none;padding:0;width:54px;height:54px;">
                     <svg viewBox="0 0 54 54" xmlns="http://www.w3.org/2000/svg" width="54" height="54">
                         <defs>
-                            <linearGradient id="ig" x1="0%" y1="100%" x2="100%" y2="0%">
-                                <stop offset="0%" style="stop-color:#FFDC80"/>
-                                <stop offset="25%" style="stop-color:#FCAF45"/>
-                                <stop offset="50%" style="stop-color:#F77737"/>
-                                <stop offset="75%" style="stop-color:#C13584"/>
-                                <stop offset="100%" style="stop-color:#833AB4"/>
+                            <linearGradient id="msgr" x1="0%" y1="100%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#0099FF"/>
+                                <stop offset="100%" style="stop-color:#A033FF"/>
                             </linearGradient>
                         </defs>
-                        <rect width="54" height="54" rx="14" fill="url(#ig)"/>
-                        <rect x="15" y="15" width="24" height="24" rx="7" stroke="white" stroke-width="2.2" fill="none"/>
-                        <circle cx="27" cy="27" r="5.5" stroke="white" stroke-width="2.2" fill="none"/>
-                        <circle cx="34" cy="20" r="1.5" fill="white"/>
+                        <rect width="54" height="54" rx="14" fill="url(#msgr)"/>
+                        <path d="M27 13C18.716 13 12 19.268 12 27c0 4.18 1.96 7.9 5.04 10.46V42l4.8-2.64A16.3 16.3 0 0027 40c8.284 0 15-6.268 15-13S35.284 13 27 13z" fill="white"/>
+                        <path d="M16 30l6.5-7 4 4 5.5-4 6.5 7-6.5-7-4 4-5.5-4L16 30z" fill="url(#msgr)"/>
                     </svg>
                 </div>
-                <span class="share-quick-name">Instagram</span>
-            </div>
-
-            <!-- Facebook -->
-            <div class="share-quick-item" onclick="shareToAction('facebook')">
-                <div class="share-quick-icon" style="background:none;padding:0;width:54px;height:54px;">
-                    <svg viewBox="0 0 54 54" xmlns="http://www.w3.org/2000/svg" width="54" height="54">
-                        <rect width="54" height="54" rx="14" fill="#1877F2"/>
-                        <path d="M30.5 27h-2.5v9h-4v-9h-2v-3.5h2v-2c0-2.76 1.14-4.5 4.5-4.5H31v3.5h-1.5c-1 0-1 .38-1 1v2H31l-.5 3.5z" fill="white"/>
-                    </svg>
-                </div>
-                <span class="share-quick-name">Facebook</span>
+                <span class="share-quick-name">Messenger</span>
             </div>
 
             <!-- Telegram -->
@@ -2789,19 +2768,25 @@
                 <span class="share-quick-name">X</span>
             </div>
 
-            <!-- SMS -->
+            <!-- Messages — iMessage on iOS, SMS on Android -->
             <div class="share-quick-item" onclick="shareToAction('sms')">
-                <div class="share-quick-icon" style="background:none;padding:0;width:54px;height:54px;">
+                <div class="share-quick-icon" style="background:none;padding:0;width:54px;height:54px;" id="smsAppIcon">
+                    <!-- iOS iMessage (blue) -->
                     <svg viewBox="0 0 54 54" xmlns="http://www.w3.org/2000/svg" width="54" height="54">
-                        <rect width="54" height="54" rx="14" fill="#4CD964"/>
-                        <rect x="13" y="16" width="28" height="18" rx="4" fill="white"/>
-                        <path d="M20 34l-7 4 2-4" fill="white"/>
-                        <rect x="19" y="23" width="4" height="4" rx="2" fill="#4CD964"/>
-                        <rect x="25" y="23" width="4" height="4" rx="2" fill="#4CD964"/>
-                        <rect x="31" y="23" width="4" height="4" rx="2" fill="#4CD964"/>
+                        <defs>
+                            <linearGradient id="imsg" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#5EF15E"/>
+                                <stop offset="100%" style="stop-color:#00C900"/>
+                            </linearGradient>
+                        </defs>
+                        <rect width="54" height="54" rx="14" fill="url(#imsg)" id="smsIconBg"/>
+                        <path d="M27 14C18.716 14 12 19.82 12 27c0 3.22 1.36 6.16 3.6 8.44L14 42l6.8-2a17.2 17.2 0 006.2 1.14C35.284 41.14 42 35.32 42 27S35.284 14 27 14z" fill="white"/>
+                        <rect x="19" y="24" width="4" height="4" rx="2" fill="url(#imsg)" id="smsDot1"/>
+                        <rect x="25" y="24" width="4" height="4" rx="2" fill="url(#imsg)" id="smsDot2"/>
+                        <rect x="31" y="24" width="4" height="4" rx="2" fill="url(#imsg)" id="smsDot3"/>
                     </svg>
                 </div>
-                <span class="share-quick-name">Messages</span>
+                <span class="share-quick-name" id="smsAppLabel">Messages</span>
             </div>
 
             <!-- Email -->
@@ -2860,6 +2845,21 @@
             shareContext = { itemId, caption, imgSrc };
             document.getElementById('shareBackdrop').classList.add('active');
             document.getElementById('shareSheet').classList.add('active');
+
+            // Detect iOS vs Android and update Messages icon/label
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const smsLabel = document.getElementById('smsAppLabel');
+            const smsBg    = document.getElementById('smsIconBg');
+            const smsDots  = ['smsDot1','smsDot2','smsDot3'];
+            if (isIOS) {
+                if (smsLabel) smsLabel.textContent = 'iMessage';
+                // keep green iMessage style
+            } else {
+                if (smsLabel) smsLabel.textContent = 'Messages';
+                if (smsBg) smsBg.setAttribute('fill', '#1A73E8');
+                smsDots.forEach(id => { const el = document.getElementById(id); if (el) el.setAttribute('fill', '#1A73E8'); });
+            }
+
             // Increment share count
             const items = JSON.parse(localStorage.getItem('tbl_trending') || '[]');
             const item  = items.find(i => (i.id || i.title || '') === itemId);
@@ -2879,19 +2879,19 @@
         function shareToAction(type) {
             closeShareSheet();
             const { itemId, caption, imgSrc } = shareContext;
-            const text = `Check out this design from Billy Living! ${caption}`;
-            const url  = window.location.href;
+            const text        = `Check out this design from Billy Living! ${caption}`;
+            const url         = window.location.href;
             const encodedText = encodeURIComponent(text + '\n' + url);
+            const designerWA  = '2348084410220';
 
-            if (type === 'whatsapp') {
+            if (type === 'whatsapp_direct') {
+                window.open(`https://wa.me/${designerWA}?text=${encodedText}`, '_blank');
+
+            } else if (type === 'whatsapp') {
                 window.open(`https://wa.me/?text=${encodedText}`, '_blank');
 
-            } else if (type === 'instagram') {
-                // Instagram doesn't support direct URL share — open app store or app
-                navigator.clipboard.writeText(url).then(() => showToast('Link copied — paste in Instagram'));
-
-            } else if (type === 'facebook') {
-                window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+            } else if (type === 'messenger') {
+                window.open(`https://m.me/?link=${encodeURIComponent(url)}`, '_blank');
 
             } else if (type === 'telegram') {
                 window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, '_blank');
@@ -2900,7 +2900,9 @@
                 window.open(`https://twitter.com/intent/tweet?text=${encodedText}`, '_blank');
 
             } else if (type === 'sms') {
-                window.open(`sms:?body=${encodedText}`, '_self');
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                const sep   = isIOS ? '&' : '?';
+                window.open(`sms:${sep}body=${encodedText}`, '_self');
 
             } else if (type === 'email') {
                 window.open(`mailto:?subject=Billy Living Design&body=${encodedText}`, '_self');
@@ -2922,26 +2924,17 @@
 
             } else if (type === 'download') {
                 if (imgSrc && imgSrc.startsWith('data:')) {
-                    // base64 image — create download link
                     const a = document.createElement('a');
-                    a.href = imgSrc;
-                    a.download = 'billyliving-design.jpg';
-                    a.click();
+                    a.href = imgSrc; a.download = 'billyliving-design.jpg'; a.click();
                     showToast('Saving to device...');
                 } else if (imgSrc) {
-                    // remote URL — fetch then download
-                    fetch(imgSrc)
-                        .then(r => r.blob())
-                        .then(blob => {
-                            const blobUrl = URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = blobUrl;
-                            a.download = 'billyliving-design.jpg';
-                            a.click();
-                            URL.revokeObjectURL(blobUrl);
-                            showToast('Saved to device ✓');
-                        })
-                        .catch(() => showToast('Open image to save manually'));
+                    fetch(imgSrc).then(r => r.blob()).then(blob => {
+                        const blobUrl = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = blobUrl; a.download = 'billyliving-design.jpg'; a.click();
+                        URL.revokeObjectURL(blobUrl);
+                        showToast('Saved to device ✓');
+                    }).catch(() => showToast('Open image to save manually'));
                 } else {
                     showToast('No image available to save');
                 }
