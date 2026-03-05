@@ -1314,25 +1314,7 @@
 
     </style>
     <!-- Firebase compat SDK (works without bundler) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const firebaseConfig = {
-                apiKey:            "AIzaSyD-ZCaYTLvvaaNFd8G4S8_InyRcSQ9qk8s",
-                authDomain:        "the-billy-living-ee243.firebaseapp.com",
-                projectId:         "the-billy-living-ee243",
-                storageBucket:     "the-billy-living-ee243.firebasestorage.app",
-                messagingSenderId: "454031913213",
-                appId:             "1:454031913213:web:d68fc786f556b6e49c8e94",
-                measurementId:     "G-F7RKJK3R1D"
-            };
-            firebase.initializeApp(firebaseConfig);
-            window._db = firebase.firestore();
-            window._fbReady = true;
-            startFirebaseListener();
-        });
-    </script>
+
 </head>
 <body>
 
@@ -2488,18 +2470,22 @@
             const errorEl  = document.getElementById('vault-error');
             const btn      = document.getElementById('vault-btn');
 
-            // Normalize entered phone — strip leading 0 or +234
-            const normPhone = phone.replace(/^\+234/, '').replace(/^0/, '');
+            const normalizedPhone = phone.replace(/^\+234/, '').replace(/^0/, '');
 
             const vips    = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
             const matched = vips.find(v => {
-                const vNorm = (v.phone || '').replace(/^\+234/, '').replace(/^0/, '');
-                return v.password === pin && v.status === 'active' &&
-                    (vNorm === normPhone || phone === '' || v.phone === phone);
+                const vPhoneNormalized = (v.phone || '').replace(/^\+234/, '').replace(/^0/, '');
+                const vPhoneWithPrefix = v.phone?.startsWith('+234') ? v.phone : '+234' + v.phone;
+                const inputWithPrefix  = phone.startsWith('+234') ? phone : '+234' + normalizedPhone;
+                return v.password === pin &&
+                    (vPhoneNormalized === normalizedPhone ||
+                     v.phone === phone ||
+                     vPhoneWithPrefix === inputWithPrefix ||
+                     v.phone === '0' + normalizedPhone) &&
+                    v.status === 'active';
             });
 
             if (matched) {
-                // Persist VIP status to profile
                 const profile = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
                 profile.isVIP    = true;
                 profile.vipName  = matched.name;
@@ -3109,7 +3095,25 @@
                     navigator.clipboard.writeText(url).then(() => showToast('Link copied ✓'));
                 }
             }
-        }
+    <!-- ── Firebase: loaded LAST so all app functions are already defined ── -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script>
+        (function() {
+            const firebaseConfig = {
+                apiKey:            "AIzaSyD-ZCaYTLvvaaNFd8G4S8_InyRcSQ9qk8s",
+                authDomain:        "the-billy-living-ee243.firebaseapp.com",
+                projectId:         "the-billy-living-ee243",
+                storageBucket:     "the-billy-living-ee243.firebasestorage.app",
+                messagingSenderId: "454031913213",
+                appId:             "1:454031913213:web:d68fc786f556b6e49c8e94",
+                measurementId:     "G-F7RKJK3R1D"
+            };
+            firebase.initializeApp(firebaseConfig);
+            window._db      = firebase.firestore();
+            window._fbReady = true;
+            startFirebaseListener();
+        })();
     </script>
 </body>
 </html>
