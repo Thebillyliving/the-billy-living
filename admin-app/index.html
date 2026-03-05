@@ -1207,25 +1207,7 @@
         }
     </style>
     <!-- Firebase compat SDK (works without bundler) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const firebaseConfig = {
-                apiKey:            "AIzaSyD-ZCaYTLvvaaNFd8G4S8_InyRcSQ9qk8s",
-                authDomain:        "the-billy-living-ee243.firebaseapp.com",
-                projectId:         "the-billy-living-ee243",
-                storageBucket:     "the-billy-living-ee243.firebasestorage.app",
-                messagingSenderId: "454031913213",
-                appId:             "1:454031913213:web:d68fc786f556b6e49c8e94",
-                measurementId:     "G-F7RKJK3R1D"
-            };
-            firebase.initializeApp(firebaseConfig);
-            window._db = firebase.firestore();
-            window._fbReady = true;
-            startAdminFirebaseListener();
-        });
-    </script>
+
 </head>
 <body>
     <!-- Sidebar -->
@@ -1713,6 +1695,28 @@
                     bookingLink: 'https://calendly.com/billyliving'
                 }));
             }
+
+            // Sync VIPs from Firebase on load
+            if (window._fbReady && window._db) {
+                window._db.collection('vip_users').get()
+                    .then(snapshot => {
+                        const firebaseVIPs = [];
+                        snapshot.forEach(doc => firebaseVIPs.push(doc.data()));
+                        if (firebaseVIPs.length > 0) {
+                            const localVIPs = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
+                            const merged = [...localVIPs];
+                            firebaseVIPs.forEach(fv => {
+                                if (!merged.find(lv => lv.id === fv.id)) {
+                                    merged.push(fv);
+                                }
+                            });
+                            localStorage.setItem('tbl_vip_users', JSON.stringify(merged));
+                            renderVIPList();
+                            updateStats();
+                        }
+                    })
+                    .catch(e => console.log('No Firebase VIPs to sync'));
+            }
         }
 
         // Navigation
@@ -1926,7 +1930,7 @@
             const code = document.getElementById('vipCode').value.trim();
             const name = document.getElementById('vipName').value.trim();
 
-            // Normalize phone — strip +234 or leading 0
+            // Normalize phone: remove any existing +234 or 0 prefix
             phone = phone.replace(/^\+234/, '').replace(/^0/, '');
 
             if (phone.length !== 10 || code.length !== 4 || !name) {
@@ -1937,13 +1941,16 @@
             const vips = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
 
             // Check for duplicate (normalized)
-            const exists = vips.find(v => v.phone.replace(/^\+234/, '').replace(/^0/, '') === phone);
-            if (exists) {
-                showToast('A VIP with this phone already exists');
+            const existing = vips.find(v => {
+                const existingNormalized = (v.phone || '').replace(/^\+234/, '').replace(/^0/, '');
+                return existingNormalized === phone;
+            });
+            if (existing) {
+                showToast('A VIP with this phone number already exists');
                 return;
             }
 
-            vips.push({
+            const newVIP = {
                 id: 'vip_' + Date.now(),
                 phone: phone,
                 password: code,
@@ -1957,9 +1964,16 @@
                     { name: 'Installation', complete: false, date: null },
                     { name: 'Complete',     complete: false, date: null }
                 ]
-            });
+            };
 
+            vips.push(newVIP);
             localStorage.setItem('tbl_vip_users', JSON.stringify(vips));
+
+            // Sync to Firebase
+            if (window._fbReady && window._db) {
+                window._db.collection('vip_users').doc(newVIP.id).set(newVIP)
+                    .catch(e => console.warn('Firebase VIP sync error:', e));
+            }
 
             document.getElementById('vipPhone').value = '';
             document.getElementById('vipCode').value  = '';
@@ -3031,6 +3045,27 @@
             showToast('Collection deleted');
         }
 
+    </script>
+
+    <!-- ── Firebase: loaded LAST so all app functions are already defined ── -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script>
+        (function() {
+            const firebaseConfig = {
+                apiKey:            "AIzaSyD-ZCaYTLvvaaNFd8G4S8_InyRcSQ9qk8s",
+                authDomain:        "the-billy-living-ee243.firebaseapp.com",
+                projectId:         "the-billy-living-ee243",
+                storageBucket:     "the-billy-living-ee243.firebasestorage.app",
+                messagingSenderId: "454031913213",
+                appId:             "1:454031913213:web:d68fc786f556b6e49c8e94",
+                measurementId:     "G-F7RKJK3R1D"
+            };
+            firebase.initializeApp(firebaseConfig);
+            window._db      = firebase.firestore();
+            window._fbReady = true;
+            startAdminFirebaseListener();
+        })();
     </script>
 </body>
 </html>
