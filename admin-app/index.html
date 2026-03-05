@@ -1923,16 +1923,27 @@
         }
 
         function addVIP() {
-            const phone = document.getElementById('vipPhone').value;
-            const code = document.getElementById('vipCode').value;
-            const name = document.getElementById('vipName').value;
-            
+            let phone = document.getElementById('vipPhone').value.trim();
+            const code = document.getElementById('vipCode').value.trim();
+            const name = document.getElementById('vipName').value.trim();
+
+            // Normalize phone — strip +234 or leading 0
+            phone = phone.replace(/^\+234/, '').replace(/^0/, '');
+
             if (phone.length !== 10 || code.length !== 4 || !name) {
-                showToast('Please fill all fields correctly');
+                showToast('Please fill all fields correctly (10-digit phone, 4-digit code)');
                 return;
             }
-            
+
             const vips = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
+
+            // Check for duplicate (normalized)
+            const exists = vips.find(v => v.phone.replace(/^\+234/, '').replace(/^0/, '') === phone);
+            if (exists) {
+                showToast('A VIP with this phone already exists');
+                return;
+            }
+
             vips.push({
                 id: 'vip_' + Date.now(),
                 phone: phone,
@@ -1941,20 +1952,20 @@
                 status: 'active',
                 createdAt: Date.now(),
                 milestones: [
-                    { name: 'Planning', complete: true, date: new Date().toISOString().split('T')[0] },
-                    { name: 'Design', complete: false, date: null },
-                    { name: 'Procurement', complete: false, date: null },
+                    { name: 'Planning',     complete: true,  date: new Date().toISOString().split('T')[0] },
+                    { name: 'Design',       complete: false, date: null },
+                    { name: 'Procurement',  complete: false, date: null },
                     { name: 'Installation', complete: false, date: null },
-                    { name: 'Complete', complete: false, date: null }
+                    { name: 'Complete',     complete: false, date: null }
                 ]
             });
-            
+
             localStorage.setItem('tbl_vip_users', JSON.stringify(vips));
-            
+
             document.getElementById('vipPhone').value = '';
-            document.getElementById('vipCode').value = '';
-            document.getElementById('vipName').value = '';
-            
+            document.getElementById('vipCode').value  = '';
+            document.getElementById('vipName').value  = '';
+
             renderVIPList();
             updateStats();
             showToast('VIP member added successfully');
