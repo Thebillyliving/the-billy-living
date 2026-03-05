@@ -1317,22 +1317,20 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script>
-        const firebaseConfig = {
-            apiKey:            "AIzaSyD-ZCaYTLvvaaNFd8G4S8_InyRcSQ9qk8s",
-            authDomain:        "the-billy-living-ee243.firebaseapp.com",
-            projectId:         "the-billy-living-ee243",
-            storageBucket:     "the-billy-living-ee243.firebasestorage.app",
-            messagingSenderId: "454031913213",
-            appId:             "1:454031913213:web:d68fc786f556b6e49c8e94",
-            measurementId:     "G-F7RKJK3R1D"
-        };
-        firebase.initializeApp(firebaseConfig);
-        window._db = firebase.firestore();
-        window._fbReady = true;
-
-        // Start listener after DOM loads
         document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(startFirebaseListener, 600);
+            const firebaseConfig = {
+                apiKey:            "AIzaSyD-ZCaYTLvvaaNFd8G4S8_InyRcSQ9qk8s",
+                authDomain:        "the-billy-living-ee243.firebaseapp.com",
+                projectId:         "the-billy-living-ee243",
+                storageBucket:     "the-billy-living-ee243.firebasestorage.app",
+                messagingSenderId: "454031913213",
+                appId:             "1:454031913213:web:d68fc786f556b6e49c8e94",
+                measurementId:     "G-F7RKJK3R1D"
+            };
+            firebase.initializeApp(firebaseConfig);
+            window._db = firebase.firestore();
+            window._fbReady = true;
+            startFirebaseListener();
         });
     </script>
 </head>
@@ -1580,7 +1578,7 @@
             <div class="chat-avatar"></div>
             <div>
                 <div class="chat-name">Concierge</div>
-                <div style="font-size:12px;color:var(--text-secondary);">Online</div>
+                <div id="clientFbStatus" style="font-size:12px;color:var(--text-secondary);">Connecting...</div>
             </div>
         </div>
         <div class="chat-messages" id="chatMessages"></div>
@@ -2307,15 +2305,16 @@
 
         function startFirebaseListener() {
             if (!window._fbReady || !window._db) return;
+            const statusEl = document.getElementById('clientFbStatus');
             try {
-                // NO orderBy — avoids Firestore index requirement, sort client-side
                 window._db.collection('chats')
                     .onSnapshot((snapshot) => {
                         const all = [];
                         snapshot.forEach(d => all.push({ id: d.id, ...d.data() }));
                         all.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-
                         localStorage.setItem('tbl_designer_chats', JSON.stringify(all));
+
+                        if (statusEl) { statusEl.textContent = '🟢 Online'; statusEl.style.color = '#00C800'; }
 
                         const profile  = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
                         const sender   = profile.name || 'Client';
@@ -2334,8 +2333,12 @@
                                 }
                             });
                         }
-                    }, (err) => console.warn('Client Firebase error:', err));
-            } catch(e) { console.warn('Firebase listener failed:', e); }
+                    }, (err) => {
+                        if (statusEl) { statusEl.textContent = '🔴 ' + err.message; statusEl.style.color = '#ff4444'; }
+                    });
+            } catch(e) {
+                if (statusEl) { statusEl.textContent = '🔴 ' + e.message; statusEl.style.color = '#ff4444'; }
+            }
         }
 
         // Renders to DOM only
@@ -2419,7 +2422,6 @@
                 timestamp:  Date.now()
             };
 
-            // Mark as rendered so snapshot doesn't duplicate it
             _renderedMsgIds.add(msgObj.id);
             appendMessageDOM('customer', text, pendingAttachments);
 
@@ -2428,10 +2430,13 @@
             stored.push(msgObj);
             localStorage.setItem('tbl_designer_chats', JSON.stringify(stored));
 
-            // Save to Firestore
+            // Save to Firestore — show visible result
             if (window._fbReady && window._db) {
                 window._db.collection('chats').add(msgObj)
-                    .catch(e => console.warn('Firestore write error:', e));
+                    .then(() => showToast('✅ Sent to server'))
+                    .catch(e => showToast('❌ Firebase error: ' + e.message));
+            } else {
+                showToast('⚠️ Firebase not ready — saved locally only');
             }
 
             input.value = '';
