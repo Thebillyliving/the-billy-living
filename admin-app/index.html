@@ -2028,10 +2028,11 @@
             document.getElementById('waChatWrap').classList.add('active');
 
             if (window._fbReady && window._db) {
-                window._db.collection('chats').orderBy('timestamp', 'asc').get()
+                window._db.collection('chats').get()
                     .then(snapshot => {
                         const all = [];
                         snapshot.forEach(d => all.push({ id: d.id, ...d.data() }));
+                        all.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
                         localStorage.setItem('tbl_designer_chats', JSON.stringify(all));
                         renderWAConvList();
                         updateBadges();
@@ -2106,10 +2107,12 @@
             }
             const statusBar = document.getElementById('fbStatusBar');
             try {
-                window._db.collection('chats').orderBy('timestamp', 'asc')
+                // NO orderBy — avoids needing a Firestore index. Sort client-side instead.
+                window._db.collection('chats')
                     .onSnapshot((snapshot) => {
                         const all = [];
                         snapshot.forEach(d => all.push({ id: d.id, ...d.data() }));
+                        all.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
                         localStorage.setItem('tbl_designer_chats', JSON.stringify(all));
 
                         if (statusBar) {
