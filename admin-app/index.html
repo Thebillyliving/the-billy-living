@@ -1210,21 +1210,20 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script>
-        const firebaseConfig = {
-            apiKey:            "AIzaSyD-ZCaYTLvvaaNFd8G4S8_InyRcSQ9qk8s",
-            authDomain:        "the-billy-living-ee243.firebaseapp.com",
-            projectId:         "the-billy-living-ee243",
-            storageBucket:     "the-billy-living-ee243.firebasestorage.app",
-            messagingSenderId: "454031913213",
-            appId:             "1:454031913213:web:d68fc786f556b6e49c8e94",
-            measurementId:     "G-F7RKJK3R1D"
-        };
-        firebase.initializeApp(firebaseConfig);
-        window._db = firebase.firestore();
-        window._fbReady = true;
-
         document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(startAdminFirebaseListener, 600);
+            const firebaseConfig = {
+                apiKey:            "AIzaSyD-ZCaYTLvvaaNFd8G4S8_InyRcSQ9qk8s",
+                authDomain:        "the-billy-living-ee243.firebaseapp.com",
+                projectId:         "the-billy-living-ee243",
+                storageBucket:     "the-billy-living-ee243.firebasestorage.app",
+                messagingSenderId: "454031913213",
+                appId:             "1:454031913213:web:d68fc786f556b6e49c8e94",
+                measurementId:     "G-F7RKJK3R1D"
+            };
+            firebase.initializeApp(firebaseConfig);
+            window._db = firebase.firestore();
+            window._fbReady = true;
+            startAdminFirebaseListener();
         });
     </script>
 </head>
