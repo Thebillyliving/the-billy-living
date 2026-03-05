@@ -2308,12 +2308,13 @@
         function startFirebaseListener() {
             if (!window._fbReady || !window._db) return;
             try {
-                window._db.collection('chats').orderBy('timestamp', 'asc')
+                // NO orderBy — avoids Firestore index requirement, sort client-side
+                window._db.collection('chats')
                     .onSnapshot((snapshot) => {
                         const all = [];
                         snapshot.forEach(d => all.push({ id: d.id, ...d.data() }));
+                        all.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
-                        // Sync to localStorage
                         localStorage.setItem('tbl_designer_chats', JSON.stringify(all));
 
                         const profile  = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
