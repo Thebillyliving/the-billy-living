@@ -2879,7 +2879,7 @@ Strict Constraints:
             const el = document.getElementById('aiChatOverlay');
             el.style.display = 'flex';
             if (document.getElementById('aiMessages').children.length === 0) {
-                setTimeout(() => appendAIMessage('ai', "Welcome. I'm The Billy Living's design consultant — your dedicated advisor for creating exceptional, luxury spaces in Lagos and Abuja.\n\nWhether you're furnishing a new home in Lekki or reimagining your Abuja residence, I'm here to guide every detail. How can I elevate your space today?"), 300);
+                setTimeout(() => appendAIMessage('ai', "Welcome. I'm The Billy Living's Principal Designer — your dedicated advisor for creating exceptional luxury spaces in Lagos and Abuja.\n\nWhether you're furnishing a new home in Lekki or reimagining your Abuja residence, I'm here to guide every detail. How can I elevate your space today?"), 300);
             }
         }
 
@@ -2896,17 +2896,14 @@ Strict Constraints:
         function appendAIMessage(role, text) {
             const msgs = document.getElementById('aiMessages');
             const isAI = role === 'ai';
-
             const wrap = document.createElement('div');
             wrap.style.cssText = `display:flex;flex-direction:column;align-items:${isAI ? 'flex-start' : 'flex-end'};gap:4px;`;
-
             if (isAI) {
                 const label = document.createElement('div');
                 label.style.cssText = 'font-size:10px;color:#C9A862;letter-spacing:1px;padding-left:4px;font-family:"Cormorant Garamond",serif;';
                 label.textContent = '✦ THE BILLY LIVING AI';
                 wrap.appendChild(label);
             }
-
             const bubble = document.createElement('div');
             bubble.style.cssText = `max-width:82%;padding:14px 18px;border-radius:${isAI ? '4px 18px 18px 18px' : '18px 4px 18px 18px'};font-size:14px;line-height:1.65;word-wrap:break-word;white-space:pre-wrap;` +
                 (isAI
@@ -2926,25 +2923,25 @@ Strict Constraints:
             document.getElementById('aiSuggestions').style.display = 'none';
 
             appendAIMessage('user', text);
-            aiHistory.push({ role: 'user', parts: [{ text }] });
+            aiHistory.push({ role: 'user', content: text });
 
             document.getElementById('aiTyping').style.display = 'block';
 
             try {
-                const res = await fetch(`/api/chat`, {
+                const res = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-                        contents: aiHistory
+                        messages: [
+                            { role: 'system', content: SYSTEM_PROMPT },
+                            ...aiHistory
+                        ]
                     })
                 });
                 const data = await res.json();
-                if (!res.ok) {
-                    throw new Error(data.error?.message || 'API error ' + res.status);
-                }
-                const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'I apologise — please try again momentarily.';
-                aiHistory.push({ role: 'model', parts: [{ text: reply }] });
+                if (!res.ok) throw new Error(data.error?.message || 'API error ' + res.status);
+                const reply = data.choices?.[0]?.message?.content || 'I apologise — please try again momentarily.';
+                aiHistory.push({ role: 'assistant', content: reply });
                 document.getElementById('aiTyping').style.display = 'none';
                 appendAIMessage('ai', reply);
             } catch(e) {
