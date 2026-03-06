@@ -2067,16 +2067,7 @@
 
         function showStory(type) {
             if (type === 'ai') {
-                const el = document.getElementById('aiChatOverlay');
-                if (el) {
-                    el.style.display = 'flex';
-                    setTimeout(() => {
-                        const msgs = document.getElementById('aiMessages');
-                        if (msgs && msgs.children.length === 0 && typeof appendAIMessage === 'function') {
-                            appendAIMessage('ai', "Welcome. I'm The Billy Living's design consultant — your dedicated advisor for creating exceptional, luxury spaces in Lagos and Abuja.\n\nWhether you're furnishing a new home in Lekki or reimagining your Abuja residence, I'm here to guide every detail. How can I elevate your space today?");
-                        }
-                    }, 100);
-                }
+                openAIChat();
             } else {
                 showToast(type + ' story clicked');
             }
@@ -2858,8 +2849,6 @@
     </div>
 
     <script>
-        const GEMINI_KEY = 'AIzaSyC9NtzszmO-7Vk0XP2_oc_uZQvxEWWJwHg';
-
         const SYSTEM_PROMPT = `You are the Lead AI Designer for The Billy Living, a prestigious luxury interior design firm based in Nigeria.
 
 Identity & Purpose:
@@ -2942,7 +2931,7 @@ Strict Constraints:
             document.getElementById('aiTyping').style.display = 'block';
 
             try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_KEY}`, {
+                const res = await fetch(`/api/chat`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
