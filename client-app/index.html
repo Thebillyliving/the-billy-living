@@ -1313,9 +1313,25 @@
             </div>
             <div class="story-item" onclick="showStory('ai')">
                 <div class="story-circle">
-                    <span class="story-circle-ai">AI</span>
+                    <span class="story-circle-ai">
+                        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:34px;height:34px;">
+                            <!-- Main large diamond -->
+                            <path d="M30 8 L42 22 L30 52 L18 22 Z" stroke="#C9A862" stroke-width="2" stroke-linejoin="round"/>
+                            <path d="M18 22 L42 22" stroke="#C9A862" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M18 22 L30 8 M42 22 L30 8" stroke="#C9A862" stroke-width="1.5" stroke-linecap="round"/>
+                            <path d="M22 22 L30 52 M38 22 L30 52" stroke="#C9A862" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+                            <!-- Top-right sparkle -->
+                            <path d="M47 10 L47 16 M44 13 L50 13" stroke="#C9A862" stroke-width="1.8" stroke-linecap="round"/>
+                            <!-- Small sparkle top-left -->
+                            <path d="M13 6 L13 10 M11 8 L15 8" stroke="#C9A862" stroke-width="1.4" stroke-linecap="round"/>
+                            <!-- Tiny dot sparkles -->
+                            <circle cx="50" cy="22" r="1.5" fill="#C9A862"/>
+                            <circle cx="10" cy="18" r="1" fill="#C9A862" opacity="0.7"/>
+                            <circle cx="44" cy="5" r="1" fill="#C9A862" opacity="0.7"/>
+                        </svg>
+                    </span>
                 </div>
-                <span class="story-label">AI Chat</span>
+                <span class="story-label">AI Decor</span>
             </div>
             <div class="story-item cta-item" onclick="openConsultSheet()">
                 <div class="story-circle">
@@ -1442,7 +1458,7 @@
                 <button class="consult-option" onclick="handleConsultOption('quote')">
                     <div class="consult-option-icon">📋</div>
                     <div class="consult-option-body">
-                        <div class="consult-option-title">Request a Quote</div>
+                        <div class="consult-option-title">Request a Consultation</div>
                         <div class="consult-option-desc">Share your space details and receive a bespoke proposal within 24 hours.</div>
                     </div>
                     <span class="consult-option-arrow">›</span>
@@ -1607,12 +1623,7 @@
             </span>
             <span>Catalog</span>
         </button>
-        <button class="bottom-nav-item" onclick="window.open('https://wa.me/2348084410220','_blank')">
-            <span class="bottom-nav-icon">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="7" r="4"/><path d="M4 21v-1a8 8 0 0116 0v1"/></svg>
-            </span>
-            <span>Concierge</span>
-        </button>
+
         <button class="bottom-nav-item" onclick="showPage('vault')">
             <span class="bottom-nav-icon">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="11" width="14" height="11" rx="1"/><path d="M8 11V7a4 4 0 018 0v4"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/></svg>
@@ -2054,7 +2065,22 @@
             document.getElementById('portfolioActions').classList.toggle('active', db.selectedPortfolioItems.size > 0);
         }
 
-        function showStory(type) { showToast(type + ' story clicked'); }
+        function showStory(type) {
+            if (type === 'ai') {
+                const el = document.getElementById('aiChatOverlay');
+                if (el) {
+                    el.style.display = 'flex';
+                    setTimeout(() => {
+                        const msgs = document.getElementById('aiMessages');
+                        if (msgs && msgs.children.length === 0 && typeof appendAIMessage === 'function') {
+                            appendAIMessage('ai', "Welcome. I'm The Billy Living's design consultant — your dedicated advisor for creating exceptional, luxury spaces in Lagos and Abuja.\n\nWhether you're furnishing a new home in Lekki or reimagining your Abuja residence, I'm here to guide every detail. How can I elevate your space today?");
+                        }
+                    }, 100);
+                }
+            } else {
+                showToast(type + ' story clicked');
+            }
+        }
 
         function openProfile() {
             db.portfolio = JSON.parse(localStorage.getItem('tbl_portfolio') || '[]');
@@ -2136,11 +2162,14 @@
             const settings = JSON.parse(localStorage.getItem('tbl_settings') || '{}');
             const waNumber = (settings.whatsapp || '+2348084410220').replace(/\D/g, '');
             if (type === 'call') {
-                window.open('https://wa.me/2348084410220','_blank');
+                const msg = encodeURIComponent("Hello The Billy Living, I would like to book a free 30-minute discovery call to discuss an interior design project. Please let me know your available slots.");
+                window.open(`https://wa.me/2348084410220?text=${msg}`, '_blank');
             } else if (type === 'quote') {
-                window.open('https://wa.me/2348084410220','_blank');
+                const msg = encodeURIComponent("Hello TBL interiors , I just saw your portfolio on your app and I'd love to discuss an interior design project for my home. Are you available for a consultation?");
+                window.open(`https://wa.me/2348084410220?text=${msg}`, '_blank');
             } else if (type === 'whatsapp') {
-                window.open(`https://wa.me/${waNumber}?text=Hi%2C%20I%E2%80%99d%20like%20to%20discuss%20a%20project%20with%20Billy%20Living.`, '_blank');
+                const msg = encodeURIComponent("Hello! I just saw your portfolio on the app and love your style. I have a quick question about your design services and wanted to chat about my vision");
+                window.open(`https://wa.me/2348084410220?text=${msg}`, '_blank');
             }
         }
 
@@ -2780,6 +2809,157 @@
                     navigator.clipboard.writeText(url).then(() => showToast('Link copied ✓'));
                 }
             }
+        }
+    </script>
 
+    <!-- ── AI Chat Overlay — Premium VIP Consulting ────────────────── -->
+    <div id="aiChatOverlay" style="display:none;position:fixed;inset:0;z-index:3000;flex-direction:column;background:#060D18;">
+
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg,#0B1628,#0D1E3A);padding:16px 20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid rgba(201,169,98,0.2);flex-shrink:0;">
+            <button onclick="closeAIChat()" style="background:none;border:none;color:#C9A862;font-size:22px;cursor:pointer;padding:0;line-height:1;">←</button>
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#C9A862,#8B6914);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 12px rgba(201,169,98,0.3);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#060D18" stroke-width="2" style="width:20px;height:20px;"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            </div>
+            <div style="flex:1;">
+                <div style="font-weight:700;color:#C9A862;font-size:15px;letter-spacing:0.5px;font-family:'Cormorant Garamond',serif;">The Billy Living AI</div>
+                <div style="font-size:11px;color:#8696A0;display:flex;align-items:center;gap:5px;">
+                    <span style="width:6px;height:6px;border-radius:50%;background:#25D366;display:inline-block;"></span>
+                    World-Class Interior Designer
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div id="aiMessages" style="flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:14px;background:#060D18;"></div>
+
+        <!-- Typing indicator -->
+        <div id="aiTyping" style="display:none;padding:0 16px 8px;color:#8696A0;font-size:12px;font-style:italic;letter-spacing:0.5px;">
+            ✦ The Billy Living AI is crafting your response...
+        </div>
+
+        <!-- Quick suggestion chips -->
+        <div id="aiSuggestions" style="display:flex;gap:8px;padding:8px 16px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;">
+            <button onclick="useAISuggestion(this)" style="white-space:nowrap;background:rgba(201,169,98,0.08);border:1px solid rgba(201,169,98,0.25);border-radius:20px;padding:6px 14px;color:#C9A862;font-size:12px;cursor:pointer;letter-spacing:0.3px;">Living room in Lekki</button>
+            <button onclick="useAISuggestion(this)" style="white-space:nowrap;background:rgba(201,169,98,0.08);border:1px solid rgba(201,169,98,0.25);border-radius:20px;padding:6px 14px;color:#C9A862;font-size:12px;cursor:pointer;letter-spacing:0.3px;">Luxury bedroom palette</button>
+            <button onclick="useAISuggestion(this)" style="white-space:nowrap;background:rgba(201,169,98,0.08);border:1px solid rgba(201,169,98,0.25);border-radius:20px;padding:6px 14px;color:#C9A862;font-size:12px;cursor:pointer;letter-spacing:0.3px;">Best materials for Abuja home</button>
+            <button onclick="useAISuggestion(this)" style="white-space:nowrap;background:rgba(201,169,98,0.08);border:1px solid rgba(201,169,98,0.25);border-radius:20px;padding:6px 14px;color:#C9A862;font-size:12px;cursor:pointer;letter-spacing:0.3px;">Open kitchen design ideas</button>
+        </div>
+
+        <!-- Input bar -->
+        <div style="background:#0B1628;border-top:1px solid rgba(201,169,98,0.12);padding:12px 16px;display:flex;align-items:flex-end;gap:10px;flex-shrink:0;">
+            <input id="aiInput" type="text" placeholder="Ask your design question..."
+                style="flex:1;background:#111E30;border:1px solid rgba(201,169,98,0.2);border-radius:24px;padding:13px 18px;color:#E9EDF0;font-size:14px;outline:none;font-family:'Jost',sans-serif;line-height:1.4;"
+                onkeypress="if(event.key==='Enter')sendAIMessage()">
+            <button onclick="sendAIMessage()" style="width:46px;height:46px;min-width:46px;border-radius:50%;background:linear-gradient(135deg,#C9A862,#8B6914);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(201,169,98,0.3);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#060D18" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;margin-left:2px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const GEMINI_KEY = 'AIzaSyC9NtzszmO-7Vk0XP2_oc_uZQvxEWWJwHg';
+
+        const SYSTEM_PROMPT = `You are a world-class, senior interior designer and the official AI consultant for The Billy Living — a prestigious luxury interior design firm based in Nigeria.
+
+Your expertise:
+- Luxury materials: Italian marble, bespoke joinery, velvet, brass, onyx, smoked glass, hand-tufted rugs
+- Color theory: Navy blue, deep charcoal, champagne gold, warm ivory, sage and terracotta accents
+- Nigerian luxury market: You know Lekki and Abuja homes deeply — the architecture, climate, lifestyle and client expectations
+- Layout & spatial planning: Open-plan living, maximising natural light in Lagos homes, private master suites
+- Sourcing: You recommend international and local high-end suppliers appropriate for Nigerian clients
+
+Your personality:
+- Professional, warm, sophisticated — like a trusted VIP advisor
+- Use elegant but clear language. Never be casual or generic
+- Give specific, actionable advice — not vague suggestions
+- Reference real materials, styles, and designers when relevant
+
+Strict rules:
+- Only discuss interior design, architecture, décor, materials, and The Billy Living services
+- If asked off-topic questions, gracefully redirect: "My expertise is creating exceptional spaces — shall we focus on your home?"
+- Never mention competitors
+- Always position The Billy Living as the premier choice for luxury interiors in Nigeria`;
+
+        let aiHistory = [];
+
+        function openAIChat() {
+            const el = document.getElementById('aiChatOverlay');
+            el.style.display = 'flex';
+            if (document.getElementById('aiMessages').children.length === 0) {
+                setTimeout(() => appendAIMessage('ai', "Welcome. I'm The Billy Living's design consultant — your dedicated advisor for creating exceptional, luxury spaces in Lagos and Abuja.\n\nWhether you're furnishing a new home in Lekki or reimagining your Abuja residence, I'm here to guide every detail. How can I elevate your space today?"), 300);
+            }
+        }
+
+        function closeAIChat() {
+            document.getElementById('aiChatOverlay').style.display = 'none';
+        }
+
+        function useAISuggestion(btn) {
+            document.getElementById('aiInput').value = btn.textContent;
+            document.getElementById('aiSuggestions').style.display = 'none';
+            sendAIMessage();
+        }
+
+        function appendAIMessage(role, text) {
+            const msgs = document.getElementById('aiMessages');
+            const isAI = role === 'ai';
+
+            const wrap = document.createElement('div');
+            wrap.style.cssText = `display:flex;flex-direction:column;align-items:${isAI ? 'flex-start' : 'flex-end'};gap:4px;`;
+
+            if (isAI) {
+                const label = document.createElement('div');
+                label.style.cssText = 'font-size:10px;color:#C9A862;letter-spacing:1px;padding-left:4px;font-family:"Cormorant Garamond",serif;';
+                label.textContent = '✦ THE BILLY LIVING AI';
+                wrap.appendChild(label);
+            }
+
+            const bubble = document.createElement('div');
+            bubble.style.cssText = `max-width:82%;padding:14px 18px;border-radius:${isAI ? '4px 18px 18px 18px' : '18px 4px 18px 18px'};font-size:14px;line-height:1.65;word-wrap:break-word;white-space:pre-wrap;` +
+                (isAI
+                    ? 'background:linear-gradient(135deg,#0B1E35,#0D2140);color:#E9EDF0;border:1px solid rgba(201,169,98,0.15);box-shadow:0 2px 12px rgba(0,0,0,0.3);'
+                    : 'background:linear-gradient(135deg,#C9A862,#8B6914);color:#060D18;font-weight:500;box-shadow:0 2px 12px rgba(201,169,98,0.2);');
+            bubble.textContent = text;
+            wrap.appendChild(bubble);
+            msgs.appendChild(wrap);
+            msgs.scrollTop = msgs.scrollHeight;
+        }
+
+        async function sendAIMessage() {
+            const input = document.getElementById('aiInput');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            document.getElementById('aiSuggestions').style.display = 'none';
+
+            appendAIMessage('user', text);
+            aiHistory.push({ role: 'user', parts: [{ text }] });
+
+            document.getElementById('aiTyping').style.display = 'block';
+
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+                        contents: aiHistory
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.error?.message || 'API error ' + res.status);
+                }
+                const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'I apologise — please try again momentarily.';
+                aiHistory.push({ role: 'model', parts: [{ text: reply }] });
+                document.getElementById('aiTyping').style.display = 'none';
+                appendAIMessage('ai', reply);
+            } catch(e) {
+                document.getElementById('aiTyping').style.display = 'none';
+                appendAIMessage('ai', '⚠️ Error: ' + e.message);
+            }
+        }
+    </script>
 </body>
 </html>
