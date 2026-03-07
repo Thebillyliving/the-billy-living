@@ -39,11 +39,13 @@
         .page {
             display: none;
             min-height: calc(100vh - var(--nav-height));
+            pointer-events: none;
         }
 
         .page.active {
             display: block;
             animation: fadeIn 0.3s ease;
+            pointer-events: auto;
         }
 
         @keyframes fadeIn {
@@ -444,9 +446,10 @@
             background: #000;
             z-index: 100;
             display: none;
+            pointer-events: none;
         }
 
-        .trending-page.active { display: block; }
+        .trending-page.active { display: block; pointer-events: auto; }
 
         .trending-container {
             height: 100%;
@@ -1763,6 +1766,7 @@
     <!-- DESIGNER CHAT -->
     <!-- VAULT PAGE -->
     <div id="vault" class="page">
+        <!-- Login form -->
         <div class="vault-login-container" id="vaultLogin">
             <div id="vault-login-form">
                 <div class="vault-logo">🔒</div>
@@ -1801,8 +1805,36 @@
                     <div class="vault-badge-item"><span class="vault-badge-icon">✦</span><span>Priority Concierge</span></div>
                     <div class="vault-badge-item"><span class="vault-badge-icon">✦</span><span>Private Previews</span></div>
                 </div>
-                <button class="vault-btn" style="margin-top:32px;max-width:280px;width:100%;" onclick="handleVaultLogout()">SIGN OUT OF VAULT</button>
+                <button class="vault-btn" style="margin-top:24px;max-width:280px;width:100%;" onclick="enterBespokeVault()">ENTER YOUR VAULT →</button>
+                <button class="vault-btn" style="margin-top:12px;max-width:280px;width:100%;background:transparent;border:1px solid rgba(201,168,76,0.3);color:rgba(201,168,76,0.6);" onclick="handleVaultLogout()">Sign Out</button>
             </div>
+        </div>
+
+        <!-- Bespoke Gallery (shown after login) -->
+        <div id="vaultGallery" style="display:none;min-height:100vh;background:#0A0804;">
+            <!-- Gallery Header -->
+            <div style="padding:32px 20px 20px;border-bottom:1px solid rgba(212,175,55,0.12);position:sticky;top:0;background:rgba(10,8,4,0.97);z-index:10;backdrop-filter:blur(12px);">
+                <div style="font-size:9px;letter-spacing:5px;color:rgba(212,175,55,0.35);text-transform:uppercase;margin-bottom:6px;">Your Private Collection</div>
+                <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:#E8D5A3;margin-bottom:4px;">Design Vault</div>
+                <div style="font-size:11px;color:rgba(212,175,55,0.35);letter-spacing:2px;" id="vaultGalleryMeta">Loading your collection…</div>
+            </div>
+
+            <!-- Cards Grid -->
+            <div id="vaultGalleryGrid" style="padding:20px;display:grid;grid-template-columns:repeat(2,1fr);gap:14px;"></div>
+
+            <!-- Sign out -->
+            <div style="padding:20px;text-align:center;">
+                <button onclick="handleVaultLogout()" style="background:none;border:1px solid rgba(201,168,76,0.15);color:rgba(201,168,76,0.4);border-radius:8px;padding:12px 28px;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">Exit Vault</button>
+            </div>
+        </div>
+
+        <!-- Asset detail screen -->
+        <div id="vaultAssetDetail" style="display:none;position:fixed;inset:0;background:#060D18;z-index:500;flex-direction:column;overflow-y:auto;">
+            <div style="display:flex;align-items:center;gap:14px;padding:20px;border-bottom:1px solid rgba(212,175,55,0.12);position:sticky;top:0;background:rgba(6,13,24,0.98);">
+                <button onclick="closeVaultAsset()" style="background:none;border:1px solid rgba(201,168,76,0.2);color:rgba(201,168,76,0.6);border-radius:8px;padding:8px 16px;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">← Back</button>
+                <div style="font-size:9px;letter-spacing:4px;color:rgba(212,175,55,0.35);text-transform:uppercase;">Your Vault</div>
+            </div>
+            <div id="vaultAssetDetailContent" style="padding:28px 20px;flex:1;"></div>
         </div>
     </div>
 
@@ -2589,6 +2621,7 @@
                     profile.isVIP    = true;
                     profile.vipName  = matched.name;
                     profile.vipPhone = matched.phone;
+                    profile.vaultUID = matched.id || matched.phone; // key used in vault/clients/
                     localStorage.setItem('tbl_profile', JSON.stringify(profile));
                     localStorage.setItem('isVaultUnlocked', 'true');
                     localStorage.setItem('currentVIPName', matched.name || '');
@@ -2627,6 +2660,10 @@
 
         function handleVaultLogout() {
             localStorage.removeItem('isVaultUnlocked');
+            // Hide gallery, show login
+            document.getElementById('vaultGallery').style.display      = 'none';
+            document.getElementById('vaultAssetDetail').style.display  = 'none';
+            document.getElementById('vaultLogin').style.display        = 'flex';
             const loginForm    = document.getElementById('vault-login-form');
             const successState = document.getElementById('vault-success-state');
             successState.style.opacity = '0';
@@ -2643,6 +2680,100 @@
                 loginForm.style.opacity = '0';
                 requestAnimationFrame(() => requestAnimationFrame(() => { loginForm.style.opacity = '1'; }));
             }, 500);
+        }
+
+        // ── Bespoke Vault Gallery ────────────────────────────────────────────
+        const vaultCatEmoji = { '3D Render':'🏛', 'Document':'📄', 'Video':'🎬', 'Moodboard':'🎨' };
+
+        function enterBespokeVault() {
+            document.getElementById('vaultLogin').style.display   = 'none';
+            document.getElementById('vaultGallery').style.display = 'block';
+            loadVaultGallery();
+        }
+
+        function loadVaultGallery() {
+            const profile = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
+            const user    = fbAuth.currentUser;
+            const grid    = document.getElementById('vaultGalleryGrid');
+            const meta    = document.getElementById('vaultGalleryMeta');
+
+            grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;">
+                <div style="font-size:32px;margin-bottom:12px;opacity:0.3;">◆</div>
+                <div style="font-size:11px;letter-spacing:2px;color:rgba(212,175,55,0.3);text-transform:uppercase;">Preparing your vault…</div>
+            </div>`;
+
+            // Try to load by Firebase UID first, fall back to VIP phone-based ID
+            const uid = user?.uid || profile.vaultUID || profile.vipPhone || null;
+            if (!uid) {
+                renderVaultEmpty();
+                return;
+            }
+
+            fbDB.ref('vault/clients/' + uid).once('value').then(snap => {
+                const assets = Object.values(snap.val() || {});
+                if (!assets.length) {
+                    renderVaultEmpty();
+                    return;
+                }
+                meta.textContent = assets.length + ' exclusive piece' + (assets.length !== 1 ? 's' : '') + ' curated for you';
+                grid.innerHTML = assets.map(a => {
+                    const emoji = vaultCatEmoji[a.cat] || '◆';
+                    return `<div onclick="openVaultAsset(${JSON.stringify(JSON.stringify(a))})" style="
+                        background:#0E0B06;
+                        border:1px solid rgba(212,175,55,0.12);
+                        border-radius:12px;overflow:hidden;cursor:pointer;
+                        transition:all 0.3s;position:relative;
+                        box-shadow:0 2px 16px rgba(0,0,0,0.4);"
+                        onmouseover="this.style.borderColor='rgba(212,175,55,0.4)';this.style.transform='translateY(-2px)'"
+                        onmouseout="this.style.borderColor='rgba(212,175,55,0.12)';this.style.transform='translateY(0)'">
+                        <div style="position:absolute;inset:4px;border:1px solid rgba(212,175,55,0.05);border-radius:9px;pointer-events:none;"></div>
+                        <div style="width:100%;aspect-ratio:4/3;background:#1A1408;display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden;">
+                            ${a.thumb ? `<img src="${a.thumb}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">` : emoji}
+                        </div>
+                        <div style="padding:14px;">
+                            <div style="font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(212,175,55,0.5);margin-bottom:6px;">${a.cat || ''}</div>
+                            <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:#E8D5A3;line-height:1.3;">${a.title || 'Untitled'}</div>
+                            ${a.desc ? `<div style="font-size:11px;color:rgba(232,217,181,0.35);margin-top:4px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${a.desc}</div>` : ''}
+                        </div>
+                    </div>`;
+                }).join('');
+            }).catch(() => renderVaultEmpty());
+        }
+
+        function renderVaultEmpty() {
+            const meta = document.getElementById('vaultGalleryMeta');
+            meta.textContent = 'Your collection is being prepared';
+            document.getElementById('vaultGalleryGrid').innerHTML = `
+                <div style="grid-column:1/-1;text-align:center;padding:80px 24px;">
+                    <div style="font-size:52px;margin-bottom:24px;opacity:0.2;">◈</div>
+                    <div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:rgba(232,217,181,0.4);margin-bottom:12px;font-style:italic;">Your exclusive design vault<br>is being prepared.</div>
+                    <div style="width:60px;height:1px;background:linear-gradient(to right,transparent,rgba(212,175,55,0.3),transparent);margin:20px auto;"></div>
+                    <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(212,175,55,0.2);">Your designer will curate<br>your collection shortly</div>
+                </div>`;
+        }
+
+        function openVaultAsset(jsonStr) {
+            const a = JSON.parse(jsonStr);
+            const emoji = vaultCatEmoji[a.cat] || '◆';
+            const detail = document.getElementById('vaultAssetDetail');
+            const content = document.getElementById('vaultAssetDetailContent');
+            detail.style.display = 'flex';
+
+            content.innerHTML = `
+                <div style="max-width:600px;margin:0 auto;">
+                    <div style="font-size:9px;letter-spacing:4px;text-transform:uppercase;color:rgba(212,175,55,0.4);margin-bottom:10px;">${a.cat || ''}</div>
+                    <div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;color:#E8D5A3;margin-bottom:12px;line-height:1.2;">${a.title || 'Untitled'}</div>
+                    ${a.desc ? `<div style="font-size:14px;color:rgba(232,217,181,0.5);margin-bottom:28px;line-height:1.8;">${a.desc}</div>` : ''}
+                    ${a.thumb ? `<img src="${a.thumb}" style="width:100%;border-radius:12px;margin-bottom:28px;border:1px solid rgba(212,175,55,0.12);">` : ''}
+                    <div style="height:1px;background:linear-gradient(to right,transparent,rgba(212,175,55,0.2),transparent);margin-bottom:28px;"></div>
+                    ${a.url ? `<a href="${a.url}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:12px;background:#D4AF37;color:#0A0700;padding:18px 28px;border-radius:12px;font-size:12px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;text-decoration:none;width:100%;box-sizing:border-box;">
+                        <span style="font-size:20px;">${emoji}</span> Open ${a.cat || 'Asset'}
+                    </a>` : `<div style="text-align:center;color:rgba(212,175,55,0.25);font-size:12px;letter-spacing:1px;">Preview not yet available</div>`}
+                </div>`;
+        }
+
+        function closeVaultAsset() {
+            document.getElementById('vaultAssetDetail').style.display = 'none';
         }
 
         function checkVaultOnLoad() {
