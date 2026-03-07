@@ -970,6 +970,24 @@
         .admin-chat-send { width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,#C9A84C,#8B6914); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
         .admin-chat-send svg { width:16px; height:16px; stroke:#0A0804; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
         .admin-msgs-badge { background:#C9A84C; color:#0A0804; font-size:10px; font-weight:700; border-radius:10px; padding:2px 7px; display:none; }
+
+        /* Portfolio User Cards */
+        .port-user-card { display:flex; align-items:center; gap:14px; padding:18px 20px; border-radius:12px; cursor:pointer; border:1px solid rgba(201,168,76,0.1); background:rgba(255,255,255,0.02); transition:all 0.25s; margin-bottom:2px; }
+        .port-user-card:hover { background:rgba(201,168,76,0.06); border-color:rgba(201,168,76,0.25); transform:translateX(4px); }
+        .port-user-av { width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,#C9A84C,#7A5C10); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0A0804; font-family:'Cormorant Garamond',serif; font-size:17px; flex-shrink:0; }
+        .port-user-info { flex:1; }
+        .port-user-name { font-size:15px; font-weight:600; color:#E8D5A3; margin-bottom:3px; }
+        .port-user-email { font-size:12px; color:rgba(168,155,140,0.5); }
+        .port-user-count { text-align:right; }
+        .port-user-badge { display:inline-flex; align-items:center; justify-content:center; background:rgba(201,168,76,0.15); border:1px solid rgba(201,168,76,0.3); color:#C9A84C; font-size:13px; font-weight:700; border-radius:20px; padding:4px 12px; font-family:'Cormorant Garamond',serif; }
+        .port-user-arrow { font-size:18px; color:rgba(201,168,76,0.3); margin-left:8px; }
+
+        /* Portfolio client grid items */
+        .port-grid-item { position:relative; aspect-ratio:1; border-radius:8px; overflow:hidden; border:1px solid rgba(201,168,76,0.1); background:#0C0804; cursor:pointer; transition:all 0.2s; }
+        .port-grid-item:hover { border-color:rgba(201,168,76,0.4); transform:scale(1.02); }
+        .port-grid-item img { width:100%; height:100%; object-fit:cover; }
+        .port-grid-item-label { position:absolute; bottom:0; left:0; right:0; padding:6px 8px; background:linear-gradient(transparent,rgba(0,0,0,0.8)); font-size:10px; color:rgba(255,255,255,0.8); font-family:'Cormorant Garamond',serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .port-empty { text-align:center; padding:60px 20px; color:rgba(168,155,140,0.4); }
     </style>
     <!-- Firebase compat SDK (works without bundler) -->
 
@@ -1165,11 +1183,39 @@
 
         <!-- Portfolio Panel -->
         <div class="panel" id="panel-portfolio">
-            <div class="page-header">
-                <h1 class="page-title">Portfolio Items</h1>
-                <button class="btn btn-primary" onclick="openForm('portfolio')">+ Add Item</button>
+            <!-- View 1: Users List -->
+            <div id="portfolioUsersView">
+                <div class="page-header">
+                    <div>
+                        <div class="page-eyebrow">Billy Living</div>
+                        <h1 class="page-title">Portfolio Analytics</h1>
+                    </div>
+                    <div id="portfolioUserCount" style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);border-radius:8px;padding:8px 16px;text-align:center;">
+                        <div style="font-size:22px;font-weight:700;color:#C9A84C;" id="portfolioUserTotal">0</div>
+                        <div style="font-size:10px;letter-spacing:2px;color:rgba(201,168,76,0.5);text-transform:uppercase;">Users</div>
+                    </div>
+                </div>
+                <div id="portfolioUsersList" style="display:flex;flex-direction:column;gap:10px;"></div>
             </div>
-            <div class="list-container" id="portfolioList"></div>
+
+            <!-- View 2: Individual User Portfolio -->
+            <div id="portfolioClientView" style="display:none;height:100%;flex-direction:column;">
+                <div class="page-header" style="flex-shrink:0;">
+                    <div style="display:flex;align-items:center;gap:14px;">
+                        <button onclick="backToPortfolioUsers()" style="background:none;border:1px solid rgba(201,168,76,0.2);color:rgba(201,168,76,0.6);border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer;">← Back</button>
+                        <div class="admin-chat-av" id="portfolioClientAv" style="width:40px;height:40px;font-size:15px;">?</div>
+                        <div>
+                            <div style="font-weight:600;font-size:16px;color:#E8D5A3;" id="portfolioClientName">Client</div>
+                            <div style="font-size:11px;color:rgba(168,155,140,0.5);letter-spacing:1px;" id="portfolioClientEmail"></div>
+                        </div>
+                    </div>
+                    <div id="portfolioClientItemCount" style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);border-radius:8px;padding:8px 16px;text-align:center;">
+                        <div style="font-size:20px;font-weight:700;color:#C9A84C;" id="portfolioClientTotal">0</div>
+                        <div style="font-size:10px;letter-spacing:2px;color:rgba(201,168,76,0.5);text-transform:uppercase;">Saved</div>
+                    </div>
+                </div>
+                <div id="portfolioClientGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 20px 20px;overflow-y:auto;"></div>
+            </div>
         </div>
 
         <!-- Designers Panel -->
@@ -1273,10 +1319,10 @@
                 <div class="admin-chat-panel">
                     <div class="admin-chat-hdr">
                         <button class="back-link" onclick="adminBackToList()">← Back</button>
-                        <div class="admin-chat-av" id="adminChatAv">?</div>
-                        <div>
+                        <div class="admin-chat-av" id="adminChatAv" onclick="openClientProfile()" style="cursor:pointer;" title="View profile">?</div>
+                        <div onclick="openClientProfile()" style="cursor:pointer;flex:1;">
                             <div style="font-weight:600;font-size:15px;color:#E8D5A3;" id="adminChatClientName">Client</div>
-                            <div style="font-size:11px;color:rgba(168,155,140,0.5);letter-spacing:1px;">Active Conversation</div>
+                            <div style="font-size:11px;color:rgba(201,168,76,0.4);letter-spacing:1px;">Tap to view profile →</div>
                         </div>
                     </div>
                     <div class="admin-chat-msgs" id="adminChatMsgs"></div>
@@ -1291,6 +1337,39 @@
         </div>
 
     </main>
+
+    <!-- Client Profile Drawer -->
+    <div id="clientProfileDrawer" style="display:none;position:fixed;top:0;right:0;width:min(420px,100vw);height:100vh;background:#0A0804;border-left:1px solid rgba(201,168,76,0.15);z-index:3000;flex-direction:column;overflow-y:auto;box-shadow:-8px 0 40px rgba(0,0,0,0.6);">
+        <!-- Header -->
+        <div style="padding:20px 24px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+            <button onclick="closeClientProfile()" style="background:none;border:1px solid rgba(201,168,76,0.2);color:rgba(201,168,76,0.6);border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;">← Back to Chat</button>
+            <div style="font-size:9px;letter-spacing:4px;color:rgba(201,168,76,0.3);text-transform:uppercase;">Client Profile</div>
+        </div>
+
+        <!-- Avatar + Name -->
+        <div style="display:flex;flex-direction:column;align-items:center;padding:32px 24px 24px;border-bottom:1px solid rgba(201,168,76,0.08);">
+            <div id="cpAvatar" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#C9A84C,#7A5C10);display:flex;align-items:center;justify-content:center;font-weight:700;color:#0A0804;font-family:'Cormorant Garamond',serif;font-size:28px;margin-bottom:16px;overflow:hidden;">?</div>
+            <div id="cpName" style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:#E8D5A3;margin-bottom:4px;text-align:center;">Client</div>
+            <div id="cpEmail" style="font-size:13px;color:rgba(168,155,140,0.5);margin-bottom:16px;"></div>
+            <div style="display:flex;gap:12px;">
+                <div id="cpPortfolioCount" style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.15);border-radius:10px;padding:10px 20px;text-align:center;">
+                    <div style="font-size:22px;font-weight:700;color:#C9A84C;font-family:'Cormorant Garamond',serif;" id="cpPortfolioNum">—</div>
+                    <div style="font-size:9px;letter-spacing:2px;color:rgba(201,168,76,0.4);text-transform:uppercase;">Portfolio</div>
+                </div>
+                <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.15);border-radius:10px;padding:10px 20px;text-align:center;">
+                    <div style="font-size:22px;font-weight:700;color:#C9A84C;font-family:'Cormorant Garamond',serif;" id="cpMsgNum">—</div>
+                    <div style="font-size:9px;letter-spacing:2px;color:rgba(201,168,76,0.4);text-transform:uppercase;">Messages</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Portfolio Section -->
+        <div style="padding:24px;">
+            <div style="font-size:9px;letter-spacing:4px;color:rgba(201,168,76,0.4);text-transform:uppercase;margin-bottom:14px;">Saved Portfolio</div>
+            <div id="cpPortfolioGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;"></div>
+        </div>
+    </div>
+    <div id="clientProfileOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2999;" onclick="closeClientProfile()"></div>
 
     <!-- Form Modal -->
     <div class="form-modal" id="formModal">
@@ -1955,6 +2034,7 @@
                         shares: parseInt(document.getElementById('formShares').value) || 0,
                         published: true
                     };
+                    adminFbDB.ref('content/posts/' + post.id).set(post);
                     const posts = JSON.parse(localStorage.getItem('tbl_posts') || '[]');
                     posts.push(post);
                     localStorage.setItem('tbl_posts', JSON.stringify(posts));
@@ -1978,6 +2058,7 @@
                     const trendingItems = JSON.parse(localStorage.getItem('tbl_trending') || '[]');
                     trendingItems.push(trending);
                     localStorage.setItem('tbl_trending', JSON.stringify(trendingItems));
+                    adminFbDB.ref('content/trending/' + trending.id).set(trending);
                     renderTrendingList();
                     updateStats();
                     break;
@@ -1994,6 +2075,7 @@
                     const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
                     boxes.push(box);
                     localStorage.setItem('tbl_catalog_boxes', JSON.stringify(boxes));
+                    adminFbDB.ref('content/catalog/' + box.id).set(box);
                     renderCatalogList();
                     break;
                     
@@ -2008,6 +2090,7 @@
                     const portfolios = JSON.parse(localStorage.getItem('tbl_portfolio') || '[]');
                     portfolios.push(portfolio);
                     localStorage.setItem('tbl_portfolio', JSON.stringify(portfolios));
+                    adminFbDB.ref('content/portfolio/' + portfolio.id).set(portfolio);
                     renderPortfolioList();
                     break;
                     
@@ -2102,6 +2185,7 @@
             if (item) {
                 item.published = !item.published;
                 localStorage.setItem('tbl_' + type, JSON.stringify(items));
+                adminFbDB.ref('content/posts/' + id + '/published').set(item.published);
                 renderHomeList();
             }
         }
@@ -2121,7 +2205,11 @@
             const items = JSON.parse(localStorage.getItem('tbl_' + type) || '[]');
             const filtered = items.filter(i => i.id !== id);
             localStorage.setItem('tbl_' + type, JSON.stringify(filtered));
-            
+
+            // Delete from Firebase
+            const fbMap = { posts: 'posts', trending: 'trending', catalog_boxes: 'catalog', portfolio: 'portfolio' };
+            if (fbMap[type]) adminFbDB.ref('content/' + fbMap[type] + '/' + id).remove();
+
             switch(type) {
                 case 'posts': renderHomeList(); break;
                 case 'catalog_boxes': renderCatalogList(); break;
@@ -2580,12 +2668,7 @@
                     const unread = msgs.filter(m => m.sender === 'client' && !m.read).length;
                     const last = msgs.sort((a,b) => b.timestamp - a.timestamp)[0];
                     totalUnread += unread;
-                    convs.push({
-                        uid,
-                        name: data.clientName || last?.senderName || 'Client',
-                        lastMsg: last,
-                        unread
-                    });
+                    convs.push({ uid, name: data.clientName || last?.senderName || 'Client', lastMsg: last, unread });
                 });
 
                 convs.sort((a,b) => (b.lastMsg?.timestamp||0) - (a.lastMsg?.timestamp||0));
@@ -2596,6 +2679,11 @@
                     badge.textContent = totalUnread;
                     badge.style.display = totalUnread > 0 ? 'inline-block' : 'none';
                 }
+            }, err => {
+                // Show error in the messages panel so we can diagnose
+                const el = document.getElementById('msgsConversationsList');
+                if (el) el.innerHTML = `<div style="padding:20px;color:#ef4444;font-size:13px;letter-spacing:0.5px;">⚠️ Firebase error: ${err.message}<br><br>Fix: Set Realtime Database rules to allow reads.</div>`;
+                console.error('Firebase messages error:', err);
             });
         }
 
@@ -2626,6 +2714,15 @@
 
         function adminOpenChat(uid, name) {
             adminSelectedUID = uid;
+            // Store name and email for profile drawer
+            window._adminChatClientName  = name;
+            window._adminChatClientEmail = '';
+
+            // Try to get email from chats data
+            adminFbDB.ref(`chats/${uid}/clientEmail`).once('value').then(s => {
+                window._adminChatClientEmail = s.val() || '';
+            });
+
             document.getElementById('msgsListView').style.display = 'none';
             document.getElementById('msgsAdminChatView').style.display = 'block';
             document.getElementById('adminChatClientName').textContent = name;
@@ -2706,15 +2803,169 @@
             const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML;
         }
 
-        // Hook into showPanel to refresh messages list when Messages is opened
+        // Hook into showPanel
         const _origShowPanel = window.showPanel;
         window.showPanel = function(name, el) {
             _origShowPanel(name, el);
             if (name === 'messages') {
                 adminBackToList();
-                initAdminMessagesListener(); // re-attach listener each time
+                initAdminMessagesListener();
+            }
+            if (name === 'portfolio') {
+                loadPortfolioUsers();
             }
         };
+
+        // ── Portfolio Analytics ──────────────────────────────────────────────────
+        function loadPortfolioUsers() {
+            document.getElementById('portfolioUsersView').style.display = 'block';
+            document.getElementById('portfolioClientView').style.display = 'none';
+
+            const list = document.getElementById('portfolioUsersList');
+            list.innerHTML = `<div class="port-empty"><div style="font-size:32px;margin-bottom:12px;opacity:0.4;">📋</div><div style="font-size:13px;letter-spacing:1px;">Loading...</div></div>`;
+
+            adminFbDB.ref('portfolios').once('value').then(snap => {
+                const data = snap.val() || {};
+                const users = Object.entries(data);
+                document.getElementById('portfolioUserTotal').textContent = users.length;
+
+                if (!users.length) {
+                    list.innerHTML = `<div class="port-empty">
+                        <div style="font-size:48px;margin-bottom:12px;opacity:0.3;">🖼️</div>
+                        <div style="font-family:'Cormorant Garamond',serif;font-size:20px;margin-bottom:6px;">No portfolios yet</div>
+                        <div style="font-size:12px;letter-spacing:1px;">Clients who save posts will appear here</div>
+                    </div>`;
+                    return;
+                }
+
+                list.innerHTML = users.map(([uid, udata]) => {
+                    const info    = udata.userInfo || {};
+                    const items   = Object.values(udata.items || {});
+                    const name    = info.name || 'Client';
+                    const email   = info.email || '';
+                    const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+                    const lastSaved = items.sort((a,b)=>(b.savedAt||0)-(a.savedAt||0))[0];
+                    const timeAgo = lastSaved?.savedAt ? fmtTime(lastSaved.savedAt) : '';
+
+                    return `<div class="port-user-card" onclick="openClientPortfolio('${uid}','${escHtml(name)}','${escHtml(email)}')">
+                        <div class="port-user-av">${initials}</div>
+                        <div class="port-user-info">
+                            <div class="port-user-name">${escHtml(name)}</div>
+                            <div class="port-user-email">${escHtml(email)}</div>
+                            ${timeAgo ? `<div style="font-size:11px;color:rgba(201,168,76,0.4);margin-top:3px;">Last saved ${timeAgo}</div>` : ''}
+                        </div>
+                        <div class="port-user-count">
+                            <div class="port-user-badge">${items.length} item${items.length!==1?'s':''}</div>
+                        </div>
+                        <span class="port-user-arrow">›</span>
+                    </div>`;
+                }).join('');
+            }).catch(err => {
+                list.innerHTML = `<div class="port-empty" style="color:#ef4444;">⚠️ ${err.message}</div>`;
+            });
+        }
+
+        function openClientPortfolio(uid, name, email) {
+            document.getElementById('portfolioUsersView').style.display = 'none';
+            const cv = document.getElementById('portfolioClientView');
+            cv.style.display = 'flex';
+
+            const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+            document.getElementById('portfolioClientAv').textContent = initials;
+            document.getElementById('portfolioClientName').textContent = name;
+            document.getElementById('portfolioClientEmail').textContent = email;
+
+            const grid = document.getElementById('portfolioClientGrid');
+            grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(168,155,140,0.4);">Loading…</div>`;
+
+            adminFbDB.ref(`portfolios/${uid}/items`).once('value').then(snap => {
+                const items = Object.values(snap.val() || {});
+                items.sort((a,b) => (b.savedAt||0) - (a.savedAt||0));
+                document.getElementById('portfolioClientTotal').textContent = items.length;
+
+                if (!items.length) {
+                    grid.innerHTML = `<div style="grid-column:1/-1;" class="port-empty">No items saved yet</div>`;
+                    return;
+                }
+                grid.innerHTML = items.map(item => `
+                    <div class="port-grid-item">
+                        ${item.imageData
+                            ? `<img src="${escHtml(item.imageData)}" alt="${escHtml(item.title||'')}">`
+                            : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:28px;">${item.emoji||'🏠'}</div>`
+                        }
+                        <div class="port-grid-item-label">${escHtml(item.title||'Design')}</div>
+                    </div>`).join('');
+            });
+        }
+
+        function backToPortfolioUsers() {
+            document.getElementById('portfolioClientView').style.display = 'none';
+            document.getElementById('portfolioUsersView').style.display = 'block';
+        }
+
+        // ── Client Profile Drawer ────────────────────────────────────────────────
+        function openClientProfile() {
+            if (!adminSelectedUID) return;
+            const uid   = adminSelectedUID;
+            const name  = window._adminChatClientName  || 'Client';
+            const email = window._adminChatClientEmail || '';
+            const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+
+            // Show drawer
+            const drawer  = document.getElementById('clientProfileDrawer');
+            const overlay = document.getElementById('clientProfileOverlay');
+            drawer.style.display  = 'flex';
+            overlay.style.display = 'block';
+
+            // Set basic info
+            document.getElementById('cpName').textContent  = name;
+            document.getElementById('cpEmail').textContent = email;
+            document.getElementById('cpPortfolioNum').textContent = '…';
+            document.getElementById('cpMsgNum').textContent       = '…';
+
+            // Set avatar — check for custom photo first
+            const avEl = document.getElementById('cpAvatar');
+            adminFbDB.ref(`userProfiles/${uid}/avatar`).once('value').then(s => {
+                const photo = s.val();
+                if (photo) {
+                    avEl.innerHTML = `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+                } else {
+                    avEl.textContent = initials;
+                    avEl.style.fontSize = '28px';
+                }
+            }).catch(() => { avEl.textContent = initials; });
+
+            // Load portfolio items
+            adminFbDB.ref(`portfolios/${uid}/items`).once('value').then(snap => {
+                const items = Object.values(snap.val() || {});
+                items.sort((a,b)=>(b.savedAt||0)-(a.savedAt||0));
+                document.getElementById('cpPortfolioNum').textContent = items.length;
+                const grid = document.getElementById('cpPortfolioGrid');
+                if (!items.length) {
+                    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:30px;color:rgba(168,155,140,0.3);font-size:13px;">No items saved yet</div>`;
+                    return;
+                }
+                grid.innerHTML = items.map(item => `
+                    <div class="port-grid-item">
+                        ${item.imageData
+                            ? `<img src="${escHtml(item.imageData)}" alt="${escHtml(item.title||'')}">`
+                            : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:24px;">${item.emoji||'🏠'}</div>`
+                        }
+                        <div class="port-grid-item-label">${escHtml(item.title||'Design')}</div>
+                    </div>`).join('');
+            });
+
+            // Count messages
+            adminFbDB.ref(`chats/${uid}/messages`).once('value').then(snap => {
+                const count = Object.keys(snap.val() || {}).length;
+                document.getElementById('cpMsgNum').textContent = count;
+            });
+        }
+
+        function closeClientProfile() {
+            document.getElementById('clientProfileDrawer').style.display  = 'none';
+            document.getElementById('clientProfileOverlay').style.display = 'none';
+        }
     </script>
 
 </body>
