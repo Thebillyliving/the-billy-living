@@ -1285,12 +1285,207 @@
         .tiktok-action.liked .tiktok-action-icon svg { stroke: #ed4956; fill: #ed4956; }
 
     </style>
-    <!-- Firebase compat SDK (works without bundler) -->
+    <!-- Firebase compat SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
-</head>
+    <style>
+    /* ── Gatekeeper ───────────────────────────────────────────────────── */
+    #gatekeeper {
+        position: fixed; inset: 0; z-index: 9999;
+        background: #060D18;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        padding: 0 28px;
+        transition: opacity 0.6s ease;
+    }
+    #gatekeeper.hidden { opacity: 0; pointer-events: none; }
+
+    .gate-logo {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 28px; font-weight: 700;
+        color: #C9A862; letter-spacing: 2px;
+        text-align: center; margin-bottom: 6px;
+    }
+    .gate-tagline {
+        font-size: 11px; color: rgba(201,169,98,0.5);
+        letter-spacing: 2.5px; text-transform: uppercase;
+        text-align: center; margin-bottom: 44px;
+    }
+    .gate-panel { width: 100%; max-width: 360px; }
+    .gate-tab-row {
+        display: flex; gap: 0; margin-bottom: 32px;
+        border-bottom: 1px solid rgba(201,169,98,0.15);
+    }
+    .gate-tab {
+        flex: 1; background: none; border: none;
+        padding: 10px 0; font-size: 13px; letter-spacing: 1px;
+        color: rgba(201,169,98,0.4); cursor: pointer;
+        font-family: 'Jost', sans-serif; text-transform: uppercase;
+        border-bottom: 2px solid transparent; margin-bottom: -1px;
+        transition: all 0.2s;
+    }
+    .gate-tab.active { color: #C9A862; border-bottom-color: #C9A862; }
+
+    .gate-input-group { margin-bottom: 16px; }
+    .gate-input-label {
+        font-size: 10px; color: rgba(201,169,98,0.6);
+        letter-spacing: 1.5px; text-transform: uppercase;
+        margin-bottom: 6px; display: block;
+        font-family: 'Jost', sans-serif;
+    }
+    .gate-input {
+        width: 100%; background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(201,169,98,0.2);
+        border-radius: 8px; padding: 13px 16px;
+        color: #F5F0E8; font-size: 14px;
+        font-family: 'Jost', sans-serif;
+        outline: none; transition: border-color 0.2s;
+        -webkit-user-select: text; user-select: text;
+    }
+    .gate-input:focus { border-color: rgba(201,169,98,0.6); }
+    .gate-input::placeholder { color: rgba(255,255,255,0.2); }
+
+    .gate-btn {
+        width: 100%; padding: 15px;
+        background: linear-gradient(135deg, #C9A862, #8B6914);
+        border: none; border-radius: 8px;
+        color: #060D18; font-size: 13px; font-weight: 700;
+        letter-spacing: 2px; text-transform: uppercase;
+        font-family: 'Jost', sans-serif; cursor: pointer;
+        margin-top: 8px; transition: opacity 0.2s;
+    }
+    .gate-btn:active { opacity: 0.85; }
+    .gate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .gate-error {
+        font-size: 12px; color: #ff6b6b;
+        text-align: center; margin-top: 12px;
+        min-height: 18px; font-family: 'Jost', sans-serif;
+    }
+    .gate-divider {
+        text-align: center; color: rgba(201,169,98,0.3);
+        font-size: 11px; letter-spacing: 1px; margin: 20px 0;
+    }
+
+    /* Step 2 — Photo upload */
+    #gateStep2 { display: none; text-align: center; }
+    .gate-photo-ring {
+        width: 110px; height: 110px; border-radius: 50%;
+        border: 2px solid #C9A862;
+        margin: 0 auto 20px;
+        position: relative; cursor: pointer;
+        overflow: hidden;
+        background: rgba(201,169,98,0.06);
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 0 24px rgba(201,169,98,0.15);
+    }
+    .gate-photo-ring img {
+        width: 100%; height: 100%; object-fit: cover;
+        display: none;
+    }
+    .gate-photo-ring input[type=file] {
+        position: absolute; inset: 0; opacity: 0; cursor: pointer;
+    }
+    .gate-photo-prompt {
+        font-size: 11px; color: rgba(201,169,98,0.5);
+        letter-spacing: 1px; text-transform: uppercase;
+        font-family: 'Jost', sans-serif; margin-bottom: 24px;
+    }
+    .gate-step2-title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 22px; color: #C9A862; margin-bottom: 6px;
+    }
+    .gate-step2-sub {
+        font-size: 12px; color: rgba(255,255,255,0.35);
+        margin-bottom: 28px; font-family: 'Jost', sans-serif;
+    }
+    .gate-skip {
+        background: none; border: none;
+        color: rgba(201,169,98,0.35); font-size: 12px;
+        cursor: pointer; margin-top: 12px;
+        font-family: 'Jost', sans-serif; letter-spacing: 0.5px;
+    }
+
+    /* Profile story circle with photo */
+    .story-circle-photo {
+        width: 100%; height: 100%;
+        object-fit: cover; border-radius: 50%;
+    }
+    </style>
+
+
 <body>
 
-    <!-- SELECTION MODE BAR -->
+    <!-- ═══════════════════════════════════════════════════════════
+         THE GATEKEEPER — Login / Sign-Up Wall
+    ════════════════════════════════════════════════════════════════ -->
+    <div id="gatekeeper">
+
+        <!-- Logo -->
+        <div class="gate-logo">THE BILLY LIVING</div>
+        <div class="gate-tagline">Luxury Interiors · Lagos &amp; Abuja</div>
+
+        <!-- Step 1: Login / Sign-Up Forms -->
+        <div class="gate-panel" id="gateStep1">
+            <div class="gate-tab-row">
+                <button class="gate-tab active" onclick="switchGateTab('login')">Sign In</button>
+                <button class="gate-tab" onclick="switchGateTab('signup')">Create Account</button>
+            </div>
+
+            <!-- LOGIN -->
+            <div id="gateLogin">
+                <div class="gate-input-group">
+                    <label class="gate-input-label">Email Address</label>
+                    <input id="loginEmail" class="gate-input" type="email" placeholder="your@email.com" autocomplete="email">
+                </div>
+                <div class="gate-input-group">
+                    <label class="gate-input-label">Password</label>
+                    <input id="loginPassword" class="gate-input" type="password" placeholder="••••••••" autocomplete="current-password">
+                </div>
+                <button class="gate-btn" id="loginBtn" onclick="handleLogin()">Enter</button>
+                <div class="gate-error" id="loginError"></div>
+            </div>
+
+            <!-- SIGN UP -->
+            <div id="gateSignup" style="display:none;">
+                <div class="gate-input-group">
+                    <label class="gate-input-label">Full Name</label>
+                    <input id="signupName" class="gate-input" type="text" placeholder="Your full name" autocomplete="name">
+                </div>
+                <div class="gate-input-group">
+                    <label class="gate-input-label">Email Address</label>
+                    <input id="signupEmail" class="gate-input" type="email" placeholder="your@email.com" autocomplete="email">
+                </div>
+                <div class="gate-input-group">
+                    <label class="gate-input-label">Password</label>
+                    <input id="signupPassword" class="gate-input" type="password" placeholder="Min. 6 characters" autocomplete="new-password">
+                </div>
+                <button class="gate-btn" id="signupBtn" onclick="handleSignup()">Continue →</button>
+                <div class="gate-error" id="signupError"></div>
+            </div>
+        </div>
+
+        <!-- Step 2: Welcome Reveal -->
+        <div class="gate-panel" id="gateStep2">
+            <div class="gate-step2-title">Welcome,<br><span id="gateNameReveal" style="color:#C9A862;">Designer</span></div>
+            <div class="gate-step2-sub">Your luxury profile is ready</div>
+            <div class="gate-photo-ring" style="cursor:default;">
+                <svg id="gatePhotoIcon" viewBox="0 0 60 60" fill="none" style="width:38px;height:38px;">
+                    <circle cx="30" cy="22" r="10" stroke="#C9A862" stroke-width="1.5" fill="rgba(201,169,98,0.1)"/>
+                    <path d="M10 54c0-11.046 8.954-20 20-20s20 8.954 20 20" stroke="#C9A862" stroke-width="1.5" stroke-linecap="round" fill="rgba(201,169,98,0.07)"/>
+                </svg>
+                <img id="gatePhotoPreview" src="" alt="" style="display:none;">
+            </div>
+            <div class="gate-photo-prompt">Your signature monogram ✦</div>
+            <button class="gate-btn" id="finishBtn" onclick="handleFinishSignup()">Enter The Billy Living</button>
+            <div class="gate-error" id="photoError"></div>
+        </div>
+
+    </div>
+    <!-- END GATEKEEPER -->
+
+
     <div class="selection-mode-bar" id="selectionModeBar">
         <div class="selection-count" id="selectionCount">0 Selected</div>
         <div class="selection-actions">
@@ -1303,31 +1498,33 @@
     <div id="home" class="page active">
         <div class="stories-row">
             <div class="story-item" onclick="openProfile()">
-                <div class="story-circle">
-                    <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:38px;height:38px;">
+                <div class="story-circle" id="profileStoryCircle">
+                    <svg id="profileStoryDefault" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:38px;height:38px;">
                         <circle cx="30" cy="22" r="10" fill="rgba(201,168,76,0.18)" stroke="#C9A84C" stroke-width="1.5"/>
                         <path d="M10 54c0-11.046 8.954-20 20-20s20 8.954 20 20" fill="rgba(201,168,76,0.15)" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round"/>
                     </svg>
+                    <img id="profileStoryPhoto" class="story-circle-photo" src="" alt="" style="display:none;">
                 </div>
-                <span class="story-label">My Profile</span>
+                <span class="story-label" id="profileStoryLabel">My Profile</span>
             </div>
             <div class="story-item" onclick="showStory('ai')">
                 <div class="story-circle">
                     <span class="story-circle-ai">
-                        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:34px;height:34px;">
-                            <!-- Main large diamond -->
-                            <path d="M30 8 L42 22 L30 52 L18 22 Z" stroke="#C9A862" stroke-width="2" stroke-linejoin="round"/>
-                            <path d="M18 22 L42 22" stroke="#C9A862" stroke-width="2" stroke-linecap="round"/>
-                            <path d="M18 22 L30 8 M42 22 L30 8" stroke="#C9A862" stroke-width="1.5" stroke-linecap="round"/>
-                            <path d="M22 22 L30 52 M38 22 L30 52" stroke="#C9A862" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
-                            <!-- Top-right sparkle -->
-                            <path d="M47 10 L47 16 M44 13 L50 13" stroke="#C9A862" stroke-width="1.8" stroke-linecap="round"/>
-                            <!-- Small sparkle top-left -->
-                            <path d="M13 6 L13 10 M11 8 L15 8" stroke="#C9A862" stroke-width="1.4" stroke-linecap="round"/>
-                            <!-- Tiny dot sparkles -->
-                            <circle cx="50" cy="22" r="1.5" fill="#C9A862"/>
-                            <circle cx="10" cy="18" r="1" fill="#C9A862" opacity="0.7"/>
-                            <circle cx="44" cy="5" r="1" fill="#C9A862" opacity="0.7"/>
+                        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:36px;height:36px;">
+                            <!-- Back bubble: solid dark fill, gold outline, lower opacity -->
+                            <rect x="18" y="20" width="28" height="19" rx="5" ry="5"
+                                fill="#060D18" stroke="#C9A862" stroke-width="1.5" opacity="0.55"/>
+                            <path d="M24 39 L21 44 L29 39" fill="#060D18" stroke="#C9A862" stroke-width="1.5"
+                                stroke-linejoin="round" opacity="0.55"/>
+                            <!-- Front bubble: gold outline only, crisp and modern -->
+                            <rect x="13" y="14" width="28" height="19" rx="5" ry="5"
+                                fill="#0B1628" stroke="#C9A862" stroke-width="1.8"/>
+                            <path d="M33 33 L36 38 L28 33" fill="#0B1628" stroke="#C9A862" stroke-width="1.8"
+                                stroke-linejoin="round"/>
+                            <!-- Three dots inside front bubble -->
+                            <circle cx="22" cy="23.5" r="1.6" fill="#C9A862"/>
+                            <circle cx="27" cy="23.5" r="1.6" fill="#C9A862"/>
+                            <circle cx="32" cy="23.5" r="1.6" fill="#C9A862"/>
                         </svg>
                     </span>
                 </div>
@@ -1753,7 +1950,7 @@
             document.querySelectorAll('.trending-page').forEach(p => p.classList.remove('active'));
             document.getElementById(page).classList.add('active');
             document.querySelectorAll('.bottom-nav-item').forEach(n => n.classList.remove('active'));
-            const map = { home: 0, catalog: 2, vault: 4, portfolio: 5 };
+            const map = { home: 0, trending: 1, catalog: 2, vault: 3, portfolio: 4 };
             if (map[page] !== undefined) document.querySelectorAll('.bottom-nav-item')[map[page]].classList.add('active');
 
             if (page === 'home')      renderHomeFeed();
@@ -2819,6 +3016,7 @@
                     World-Class Interior Designer
                 </div>
             </div>
+            <button onclick="if(confirm('Clear chat history?'))clearAIChat()" style="background:none;border:none;color:rgba(201,169,98,0.45);font-size:11px;cursor:pointer;padding:4px 6px;letter-spacing:0.3px;">Clear</button>
         </div>
 
         <!-- Messages -->
@@ -2881,18 +3079,45 @@ Strict Constraints:
 - NEVER fabricate addresses, phone numbers, or staff names
 - Always position The Billy Living as Nigeria's premier luxury interior design destination`;
 
+        // ── AI Chat Persistence ───────────────────────────────────────────────
+        const AI_STORAGE_KEY = 'tbl_ai_chat_history';
+
+        // Load saved history on startup
         let aiHistory = [];
+        try {
+            const saved = localStorage.getItem(AI_STORAGE_KEY);
+            if (saved) aiHistory = JSON.parse(saved);
+        } catch(e) { aiHistory = []; }
+
+        function saveAIHistory() {
+            try { localStorage.setItem(AI_STORAGE_KEY, JSON.stringify(aiHistory)); } catch(e) {}
+        }
 
         function openAIChat() {
             const el = document.getElementById('aiChatOverlay');
             el.style.display = 'flex';
-            if (document.getElementById('aiMessages').children.length === 0) {
-                setTimeout(() => appendAIMessage('ai', "Welcome. I'm The Billy Living's Principal Designer — your dedicated advisor for creating exceptional luxury spaces in Lagos and Abuja.\n\nWhether you're furnishing a new home in Lekki or reimagining your Abuja residence, I'm here to guide every detail. How can I elevate your space today?"), 300);
+            const msgs = document.getElementById('aiMessages');
+            if (msgs.children.length === 0) {
+                // Restore saved messages to UI
+                if (aiHistory.length > 0) {
+                    aiHistory.forEach(m => appendAIMessage(m.role === 'assistant' ? 'ai' : 'user', m.content));
+                    msgs.scrollTop = msgs.scrollHeight;
+                } else {
+                    setTimeout(() => appendAIMessage('ai', "Welcome. I'm The Billy Living's Principal Designer — your dedicated advisor for creating exceptional luxury spaces in Lagos and Abuja.\n\nWhether you're furnishing a new home in Lekki or reimagining your Abuja residence, I'm here to guide every detail. How can I elevate your space today?"), 300);
+                }
             }
         }
 
         function closeAIChat() {
             document.getElementById('aiChatOverlay').style.display = 'none';
+        }
+
+        function clearAIChat() {
+            aiHistory = [];
+            saveAIHistory();
+            document.getElementById('aiMessages').innerHTML = '';
+            document.getElementById('aiSuggestions').style.display = 'flex';
+            setTimeout(() => appendAIMessage('ai', "Welcome. I'm The Billy Living's Principal Designer — your dedicated advisor for creating exceptional luxury spaces in Lagos and Abuja.\n\nWhether you're furnishing a new home in Lekki or reimagining your Abuja residence, I'm here to guide every detail. How can I elevate your space today?"), 300);
         }
 
         function useAISuggestion(btn) {
@@ -2932,6 +3157,7 @@ Strict Constraints:
 
             appendAIMessage('user', text);
             aiHistory.push({ role: 'user', content: text });
+            saveAIHistory();
 
             document.getElementById('aiTyping').style.display = 'block';
 
@@ -2950,6 +3176,7 @@ Strict Constraints:
                 if (!res.ok) throw new Error(data.error?.message || 'API error ' + res.status);
                 const reply = data.choices?.[0]?.message?.content || 'I apologise — please try again momentarily.';
                 aiHistory.push({ role: 'assistant', content: reply });
+                saveAIHistory();
                 document.getElementById('aiTyping').style.display = 'none';
                 appendAIMessage('ai', reply);
             } catch(e) {
@@ -2957,6 +3184,222 @@ Strict Constraints:
                 appendAIMessage('ai', '⚠️ Error: ' + e.message);
             }
         }
+    </script>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         FIREBASE AUTH — THE GATEKEEPER
+    ════════════════════════════════════════════════════════════════ -->
+    <script>
+        // ── Firebase Config ─────────────────────────────────────────────────────
+        const firebaseConfig = {
+            apiKey:            "AIzaSyBbs6k7PInHUnv1x9FzHB31kUwrCcoGG7c",
+            authDomain:        "the-billy-living.firebaseapp.com",
+            projectId:         "the-billy-living",
+            storageBucket:     "the-billy-living.firebasestorage.app",
+            messagingSenderId: "808519759419",
+            appId:             "1:808519759419:web:5578b49e27079039dc4e1e"
+        };
+
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const fbAuth = firebase.auth();
+
+        // ── Pending signup state ─────────────────────────────────────────────────
+        let pendingSignupData = { name: '', email: '', password: '' };
+
+        // ── LOCAL persistence — stay logged in permanently ───────────────────────
+        fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
+
+        // ── Generate a luxury gold monogram avatar from the user's name ──────────
+        function getLuxuryAvatar(displayName) {
+            const encoded = encodeURIComponent(displayName || 'Guest');
+            return `https://ui-avatars.com/api/?name=${encoded}&background=C9A862&color=060D18&size=200&bold=true&font-size=0.4`;
+        }
+
+        // ── Auth state watcher — the gatekeeper decision ─────────────────────────
+        fbAuth.onAuthStateChanged(user => {
+            if (user) {
+                syncUserToUI(user);
+                hideGatekeeper();
+            }
+        });
+
+        // ── Sync Firebase user to app UI + Concierge ─────────────────────────────
+        function syncUserToUI(user) {
+            const displayName  = user.displayName || '';
+            const avatarUrl    = getLuxuryAvatar(displayName);
+
+            // ① Profile story circle
+            const photo       = document.getElementById('profileStoryPhoto');
+            const defaultIcon = document.getElementById('profileStoryDefault');
+            const label       = document.getElementById('profileStoryLabel');
+            if (photo) {
+                photo.src           = avatarUrl;
+                photo.style.display = 'block';
+            }
+            if (defaultIcon) defaultIcon.style.display = 'none';
+            if (label) label.textContent = displayName.split(' ')[0] || 'Profile';
+
+            // ② Profile panel name field
+            const nameEl = document.getElementById('profileNameInput');
+            if (nameEl && displayName) nameEl.value = displayName;
+
+            // ③ Profile panel avatar image (if it exists in the panel)
+            const panelAvatar = document.getElementById('profileAvatarImg');
+            if (panelAvatar) {
+                panelAvatar.src           = avatarUrl;
+                panelAvatar.style.display = 'block';
+                const ph = document.getElementById('avatarPlaceholder');
+                if (ph) ph.style.display = 'none';
+            }
+
+            // ④ Persist to localStorage so other parts of app can read it
+            const lp  = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
+            lp.name   = displayName;
+            lp.avatar = avatarUrl;
+            lp.email  = user.email || '';
+            localStorage.setItem('tbl_profile', JSON.stringify(lp));
+        }
+
+        // ── Hide gatekeeper with smooth fade ─────────────────────────────────────
+        function hideGatekeeper() {
+            const gate = document.getElementById('gatekeeper');
+            gate.classList.add('hidden');
+            setTimeout(() => gate.style.display = 'none', 650);
+        }
+
+        // ── Tab switch ───────────────────────────────────────────────────────────
+        function switchGateTab(tab) {
+            document.querySelectorAll('.gate-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('gateLogin').style.display  = tab === 'login'  ? 'block' : 'none';
+            document.getElementById('gateSignup').style.display = tab === 'signup' ? 'block' : 'none';
+            document.getElementById('loginError').textContent  = '';
+            document.getElementById('signupError').textContent = '';
+        }
+
+        // ── LOGIN ────────────────────────────────────────────────────────────────
+        async function handleLogin() {
+            const email    = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errEl    = document.getElementById('loginError');
+            const btn      = document.getElementById('loginBtn');
+
+            if (!email || !password) { errEl.textContent = 'Please fill in all fields.'; return; }
+            btn.disabled = true; btn.textContent = 'Entering...';
+            errEl.textContent = '';
+
+            try {
+                await fbAuth.signInWithEmailAndPassword(email, password);
+            } catch(e) {
+                errEl.textContent = friendlyAuthError(e.code);
+                btn.disabled = false; btn.textContent = 'Enter';
+            }
+        }
+
+        // ── SIGN UP Step 1 — collect details ─────────────────────────────────────
+        async function handleSignup() {
+            const name     = document.getElementById('signupName').value.trim();
+            const email    = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value;
+            const errEl    = document.getElementById('signupError');
+            const btn      = document.getElementById('signupBtn');
+
+            if (!name || !email || !password) { errEl.textContent = 'Please fill in all fields.'; return; }
+            if (password.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; return; }
+
+            btn.disabled = true; btn.textContent = 'Continuing...';
+            errEl.textContent = '';
+
+            pendingSignupData = { name, email, password };
+
+            // Show step 2 welcome reveal
+            document.getElementById('gateStep1').style.display = 'none';
+            document.getElementById('gateStep2').style.display = 'block';
+
+            // Show personalised avatar preview
+            const preview = document.getElementById('gatePhotoPreview');
+            preview.src           = getLuxuryAvatar(name);
+            preview.style.display = 'block';
+            document.getElementById('gatePhotoIcon').style.display = 'none';
+
+            // Show their name
+            const nameReveal = document.getElementById('gateNameReveal');
+            if (nameReveal) nameReveal.textContent = name.split(' ')[0];
+
+            btn.disabled = false; btn.textContent = 'Continue →';
+        }
+
+        // ── SIGN UP Step 2 — create Firebase account ─────────────────────────────
+        async function handleFinishSignup() {
+            const { name, email, password } = pendingSignupData;
+            const errEl = document.getElementById('photoError');
+            const btn   = document.getElementById('finishBtn');
+
+            btn.disabled = true; btn.textContent = 'Creating your account...';
+            errEl.textContent = '';
+
+            try {
+                const cred = await fbAuth.createUserWithEmailAndPassword(email, password);
+                const user = cred.user;
+
+                // Set displayName — photoURL is the auto-generated monogram
+                await user.updateProfile({
+                    displayName: name,
+                    photoURL:    getLuxuryAvatar(name)
+                });
+
+                // onAuthStateChanged fires → syncUserToUI → hideGatekeeper
+
+            } catch(e) {
+                errEl.textContent = friendlyAuthError(e.code);
+                btn.disabled = false; btn.textContent = 'Enter The Billy Living';
+            }
+        }
+
+        // ── Sign out ─────────────────────────────────────────────────────────────
+        function signOut() {
+            if (!confirm('Sign out of The Billy Living?')) return;
+            fbAuth.signOut().then(() => {
+                const gate = document.getElementById('gatekeeper');
+                gate.style.display = 'flex';
+                gate.style.opacity = '1';
+                gate.classList.remove('hidden');
+                document.getElementById('gateStep1').style.display = 'block';
+                document.getElementById('gateStep2').style.display = 'none';
+                document.getElementById('loginEmail').value    = '';
+                document.getElementById('loginPassword').value = '';
+                document.getElementById('loginBtn').disabled   = false;
+                document.getElementById('loginBtn').textContent = 'Enter';
+                closeProfile();
+            });
+        }
+
+        // ── Friendly Firebase error messages ─────────────────────────────────────
+        function friendlyAuthError(code) {
+            const map = {
+                'auth/user-not-found':         'No account found with this email.',
+                'auth/wrong-password':         'Incorrect password. Please try again.',
+                'auth/invalid-credential':     'Incorrect email or password.',
+                'auth/email-already-in-use':   'This email is already registered. Please sign in.',
+                'auth/invalid-email':          'Please enter a valid email address.',
+                'auth/weak-password':          'Password must be at least 6 characters.',
+                'auth/too-many-requests':      'Too many attempts. Please wait a moment.',
+                'auth/network-request-failed': 'No connection. Please check your internet.',
+            };
+            return map[code] || 'Something went wrong. Please try again.';
+        }
+
+        // ── Enter key support ────────────────────────────────────────────────────
+        document.addEventListener('keydown', e => {
+            if (e.key !== 'Enter') return;
+            const gate = document.getElementById('gatekeeper');
+            if (!gate || gate.style.display === 'none') return;
+            if (document.getElementById('gateStep2').style.display === 'block') {
+                handleFinishSignup(); return;
+            }
+            const loginVisible = document.getElementById('gateLogin').style.display !== 'none';
+            if (loginVisible) handleLogin(); else handleSignup();
+        });
     </script>
 </body>
 </html>
