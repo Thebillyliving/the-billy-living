@@ -2406,7 +2406,16 @@
             if (avatar && avatar !== window.location.href) profile.avatar = avatar;
             localStorage.setItem('tbl_profile', JSON.stringify(profile));
 
-            // Hide save button again
+            // Save to Firebase so admin can see it
+            const user = fbAuth.currentUser;
+            if (user) {
+                const update = { name: name || user.displayName || '', email: user.email || '' };
+                if (residence) update.residence = residence;
+                if (mobile)    update.mobile    = mobile;
+                if (measure)   update.measure   = measure;
+                fbDB.ref(`userProfiles/${user.uid}`).update(update);
+            }
+
             const btn = document.getElementById('saveProfileBtn');
             if (btn) btn.style.display = 'none';
             showToast('Profile updated');
@@ -2535,7 +2544,7 @@
             document.getElementById('vault-error').style.display = 'none';
         }
 
-        // ─── FIX: Vault — check against admin-registered VIP users ──────────────
+        // ─── FIX: Vault — check against Firebase VIP list ───────────────────────
         function handleVaultUnlock() {
             const pin      = document.getElementById('vault-pin').value.trim();
             const phone    = document.getElementById('vault-phone').value.trim();
@@ -2543,55 +2552,77 @@
             const errorEl  = document.getElementById('vault-error');
             const btn      = document.getElementById('vault-btn');
 
+            if (!pin || !phone) {
+                errorEl.style.display = 'block';
+                return;
+            }
+
             const normalizedPhone = phone.replace(/^\+234/, '').replace(/^0/, '');
 
-            const vips    = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
-            const matched = vips.find(v => {
-                const vPhoneNormalized = (v.phone || '').replace(/^\+234/, '').replace(/^0/, '');
-                const vPhoneWithPrefix = v.phone?.startsWith('+234') ? v.phone : '+234' + v.phone;
-                const inputWithPrefix  = phone.startsWith('+234') ? phone : '+234' + normalizedPhone;
-                return v.password === pin &&
-                    (vPhoneNormalized === normalizedPhone ||
-                     v.phone === phone ||
-                     vPhoneWithPrefix === inputWithPrefix ||
-                     v.phone === '0' + normalizedPhone) &&
-                    v.status === 'active';
-            });
+            btn.textContent = 'CHECKING…';
+            btn.style.opacity = '0.6';
 
-            if (matched) {
-                const profile = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
-                profile.isVIP    = true;
-                profile.vipName  = matched.name;
-                profile.vipPhone = matched.phone;
-                localStorage.setItem('tbl_profile', JSON.stringify(profile));
-                localStorage.setItem('isVaultUnlocked', 'true');
-                localStorage.setItem('currentVIPName', matched.name || '');
+            // Check Firebase first, fall back to localStorage
+            fbDB.ref('vip').once('value').then(snap => {
+                const firebaseVIPs = snap.val() || {};
+                let matched = null;
 
-                btn.textContent = '✦ GRANTED';
-                btn.style.opacity = '0.6';
-                btn.style.pointerEvents = 'none';
-                showToast('Welcome to The Inner Circle, ' + (matched.name || ''));
-                toggleVIPStatus(true);
-                const loginForm    = document.getElementById('vault-login-form');
-                const successState = document.getElementById('vault-success-state');
-                loginForm.style.opacity = '0';
-                setTimeout(() => {
-                    loginForm.style.display = 'none';
-                    successState.style.display = 'flex';
-                    successState.style.opacity = '0';
-                    requestAnimationFrame(() => requestAnimationFrame(() => { successState.style.opacity = '1'; }));
-                }, 500);
-            } else {
-                pinInput.classList.add('input-error');
+                // Check all Firebase VIP entries
+                Object.values(firebaseVIPs).forEach(v => {
+                    const vNorm = (v.phone || '').replace(/^\+234/, '').replace(/^0/, '');
+                    if (vNorm === normalizedPhone && v.password === pin && v.status === 'active') {
+                        matched = v;
+                    }
+                });
+
+                // Fall back to localStorage if Firebase empty
+                if (!matched) {
+                    const localVIPs = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
+                    matched = localVIPs.find(v => {
+                        const vNorm = (v.phone || '').replace(/^\+234/, '').replace(/^0/, '');
+                        return vNorm === normalizedPhone && v.password === pin && v.status === 'active';
+                    });
+                }
+
+                if (matched) {
+                    const profile = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
+                    profile.isVIP    = true;
+                    profile.vipName  = matched.name;
+                    profile.vipPhone = matched.phone;
+                    localStorage.setItem('tbl_profile', JSON.stringify(profile));
+                    localStorage.setItem('isVaultUnlocked', 'true');
+                    localStorage.setItem('currentVIPName', matched.name || '');
+
+                    btn.textContent = '✦ GRANTED';
+                    btn.style.pointerEvents = 'none';
+                    showToast('Welcome to The Inner Circle, ' + (matched.name || ''));
+                    toggleVIPStatus(true);
+                    const loginForm    = document.getElementById('vault-login-form');
+                    const successState = document.getElementById('vault-success-state');
+                    loginForm.style.opacity = '0';
+                    setTimeout(() => {
+                        loginForm.style.display = 'none';
+                        successState.style.display = 'flex';
+                        successState.style.opacity = '0';
+                        requestAnimationFrame(() => requestAnimationFrame(() => { successState.style.opacity = '1'; }));
+                    }, 500);
+                } else {
+                    btn.textContent = 'UNLOCK';
+                    btn.style.opacity = '1';
+                    pinInput.classList.add('input-error');
+                    errorEl.style.display = 'block';
+                    pinInput.style.transform = 'translateX(-7px)';
+                    setTimeout(() => { pinInput.style.transform = 'translateX(7px)';  }, 80);
+                    setTimeout(() => { pinInput.style.transform = 'translateX(-4px)'; }, 160);
+                    setTimeout(() => { pinInput.style.transform = 'translateX(4px)';  }, 220);
+                    setTimeout(() => { pinInput.style.transform = 'translateX(0)';    }, 290);
+                }
+            }).catch(() => {
+                // Firebase failed — fall back to localStorage only
+                btn.textContent = 'UNLOCK';
+                btn.style.opacity = '1';
                 errorEl.style.display = 'block';
-                pinInput.style.transform = 'translateX(-7px)';
-                setTimeout(() => { pinInput.style.transform = 'translateX(7px)';  }, 80);
-                setTimeout(() => { pinInput.style.transform = 'translateX(-4px)'; }, 160);
-                setTimeout(() => { pinInput.style.transform = 'translateX(4px)';  }, 220);
-                setTimeout(() => { pinInput.style.transform = 'translateX(0)';    }, 290);
-                pinInput.value = '';
-                pinInput.focus();
-            }
+            });
         }
 
         function handleVaultLogout() {
