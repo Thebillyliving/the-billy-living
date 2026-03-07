@@ -262,6 +262,14 @@
             animation: fadeIn 0.3s ease;
         }
 
+        #panel-vaultmgr.active {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+            padding: 0;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -988,6 +996,85 @@
         .port-grid-item img { width:100%; height:100%; object-fit:cover; }
         .port-grid-item-label { position:absolute; bottom:0; left:0; right:0; padding:6px 8px; background:linear-gradient(transparent,rgba(0,0,0,0.8)); font-size:10px; color:rgba(255,255,255,0.8); font-family:'Cormorant Garamond',serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .port-empty { text-align:center; padding:60px 20px; color:rgba(168,155,140,0.4); }
+        /* ── Vault Manager ─────────────────────────────────────────── */
+        :root {
+            --vault-gold: #D4AF37;
+            --vault-gold-dim: rgba(212,175,55,0.15);
+            --vault-gold-border: rgba(212,175,55,0.2);
+            --vault-bg: #0E0B06;
+            --vault-card: #141008;
+            --vault-text: #E8D9B5;
+        }
+
+        .vm-header { padding: 28px 24px 20px; border-bottom: 1px solid var(--vault-gold-border); }
+        .vm-eyebrow { font-size: 9px; letter-spacing: 5px; color: rgba(212,175,55,0.4); text-transform: uppercase; margin-bottom: 6px; }
+        .vm-title { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 600; color: var(--vault-text); margin-bottom: 20px; }
+
+        .vm-action-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .vm-btn { padding: 10px 18px; border-radius: 8px; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+        .vm-btn-primary { background: var(--vault-gold); color: #0A0700; border: none; }
+        .vm-btn-primary:hover { background: #e8c440; transform: translateY(-1px); }
+        .vm-btn-outline { background: none; border: 1px solid var(--vault-gold-border); color: rgba(212,175,55,0.7); }
+        .vm-btn-outline:hover { border-color: var(--vault-gold); color: var(--vault-gold); }
+        .vm-btn-active { background: var(--vault-gold-dim); border: 1px solid var(--vault-gold); color: var(--vault-gold); }
+
+        /* Client list */
+        .vm-section-title { font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: rgba(212,175,55,0.35); padding: 22px 24px 12px; border-bottom: 1px solid var(--vault-gold-border); }
+        .vm-client-item { display: flex; align-items: center; gap: 14px; padding: 16px 24px; border-bottom: 1px solid rgba(212,175,55,0.06); cursor: pointer; transition: background 0.2s; }
+        .vm-client-item:hover { background: rgba(212,175,55,0.04); }
+        .vm-client-av { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg,#D4AF37,#8B6914); display: flex; align-items: center; justify-content: center; font-weight: 700; font-family: 'Cormorant Garamond',serif; font-size: 16px; color: #0A0700; flex-shrink: 0; border: 1px solid rgba(212,175,55,0.3); }
+        .vm-client-info { flex: 1; }
+        .vm-client-name { font-size: 14px; font-weight: 600; color: var(--vault-text); margin-bottom: 2px; }
+        .vm-client-sub { font-size: 11px; color: rgba(212,175,55,0.35); letter-spacing: 1px; }
+        .vm-client-chevron { color: rgba(212,175,55,0.25); font-size: 20px; }
+
+        /* Asset cards — library / defaults */
+        .vm-asset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 16px; padding: 20px 24px; }
+        .vm-asset-card { background: var(--vault-card); border: 1px solid var(--vault-gold-border); border-radius: 12px; overflow: hidden; transition: all 0.25s; cursor: pointer; position: relative; }
+        .vm-asset-card:hover { border-color: var(--vault-gold); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(212,175,55,0.1); }
+        .vm-asset-thumb { width: 100%; aspect-ratio: 16/9; object-fit: cover; background: #1A1408; display: flex; align-items: center; justify-content: center; font-size: 36px; }
+        .vm-asset-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .vm-asset-body { padding: 14px; }
+        .vm-asset-cat { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--vault-gold); margin-bottom: 6px; }
+        .vm-asset-title { font-family: 'Cormorant Garamond',serif; font-size: 17px; font-weight: 600; color: var(--vault-text); margin-bottom: 4px; line-height: 1.3; }
+        .vm-asset-desc { font-size: 11px; color: rgba(232,217,181,0.45); line-height: 1.5; }
+        .vm-asset-actions { display: flex; gap: 8px; padding: 0 14px 14px; }
+        .vm-asset-btn { flex: 1; padding: 7px; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; border-radius: 6px; cursor: pointer; transition: all 0.2s; text-align: center; }
+        .vm-asset-btn-add { background: var(--vault-gold-dim); border: 1px solid var(--vault-gold-border); color: var(--vault-gold); }
+        .vm-asset-btn-add:hover { background: var(--vault-gold); color: #0A0700; }
+        .vm-asset-btn-del { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: rgba(239,68,68,0.6); }
+        .vm-asset-btn-del:hover { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .vm-default-badge { position: absolute; top: 10px; left: 10px; background: var(--vault-gold); color: #0A0700; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; font-weight: 700; }
+
+        /* Client POV */
+        .vm-pov-header { display: flex; align-items: center; gap: 14px; padding: 20px 24px; border-bottom: 1px solid var(--vault-gold-border); flex-shrink: 0; }
+        .vm-pov-sync { margin-left: auto; padding: 10px 20px; background: var(--vault-gold); color: #0A0700; border: none; border-radius: 8px; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .vm-pov-sync:hover { background: #e8c440; transform: translateY(-1px); }
+
+        /* Form modal override for vault */
+        .vm-form { display: flex; flex-direction: column; gap: 16px; padding: 24px; }
+        .vm-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .vm-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(212,175,55,0.5); margin-bottom: 6px; }
+        .vm-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--vault-gold-border); border-radius: 8px; padding: 12px 14px; color: var(--vault-text); font-size: 14px; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
+        .vm-input:focus { border-color: var(--vault-gold); }
+        .vm-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23D4AF37' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; }
+
+        /* Empty state */
+        .vm-empty { text-align: center; padding: 80px 32px; }
+        .vm-empty-ornament { font-size: 48px; margin-bottom: 20px; opacity: 0.3; }
+        .vm-empty-title { font-family: 'Cormorant Garamond',serif; font-size: 22px; color: rgba(232,217,181,0.5); margin-bottom: 10px; font-style: italic; }
+        .vm-empty-sub { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(212,175,55,0.25); }
+
+        /* Wainscoting border effect on cards */
+        .vm-asset-card::before { content: ''; position: absolute; inset: 5px; border: 1px solid rgba(212,175,55,0.06); border-radius: 8px; pointer-events: none; }
+
+        /* Asset detail overlay */
+        .vm-detail-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; flex-direction: column; }
+        .vm-detail-overlay.active { display: flex; }
+        .vm-detail-header { display: flex; align-items: center; gap: 14px; padding: 20px 24px; border-bottom: 1px solid var(--vault-gold-border); flex-shrink: 0; }
+        .vm-detail-back { background: none; border: 1px solid var(--vault-gold-border); color: rgba(212,175,55,0.6); border-radius: 8px; padding: 8px 14px; font-size: 12px; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; }
+        .vm-detail-body { flex: 1; overflow-y: auto; padding: 32px 24px; display: flex; flex-direction: column; align-items: center; }
+
     </style>
     <!-- Firebase compat SDK (works without bundler) -->
 
@@ -1078,6 +1165,16 @@
                 </span>
                 <span>VIP Manager</span>
                 <span class="nav-badge" id="vipBadge">0</span>
+            </div>
+            <div class="nav-item" onclick="showPanel('vaultmgr', this)">
+                <span class="nav-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="3" y="11" width="18" height="11" rx="2"/>
+                        <path d="M7 11V7a5 5 0 0110 0v4"/>
+                        <circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/>
+                    </svg>
+                </span>
+                <span>Vault Manager</span>
             </div>
             <div class="nav-item" onclick="showPanel('messages', this)">
                 <span class="nav-icon">
@@ -1252,6 +1349,119 @@
             </div>
             <h3 style="margin: 32px 0 16px; color: var(--gold);">Registered VIPs</h3>
             <div class="vip-grid" id="vipGrid"></div>
+        </div>
+
+        <!-- Vault Manager Panel -->
+        <div class="panel" id="panel-vaultmgr" style="padding:0;display:none;flex-direction:column;height:100%;overflow:hidden;">
+
+            <!-- View 1: Main (client list + action buttons) -->
+            <div id="vmMainView" style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
+                <div class="vm-header">
+                    <div class="vm-eyebrow">Billy Living · Private</div>
+                    <div class="vm-title">Vault Control Centre</div>
+                    <div class="vm-action-row">
+                        <button class="vm-btn vm-btn-primary" onclick="vmOpenCreateForm()">+ Create New Asset</button>
+                        <button class="vm-btn vm-btn-outline" id="vmLibBtn" onclick="vmShowView('library')">Vault Library</button>
+                        <button class="vm-btn vm-btn-outline" id="vmDefBtn" onclick="vmShowView('defaults')">Default Contents</button>
+                    </div>
+                </div>
+                <div class="vm-section-title">VIP Client Vaults</div>
+                <div id="vmClientList" style="overflow-y:auto;flex:1;"></div>
+            </div>
+
+            <!-- View 2: Vault Library -->
+            <div id="vmLibraryView" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
+                <div class="vm-pov-header">
+                    <button class="vm-detail-back" onclick="vmShowView('main')">← Back</button>
+                    <div>
+                        <div class="vm-eyebrow">Master Assets</div>
+                        <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--vault-text);">Vault Library</div>
+                    </div>
+                    <button class="vm-pov-sync" onclick="vmOpenCreateForm()">+ Add Asset</button>
+                </div>
+                <div id="vmLibraryGrid" class="vm-asset-grid" style="overflow-y:auto;flex:1;"></div>
+            </div>
+
+            <!-- View 3: Default Contents -->
+            <div id="vmDefaultsView" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
+                <div class="vm-pov-header">
+                    <button class="vm-detail-back" onclick="vmShowView('main')">← Back</button>
+                    <div>
+                        <div class="vm-eyebrow">Sent to all new VIPs</div>
+                        <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--vault-text);">Default Contents</div>
+                    </div>
+                </div>
+                <div style="padding:16px 24px;border-bottom:1px solid var(--vault-gold-border);font-size:12px;color:rgba(212,175,55,0.4);">Assets marked as Default are automatically synced into every VIP client's vault.</div>
+                <div id="vmDefaultsGrid" class="vm-asset-grid" style="overflow-y:auto;flex:1;"></div>
+            </div>
+
+            <!-- View 4: Client POV -->
+            <div id="vmClientPOV" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
+                <div class="vm-pov-header">
+                    <button class="vm-detail-back" onclick="vmShowView('main')">← All Clients</button>
+                    <div class="vm-client-av" id="vmPOVAv" style="width:40px;height:40px;font-size:15px;">?</div>
+                    <div>
+                        <div style="font-size:15px;font-weight:600;color:var(--vault-text);" id="vmPOVName">Client</div>
+                        <div style="font-size:11px;color:rgba(212,175,55,0.35);letter-spacing:1px;" id="vmPOVSub">0 vault items</div>
+                    </div>
+                    <button class="vm-pov-sync" onclick="vmSyncDefaults()">↓ Sync Defaults</button>
+                </div>
+                <div id="vmPOVGrid" class="vm-asset-grid" style="overflow-y:auto;flex:1;"></div>
+            </div>
+        </div>
+
+        <!-- Vault Create/Edit Form Modal -->
+        <div id="vmFormModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:4000;align-items:center;justify-content:center;">
+            <div style="background:#0E0B06;border:1px solid rgba(212,175,55,0.2);border-radius:16px;width:min(560px,94vw);max-height:90vh;overflow-y:auto;">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid rgba(212,175,55,0.1);">
+                    <div>
+                        <div class="vm-eyebrow">Vault Manager</div>
+                        <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:#E8D9B5;" id="vmFormTitle">New Vault Asset</div>
+                    </div>
+                    <button onclick="vmCloseForm()" style="background:none;border:1px solid rgba(212,175,55,0.2);color:rgba(212,175,55,0.5);border-radius:8px;width:36px;height:36px;cursor:pointer;font-size:18px;">×</button>
+                </div>
+                <div class="vm-form">
+                    <input type="hidden" id="vmEditId">
+                    <div>
+                        <div class="vm-label">Title</div>
+                        <input class="vm-input" id="vmFTitle" placeholder="e.g. Living Room Concept A">
+                    </div>
+                    <div>
+                        <div class="vm-label">Description</div>
+                        <textarea class="vm-input" id="vmFDesc" rows="3" placeholder="Brief description of this asset…" style="resize:vertical;"></textarea>
+                    </div>
+                    <div class="vm-form-row">
+                        <div>
+                            <div class="vm-label">Category</div>
+                            <select class="vm-input vm-select" id="vmFCat">
+                                <option value="3D Render">3D Render</option>
+                                <option value="Document">Document</option>
+                                <option value="Video">Video</option>
+                                <option value="Moodboard">Moodboard</option>
+                            </select>
+                        </div>
+                        <div>
+                            <div class="vm-label">Set as Global Default</div>
+                            <select class="vm-input vm-select" id="vmFDefault">
+                                <option value="no">No</option>
+                                <option value="yes">Yes — send to all VIPs</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="vm-label">Asset URL (walkthrough / document / video link)</div>
+                        <input class="vm-input" id="vmFUrl" placeholder="https://…">
+                    </div>
+                    <div>
+                        <div class="vm-label">Thumbnail URL</div>
+                        <input class="vm-input" id="vmFThumb" placeholder="https://…">
+                    </div>
+                    <div style="display:flex;gap:12px;padding-top:8px;">
+                        <button onclick="vmSaveAsset()" style="flex:1;padding:14px;background:#D4AF37;color:#0A0700;border:none;border-radius:8px;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:700;cursor:pointer;">Save Asset</button>
+                        <button onclick="vmCloseForm()" style="padding:14px 20px;background:none;border:1px solid rgba(212,175,55,0.2);color:rgba(212,175,55,0.5);border-radius:8px;font-size:12px;cursor:pointer;">Cancel</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Settings Panel -->
@@ -2856,6 +3066,9 @@
             if (name === 'portfolio') {
                 loadPortfolioUsers();
             }
+            if (name === 'vaultmgr') {
+                vmInit();
+            }
         };
 
         // ── Portfolio Analytics ──────────────────────────────────────────────────
@@ -2945,6 +3158,322 @@
             document.getElementById('portfolioUsersView').style.display = 'block';
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // VAULT MANAGER
+        // ═══════════════════════════════════════════════════════════════════
+        let vmCurrentClientUID  = null;
+        let vmCurrentClientName = null;
+
+        function vmInit() {
+            vmShowView('main');
+            vmLoadClientList();
+        }
+
+        function vmShowView(view) {
+            ['vmMainView','vmLibraryView','vmDefaultsView','vmClientPOV'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+            const map = { main:'vmMainView', library:'vmLibraryView', defaults:'vmDefaultsView', pov:'vmClientPOV' };
+            const target = document.getElementById(map[view]);
+            if (target) target.style.display = 'flex';
+
+            if (view === 'library')  vmRenderLibrary();
+            if (view === 'defaults') vmRenderDefaults();
+        }
+
+        // ── Firebase helpers ─────────────────────────────────────────────
+        function vmRef(path) { return adminFbDB.ref('vault/' + path); }
+
+        // ── Client list ──────────────────────────────────────────────────
+        function vmLoadClientList() {
+            const list = document.getElementById('vmClientList');
+            list.innerHTML = `<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">Loading clients…</div></div>`;
+
+            // Load VIP users from Firebase
+            adminFbDB.ref('vip').once('value').then(snap => {
+                const vips = Object.values(snap.val() || {});
+                if (!vips.length) {
+                    list.innerHTML = `<div class="vm-empty">
+                        <div class="vm-empty-ornament">◆</div>
+                        <div class="vm-empty-title">No VIP clients registered yet</div>
+                        <div class="vm-empty-sub">Add clients in VIP Manager first</div>
+                    </div>`;
+                    return;
+                }
+                list.innerHTML = vips.map(v => {
+                    const name = v.name || 'Client';
+                    const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+                    return `<div class="vm-client-item" onclick="vmOpenClientPOV('${escHtml(v.id||v.phone)}','${escHtml(name)}','${escHtml(v.phone)}')">
+                        <div class="vm-client-av">${initials}</div>
+                        <div class="vm-client-info">
+                            <div class="vm-client-name">${escHtml(name)}</div>
+                            <div class="vm-client-sub">+234 ${escHtml(v.phone)} · VIP</div>
+                        </div>
+                        <span class="vm-client-chevron">›</span>
+                    </div>`;
+                }).join('');
+            });
+        }
+
+        // ── Create / Edit form ───────────────────────────────────────────
+        function vmOpenCreateForm(assetId) {
+            document.getElementById('vmEditId').value    = assetId || '';
+            document.getElementById('vmFTitle').value    = '';
+            document.getElementById('vmFDesc').value     = '';
+            document.getElementById('vmFCat').value      = '3D Render';
+            document.getElementById('vmFDefault').value  = 'no';
+            document.getElementById('vmFUrl').value      = '';
+            document.getElementById('vmFThumb').value    = '';
+            document.getElementById('vmFormTitle').textContent = assetId ? 'Edit Asset' : 'New Vault Asset';
+
+            if (assetId) {
+                vmRef('assets/' + assetId).once('value').then(snap => {
+                    const a = snap.val() || {};
+                    document.getElementById('vmFTitle').value   = a.title   || '';
+                    document.getElementById('vmFDesc').value    = a.desc    || '';
+                    document.getElementById('vmFCat').value     = a.cat     || '3D Render';
+                    document.getElementById('vmFDefault').value = a.isDefault ? 'yes' : 'no';
+                    document.getElementById('vmFUrl').value     = a.url     || '';
+                    document.getElementById('vmFThumb').value   = a.thumb   || '';
+                });
+            }
+            const modal = document.getElementById('vmFormModal');
+            modal.style.display = 'flex';
+        }
+
+        function vmCloseForm() {
+            document.getElementById('vmFormModal').style.display = 'none';
+        }
+
+        function vmSaveAsset() {
+            const editId    = document.getElementById('vmEditId').value;
+            const title     = document.getElementById('vmFTitle').value.trim();
+            const desc      = document.getElementById('vmFDesc').value.trim();
+            const cat       = document.getElementById('vmFCat').value;
+            const isDefault = document.getElementById('vmFDefault').value === 'yes';
+            const url       = document.getElementById('vmFUrl').value.trim();
+            const thumb     = document.getElementById('vmFThumb').value.trim();
+
+            if (!title) { showToast('Please enter a title'); return; }
+
+            const id   = editId || 'asset_' + Date.now();
+            const data = { id, title, desc, cat, isDefault, url, thumb, createdAt: editId ? undefined : Date.now() };
+
+            vmRef('assets/' + id).update(data).then(() => {
+                // If default, also push to defaults collection
+                if (isDefault) {
+                    vmRef('defaults/' + id).set(data);
+                } else {
+                    vmRef('defaults/' + id).remove();
+                }
+                vmCloseForm();
+                showToast(editId ? 'Asset updated' : 'Asset created ✦');
+                vmRenderLibrary();
+            });
+        }
+
+        function vmDeleteAsset(id) {
+            if (!confirm('Delete this asset from the library?')) return;
+            vmRef('assets/' + id).remove();
+            vmRef('defaults/' + id).remove();
+            showToast('Asset removed');
+            vmRenderLibrary();
+        }
+
+        function vmToggleDefault(id, currently) {
+            const newVal = !currently;
+            vmRef('assets/' + id + '/isDefault').set(newVal);
+            if (newVal) {
+                vmRef('assets/' + id).once('value').then(s => {
+                    if (s.val()) vmRef('defaults/' + id).set(s.val());
+                });
+                showToast('Added to Default Contents');
+            } else {
+                vmRef('defaults/' + id).remove();
+                showToast('Removed from Default Contents');
+            }
+            setTimeout(() => vmRenderLibrary(), 400);
+        }
+
+        // ── Library view ─────────────────────────────────────────────────
+        function vmRenderLibrary() {
+            const grid = document.getElementById('vmLibraryGrid');
+            grid.innerHTML = `<div style="grid-column:1/-1" class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">Loading…</div></div>`;
+            vmRef('assets').once('value').then(snap => {
+                const assets = Object.values(snap.val() || {});
+                if (!assets.length) {
+                    grid.innerHTML = `<div style="grid-column:1/-1" class="vm-empty">
+                        <div class="vm-empty-ornament">🖼</div>
+                        <div class="vm-empty-title">No assets yet</div>
+                        <div class="vm-empty-sub">Create your first vault asset above</div>
+                    </div>`;
+                    return;
+                }
+                grid.innerHTML = assets.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).map(a => vmAssetCard(a, 'library')).join('');
+            });
+        }
+
+        // ── Defaults view ────────────────────────────────────────────────
+        function vmRenderDefaults() {
+            const grid = document.getElementById('vmDefaultsGrid');
+            grid.innerHTML = `<div style="grid-column:1/-1" class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">Loading…</div></div>`;
+            vmRef('defaults').once('value').then(snap => {
+                const assets = Object.values(snap.val() || {});
+                if (!assets.length) {
+                    grid.innerHTML = `<div style="grid-column:1/-1" class="vm-empty">
+                        <div class="vm-empty-ornament">◇</div>
+                        <div class="vm-empty-title">No defaults set</div>
+                        <div class="vm-empty-sub">Mark assets as "Global Default" when creating them</div>
+                    </div>`;
+                    return;
+                }
+                grid.innerHTML = assets.map(a => vmAssetCard(a, 'defaults')).join('');
+            });
+        }
+
+        // ── Client POV ───────────────────────────────────────────────────
+        function vmOpenClientPOV(uid, name, phone) {
+            vmCurrentClientUID  = uid;
+            vmCurrentClientName = name;
+            const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+            document.getElementById('vmPOVAv').textContent   = initials;
+            document.getElementById('vmPOVName').textContent = name;
+            vmShowView('pov');
+            vmLoadPOVGrid(uid);
+        }
+
+        function vmLoadPOVGrid(uid) {
+            const grid = document.getElementById('vmPOVGrid');
+            grid.innerHTML = `<div style="grid-column:1/-1" class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">Loading…</div></div>`;
+            vmRef('clients/' + uid).once('value').then(snap => {
+                const assets = Object.values(snap.val() || {});
+                document.getElementById('vmPOVSub').textContent = assets.length + ' vault item' + (assets.length!==1?'s':'');
+                if (!assets.length) {
+                    grid.innerHTML = `<div style="grid-column:1/-1" class="vm-empty">
+                        <div class="vm-empty-ornament">◇</div>
+                        <div class="vm-empty-title" style="font-style:italic;">This client's vault is empty</div>
+                        <div class="vm-empty-sub">Use Sync Defaults or add assets from the Library</div>
+                    </div>`;
+                    return;
+                }
+                grid.innerHTML = assets.map(a => vmAssetCard(a, 'pov')).join('');
+            });
+        }
+
+        function vmSyncDefaults() {
+            if (!vmCurrentClientUID) return;
+            vmRef('defaults').once('value').then(snap => {
+                const defaults = snap.val() || {};
+                const count = Object.keys(defaults).length;
+                if (!count) { showToast('No defaults set yet'); return; }
+                const updates = {};
+                Object.entries(defaults).forEach(([id, asset]) => {
+                    updates['vault/clients/' + vmCurrentClientUID + '/' + id] = asset;
+                });
+                adminFbDB.ref().update(updates).then(() => {
+                    showToast('✦ ' + count + ' default asset' + (count!==1?'s':'') + ' synced');
+                    vmLoadPOVGrid(vmCurrentClientUID);
+                });
+            });
+        }
+
+        function vmRemoveFromClient(assetId) {
+            if (!vmCurrentClientUID) return;
+            vmRef('clients/' + vmCurrentClientUID + '/' + assetId).remove().then(() => {
+                showToast('Asset removed from vault');
+                vmLoadPOVGrid(vmCurrentClientUID);
+            });
+        }
+
+        function vmAddToClient(assetId) {
+            if (!vmCurrentClientUID) return;
+            vmRef('assets/' + assetId).once('value').then(snap => {
+                const asset = snap.val();
+                if (!asset) return;
+                vmRef('clients/' + vmCurrentClientUID + '/' + assetId).set(asset).then(() => {
+                    showToast('Asset added to ' + vmCurrentClientName + '\'s vault');
+                    vmLoadPOVGrid(vmCurrentClientUID);
+                });
+            });
+        }
+
+        // ── Card renderer ────────────────────────────────────────────────
+        const vmCatEmoji = { '3D Render':'🏛', 'Document':'📄', 'Video':'🎬', 'Moodboard':'🎨' };
+
+        function vmAssetCard(a, mode) {
+            const emoji = vmCatEmoji[a.cat] || '◆';
+            const thumbHTML = a.thumb
+                ? `<div class="vm-asset-thumb"><img src="${escHtml(a.thumb)}" onerror="this.parentNode.innerHTML='<span style=font-size:36px>${emoji}</span>'"></div>`
+                : `<div class="vm-asset-thumb" style="font-size:36px;">${emoji}</div>`;
+            const defaultBadge = a.isDefault ? `<div class="vm-default-badge">Default</div>` : '';
+
+            let actions = '';
+            if (mode === 'library') {
+                actions = `<div class="vm-asset-actions">
+                    <button class="vm-asset-btn vm-asset-btn-add" onclick="vmToggleDefault('${a.id}',${!!a.isDefault})">${a.isDefault ? '★ Remove Default' : '☆ Set Default'}</button>
+                    <button class="vm-asset-btn vm-asset-btn-del" onclick="vmDeleteAsset('${a.id}')">Delete</button>
+                </div>`;
+            } else if (mode === 'pov') {
+                actions = `<div class="vm-asset-actions">
+                    <button class="vm-asset-btn vm-asset-btn-del" onclick="vmRemoveFromClient('${a.id}')">Remove</button>
+                </div>`;
+            } else if (mode === 'defaults') {
+                actions = `<div class="vm-asset-actions">
+                    <button class="vm-asset-btn vm-asset-btn-del" onclick="vmToggleDefault('${a.id}',true)">Remove Default</button>
+                </div>`;
+            }
+
+            const clickable = a.url ? `onclick="vmOpenDetail('${a.id}')"` : '';
+
+            return `<div class="vm-asset-card" ${clickable}>
+                ${defaultBadge}
+                ${thumbHTML}
+                <div class="vm-asset-body">
+                    <div class="vm-asset-cat">${escHtml(a.cat||'')}</div>
+                    <div class="vm-asset-title">${escHtml(a.title||'Untitled')}</div>
+                    ${a.desc ? `<div class="vm-asset-desc">${escHtml(a.desc)}</div>` : ''}
+                </div>
+                ${actions}
+            </div>`;
+        }
+
+        // ── Asset detail view ─────────────────────────────────────────────
+        function vmOpenDetail(assetId) {
+            vmRef('assets/' + assetId).once('value').then(snap => {
+                let a = snap.val();
+                // Fall back to client vault if not in assets
+                if (!a && vmCurrentClientUID) {
+                    vmRef('clients/' + vmCurrentClientUID + '/' + assetId).once('value').then(s => {
+                        vmShowDetail(s.val());
+                    });
+                    return;
+                }
+                vmShowDetail(a);
+            });
+        }
+
+        function vmShowDetail(a) {
+            if (!a) return;
+            const emoji = vmCatEmoji[a.cat] || '◆';
+            const overlay = document.getElementById('vmDetailOverlay');
+            overlay.classList.add('active');
+            document.getElementById('vmDetailContent').innerHTML = `
+                <div style="max-width:700px;width:100%;text-align:left;">
+                    <div style="font-size:9px;letter-spacing:4px;text-transform:uppercase;color:rgba(212,175,55,0.4);margin-bottom:8px;">${escHtml(a.cat||'')}</div>
+                    <div style="font-family:'Cormorant Garamond',serif;font-size:32px;color:#E8D9B5;margin-bottom:12px;">${escHtml(a.title||'')}</div>
+                    ${a.desc ? `<div style="font-size:14px;color:rgba(232,217,181,0.55);margin-bottom:24px;line-height:1.7;">${escHtml(a.desc)}</div>` : ''}
+                    ${a.thumb ? `<img src="${escHtml(a.thumb)}" style="width:100%;border-radius:12px;margin-bottom:24px;border:1px solid rgba(212,175,55,0.15);">` : ''}
+                    ${a.url ? `<a href="${escHtml(a.url)}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:10px;background:#D4AF37;color:#0A0700;padding:14px 28px;border-radius:10px;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:700;text-decoration:none;">
+                        <span style="font-size:18px;">${emoji}</span> Open ${escHtml(a.cat||'Asset')}
+                    </a>` : '<div style="color:rgba(212,175,55,0.3);font-size:13px;">No asset URL provided</div>'}
+                </div>`;
+        }
+
+        function vmCloseDetail() {
+            document.getElementById('vmDetailOverlay').classList.remove('active');
+        }
+
         // ── Client Profile Drawer ────────────────────────────────────────────────
         function openClientProfile() {
             if (!adminSelectedUID) return;
@@ -3017,6 +3546,15 @@
             document.getElementById('clientProfileOverlay').style.display = 'none';
         }
     </script>
+
+    <!-- Vault Asset Detail Overlay (Admin) -->
+    <div id="vmDetailOverlay" class="vm-detail-overlay">
+        <div class="vm-detail-header">
+            <button class="vm-detail-back" onclick="vmCloseDetail()">← Back</button>
+            <div style="font-size:9px;letter-spacing:4px;color:rgba(212,175,55,0.4);text-transform:uppercase;">Asset Preview</div>
+        </div>
+        <div class="vm-detail-body" id="vmDetailContent"></div>
+    </div>
 
 </body>
 </html>
