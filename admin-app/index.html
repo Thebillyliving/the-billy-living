@@ -1365,6 +1365,22 @@
 
         <!-- Portfolio Section -->
         <div style="padding:24px;">
+            <div style="font-size:9px;letter-spacing:4px;color:rgba(201,168,76,0.4);text-transform:uppercase;margin-bottom:14px;">Account Details</div>
+            <div id="cpDetails" style="display:flex;flex-direction:column;gap:0;border:1px solid rgba(201,168,76,0.1);border-radius:12px;overflow:hidden;margin-bottom:24px;">
+                <div style="display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(201,168,76,0.08);">
+                    <div style="font-size:9px;letter-spacing:2px;color:rgba(201,168,76,0.4);text-transform:uppercase;width:90px;flex-shrink:0;">Residence</div>
+                    <div id="cpResidence" style="font-size:14px;color:#E8D5A3;">—</div>
+                </div>
+                <div style="display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(201,168,76,0.08);">
+                    <div style="font-size:9px;letter-spacing:2px;color:rgba(201,168,76,0.4);text-transform:uppercase;width:90px;flex-shrink:0;">Mobile</div>
+                    <div id="cpMobile" style="font-size:14px;color:#E8D5A3;">—</div>
+                </div>
+                <div style="display:flex;align-items:center;padding:14px 16px;">
+                    <div style="font-size:9px;letter-spacing:2px;color:rgba(201,168,76,0.4);text-transform:uppercase;width:90px;flex-shrink:0;">Measure</div>
+                    <div id="cpMeasure" style="font-size:14px;color:#E8D5A3;">—</div>
+                </div>
+            </div>
+
             <div style="font-size:9px;letter-spacing:4px;color:rgba(201,168,76,0.4);text-transform:uppercase;margin-bottom:14px;">Saved Portfolio</div>
             <div id="cpPortfolioGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;"></div>
         </div>
@@ -1695,6 +1711,20 @@
         // VIP Manager
         function renderVIPList() {
             const vips = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
+
+            // Migrate any existing localStorage VIPs to Firebase (one-time sync)
+            vips.forEach(v => {
+                if (v.phone && v.password && v.status === 'active') {
+                    adminFbDB.ref('vip/' + v.phone).once('value').then(s => {
+                        if (!s.val()) {
+                            adminFbDB.ref('vip/' + v.phone).set({
+                                phone: v.phone, password: v.password,
+                                name: v.name, status: 'active', id: v.id
+                            });
+                        }
+                    });
+                }
+            });
             const container = document.getElementById('vipGrid');
             
             if (vips.length === 0) {
@@ -1764,6 +1794,15 @@
             vips.push(newVIP);
             localStorage.setItem('tbl_vip_users', JSON.stringify(vips));
 
+            // Save to Firebase so client can verify across domains
+            adminFbDB.ref('vip/' + newVIP.phone).set({
+                phone:    newVIP.phone,
+                password: newVIP.password,
+                name:     newVIP.name,
+                status:   'active',
+                id:       newVIP.id
+            });
+
             document.getElementById('vipPhone').value = '';
             document.getElementById('vipCode').value  = '';
             document.getElementById('vipName').value  = '';
@@ -1816,8 +1855,11 @@
         function deleteVIP(id) {
             if (!confirm('Remove this VIP member?')) return;
             const vips = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
+            const vip  = vips.find(v => v.id === id);
             const filtered = vips.filter(v => v.id !== id);
             localStorage.setItem('tbl_vip_users', JSON.stringify(filtered));
+            // Remove from Firebase too
+            if (vip) adminFbDB.ref('vip/' + vip.phone).remove();
             renderVIPList();
             updateStats();
         }
@@ -2934,6 +2976,14 @@
                     avEl.style.fontSize = '28px';
                 }
             }).catch(() => { avEl.textContent = initials; });
+
+            // Load full profile details (residence, mobile, measure)
+            adminFbDB.ref(`userProfiles/${uid}`).once('value').then(snap => {
+                const data = snap.val() || {};
+                document.getElementById('cpResidence').textContent = data.residence || '—';
+                document.getElementById('cpMobile').textContent    = data.mobile    || '—';
+                document.getElementById('cpMeasure').textContent   = data.measure   || '—';
+            });
 
             // Load portfolio items
             adminFbDB.ref(`portfolios/${uid}/items`).once('value').then(snap => {
