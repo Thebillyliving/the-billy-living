@@ -1976,16 +1976,60 @@
             return defaultCatalogData;
         }
 
+        function renderCatalogGrid() {
+            fbDB.ref('content/catalog').once('value').then(snap => {
+                const data = snap.val();
+                if (data && Object.keys(data).length > 0) {
+                    const collections = Object.values(data).map(box => ({
+                        topic:   box.value || box.topic || '',
+                        feeling: box.description || box.feeling || '',
+                        id:      box.id,
+                        images:  box.images || []
+                    }));
+                    _renderCatalogGridUI(collections);
+                } else {
+                    _renderCatalogGridUI(getCatalogData());
+                }
+            }).catch(() => _renderCatalogGridUI(getCatalogData()));
+        }
+
         // ─── FIX: Read home posts using admin field names ────────────────────────
         // Admin saves: title, caption, imageData, location, likes, shares
         function getHomeFeed() {
             return JSON.parse(localStorage.getItem('tbl_posts') || '[]');
         }
 
+        function renderHomeFeed() {
+            // Try Firebase first, fall back to localStorage
+            fbDB.ref('content/posts').once('value').then(snap => {
+                const data = snap.val();
+                if (data && Object.keys(data).length > 0) {
+                    const posts = Object.values(data).filter(p => p.published !== false);
+                    posts.sort((a,b) => (b.id||'').localeCompare(a.id||''));
+                    _renderHomePostsUI(posts);
+                } else {
+                    _renderHomePostsUI(getHomeFeed());
+                }
+            }).catch(() => _renderHomePostsUI(getHomeFeed()));
+        }
+
         // ─── FIX: Read trending using admin field names ──────────────────────────
         // Admin saves: title, caption, imageData, videoUrl, likes
         function getTrending() {
             return JSON.parse(localStorage.getItem('tbl_trending') || '[]');
+        }
+
+        function renderTrending() {
+            fbDB.ref('content/trending').once('value').then(snap => {
+                const data = snap.val();
+                if (data && Object.keys(data).length > 0) {
+                    const items = Object.values(data);
+                    items.sort((a,b) => (b.id||'').localeCompare(a.id||''));
+                    _renderTrendingUI(items);
+                } else {
+                    _renderTrendingUI(getTrending());
+                }
+            }).catch(() => _renderTrendingUI(getTrending()));
         }
 
         // ─── Page navigation ─────────────────────────────────────────────────────
@@ -2018,11 +2062,10 @@
         const feedBookmarked = new Set(JSON.parse(localStorage.getItem('tbl_bookmarked_posts') || '[]'));
         const trendingLiked  = new Set(JSON.parse(localStorage.getItem('tbl_liked_trending')   || '[]'));
 
-        function renderHomeFeed() {
+        function _renderHomePostsUI(posts) {
             const container = document.getElementById('homeFeed');
-            const posts = getHomeFeed();
 
-            if (posts.length === 0) {
+            if (!posts || posts.length === 0) {
                 container.innerHTML = `
                     <div style="text-align:center;padding:80px 20px;color:var(--text-secondary);">
                         <div style="font-size:40px;margin-bottom:16px;opacity:0.3;">🏠</div>
@@ -2134,16 +2177,28 @@
             }
             feedBookmarked.add(postId);
             btn.classList.add('bookmarked');
+            const item = {
+                id:          'post_save_' + postId,
+                title:       title || 'Design',
+                emoji:       '🏠',
+                imageData:   imgSrc,
+                description: 'Saved from Home feed',
+                savedAt:     Date.now()
+            };
             const portfolio = JSON.parse(localStorage.getItem('tbl_portfolio') || '[]');
-            if (!portfolio.find(p => p.id === 'post_save_' + postId)) {
-                portfolio.push({
-                    id:          'post_save_' + postId,
-                    title:       title || 'Design',
-                    emoji:       '🏠',
-                    imageData:   imgSrc,
-                    description: 'Saved from Home feed'
-                });
+            if (!portfolio.find(p => p.id === item.id)) {
+                portfolio.push(item);
                 localStorage.setItem('tbl_portfolio', JSON.stringify(portfolio));
+            }
+            // Save to Firebase so admin can see it
+            const user = fbAuth.currentUser;
+            if (user) {
+                fbDB.ref(`portfolios/${user.uid}/userInfo`).set({
+                    name:  user.displayName || 'Client',
+                    email: user.email || '',
+                    uid:   user.uid
+                });
+                fbDB.ref(`portfolios/${user.uid}/items/${item.id}`).set(item);
             }
             showToast('Saved to Portfolio \u2605');
         }
@@ -2188,9 +2243,8 @@
                 showToast('Link copied to clipboard');
             }
         }
-        function renderTrending() {
+        function _renderTrendingUI(items) {
             const container = document.getElementById('trendingContainer');
-            const items = getTrending();
 
             if (items.length === 0) {
                 container.innerHTML = `
@@ -2361,18 +2415,47 @@
         function handleAvatarUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
-            const reader = new FileReader();
+
+            // Compress image before saving to keep it under Firebase limits
+            const canvas  = document.createElement('canvas');
+            const ctx     = canvas.getContext('2d');
+            const imgEl   = new Image();
+            const reader  = new FileReader();
+
             reader.onload = (e) => {
-                const img         = document.getElementById('profileAvatarImg');
-                const placeholder = document.getElementById('avatarPlaceholder');
-                img.src           = e.target.result;
-                img.style.display = 'block';
-                placeholder.style.display = 'none';
-                // Persist immediately
-                const profile = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
-                profile.avatar = e.target.result;
-                localStorage.setItem('tbl_profile', JSON.stringify(profile));
-                showToast('Profile photo updated');
+                imgEl.onload = () => {
+                    // Resize to max 400x400
+                    const MAX = 400;
+                    const ratio = Math.min(MAX / imgEl.width, MAX / imgEl.height, 1);
+                    canvas.width  = imgEl.width  * ratio;
+                    canvas.height = imgEl.height * ratio;
+                    ctx.drawImage(imgEl, 0, 0, canvas.width, canvas.height);
+                    const compressed = canvas.toDataURL('image/jpeg', 0.7);
+
+                    // Update UI immediately
+                    const img         = document.getElementById('profileAvatarImg');
+                    const placeholder = document.getElementById('avatarPlaceholder');
+                    const storyPhoto  = document.getElementById('profileStoryPhoto');
+                    if (img) { img.src = compressed; img.style.display = 'block'; }
+                    if (placeholder) placeholder.style.display = 'none';
+                    if (storyPhoto) storyPhoto.src = compressed;
+
+                    // Save to localStorage
+                    const profile = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
+                    profile.avatar = compressed;
+                    localStorage.setItem('tbl_profile', JSON.stringify(profile));
+
+                    // Save to Firebase DB so it persists across sessions
+                    const user = fbAuth.currentUser;
+                    if (user) {
+                        fbDB.ref(`userProfiles/${user.uid}/avatar`).set(compressed)
+                            .then(() => showToast('Profile photo saved ✓'))
+                            .catch(() => showToast('Photo saved locally'));
+                    } else {
+                        showToast('Profile photo updated');
+                    }
+                };
+                imgEl.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }
@@ -2594,10 +2677,9 @@
             </svg>`;
         }
 
-        function renderCatalogGrid() {
+        function _renderCatalogGridUI(collections) {
             const grid = document.getElementById('eliteCatalogGrid');
             if (!grid) return;
-            const collections = getCatalogData();
             grid.innerHTML = collections.map((c, i) => `
                 <div class="elite-collection-cell" onclick="openCatalogInner(${i})">
                     <div class="elite-cell-meta">
@@ -3316,38 +3398,47 @@ Strict Constraints:
         // ── Sync Firebase user to app UI + Concierge ─────────────────────────────
         function syncUserToUI(user) {
             const displayName  = user.displayName || '';
-            const avatarUrl    = getLuxuryAvatar(displayName);
+            const fallbackUrl  = getLuxuryAvatar(displayName);
 
-            // ① Profile story circle
-            const photo       = document.getElementById('profileStoryPhoto');
-            const defaultIcon = document.getElementById('profileStoryDefault');
-            const label       = document.getElementById('profileStoryLabel');
-            if (photo) {
-                photo.src           = avatarUrl;
-                photo.style.display = 'block';
-            }
-            if (defaultIcon) defaultIcon.style.display = 'none';
-            if (label) label.textContent = displayName.split(' ')[0] || 'Profile';
+            // Check Firebase DB for custom uploaded photo first
+            fbDB.ref(`userProfiles/${user.uid}/avatar`).once('value').then(snap => {
+                const customAvatar = snap.val();
+                const avatarUrl    = customAvatar || fallbackUrl;
 
-            // ② Profile panel name field
-            const nameEl = document.getElementById('profileNameInput');
-            if (nameEl && displayName) nameEl.value = displayName;
+                // ① Profile story circle
+                const photo       = document.getElementById('profileStoryPhoto');
+                const defaultIcon = document.getElementById('profileStoryDefault');
+                const label       = document.getElementById('profileStoryLabel');
+                if (photo) { photo.src = avatarUrl; photo.style.display = 'block'; }
+                if (defaultIcon) defaultIcon.style.display = 'none';
+                if (label) label.textContent = displayName.split(' ')[0] || 'Profile';
 
-            // ③ Profile panel avatar image (if it exists in the panel)
-            const panelAvatar = document.getElementById('profileAvatarImg');
-            if (panelAvatar) {
-                panelAvatar.src           = avatarUrl;
-                panelAvatar.style.display = 'block';
-                const ph = document.getElementById('avatarPlaceholder');
-                if (ph) ph.style.display = 'none';
-            }
+                // ② Profile panel name field
+                const nameEl = document.getElementById('profileNameInput');
+                if (nameEl && displayName) nameEl.value = displayName;
 
-            // ④ Persist to localStorage so other parts of app can read it
-            const lp  = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
-            lp.name   = displayName;
-            lp.avatar = avatarUrl;
-            lp.email  = user.email || '';
-            localStorage.setItem('tbl_profile', JSON.stringify(lp));
+                // ③ Profile panel avatar image
+                const panelAvatar = document.getElementById('profileAvatarImg');
+                if (panelAvatar) {
+                    panelAvatar.src           = avatarUrl;
+                    panelAvatar.style.display = 'block';
+                    const ph = document.getElementById('avatarPlaceholder');
+                    if (ph) ph.style.display = 'none';
+                }
+
+                // ④ Persist to localStorage
+                const lp  = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
+                lp.name   = displayName;
+                lp.avatar = avatarUrl;
+                lp.email  = user.email || '';
+                localStorage.setItem('tbl_profile', JSON.stringify(lp));
+            }).catch(() => {
+                // Fallback if DB read fails — use monogram
+                const photo = document.getElementById('profileStoryPhoto');
+                if (photo) { photo.src = fallbackUrl; photo.style.display = 'block'; }
+                const panelAvatar = document.getElementById('profileAvatarImg');
+                if (panelAvatar) { panelAvatar.src = fallbackUrl; panelAvatar.style.display = 'block'; }
+            });
         }
 
         // ── Hide gatekeeper with smooth fade ─────────────────────────────────────
