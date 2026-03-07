@@ -1284,10 +1284,36 @@
         .tiktok-action.liked .tiktok-action-icon { background: rgba(237,73,86,0.25); }
         .tiktok-action.liked .tiktok-action-icon svg { stroke: #ed4956; fill: #ed4956; }
 
+        /* ── Concierge Chat Page ──────────────────────────────────────────── */
+        #concierge { display:none; flex-direction:column; height:calc(100vh - var(--nav-height)); background:#060D18; }
+        #concierge.active { display:flex; }
+        .cg-header { background:linear-gradient(135deg,#0B1628,#0D1E3A); padding:16px 20px; display:flex; align-items:center; gap:14px; border-bottom:1px solid rgba(201,169,98,0.2); flex-shrink:0; }
+        .cg-avatar { width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#C9A862,#8B6914); display:flex; align-items:center; justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:700; font-size:16px; color:#060D18; flex-shrink:0; position:relative; }
+        .cg-avatar::after { content:''; position:absolute; bottom:1px; right:1px; width:11px; height:11px; background:#25D366; border-radius:50%; border:2px solid #0B1628; }
+        .cg-info-name { font-weight:700; color:#C9A862; font-size:15px; letter-spacing:0.5px; font-family:'Cormorant Garamond',serif; }
+        .cg-info-sub { font-size:11px; color:#8696A0; display:flex; align-items:center; gap:5px; }
+        .cg-messages { flex:1; overflow-y:auto; padding:20px 16px; display:flex; flex-direction:column; gap:14px; }
+        .cg-msg { display:flex; flex-direction:column; gap:4px; }
+        .cg-msg.sent { align-items:flex-end; }
+        .cg-msg.recv { align-items:flex-start; }
+        .cg-msg-label { font-size:10px; color:#C9A862; letter-spacing:1px; padding-left:4px; font-family:'Cormorant Garamond',serif; }
+        .cg-bubble { max-width:82%; padding:14px 18px; font-size:14px; line-height:1.65; word-wrap:break-word; white-space:pre-wrap; }
+        .cg-msg.recv .cg-bubble { background:linear-gradient(135deg,#0B1E35,#0D2140); color:#E9EDF0; border:1px solid rgba(201,169,98,0.15); border-radius:4px 18px 18px 18px; box-shadow:0 2px 12px rgba(0,0,0,0.3); }
+        .cg-msg.sent .cg-bubble { background:linear-gradient(135deg,#C9A862,#8B6914); color:#060D18; font-weight:500; border-radius:18px 4px 18px 18px; box-shadow:0 2px 12px rgba(201,169,98,0.2); }
+        .cg-msg-time { font-size:10px; color:rgba(255,255,255,0.25); padding:0 4px; }
+        .cg-typing { padding:0 16px 8px; color:#8696A0; font-size:12px; font-style:italic; letter-spacing:0.5px; display:none; }
+        .cg-input-row { padding:12px 16px; border-top:1px solid rgba(201,169,98,0.1); background:#060D18; display:flex; gap:10px; align-items:center; flex-shrink:0; }
+        .cg-input { flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(201,169,98,0.2); border-radius:24px; padding:12px 18px; color:#F5F0E8; font-size:14px; font-family:'Jost',sans-serif; outline:none; -webkit-user-select:text; user-select:text; }
+        .cg-input:focus { border-color:rgba(201,169,98,0.5); }
+        .cg-send { width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#C9A862,#8B6914); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .cg-send svg { width:18px; height:18px; stroke:#060D18; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+        .cg-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:rgba(201,169,98,0.3); text-align:center; padding:40px; gap:12px; }
+
     </style>
     <!-- Firebase compat SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
     <style>
     /* ── Gatekeeper ───────────────────────────────────────────────────── */
@@ -1574,7 +1600,7 @@
                     <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
                 </div>
                 <div class="profile-name-row">
-                    <input class="profile-client-name" type="text" value="" placeholder="Enter Your Name" id="profileNameInput">
+                    <input class="profile-client-name" type="text" value="" placeholder="Enter Your Name" id="profileNameInput" oninput="onProfileChange()">
                     <span class="profile-name-pencil">
                         <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                     </span>
@@ -1604,30 +1630,26 @@
             <div class="profile-fields">
                 <div class="profile-field-row">
                     <span class="profile-field-label">Residence</span>
-                    <input class="profile-field-input" type="text" value="Lekki Phase 1, Lagos" placeholder="Primary address">
+                    <input class="profile-field-input" id="profileResidenceInput" type="text" value="" placeholder="Add your address" oninput="onProfileChange()">
                     <span class="profile-field-pencil"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
                 </div>
                 <div class="profile-field-row">
                     <span class="profile-field-label">Mobile</span>
-                    <input class="profile-field-input" type="tel" value="+234 801 234 5678" placeholder="+234 …">
+                    <input class="profile-field-input" id="profileMobileInput" type="tel" value="" placeholder="Add your number" oninput="onProfileChange()">
                     <span class="profile-field-pencil"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
                 </div>
                 <div class="profile-field-row">
                     <span class="profile-field-label">Measurement</span>
-                    <select class="profile-field-select">
-                        <option value="inches" selected>Inches — US Standard</option>
+                    <select class="profile-field-select" id="profileMeasurementSelect" onchange="onProfileChange()">
+                        <option value="" disabled selected>Select unit</option>
+                        <option value="inches">Inches — US Standard</option>
                         <option value="cm">Centimeters</option>
                     </select>
                     <span class="profile-field-pencil"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
                 </div>
-                <div class="profile-field-row">
-                    <span class="profile-field-label">Vault PIN</span>
-                    <input class="profile-field-input" type="password" value="4521" maxlength="4" placeholder="4-digit code">
-                    <span class="profile-field-pencil"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
-                </div>
             </div>
             <div class="profile-actions">
-                <button class="profile-btn-primary" onclick="saveProfileUpdates()">Save Profile Updates</button>
+                <button class="profile-btn-primary" id="saveProfileBtn" onclick="saveProfileUpdates()" style="display:none;">Save Profile Updates</button>
                 <button class="profile-btn-ghost" onclick="requestConciergeSupport()">Request Concierge Support</button>
                 <button class="profile-btn-text" onclick="handleLogout()">Log Out</button>
             </div>
@@ -1800,6 +1822,38 @@
         </div>
     </div>
 
+    <!-- CONCIERGE CHAT PAGE -->
+    <div id="concierge" class="page">
+        <div class="cg-header">
+            <div class="cg-avatar">TBL</div>
+            <div style="flex:1;">
+                <div class="cg-info-name">Design Concierge</div>
+                <div class="cg-info-sub">
+                    <span style="width:6px;height:6px;border-radius:50%;background:#25D366;display:inline-block;"></span>
+                    The Billy Living · Private Line
+                </div>
+            </div>
+        </div>
+        <div class="cg-messages" id="cgMessages">
+            <div class="cg-empty" id="cgEmpty">
+                <svg viewBox="0 0 60 60" fill="none" style="width:48px;height:48px;opacity:0.3;">
+                    <rect x="8" y="12" width="30" height="22" rx="6" stroke="#C9A862" stroke-width="1.5"/>
+                    <path d="M14 34 L10 40 L20 34" stroke="#C9A862" stroke-width="1.5" stroke-linejoin="round"/>
+                    <rect x="22" y="26" width="30" height="22" rx="6" stroke="#C9A862" stroke-width="1.5" opacity="0.5"/>
+                </svg>
+                <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:rgba(201,169,98,0.4);">Your Private Line</div>
+                <div style="font-size:12px;font-family:'Jost',sans-serif;color:rgba(255,255,255,0.2);letter-spacing:0.5px;">Send a message to begin your consultation</div>
+            </div>
+        </div>
+        <div class="cg-typing" id="cgTyping">Concierge is typing…</div>
+        <div class="cg-input-row">
+            <input class="cg-input" id="cgInput" placeholder="Message your concierge…" onkeypress="if(event.key==='Enter')sendConciergeMessage()">
+            <button class="cg-send" onclick="sendConciergeMessage()">
+                <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+        </div>
+    </div>
+
     <!-- BOTTOM NAVIGATION -->
     <nav class="bottom-nav">
         <button class="bottom-nav-item active" onclick="showPage('home')">
@@ -1820,18 +1874,18 @@
             </span>
             <span>Catalog</span>
         </button>
-
         <button class="bottom-nav-item" onclick="showPage('vault')">
             <span class="bottom-nav-icon">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="11" width="14" height="11" rx="1"/><path d="M8 11V7a4 4 0 018 0v4"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/></svg>
             </span>
             <span>Vault</span>
         </button>
-        <button class="bottom-nav-item" onclick="showPage('portfolio')">
-            <span class="bottom-nav-icon">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+        <button class="bottom-nav-item" onclick="showPage('concierge')" id="conciergeNavBtn">
+            <span class="bottom-nav-icon" style="position:relative;">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                <span id="cgUnreadBadge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:#C9A862;border-radius:50%;font-size:8px;color:#060D18;font-weight:700;display:none;align-items:center;justify-content:center;line-height:1;"></span>
             </span>
-            <span>Portfolio</span>
+            <span>Concierge</span>
         </button>
     </nav>
 
@@ -1950,12 +2004,13 @@
             document.querySelectorAll('.trending-page').forEach(p => p.classList.remove('active'));
             document.getElementById(page).classList.add('active');
             document.querySelectorAll('.bottom-nav-item').forEach(n => n.classList.remove('active'));
-            const map = { home: 0, trending: 1, catalog: 2, vault: 3, portfolio: 4 };
+            const map = { home: 0, trending: 1, catalog: 2, vault: 3, concierge: 4 };
             if (map[page] !== undefined) document.querySelectorAll('.bottom-nav-item')[map[page]].classList.add('active');
 
             if (page === 'home')      renderHomeFeed();
             if (page === 'catalog')   renderCatalogGrid();
-            if (page === 'portfolio') renderPortfolio();   // ← FIX: was missing
+            if (page === 'portfolio') renderPortfolio();
+            if (page === 'concierge') hideCGBadge();
         }
 
         // ─── FIX: Home feed — map admin field names correctly ────────────────────
@@ -1990,7 +2045,7 @@
                 return `
                 <div class="feed-item" data-post-id="${postId}">
                     <div class="feed-header">
-                        <div class="feed-header-avatar">BL</div>
+                        <div class="feed-header-avatar">TBL</div>
                         <div class="feed-header-name">billyliving</div>
                         <button class="feed-header-more">···</button>
                     </div>
@@ -2166,8 +2221,7 @@
                     }
                     <div class="tiktok-actions">
                         <div class="tiktok-avatar-btn">
-                            <div style="width:100%;height:100%;background:linear-gradient(135deg,#C9A84C,#8B6914);display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-weight:600;font-size:15px;color:#0A0804;letter-spacing:1px;">BL</div>
-                            <div class="tiktok-follow">+</div>
+                            <div style="width:100%;height:100%;background:linear-gradient(135deg,#C9A84C,#8B6914);display:flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-weight:600;font-size:13px;color:#0A0804;letter-spacing:1px;">TBL</div>
                         </div>
                         <button class="tiktok-action ${isLiked ? 'liked' : ''}" onclick="toggleTrendingLike('${itemId}',this)">
                             <div class="tiktok-action-icon">
@@ -2277,14 +2331,31 @@
         }
 
         function closeProfile() { document.getElementById('profileScreen').classList.remove('active'); }
+
+        function onProfileChange() {
+            const btn = document.getElementById('saveProfileBtn');
+            if (btn) btn.style.display = 'block';
+        }
+
         function saveProfileUpdates() {
-            const name   = document.getElementById('profileNameInput').value.trim();
-            const avatar = document.getElementById('profileAvatarImg').src;
+            const name      = document.getElementById('profileNameInput')?.value.trim();
+            const residence = document.getElementById('profileResidenceInput')?.value.trim();
+            const mobile    = document.getElementById('profileMobileInput')?.value.trim();
+            const measure   = document.getElementById('profileMeasurementSelect')?.value;
+            const avatar    = document.getElementById('profileAvatarImg')?.src;
+
             const profile = JSON.parse(localStorage.getItem('tbl_profile') || '{}');
-            if (name)   profile.name   = name;
+            if (name)      profile.name      = name;
+            if (residence) profile.residence = residence;
+            if (mobile)    profile.mobile    = mobile;
+            if (measure)   profile.measure   = measure;
             if (avatar && avatar !== window.location.href) profile.avatar = avatar;
             localStorage.setItem('tbl_profile', JSON.stringify(profile));
-            showToast('Profile updated successfully');
+
+            // Hide save button again
+            const btn = document.getElementById('saveProfileBtn');
+            if (btn) btn.style.display = 'none';
+            showToast('Profile updated');
         }
 
         function handleAvatarUpload(event) {
@@ -2312,6 +2383,18 @@
                 const nameEl = document.getElementById('profileNameInput');
                 if (nameEl) nameEl.value = profile.name;
             }
+            if (profile.residence) {
+                const el = document.getElementById('profileResidenceInput');
+                if (el) el.value = profile.residence;
+            }
+            if (profile.mobile) {
+                const el = document.getElementById('profileMobileInput');
+                if (el) el.value = profile.mobile;
+            }
+            if (profile.measure) {
+                const el = document.getElementById('profileMeasurementSelect');
+                if (el) el.value = profile.measure;
+            }
             if (profile.avatar) {
                 const img         = document.getElementById('profileAvatarImg');
                 const placeholder = document.getElementById('avatarPlaceholder');
@@ -2321,6 +2404,9 @@
                     if (placeholder) placeholder.style.display = 'none';
                 }
             }
+            // Always hide save button on load — only show after a change
+            const btn = document.getElementById('saveProfileBtn');
+            if (btn) btn.style.display = 'none';
         }
 
         function requestConciergeSupport() {
@@ -3160,12 +3246,15 @@ Strict Constraints:
             document.getElementById('aiTyping').style.display = 'block';
 
             try {
+                const currentTime = new Date().toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit', hour12: true });
+                const timedPrompt = SYSTEM_PROMPT + `\n\nCurrent time for this user: ${currentTime}. Use this to determine the correct greeting (Good morning before 12pm, Good afternoon 12pm–5pm, Good evening after 5pm).`;
+
                 const res = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         messages: [
-                            { role: 'system', content: SYSTEM_PROMPT },
+                            { role: 'system', content: timedPrompt },
                             ...aiHistory
                         ]
                     })
@@ -3192,6 +3281,7 @@ Strict Constraints:
         const firebaseConfig = {
             apiKey:            "AIzaSyBbs6k7PInHUnv1x9FzHB31kUwrCcoGG7c",
             authDomain:        "the-billy-living.firebaseapp.com",
+            databaseURL:       "https://the-billy-living-default-rtdb.firebaseio.com",
             projectId:         "the-billy-living",
             storageBucket:     "the-billy-living.firebasestorage.app",
             messagingSenderId: "808519759419",
@@ -3200,6 +3290,7 @@ Strict Constraints:
 
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const fbAuth = firebase.auth();
+        const fbDB   = firebase.database();
 
         // ── Pending signup state ─────────────────────────────────────────────────
         let pendingSignupData = { name: '', email: '', password: '' };
@@ -3218,6 +3309,7 @@ Strict Constraints:
             if (user) {
                 syncUserToUI(user);
                 hideGatekeeper();
+                initConciergeChat(user);
             }
         });
 
@@ -3385,6 +3477,86 @@ Strict Constraints:
                 'auth/network-request-failed': 'No connection. Please check your internet.',
             };
             return map[code] || 'Something went wrong. Please try again.';
+        }
+
+        // ── Concierge Chat ───────────────────────────────────────────────────────
+        let cgMessagesRef = null;
+
+        function initConciergeChat(user) {
+            const uid = user.uid;
+            fbDB.ref(`chats/${uid}/clientName`).set(user.displayName || user.email || 'Client');
+            fbDB.ref(`chats/${uid}/clientEmail`).set(user.email || '');
+
+            if (cgMessagesRef) cgMessagesRef.off();
+            cgMessagesRef = fbDB.ref(`chats/${uid}/messages`);
+
+            const container = document.getElementById('cgMessages');
+            container.innerHTML = '';
+            const empty = document.createElement('div');
+            empty.id = 'cgEmpty';
+            empty.className = 'cg-empty';
+            empty.innerHTML = `<svg viewBox="0 0 60 60" fill="none" style="width:48px;height:48px;opacity:0.3;"><rect x="8" y="12" width="30" height="22" rx="6" stroke="#C9A862" stroke-width="1.5"/><path d="M14 34 L10 40 L20 34" stroke="#C9A862" stroke-width="1.5" stroke-linejoin="round"/><rect x="22" y="26" width="30" height="22" rx="6" stroke="#C9A862" stroke-width="1.5" opacity="0.5"/></svg><div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:rgba(201,169,98,0.4);">Your Private Line</div><div style="font-size:12px;font-family:'Jost',sans-serif;color:rgba(255,255,255,0.2);letter-spacing:0.5px;">Send a message to begin your consultation</div>`;
+            container.appendChild(empty);
+
+            cgMessagesRef.orderByChild('timestamp').on('child_added', snap => {
+                const msg = snap.val();
+                renderCGMessage(msg);
+                if (msg.sender === 'admin') {
+                    const cp = document.getElementById('concierge');
+                    if (!cp || !cp.classList.contains('active')) showCGBadge();
+                }
+            });
+        }
+
+        function renderCGMessage(msg) {
+            const container = document.getElementById('cgMessages');
+            const empty = document.getElementById('cgEmpty');
+            if (empty) empty.style.display = 'none';
+
+            const isSent = msg.sender === 'client';
+            const time = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString('en-NG', { hour:'2-digit', minute:'2-digit' }) : '';
+
+            const wrap = document.createElement('div');
+            wrap.className = `cg-msg ${isSent ? 'sent' : 'recv'}`;
+            if (!isSent) {
+                const label = document.createElement('div');
+                label.className = 'cg-msg-label';
+                label.textContent = '✦ THE BILLY LIVING CONCIERGE';
+                wrap.appendChild(label);
+            }
+            const bubble = document.createElement('div');
+            bubble.className = 'cg-bubble';
+            bubble.textContent = msg.text;
+            wrap.appendChild(bubble);
+            const meta = document.createElement('div');
+            meta.className = 'cg-msg-time';
+            meta.textContent = time;
+            wrap.appendChild(meta);
+            container.appendChild(wrap);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendConciergeMessage() {
+            const user = fbAuth.currentUser;
+            if (!user) { showToast('Please sign in first'); return; }
+            const input = document.getElementById('cgInput');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            fbDB.ref(`chats/${user.uid}/messages`).push({
+                text, sender: 'client',
+                senderName: user.displayName || 'Client',
+                timestamp: Date.now(), read: false
+            });
+        }
+
+        function showCGBadge() {
+            const b = document.getElementById('cgUnreadBadge');
+            if (b) { b.style.display = 'flex'; }
+        }
+        function hideCGBadge() {
+            const b = document.getElementById('cgUnreadBadge');
+            if (b) b.style.display = 'none';
         }
 
         // ── Enter key support ────────────────────────────────────────────────────
