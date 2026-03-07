@@ -2549,7 +2549,17 @@
             appId:             "1:808519759419:web:5578b49e27079039dc4e1e"
         };
         if (!firebase.apps.length) firebase.initializeApp(adminFirebaseConfig);
-        const adminFbDB = firebase.database();
+        const adminFbDB  = firebase.database();
+        const adminFbAuth = firebase.auth();
+
+        // Sign in admin anonymously so Firebase DB rules (auth != null) are satisfied
+        adminFbAuth.signInAnonymously().catch(() => {
+            // If anon auth fails, try with open rules — just proceed
+        });
+        // Also auto-start messages listener once auth is ready
+        adminFbAuth.onAuthStateChanged(user => {
+            if (user) initAdminMessagesListener();
+        });
 
         // ── Messages state ───────────────────────────────────────────────────────
         let adminSelectedUID    = null;
@@ -2558,7 +2568,7 @@
 
         // ── Listen to all client chats ───────────────────────────────────────────
         function initAdminMessagesListener() {
-            if (adminChatsListener) adminChatsListener.off();
+            if (adminChatsListener) { adminChatsListener.off(); adminChatsListener = null; }
             adminChatsListener = adminFbDB.ref('chats');
             adminChatsListener.on('value', snap => {
                 const chats = snap.val() || {};
@@ -2696,13 +2706,13 @@
             const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML;
         }
 
-        // Hook into showPanel to start messages listener when Messages is opened
+        // Hook into showPanel to refresh messages list when Messages is opened
         const _origShowPanel = window.showPanel;
         window.showPanel = function(name, el) {
             _origShowPanel(name, el);
             if (name === 'messages') {
                 adminBackToList();
-                initAdminMessagesListener();
+                initAdminMessagesListener(); // re-attach listener each time
             }
         };
     </script>
