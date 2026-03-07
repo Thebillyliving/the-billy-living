@@ -1700,18 +1700,35 @@
         });
 
         function initData() {
-            // Initialize catalog boxes with default data if empty
-            if (!localStorage.getItem('tbl_catalog_boxes')) {
-                const catalogBoxes = defaultCatalogData.map((item, index) => ({
-                    id: 'box_' + (index + 1),
-                    value: item.topic,
-                    label: 'Topic',
-                    count: '0 images',
-                    description: item.feeling,
-                    images: [],
-                    feeling: item.feeling
-                }));
-                localStorage.setItem('tbl_catalog_boxes', JSON.stringify(catalogBoxes));
+            // Load catalog boxes from Firebase first, fallback to localStorage/defaults
+            if (typeof adminFbDB !== 'undefined') {
+                adminFbDB.ref('content/catalog').once('value').then(snap => {
+                    const fbData = snap.val();
+                    if (fbData && Object.keys(fbData).length > 0) {
+                        // Build array from Firebase data, preserving order by id
+                        const fbBoxes = Object.values(fbData);
+                        // Merge with defaults to ensure all 22 boxes exist
+                        const merged = defaultCatalogData.map((item, index) => {
+                            const id = 'box_' + (index + 1);
+                            const existing = fbBoxes.find(b => b.id === id);
+                            return existing || {
+                                id, value: item.topic, label: 'Topic',
+                                count: '0 imgs', description: item.feeling,
+                                images: [], feeling: item.feeling
+                            };
+                        });
+                        // Also include any custom boxes added later
+                        fbBoxes.forEach(b => {
+                            if (!merged.find(m => m.id === b.id)) merged.push(b);
+                        });
+                        safeLocalSet('tbl_catalog_boxes', JSON.stringify(merged));
+                        renderCatalogList();
+                    } else {
+                        _initLocalCatalog();
+                    }
+                }).catch(() => _initLocalCatalog());
+            } else {
+                _initLocalCatalog();
             }
 
             // Initialize other tables if empty
@@ -1742,6 +1759,18 @@
                 }));
             }
 
+        }
+
+        function _initLocalCatalog() {
+            if (!localStorage.getItem('tbl_catalog_boxes')) {
+                const catalogBoxes = defaultCatalogData.map((item, index) => ({
+                    id: 'box_' + (index + 1),
+                    value: item.topic, label: 'Topic',
+                    count: '0 imgs', description: item.feeling,
+                    images: [], feeling: item.feeling
+                }));
+                safeLocalSet('tbl_catalog_boxes', JSON.stringify(catalogBoxes));
+            }
         }
 
         // Navigation
@@ -2367,6 +2396,45 @@
             showToast('Saved successfully!');
         }
 
+        // ── Image compression helper ───────────────────────────────────────────
+        function compressImage(file, maxPx, quality) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        let w = img.width, h = img.height;
+                        if (w > maxPx || h > maxPx) {
+                            if (w > h) { h = Math.round(h * maxPx / w); w = maxPx; }
+                            else       { w = Math.round(w * maxPx / h); h = maxPx; }
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w; canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        resolve(canvas.toDataURL('image/jpeg', quality || 0.75));
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ── Safe localStorage set (catches quota errors) ──────────────────────
+        function safeLocalSet(key, value) {
+            try {
+                localStorage.setItem(key, value);
+            } catch(e) {
+                console.warn('localStorage quota exceeded, using Firebase only.');
+            }
+        }
+
+        // ── Sync a catalog box to Firebase ────────────────────────────────────
+        function syncBoxToFirebase(box) {
+            if (typeof adminFbDB !== 'undefined') {
+                adminFbDB.ref('content/catalog/' + box.id).set(box);
+            }
+        }
+
         // Catalog Image Manager
         function openCatalogImageManager(boxId) {
             currentCatalogBox = boxId;
@@ -2400,19 +2468,23 @@
             document.querySelector('.form-container .btn-primary').onclick = closeCatalogManager;
         }
 
-        function addCatalogImage(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
-                    const box = boxes.find(b => b.id === currentCatalogBox);
-                    if (!box.images) box.images = [];
-                    box.images.push(e.target.result);
-                    box.count = box.images.length + ' images';
-                    localStorage.setItem('tbl_catalog_boxes', JSON.stringify(boxes));
-                    openCatalogImageManager(currentCatalogBox);
-                };
-                reader.readAsDataURL(input.files[0]);
+        async function addCatalogImage(input) {
+            if (!input.files || !input.files[0]) return;
+            showToast('Uploading…');
+            try {
+                const compressed = await compressImage(input.files[0], 900, 0.75);
+                const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+                const box = boxes.find(b => b.id === currentCatalogBox);
+                if (!box) return;
+                if (!box.images) box.images = [];
+                box.images.push(compressed);
+                box.count = box.images.filter(Boolean).length + ' img' + (box.images.filter(Boolean).length !== 1 ? 's' : '');
+                safeLocalSet('tbl_catalog_boxes', JSON.stringify(boxes));
+                syncBoxToFirebase(box);
+                openCatalogImageManager(currentCatalogBox);
+                showToast('Image added ✓');
+            } catch(err) {
+                showToast('Upload failed — try a smaller image');
             }
         }
 
@@ -2420,8 +2492,9 @@
             const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
             const box = boxes.find(b => b.id === currentCatalogBox);
             box.images.splice(index, 1);
-            box.count = box.images.length + ' images';
-            localStorage.setItem('tbl_catalog_boxes', JSON.stringify(boxes));
+            box.count = box.images.filter(Boolean).length + ' img' + (box.images.filter(Boolean).length !== 1 ? 's' : '');
+            safeLocalSet('tbl_catalog_boxes', JSON.stringify(boxes));
+            syncBoxToFirebase(box);
             openCatalogImageManager(currentCatalogBox);
         }
 
@@ -2779,24 +2852,25 @@
             input.click();
         }
 
-        function handleRoomImageUpload(input) {
+        async function handleRoomImageUpload(input) {
             if (!input.files || !input.files[0]) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
+            showToast('Uploading…');
+            try {
+                const compressed = await compressImage(input.files[0], 900, 0.75);
                 const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
                 const box   = boxes[ctxRoomCollIdx];
                 if (!box) return;
                 if (!box.images) box.images = [];
-                // Pad array if needed
                 while (box.images.length <= ctxRoomSlotIdx) box.images.push(null);
-                box.images[ctxRoomSlotIdx] = e.target.result;
-                box.count = box.images.filter(Boolean).length + ' images';
-                localStorage.setItem('tbl_catalog_boxes', JSON.stringify(boxes));
-                // Re-render the rooms page
+                box.images[ctxRoomSlotIdx] = compressed;
+                box.count = box.images.filter(Boolean).length + ' img' + (box.images.filter(Boolean).length !== 1 ? 's' : '');
+                safeLocalSet('tbl_catalog_boxes', JSON.stringify(boxes));
+                syncBoxToFirebase(box);
                 openAdminPaletteRooms(ctxRoomPalIdx);
                 showToast(`${ctxRoomName} image updated ✓`);
-            };
-            reader.readAsDataURL(input.files[0]);
+            } catch(err) {
+                showToast('Upload failed — try a smaller image');
+            }
         }
 
         function contextRoomRemoveImage() {
@@ -2805,8 +2879,9 @@
             const box   = boxes[ctxRoomCollIdx];
             if (!box || !box.images) return;
             box.images[ctxRoomSlotIdx] = null;
-            box.count = box.images.filter(Boolean).length + ' images';
-            localStorage.setItem('tbl_catalog_boxes', JSON.stringify(boxes));
+            box.count = box.images.filter(Boolean).length + ' img' + (box.images.filter(Boolean).length !== 1 ? 's' : '');
+            safeLocalSet('tbl_catalog_boxes', JSON.stringify(boxes));
+            syncBoxToFirebase(box);
             openAdminPaletteRooms(ctxRoomPalIdx);
             showToast(`${ctxRoomName} image removed`);
         }
@@ -2830,30 +2905,26 @@
             input.click();
         }
 
-        function handleContextImageUpload(input) {
+        async function handleContextImageUpload(input) {
             if (!input.files || !input.files.length || !currentCatalogBox) return;
             const files = Array.from(input.files);
-            let loaded = 0;
-
-            files.forEach(file => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
-                    const box   = boxes.find(b => b.id === currentCatalogBox);
-                    if (box) {
-                        if (!box.images) box.images = [];
-                        box.images.push(e.target.result);
-                        box.count = box.images.length + ' images';
-                        localStorage.setItem('tbl_catalog_boxes', JSON.stringify(boxes));
-                    }
-                    loaded++;
-                    if (loaded === files.length) {
-                        renderCatalogList();
-                        showToast(`${loaded} image${loaded > 1 ? 's' : ''} added ✓`);
-                    }
-                };
-                reader.readAsDataURL(file);
-            });
+            showToast('Uploading ' + files.length + ' image' + (files.length > 1 ? 's' : '') + '…');
+            try {
+                const compressed = await Promise.all(files.map(f => compressImage(f, 900, 0.75)));
+                const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+                const box   = boxes.find(b => b.id === currentCatalogBox);
+                if (box) {
+                    if (!box.images) box.images = [];
+                    compressed.forEach(img => box.images.push(img));
+                    box.count = box.images.filter(Boolean).length + ' img' + (box.images.filter(Boolean).length !== 1 ? 's' : '');
+                    safeLocalSet('tbl_catalog_boxes', JSON.stringify(boxes));
+                    syncBoxToFirebase(box);
+                }
+                renderCatalogList();
+                showToast(`${files.length} image${files.length > 1 ? 's' : ''} added ✓`);
+            } catch(err) {
+                showToast('Upload failed — try smaller images');
+            }
         }
 
         function contextManageImages() {
@@ -3557,4 +3628,4 @@
     </div>
 
 </body>
-</html>
+</html
