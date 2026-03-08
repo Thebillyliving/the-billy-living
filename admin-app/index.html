@@ -2645,7 +2645,6 @@
             document.getElementById('adminInnerFeeling').textContent = box.description || box.feeling || '';
 
             const mixturesRow = document.getElementById('adminColorMixturesRow');
-            const box = boxes[index];
             if (!box.mixtureLabels) box.mixtureLabels = ['Mixture 1', 'Mixture 2'];
             mixturesRow.innerHTML = [0,1].map(mi => {
                 const p = buildAdminPalette(index, mi);
