@@ -371,6 +371,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .ai-send svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .story-circle-ai-icon svg{width:22px;height:22px;stroke:var(--gold);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 
+</style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -976,46 +977,60 @@ function requestConciergeSupport() {
 }
 
 // ─── HOME FEED ────────────────────────────────────────────────────────────────
+// Global lookup maps so onclick handlers never embed large base64 blobs in HTML
+const _feedPostsMap     = {};
+const _trendingItemsMap = {};
+
 async function loadHomeFeed() {
   const snap = await fbDb.ref('content/posts').orderByChild('published').equalTo(true).get();
   const feed = document.getElementById('homeFeed');
   if (!snap.exists()) { feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>'; return; }
   const posts = Object.values(snap.val()).reverse();
+  posts.forEach(p => { _feedPostsMap[p.id] = p; });
   feed.innerHTML = posts.map(p => buildFeedItem(p)).join('');
 }
 
 function buildFeedItem(p) {
-  const imgHtml = p.imageData
-    ? `<img src="${p.imageData}" alt="${p.title||''}" loading="lazy">`
-    : `<div class="feed-image-placeholder">🛋️</div>`;
-  const locHtml = p.location ? `<div class="feed-caption-location"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${p.location}</div>` : '';
-  return `<div class="feed-item" data-id="${p.id}">
-    <div class="feed-header">
-      <div class="feed-header-avatar">BL</div>
-      <span class="feed-header-name">The Billy Living</span>
-      <button class="feed-header-more" onclick="openShareSheet(${JSON.stringify(p).replace(/"/g,'&quot;')})">···</button>
-    </div>
-    <div class="feed-image">${imgHtml}</div>
-    <div class="feed-actions">
-      <button class="feed-action-btn" onclick="toggleLike(this,'${p.id}','posts')">
-        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-        <span class="feed-action-count">${p.likes||0}</span>
-      </button>
-      <button class="feed-action-btn" onclick="openShareSheet(${JSON.stringify(p).replace(/"/g,'&quot;')})">
-        <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-        <span class="feed-action-count">${p.shares||0}</span>
-      </button>
-      <div class="feed-action-spacer"></div>
-      <button class="feed-action-btn" onclick="bookmarkPost(this,'${p.id}',${JSON.stringify(p).replace(/"/g,'&quot;')})">
-        <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
-      </button>
-    </div>
-    <div class="feed-caption">
-      <div class="feed-caption-title">${p.title||''}</div>
-      <div class="feed-caption-text">${p.caption||''}</div>
-      ${locHtml}
-    </div>
-  </div>`;
+  // Resolve media: uploaded video > image > URL video > placeholder
+  let mediaHtml;
+  if (p.videoData) {
+    mediaHtml = '<video src="' + p.videoData + '" loop muted playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video>';
+  } else if (p.imageData) {
+    mediaHtml = '<img src="' + p.imageData + '" alt="" loading="lazy">';
+  } else if (p.videoUrl) {
+    mediaHtml = '<video src="' + p.videoUrl + '" loop muted playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video>';
+  } else {
+    mediaHtml = '<div class="feed-image-placeholder">🛋️</div>';
+  }
+  const locHtml = p.location ? '<div class="feed-caption-location"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>' + p.location + '</div>' : '';
+  // Use ID-only refs in onclick to avoid embedding large base64 blobs in HTML attributes
+  return '<div class="feed-item" data-id="' + p.id + '">' +
+    '<div class="feed-header">' +
+      '<div class="feed-header-avatar">BL</div>' +
+      '<span class="feed-header-name">The Billy Living</span>' +
+      '<button class="feed-header-more" onclick="openShareSheet(_feedPostsMap[\'' + p.id + '\'])">···</button>' +
+    '</div>' +
+    '<div class="feed-image">' + mediaHtml + '</div>' +
+    '<div class="feed-actions">' +
+      '<button class="feed-action-btn" onclick="toggleLike(this,\'' + p.id + '\',\'posts\')">' +
+        '<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>' +
+        '<span class="feed-action-count">' + (p.likes||0) + '</span>' +
+      '</button>' +
+      '<button class="feed-action-btn" onclick="openShareSheet(_feedPostsMap[\'' + p.id + '\'])">' +
+        '<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>' +
+        '<span class="feed-action-count">' + (p.shares||0) + '</span>' +
+      '</button>' +
+      '<div class="feed-action-spacer"></div>' +
+      '<button class="feed-action-btn" onclick="bookmarkPost(this,\'' + p.id + '\',_feedPostsMap[\'' + p.id + '\'])">' +
+        '<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>' +
+      '</button>' +
+    '</div>' +
+    '<div class="feed-caption">' +
+      '<div class="feed-caption-title">' + (p.title||'') + '</div>' +
+      '<div class="feed-caption-text">' + (p.caption||'') + '</div>' +
+      locHtml +
+    '</div>' +
+  '</div>';
 }
 
 async function toggleLike(btn, id, collection) {
@@ -1045,6 +1060,7 @@ async function loadTrending() {
   const container = document.getElementById('trendingContainer');
   if (!snap.exists()) { container.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:Cormorant Garamond,serif;font-size:22px">No trending yet</div>'; return; }
   const items = Object.values(snap.val());
+  items.forEach(item => { _trendingItemsMap[item.id] = item; });
   container.innerHTML = items.map(item => buildTikTokItem(item)).join('');
   // Auto-play first video
   const firstVideo = container.querySelector('video');
@@ -1061,33 +1077,36 @@ async function loadTrending() {
 }
 
 function buildTikTokItem(item) {
-  const mediaHtml = item.videoUrl
-    ? `<video src="${item.videoUrl}" loop muted playsinline></video>`
+  // videoData = base64 uploaded in admin, videoUrl = external link — both play as video
+  const videoSrc = item.videoData || item.videoUrl;
+  const mediaHtml = videoSrc
+    ? '<video src="' + videoSrc + '" loop muted playsinline></video>'
     : item.imageData
-      ? `<img src="${item.imageData}" alt="${item.title||''}">`
-      : `<div style="width:100%;height:100%;background:linear-gradient(135deg,#1a0f00,#2a1a00);display:flex;align-items:center;justify-content:center;font-size:64px">🛋️</div>`;
-  return `<div class="tiktok-item">
-    ${mediaHtml}
-    <div class="tiktok-actions">
-      <button class="tiktok-action" onclick="toggleTikTokLike(this,'${item.id}')">
-        <div class="tiktok-action-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>
-        <span class="tiktok-action-count">${item.likes||0}</span>
-      </button>
-      <button class="tiktok-action" onclick="openShareSheet(${JSON.stringify(item).replace(/"/g,'&quot;')})">
-        <div class="tiktok-action-icon"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></div>
-        <span class="tiktok-action-count">${item.shares||0}</span>
-      </button>
-      <button class="tiktok-action" onclick="bookmarkTrending(this,'${item.id}',${JSON.stringify(item).replace(/"/g,'&quot;')})">
-        <div class="tiktok-action-icon"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></div>
-        <span class="tiktok-action-count">Save</span>
-      </button>
-    </div>
-    <div class="tiktok-info">
-      <div class="tiktok-user"><span class="tiktok-username">@billyliving</span><span class="tiktok-badge">✓</span></div>
-      <div class="tiktok-caption">${item.title||''} — ${item.caption||''}</div>
-      <div class="tiktok-music"><span class="tiktok-music-icon">🎵</span><div class="tiktok-music-text"><span>Billy Living · Luxury Interiors</span></div></div>
-    </div>
-  </div>`;
+      ? '<img src="' + item.imageData + '" alt="">'
+      : '<div style="width:100%;height:100%;background:linear-gradient(135deg,#1a0f00,#2a1a00);display:flex;align-items:center;justify-content:center;font-size:64px">🛋️</div>';
+  // Use ID lookup to avoid embedding large base64 blobs in onclick attributes
+  return '<div class="tiktok-item">' +
+    mediaHtml +
+    '<div class="tiktok-actions">' +
+      '<button class="tiktok-action" onclick="toggleTikTokLike(this,\'' + item.id + '\')">' +
+        '<div class="tiktok-action-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>' +
+        '<span class="tiktok-action-count">' + (item.likes||0) + '</span>' +
+      '</button>' +
+      '<button class="tiktok-action" onclick="openShareSheet(_trendingItemsMap[\'' + item.id + '\'])">' +
+        '<div class="tiktok-action-icon"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></div>' +
+        '<span class="tiktok-action-count">' + (item.shares||0) + '</span>' +
+      '</button>' +
+      '<button class="tiktok-action" onclick="bookmarkTrending(this,\'' + item.id + '\',_trendingItemsMap[\'' + item.id + '\'])">' +
+        '<div class="tiktok-action-icon"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></div>' +
+        '<span class="tiktok-action-count">Save</span>' +
+      '</button>' +
+    '</div>' +
+    '<div class="tiktok-info">' +
+      '<div class="tiktok-user"><span class="tiktok-username">@billyliving</span><span class="tiktok-badge">✓</span></div>' +
+      '<div class="tiktok-caption">' + (item.title||'') + ' — ' + (item.caption||'') + '</div>' +
+      '<div class="tiktok-music"><span class="tiktok-music-icon">🎵</span><div class="tiktok-music-text"><span>Billy Living · Luxury Interiors</span></div></div>' +
+    '</div>' +
+  '</div>';
 }
 
 async function toggleTikTokLike(btn, id) {
