@@ -702,6 +702,7 @@ let currentUser = null, currentProfile = null;
 let cgMessages = [], cgHistory = [];
 let portfolioItems = [], selectedPortfolioItems = [];
 let currentCatalogBox = null;
+let currentCatalogPaletteIndex = 0;
 let vaultSession = null;
 let currentShareItem = null;
 let pendingSignupName = '', pendingSignupEmail = '', pendingSignupPw = '';
@@ -792,13 +793,18 @@ async function handleFinishSignup() {
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
 function showPage(pageId) {
+  // FIX: Pause trending videos when leaving trending to stop audio/resource bleed
+  const trendingEl = document.getElementById('trending');
+  if (trendingEl.classList.contains('active') && pageId !== 'trending') {
+    trendingEl.querySelectorAll('video').forEach(v => { v.pause(); });
+  }
+
   // Hide all standard pages
   document.querySelectorAll('.page').forEach(p => {
     p.classList.remove('active');
     p.style.display = 'none';
   });
   // Handle trending separately (fixed-position)
-  const trendingEl = document.getElementById('trending');
   trendingEl.classList.remove('active');
 
   // Update nav
@@ -808,12 +814,31 @@ function showPage(pageId) {
 
   if (pageId === 'trending') {
     trendingEl.classList.add('active');
+    // FIX: Resume first visible video when re-entering trending
+    const firstVideo = trendingEl.querySelector('.tiktok-item video');
+    if (firstVideo) firstVideo.play().catch(() => {});
   } else {
     const el = document.getElementById(pageId);
     if (el) { el.style.display = 'block'; el.classList.add('active'); }
     // Hide catalog sub-pages unless explicitly going there
     if (pageId !== 'catalogInner') { document.getElementById('catalogInner').style.display = 'none'; }
     if (pageId !== 'catalogRooms') { document.getElementById('catalogRooms').style.display = 'none'; }
+
+    // FIX: Reset vault UI state on navigation to prevent stale success/gallery state
+    if (pageId === 'vault') {
+      if (vaultSession) {
+        // Active session — go straight to gallery
+        document.getElementById('vaultLogin').style.display = 'none';
+        document.getElementById('vaultGallery').style.display = 'block';
+      } else {
+        // No session — always show clean login form
+        document.getElementById('vaultLogin').style.display = 'flex';
+        document.getElementById('vaultGallery').style.display = 'none';
+        document.getElementById('vault-login-form').style.display = 'flex';
+        document.getElementById('vault-success-state').style.display = 'none';
+        clearVaultError();
+      }
+    }
   }
   window.scrollTo(0, 0);
 }
@@ -1083,6 +1108,9 @@ function openCatalogInner(box) {
   document.getElementById('catalog').classList.remove('active');
   document.getElementById('catalogInner').style.display = 'block';
   document.getElementById('catalogInner').classList.add('active');
+  // FIX: Keep catalog nav button active while in sub-pages
+  document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-catalog').classList.add('active');
   window.scrollTo(0, 0);
 }
 
@@ -1130,6 +1158,9 @@ function openCatalogRooms(box, paletteIndex) {
   document.getElementById('catalogInner').classList.remove('active');
   document.getElementById('catalogRooms').style.display = 'block';
   document.getElementById('catalogRooms').classList.add('active');
+  // FIX: Keep catalog nav button active while in sub-pages
+  document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-catalog').classList.add('active');
   window.scrollTo(0, 0);
 }
 
