@@ -1067,7 +1067,7 @@ function openCatalogInner(box) {
     ? box.mixtureLabels
     : ['Mixture 1', 'Mixture 2'];
   mixRow.innerHTML = [0, 1].map((i) => `
-    <div class="color-mixture-card" onclick="openCatalogRooms(${JSON.stringify(box).replace(/"/g,'&quot;')})">
+    <div class="color-mixture-card" onclick="openCatalogRooms(${JSON.stringify(box).replace(/"/g,'&quot;')}, ${i})">
       <div class="color-mixture-label">${labels[i] || 'Mixture ' + (i+1)}</div>
       <div class="house-layout">
         <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1095,13 +1095,30 @@ function closeCatalogInner() {
 
 const ROOM_NAMES = ['Living Room','Dining Room','Bed Room','Kitchen','Toilet','Passage Way','Rest Room'];
 
-function openCatalogRooms(box) {
+function openCatalogRooms(box, paletteIndex) {
+  paletteIndex = paletteIndex || 0;
   currentCatalogBox = box;
+  currentCatalogPaletteIndex = paletteIndex;
   document.getElementById('roomsPageTitle').textContent    = box.value || box.topic || 'ROOMS';
   document.getElementById('roomsPageSubtitle').textContent = box.description || box.feeling || '';
   const area = document.getElementById('roomGalleryArea');
+
+  // Helper: get images for a specific mixture, handling Firebase object format
+  const getMixtureImages = (b, palIdx) => {
+    if (!b.mixtureImages) return [];
+    const raw = b.mixtureImages[palIdx];
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    const keys = Object.keys(raw).map(Number).sort((a,c)=>a-c);
+    const maxIdx = keys.length ? Math.max(...keys) : -1;
+    const arr = Array(maxIdx + 1).fill(null);
+    keys.forEach(k => { arr[k] = raw[k]; });
+    return arr;
+  };
+
+  const imgs = getMixtureImages(box, paletteIndex);
   area.innerHTML = ROOM_NAMES.map((name, i) => {
-    const img = box.images && box.images[i] ? box.images[i] : null;
+    const img = imgs[i] || null;
     return `<div class="room-category-block">
       <div class="room-category-header"><span class="room-category-name">${name}</span></div>
       <div class="room-single-slot" onclick="viewRoomImage('${name}','${img||''}')">
