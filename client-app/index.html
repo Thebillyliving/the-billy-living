@@ -115,7 +115,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .inner-section-label{font-size:9px;letter-spacing:4px;color:rgba(201,168,76,.5);text-transform:uppercase;padding:16px 20px 8px}
 .color-config-area{padding:16px 20px;border-bottom:1px solid #C9A84C}
 .color-config-title{font-family:'Cormorant Garamond',serif;font-size:13px;letter-spacing:3px;color:#C9A84C;text-transform:uppercase;margin-bottom:14px}
-.color-mixtures-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.color-mixtures-row{display:grid;grid-template-columns:1fr;gap:12px}
 .color-mixture-card{border:1px solid rgba(201,168,76,.35);background:#0E0E0E;padding:10px;cursor:pointer;transition:all .2s;position:relative}
 .color-mixture-card:active,.color-mixture-card:hover{background:rgba(201,168,76,.08);border-color:#C9A84C}
 .color-mixture-card::after{content:'Tap to enter rooms ›';display:block;font-size:8px;letter-spacing:1.5px;color:rgba(201,168,76,.4);text-align:right;margin-top:8px;text-transform:uppercase}
@@ -203,7 +203,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .portfolio-action-btn.chat{background:#C9A84C;color:#0A1628}
 .portfolio-action-btn.whatsapp{background:#25D366;color:white}
 .portfolio-action-btn.share{background:#0A0A0A;color:#C9A84C;border:2px solid #C9A84C}
-#concierge{display:none;flex-direction:column;height:calc(var(--vvh, 100vh) - var(--nav-height));background:#060D18}
+#concierge{display:none;flex-direction:column;height:calc(100vh - var(--nav-height));background:#060D18}
 #concierge.active{display:flex}
 .cg-header{background:linear-gradient(135deg,#0B1628,#0D1E3A);padding:16px 20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid rgba(201,169,98,.2);flex-shrink:0}
 .cg-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#C9A862,#8B6914);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:16px;color:#060D18;flex-shrink:0;position:relative}
@@ -341,36 +341,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .gate-photo-prompt{font-size:11px;color:rgba(201,169,98,.5);letter-spacing:1px;text-transform:uppercase;font-family:'Jost',sans-serif;margin-bottom:24px}
 .gate-step2-title{font-family:'Cormorant Garamond',serif;font-size:22px;color:#C9A862;margin-bottom:6px}
 .gate-step2-sub{font-size:12px;color:rgba(255,255,255,.35);margin-bottom:28px;font-family:'Jost',sans-serif}
-/* ─── AI CHAT OVERLAY ─────────────────────────────────────────────────────── */
-#aiChatOverlay{display:none;position:fixed;top:0;left:0;right:0;bottom:calc(100vh - var(--vvh, 100vh));z-index:4500;flex-direction:column;background:#080C14}
-#aiChatOverlay.active{display:flex;animation:fadeIn .3s ease}
-.ai-chat-header{background:linear-gradient(135deg,#080C14,#0C1220);padding:16px 20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid rgba(201,169,98,.15);flex-shrink:0}
-.ai-chat-back{background:none;border:none;color:var(--gold);font-size:22px;cursor:pointer;line-height:1;width:36px;flex-shrink:0}
-.ai-chat-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1a2a4a,#0d1e35);border:1.5px solid rgba(201,169,98,.4);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
-.ai-chat-avatar svg{width:20px;height:20px;stroke:#C9A862;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.ai-chat-avatar::after{content:'AI';position:absolute;bottom:-1px;right:-1px;background:#C9A84C;color:#080C14;font-family:'Jost',sans-serif;font-size:7px;font-weight:700;letter-spacing:.5px;border-radius:4px;padding:1px 3px;line-height:1.4}
-.ai-chat-info{flex:1}
-.ai-chat-name{font-family:'Cormorant Garamond',serif;font-weight:700;color:#C9A862;font-size:15px;letter-spacing:.5px}
-.ai-chat-status{font-size:11px;color:rgba(134,150,160,.8);display:flex;align-items:center;gap:5px;margin-top:2px}
-.ai-chat-status-dot{width:6px;height:6px;border-radius:50%;background:#7B68EE;flex-shrink:0}
-.ai-chat-messages{flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:14px;scrollbar-width:none}
-.ai-chat-messages::-webkit-scrollbar{display:none}
-.ai-msg{display:flex;flex-direction:column;gap:4px}
-.ai-msg.sent{align-items:flex-end}
-.ai-msg.recv{align-items:flex-start}
-.ai-bubble{max-width:84%;padding:13px 17px;font-size:14px;line-height:1.65;word-wrap:break-word;white-space:pre-wrap;font-family:'Jost',sans-serif}
-.ai-msg.recv .ai-bubble{background:linear-gradient(135deg,#0D1530,#111a38);color:#E9EDF0;border:1px solid rgba(123,104,238,.2);border-radius:4px 18px 18px 18px;box-shadow:0 2px 12px rgba(0,0,0,.35)}
-.ai-msg.sent .ai-bubble{background:linear-gradient(135deg,#C9A862,#8B6914);color:#060D18;font-weight:500;border-radius:18px 4px 18px 18px;box-shadow:0 2px 12px rgba(201,169,98,.2)}
-.ai-msg-time{font-size:10px;color:rgba(255,255,255,.2);padding:0 4px}
-.ai-typing{padding:0 16px 8px;color:rgba(123,104,238,.6);font-size:12px;font-style:italic;letter-spacing:.5px;display:none}
-.ai-input-row{padding:12px 16px;border-top:1px solid rgba(201,169,98,.08);background:#080C14;display:flex;gap:10px;align-items:center;flex-shrink:0}
-.ai-input{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(123,104,238,.2);border-radius:24px;padding:12px 18px;color:#F5F0E8;font-size:14px;font-family:'Jost',sans-serif;outline:none;-webkit-user-select:text;user-select:text;transition:border-color .2s}
-.ai-input:focus{border-color:rgba(123,104,238,.5)}
-.ai-send{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#7B68EE,#5a4fcf);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .2s}
-.ai-send:active{opacity:.8}
-.ai-send svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.story-circle-ai-icon svg{width:22px;height:22px;stroke:var(--gold);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-
+.story-circle-photo{width:100%;height:100%;object-fit:cover;border-radius:50%}
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -431,9 +402,9 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       </div>
       <span class="story-label" id="profileStoryLabel">My Profile</span>
     </div>
-    <div class="story-item" onclick="openAIChat()">
+    <div class="story-item" onclick="showPage('concierge')">
       <div class="story-circle">
-        <span class="story-circle-ai-icon"><svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1H2a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73A2 2 0 0110 4a2 2 0 012-2z"/><circle cx="9" cy="13" r="1" fill="#C9A84C" stroke="none"/><circle cx="15" cy="13" r="1" fill="#C9A84C" stroke="none"/></svg></span>
+        <span class="story-circle-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span>
       </div>
       <span class="story-label">AI Chat</span>
     </div>
@@ -510,26 +481,6 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       <!-- FIX 3: handleLogout now calls fbAuth.signOut() properly -->
       <button class="profile-btn-text" onclick="handleLogout()">Log Out</button>
     </div>
-  </div>
-</div>
-
-<!-- AI CHAT OVERLAY -->
-<div id="aiChatOverlay">
-  <div class="ai-chat-header">
-    <button class="ai-chat-back" onclick="closeAIChat()">←</button>
-    <div class="ai-chat-avatar">
-      <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1H2a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73A2 2 0 0110 4a2 2 0 012-2z"/><circle cx="9" cy="13" r="1" fill="#C9A862" stroke="none"/><circle cx="15" cy="13" r="1" fill="#C9A862" stroke="none"/></svg>
-    </div>
-    <div class="ai-chat-info">
-      <div class="ai-chat-name">Billy AI</div>
-      <div class="ai-chat-status"><span class="ai-chat-status-dot"></span>Design Intelligence · Always on</div>
-    </div>
-  </div>
-  <div class="ai-chat-messages" id="aiChatMessages"></div>
-  <div class="ai-typing" id="aiTyping">Billy AI is thinking…</div>
-  <div class="ai-input-row">
-    <input class="ai-input" id="aiInput" placeholder="Ask about design, styles, rooms…" onkeypress="if(event.key==='Enter')sendAIChatMessage()">
-    <button class="ai-send" onclick="sendAIChatMessage()"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
   </div>
 </div>
 
@@ -749,10 +700,8 @@ const fbDb   = firebase.database();
 // ─── STATE ───────────────────────────────────────────────────────────────────
 let currentUser = null, currentProfile = null;
 let cgMessages = [], cgHistory = [];
-let aiChatMessages = [], aiChatHistory = [];
 let portfolioItems = [], selectedPortfolioItems = [];
 let currentCatalogBox = null;
-let currentCatalogPaletteIndex = 0;
 let vaultSession = null;
 let currentShareItem = null;
 let pendingSignupName = '', pendingSignupEmail = '', pendingSignupPw = '';
@@ -843,18 +792,13 @@ async function handleFinishSignup() {
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
 function showPage(pageId) {
-  // FIX: Pause trending videos when leaving trending to stop audio/resource bleed
-  const trendingEl = document.getElementById('trending');
-  if (trendingEl.classList.contains('active') && pageId !== 'trending') {
-    trendingEl.querySelectorAll('video').forEach(v => { v.pause(); });
-  }
-
   // Hide all standard pages
   document.querySelectorAll('.page').forEach(p => {
     p.classList.remove('active');
     p.style.display = 'none';
   });
   // Handle trending separately (fixed-position)
+  const trendingEl = document.getElementById('trending');
   trendingEl.classList.remove('active');
 
   // Update nav
@@ -864,31 +808,12 @@ function showPage(pageId) {
 
   if (pageId === 'trending') {
     trendingEl.classList.add('active');
-    // FIX: Resume first visible video when re-entering trending
-    const firstVideo = trendingEl.querySelector('.tiktok-item video');
-    if (firstVideo) firstVideo.play().catch(() => {});
   } else {
     const el = document.getElementById(pageId);
     if (el) { el.style.display = 'block'; el.classList.add('active'); }
     // Hide catalog sub-pages unless explicitly going there
     if (pageId !== 'catalogInner') { document.getElementById('catalogInner').style.display = 'none'; }
     if (pageId !== 'catalogRooms') { document.getElementById('catalogRooms').style.display = 'none'; }
-
-    // FIX: Reset vault UI state on navigation to prevent stale success/gallery state
-    if (pageId === 'vault') {
-      if (vaultSession) {
-        // Active session — go straight to gallery
-        document.getElementById('vaultLogin').style.display = 'none';
-        document.getElementById('vaultGallery').style.display = 'block';
-      } else {
-        // No session — always show clean login form
-        document.getElementById('vaultLogin').style.display = 'flex';
-        document.getElementById('vaultGallery').style.display = 'none';
-        document.getElementById('vault-login-form').style.display = 'flex';
-        document.getElementById('vault-success-state').style.display = 'none';
-        clearVaultError();
-      }
-    }
   }
   window.scrollTo(0, 0);
 }
@@ -977,60 +902,58 @@ function requestConciergeSupport() {
 }
 
 // ─── HOME FEED ────────────────────────────────────────────────────────────────
-// Global lookup maps so onclick handlers never embed large base64 blobs in HTML
-const _feedPostsMap     = {};
-const _trendingItemsMap = {};
+// Lookup map — keeps base64 blobs OUT of onclick HTML attributes
+const _postsMap = {};
 
 async function loadHomeFeed() {
   const snap = await fbDb.ref('content/posts').orderByChild('published').equalTo(true).get();
   const feed = document.getElementById('homeFeed');
   if (!snap.exists()) { feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>'; return; }
   const posts = Object.values(snap.val()).reverse();
-  posts.forEach(p => { _feedPostsMap[p.id] = p; });
+  posts.forEach(p => { _postsMap[p.id] = p; });
   feed.innerHTML = posts.map(p => buildFeedItem(p)).join('');
 }
 
 function buildFeedItem(p) {
-  // Resolve media: uploaded video > image > URL video > placeholder
+  const id = p.id;
   let mediaHtml;
   if (p.videoData) {
-    mediaHtml = '<video src="' + p.videoData + '" loop muted playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video>';
+    mediaHtml = '<video src="' + p.videoData + '" loop muted playsinline style="width:100%;height:100%;object-fit:cover;display:block"></video>';
   } else if (p.imageData) {
-    mediaHtml = '<img src="' + p.imageData + '" alt="" loading="lazy">';
+    mediaHtml = '<img src="' + p.imageData + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block">';
   } else if (p.videoUrl) {
-    mediaHtml = '<video src="' + p.videoUrl + '" loop muted playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video>';
+    mediaHtml = '<video src="' + p.videoUrl + '" loop muted playsinline style="width:100%;height:100%;object-fit:cover;display:block"></video>';
   } else {
     mediaHtml = '<div class="feed-image-placeholder">🛋️</div>';
   }
   const locHtml = p.location ? '<div class="feed-caption-location"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>' + p.location + '</div>' : '';
-  // Use ID-only refs in onclick to avoid embedding large base64 blobs in HTML attributes
-  return '<div class="feed-item" data-id="' + p.id + '">' +
-    '<div class="feed-header">' +
-      '<div class="feed-header-avatar">BL</div>' +
-      '<span class="feed-header-name">The Billy Living</span>' +
-      '<button class="feed-header-more" onclick="openShareSheet(_feedPostsMap[\'' + p.id + '\'])">···</button>' +
-    '</div>' +
-    '<div class="feed-image">' + mediaHtml + '</div>' +
-    '<div class="feed-actions">' +
-      '<button class="feed-action-btn" onclick="toggleLike(this,\'' + p.id + '\',\'posts\')">' +
-        '<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>' +
-        '<span class="feed-action-count">' + (p.likes||0) + '</span>' +
-      '</button>' +
-      '<button class="feed-action-btn" onclick="openShareSheet(_feedPostsMap[\'' + p.id + '\'])">' +
-        '<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>' +
-        '<span class="feed-action-count">' + (p.shares||0) + '</span>' +
-      '</button>' +
-      '<div class="feed-action-spacer"></div>' +
-      '<button class="feed-action-btn" onclick="bookmarkPost(this,\'' + p.id + '\',_feedPostsMap[\'' + p.id + '\'])">' +
-        '<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>' +
-      '</button>' +
-    '</div>' +
-    '<div class="feed-caption">' +
-      '<div class="feed-caption-title">' + (p.title||'') + '</div>' +
-      '<div class="feed-caption-text">' + (p.caption||'') + '</div>' +
-      locHtml +
-    '</div>' +
-  '</div>';
+  return '<div class="feed-item" data-id="' + id + '">'
+    + '<div class="feed-header">'
+    +   '<div class="feed-header-avatar">BL</div>'
+    +   '<span class="feed-header-name">The Billy Living</span>'
+    +   '<button class="feed-header-more" onclick="openShareSheet(_postsMap[\'' + id + '\'])">···</button>'
+    + '</div>'
+    + '<div class="feed-image">' + mediaHtml + '</div>'
+    + '<div class="feed-actions">'
+    +   '<button class="feed-action-btn" onclick="toggleLike(this,\'' + id + '\',\'posts\')">'
+    +     '<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>'
+    +     '<span class="feed-action-count">' + (p.likes||0) + '</span>'
+    +   '</button>'
+    +   '<button class="feed-action-btn" onclick="openShareSheet(_postsMap[\'' + id + '\'])">'
+    +     '<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>'
+    +     '<span class="feed-action-count">' + (p.shares||0) + '</span>'
+    +   '</button>'
+    +   '<div class="feed-action-spacer"></div>'
+    +   '<button class="feed-action-btn" onclick="bookmarkPost(this,\'' + id + '\',_postsMap[\'' + id + '\'])">'
+    +     '<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>'
+    +   '</button>'
+    + '</div>'
+    + '<div class="feed-caption">'
+    +   '<div class="feed-caption-title">' + (p.title||'') + '</div>'
+    +   '<div class="feed-caption-text">' + (p.caption||'') + '</div>'
+    +   locHtml
+    + '</div>'
+  + '</div>';
 }
 
 async function toggleLike(btn, id, collection) {
@@ -1055,17 +978,17 @@ async function bookmarkPost(btn, id, post) {
 }
 
 // ─── TRENDING ────────────────────────────────────────────────────────────────
+const _trendMap = {};
+
 async function loadTrending() {
   const snap = await fbDb.ref('content/trending').get();
   const container = document.getElementById('trendingContainer');
   if (!snap.exists()) { container.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:Cormorant Garamond,serif;font-size:22px">No trending yet</div>'; return; }
   const items = Object.values(snap.val());
-  items.forEach(item => { _trendingItemsMap[item.id] = item; });
+  items.forEach(item => { _trendMap[item.id] = item; });
   container.innerHTML = items.map(item => buildTikTokItem(item)).join('');
-  // Auto-play first video
   const firstVideo = container.querySelector('video');
   if (firstVideo) firstVideo.play().catch(()=>{});
-  // Pause/play on scroll snap
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       const v = e.target.querySelector('video');
@@ -1077,36 +1000,39 @@ async function loadTrending() {
 }
 
 function buildTikTokItem(item) {
-  // videoData = base64 uploaded in admin, videoUrl = external link — both play as video
-  const videoSrc = item.videoData || item.videoUrl;
-  const mediaHtml = videoSrc
-    ? '<video src="' + videoSrc + '" loop muted playsinline></video>'
-    : item.imageData
-      ? '<img src="' + item.imageData + '" alt="">'
-      : '<div style="width:100%;height:100%;background:linear-gradient(135deg,#1a0f00,#2a1a00);display:flex;align-items:center;justify-content:center;font-size:64px">🛋️</div>';
-  // Use ID lookup to avoid embedding large base64 blobs in onclick attributes
-  return '<div class="tiktok-item">' +
-    mediaHtml +
-    '<div class="tiktok-actions">' +
-      '<button class="tiktok-action" onclick="toggleTikTokLike(this,\'' + item.id + '\')">' +
-        '<div class="tiktok-action-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>' +
-        '<span class="tiktok-action-count">' + (item.likes||0) + '</span>' +
-      '</button>' +
-      '<button class="tiktok-action" onclick="openShareSheet(_trendingItemsMap[\'' + item.id + '\'])">' +
-        '<div class="tiktok-action-icon"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></div>' +
-        '<span class="tiktok-action-count">' + (item.shares||0) + '</span>' +
-      '</button>' +
-      '<button class="tiktok-action" onclick="bookmarkTrending(this,\'' + item.id + '\',_trendingItemsMap[\'' + item.id + '\'])">' +
-        '<div class="tiktok-action-icon"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></div>' +
-        '<span class="tiktok-action-count">Save</span>' +
-      '</button>' +
-    '</div>' +
-    '<div class="tiktok-info">' +
-      '<div class="tiktok-user"><span class="tiktok-username">@billyliving</span><span class="tiktok-badge">✓</span></div>' +
-      '<div class="tiktok-caption">' + (item.title||'') + ' — ' + (item.caption||'') + '</div>' +
-      '<div class="tiktok-music"><span class="tiktok-music-icon">🎵</span><div class="tiktok-music-text"><span>Billy Living · Luxury Interiors</span></div></div>' +
-    '</div>' +
-  '</div>';
+  const id = item.id;
+  let mediaHtml;
+  if (item.videoData) {
+    mediaHtml = '<video src="' + item.videoData + '" loop muted playsinline style="width:100%;height:100%;object-fit:cover"></video>';
+  } else if (item.videoUrl) {
+    mediaHtml = '<video src="' + item.videoUrl + '" loop muted playsinline style="width:100%;height:100%;object-fit:cover"></video>';
+  } else if (item.imageData) {
+    mediaHtml = '<img src="' + item.imageData + '" alt="" style="width:100%;height:100%;object-fit:cover">';
+  } else {
+    mediaHtml = '<div style="width:100%;height:100%;background:linear-gradient(135deg,#1a0f00,#2a1a00);display:flex;align-items:center;justify-content:center;font-size:64px">🛋️</div>';
+  }
+  return '<div class="tiktok-item">'
+    + mediaHtml
+    + '<div class="tiktok-actions">'
+    +   '<button class="tiktok-action" onclick="toggleTikTokLike(this,\'' + id + '\')">'
+    +     '<div class="tiktok-action-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>'
+    +     '<span class="tiktok-action-count">' + (item.likes||0) + '</span>'
+    +   '</button>'
+    +   '<button class="tiktok-action" onclick="openShareSheet(_trendMap[\'' + id + '\'])">'
+    +     '<div class="tiktok-action-icon"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></div>'
+    +     '<span class="tiktok-action-count">' + (item.shares||0) + '</span>'
+    +   '</button>'
+    +   '<button class="tiktok-action" onclick="bookmarkTrending(this,\'' + id + '\',_trendMap[\'' + id + '\'])">'
+    +     '<div class="tiktok-action-icon"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></div>'
+    +     '<span class="tiktok-action-count">Save</span>'
+    +   '</button>'
+    + '</div>'
+    + '<div class="tiktok-info">'
+    +   '<div class="tiktok-user"><span class="tiktok-username">@billyliving</span><span class="tiktok-badge">✓</span></div>'
+    +   '<div class="tiktok-caption">' + (item.title||'') + ' — ' + (item.caption||'') + '</div>'
+    +   '<div class="tiktok-music"><span class="tiktok-music-icon">🎵</span><div class="tiktok-music-text"><span>Billy Living · Luxury Interiors</span></div></div>'
+    + '</div>'
+  + '</div>';
 }
 
 async function toggleTikTokLike(btn, id) {
@@ -1129,24 +1055,27 @@ async function bookmarkTrending(btn, id, item) {
 }
 
 // ─── CATALOG ─────────────────────────────────────────────────────────────────
+const _catalogMap = {};
+
 async function loadCatalog() {
   const snap = await fbDb.ref('content/catalog').get();
   const grid = document.getElementById('eliteCatalogGrid');
   if (!snap.exists()) { grid.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3)">No collections yet</div>'; return; }
   const boxes = Object.values(snap.val());
+  boxes.forEach(box => { _catalogMap[box.id] = box; });
   grid.innerHTML = boxes.map(box => {
     const thumb = box.images ? box.images.find(i => i) : null;
-    return `<div class="elite-collection-cell" onclick="openCatalogInner(${JSON.stringify(box).replace(/"/g,'&quot;')})">
-      <div class="elite-cell-meta">
-        <div class="elite-cell-topic">${box.value||box.topic||'Collection'}</div>
-        <div class="elite-cell-feeling">${box.description||box.feeling||''}</div>
-      </div>
-      <div class="elite-cell-box">
-        ${thumb ? `<img src="${thumb}" alt="${box.value||''}" loading="lazy">` : '<div class="elite-cell-grain"></div>'}
-        <div class="elite-cell-grain"></div>
-        <span class="elite-cell-arrow">›</span>
-      </div>
-    </div>`;
+    return '<div class="elite-collection-cell" onclick="openCatalogInner(_catalogMap[\'' + box.id + '\'])">'
+      + '<div class="elite-cell-meta">'
+      +   '<div class="elite-cell-topic">' + (box.value||box.topic||'Collection') + '</div>'
+      +   '<div class="elite-cell-feeling">' + (box.description||box.feeling||'') + '</div>'
+      + '</div>'
+      + '<div class="elite-cell-box">'
+      +   (thumb ? '<img src="' + thumb + '" alt="' + (box.value||'') + '" loading="lazy">' : '<div class="elite-cell-grain"></div>')
+      +   '<div class="elite-cell-grain"></div>'
+      +   '<span class="elite-cell-arrow">›</span>'
+      + '</div>'
+    + '</div>';
   }).join('');
 }
 
@@ -1154,29 +1083,23 @@ function openCatalogInner(box) {
   currentCatalogBox = box;
   document.getElementById('innerCollectionTitle').textContent  = box.value || box.topic || 'Collection';
   document.getElementById('innerCollectionFeeling').textContent = box.description || box.feeling || '';
-  // Build single color mixture card
+  // Build single color palette card
   const mixRow = document.getElementById('colorMixturesRow');
-  const label = (box.mixtureLabels && box.mixtureLabels[0]) ? box.mixtureLabels[0] : 'Mixture 1';
-  mixRow.innerHTML = `
-    <div class="color-mixture-card" style="grid-column:1/-1" onclick="openCatalogRooms(${JSON.stringify(box).replace(/"/g,'&quot;')}, 0)">
-      <div class="color-mixture-label">${label}</div>
-      <div class="house-layout">
-        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <polygon points="50,10 90,40 90,90 10,90 10,40" stroke="#C9A84C" stroke-width="1.5" fill="rgba(201,168,76,0.04)"/>
-          <rect x="30" y="60" width="18" height="30" stroke="#C9A84C" stroke-width="1" fill="rgba(201,168,76,0.06)"/>
-          <rect x="52" y="50" width="28" height="40" stroke="#C9A84C" stroke-width="1" fill="rgba(201,168,76,0.04)"/>
-          <rect x="35" y="40" width="10" height="12" stroke="#C9A84C" stroke-width="1" fill="rgba(201,168,76,0.08)"/>
-        </svg>
-      </div>
-    </div>`;
+  const label = (box.mixtureLabels && box.mixtureLabels[0]) || 'Color Palette';
+  mixRow.innerHTML = '<div class="color-mixture-card" onclick="openCatalogRooms(_catalogMap[\'' + box.id + '\'],0)">'
+    + '<div class="color-mixture-label">' + label + '</div>'
+    + '<div class="house-layout">'
+    + '<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">'
+    + '<polygon points="50,10 90,40 90,90 10,90 10,40" stroke="#C9A84C" stroke-width="1.5" fill="rgba(201,168,76,0.04)"/>'
+    + '<rect x="30" y="60" width="18" height="30" stroke="#C9A84C" stroke-width="1" fill="rgba(201,168,76,0.06)"/>'
+    + '<rect x="52" y="50" width="28" height="40" stroke="#C9A84C" stroke-width="1" fill="rgba(201,168,76,0.04)"/>'
+    + '<rect x="35" y="40" width="10" height="12" stroke="#C9A84C" stroke-width="1" fill="rgba(201,168,76,0.08)"/>'
+    + '</svg></div></div>';
   // Show inner, hide main catalog
   document.getElementById('catalog').style.display = 'none';
   document.getElementById('catalog').classList.remove('active');
   document.getElementById('catalogInner').style.display = 'block';
   document.getElementById('catalogInner').classList.add('active');
-  // FIX: Keep catalog nav button active while in sub-pages
-  document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
-  document.getElementById('nav-catalog').classList.add('active');
   window.scrollTo(0, 0);
 }
 
@@ -1224,9 +1147,6 @@ function openCatalogRooms(box, paletteIndex) {
   document.getElementById('catalogInner').classList.remove('active');
   document.getElementById('catalogRooms').style.display = 'block';
   document.getElementById('catalogRooms').classList.add('active');
-  // FIX: Keep catalog nav button active while in sub-pages
-  document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
-  document.getElementById('nav-catalog').classList.add('active');
   window.scrollTo(0, 0);
 }
 
@@ -1289,14 +1209,20 @@ async function enterBespokeVault() {
   document.getElementById('vaultGalleryMeta').textContent = `${assets.length} exclusive item${assets.length!==1?'s':''} · VIP access`;
   const grid = document.getElementById('vaultGalleryGrid');
   if (!assets.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(212,175,55,.3);font-family:Cormorant Garamond,serif;font-size:18px">Your exclusive content is being curated</div>'; return; }
-  grid.innerHTML = assets.map(a => `
-    <div style="aspect-ratio:1;border:1px solid rgba(212,175,55,.18);border-radius:8px;overflow:hidden;background:#0E0A02;cursor:pointer;position:relative" onclick="openVaultAsset(${JSON.stringify(a).replace(/"/g,'&quot;')})">
-      ${a.thumb ? `<img src="${a.thumb}" style="width:100%;height:100%;object-fit:cover">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px">🔐</div>`}
-      <div style="position:absolute;bottom:0;left:0;right:0;padding:10px 10px 8px;background:linear-gradient(transparent,rgba(0,0,0,.75))">
-        <div style="font-family:'Cormorant Garamond',serif;font-size:13px;color:#E8D5A3;letter-spacing:.5px;line-height:1.2">${a.title||'Exclusive'}</div>
-        <div style="font-size:9px;color:rgba(212,175,55,.5);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px">${a.cat||'Collection'}</div>
-      </div>
-    </div>`).join('');
+  const _vaultAssets = {};
+  assets.forEach((a, i) => { _vaultAssets['va_' + i] = a; });
+  grid.innerHTML = assets.map((a, i) => {
+    const key = 'va_' + i;
+    _vaultAssets[key] = a;
+    return '<div style="aspect-ratio:1;border:1px solid rgba(212,175,55,.18);border-radius:8px;overflow:hidden;background:#0E0A02;cursor:pointer;position:relative" onclick="openVaultAsset(_vaultAssets[\'' + key + '\'])">'
+      + (a.thumb ? '<img src="' + a.thumb + '" style="width:100%;height:100%;object-fit:cover">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px">🔐</div>')
+      + '<div style="position:absolute;bottom:0;left:0;right:0;padding:10px 10px 8px;background:linear-gradient(transparent,rgba(0,0,0,.75))">'
+      +   '<div style="font-family:\'Cormorant Garamond\',serif;font-size:13px;color:#E8D5A3;letter-spacing:.5px;line-height:1.2">' + (a.title||'Exclusive') + '</div>'
+      +   '<div style="font-size:9px;color:rgba(212,175,55,.5);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px">' + (a.cat||'Collection') + '</div>'
+      + '</div>'
+    + '</div>';
+  }).join('');
+  window._vaultAssets = _vaultAssets;
 }
 
 function openVaultAsset(asset) {
@@ -1514,63 +1440,6 @@ async function sendAIMessage(userText) {
   }
 }
 
-// ─── AI CHAT (STANDALONE) ────────────────────────────────────────────────────
-function openAIChat() {
-  document.getElementById('aiChatOverlay').classList.add('active');
-  // Send a greeting on first open
-  if (!aiChatMessages.length) {
-    const name = currentProfile?.name ? currentProfile.name.split(' ')[0] : '';
-    const greeting = name
-      ? `Welcome back, ${name}. I'm Billy AI — your personal design intelligence. Ask me anything about interior styles, room layouts, colour palettes, or your next project. Where shall we begin?`
-      : `Welcome to Billy Living. I'm Billy AI — your personal design intelligence. Ask me anything about interior styles, room layouts, colour palettes, or your dream space. Where shall we begin?`;
-    appendAIMessage(greeting, 'recv');
-    aiChatHistory.push({ role: 'assistant', content: greeting });
-  }
-}
-
-function closeAIChat() {
-  document.getElementById('aiChatOverlay').classList.remove('active');
-}
-
-function appendAIMessage(text, dir) {
-  const container = document.getElementById('aiChatMessages');
-  const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  const el = document.createElement('div');
-  el.className = 'ai-msg ' + dir;
-  el.innerHTML = `<div class="ai-bubble">${text.replace(/</g, '&lt;')}</div><div class="ai-msg-time">${time}</div>`;
-  container.appendChild(el);
-  container.scrollTop = container.scrollHeight;
-  aiChatMessages.push({ text, dir });
-}
-
-async function sendAIChatMessage() {
-  const input = document.getElementById('aiInput');
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = '';
-  appendAIMessage(text, 'sent');
-  aiChatHistory.push({ role: 'user', content: text });
-
-  const typing = document.getElementById('aiTyping');
-  typing.style.display = 'block';
-  try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: aiChatHistory })
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    const reply = data.reply || data.content?.[0]?.text || 'One moment please.';
-    typing.style.display = 'none';
-    appendAIMessage(reply, 'recv');
-    aiChatHistory.push({ role: 'assistant', content: reply });
-  } catch(e) {
-    typing.style.display = 'none';
-    appendAIMessage('I\'m having a moment — try again shortly, or reach out via the Concierge.', 'recv');
-  }
-}
-
 // ─── IMAGE MODAL ─────────────────────────────────────────────────────────────
 function openImageModal(src) {
   document.getElementById('imageModalImg').src = src;
@@ -1584,28 +1453,6 @@ function showToast(msg) {
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2600);
 }
-
-// ─── KEYBOARD / VIEWPORT FIX ─────────────────────────────────────────────────
-// Android Chrome keeps 100vh at full screen even when keyboard is open.
-// visualViewport.height gives the actual visible area — use it as a CSS var.
-(function() {
-  function updateVVH() {
-    const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    document.documentElement.style.setProperty('--vvh', h + 'px');
-    // Scroll messages to bottom when keyboard opens/closes
-    const cgMsgs = document.getElementById('cgMessages');
-    const aiMsgs = document.getElementById('aiChatMessages');
-    if (cgMsgs) cgMsgs.scrollTop = cgMsgs.scrollHeight;
-    if (aiMsgs) aiMsgs.scrollTop = aiMsgs.scrollHeight;
-  }
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', updateVVH);
-    window.visualViewport.addEventListener('scroll', updateVVH);
-  } else {
-    window.addEventListener('resize', updateVVH);
-  }
-  updateVVH();
-})();
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
 // Ensure catalog sub-pages start hidden
