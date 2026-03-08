@@ -2694,9 +2694,18 @@
             document.getElementById('adminRoomsSubtitle').textContent = box.description || box.feeling || '';
 
             const roomArea = document.getElementById('adminRoomGalleryArea');
-            const collectionImages = Array.isArray(box.images)
-                ? box.images
-                : (box.images ? Object.values(box.images) : []);
+            let collectionImages = [];
+            if (box.images) {
+                if (Array.isArray(box.images)) {
+                    collectionImages = box.images;
+                } else {
+                    // Firebase returns {0:x,1:y} — must preserve index positions
+                    const keys = Object.keys(box.images).map(Number).sort((a,b)=>a-b);
+                    const maxIdx = keys.length ? Math.max(...keys) : -1;
+                    collectionImages = Array(maxIdx + 1).fill(null);
+                    keys.forEach(k => { collectionImages[k] = box.images[k]; });
+                }
+            }
 
             roomArea.innerHTML = adminRoomCategories.map((roomName, roomIndex) => {
                 const roomImage = collectionImages[roomIndex] || null;
@@ -2910,21 +2919,22 @@
             showToast('Uploading…');
             try {
                 const compressed = await compressImage(input.files[0], 900, 0.75);
-                // Try Firebase first (source of truth), fall back to localStorage
-                const snap = await adminFbDB.ref('content/catalog').get();
-                let boxes = [];
-                if (snap.exists()) {
-                    boxes = Object.values(snap.val());
-                    // Sync back to localStorage
-                    safeLocalSet('tbl_catalog_boxes', JSON.stringify(boxes));
-                } else {
-                    boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
-                }
-                // Find box by ID (not index) for reliability
-                const targetBox = boxes.find(b => b.id === ctxRoomBoxId);
-                const box = targetBox || boxes[ctxRoomCollIdx];
+                const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+                // Find by ID first, fall back to index
+                const box = (ctxRoomBoxId && boxes.find(b => b.id === ctxRoomBoxId))
+                           || boxes[ctxRoomCollIdx];
                 if (!box) { showToast('Error: collection not found'); return; }
-                if (!box.images) box.images = [];
+                // Normalize images to a proper array (Firebase returns object keys)
+                if (!box.images) {
+                    box.images = [];
+                } else if (!Array.isArray(box.images)) {
+                    // Convert Firebase object {0:x, 1:y} back to array preserving indices
+                    const keys = Object.keys(box.images).map(Number).sort((a,b)=>a-b);
+                    const maxIdx = keys.length ? Math.max(...keys) : -1;
+                    const arr = Array(maxIdx + 1).fill(null);
+                    keys.forEach(k => { arr[k] = box.images[k]; });
+                    box.images = arr;
+                }
                 while (box.images.length <= ctxRoomSlotIdx) box.images.push(null);
                 box.images[ctxRoomSlotIdx] = compressed;
                 box.count = box.images.filter(Boolean).length + ' img' + (box.images.filter(Boolean).length !== 1 ? 's' : '');
