@@ -715,6 +715,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const fbAuth = firebase.auth();
+fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
 const fbDb   = firebase.database();
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
