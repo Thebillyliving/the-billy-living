@@ -203,7 +203,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .portfolio-action-btn.chat{background:#C9A84C;color:#0A1628}
 .portfolio-action-btn.whatsapp{background:#25D366;color:white}
 .portfolio-action-btn.share{background:#0A0A0A;color:#C9A84C;border:2px solid #C9A84C}
-#concierge{display:none;flex-direction:column;height:calc(100vh - var(--nav-height));background:#060D18}
+#concierge{display:none;flex-direction:column;height:calc(var(--vvh, 100vh) - var(--nav-height));background:#060D18}
 #concierge.active{display:flex}
 .cg-header{background:linear-gradient(135deg,#0B1628,#0D1E3A);padding:16px 20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid rgba(201,169,98,.2);flex-shrink:0}
 .cg-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#C9A862,#8B6914);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:16px;color:#060D18;flex-shrink:0;position:relative}
@@ -341,8 +341,36 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .gate-photo-prompt{font-size:11px;color:rgba(201,169,98,.5);letter-spacing:1px;text-transform:uppercase;font-family:'Jost',sans-serif;margin-bottom:24px}
 .gate-step2-title{font-family:'Cormorant Garamond',serif;font-size:22px;color:#C9A862;margin-bottom:6px}
 .gate-step2-sub{font-size:12px;color:rgba(255,255,255,.35);margin-bottom:28px;font-family:'Jost',sans-serif}
-.story-circle-photo{width:100%;height:100%;object-fit:cover;border-radius:50%}
-</style>
+/* ─── AI CHAT OVERLAY ─────────────────────────────────────────────────────── */
+#aiChatOverlay{display:none;position:fixed;top:0;left:0;right:0;bottom:calc(100vh - var(--vvh, 100vh));z-index:4500;flex-direction:column;background:#080C14}
+#aiChatOverlay.active{display:flex;animation:fadeIn .3s ease}
+.ai-chat-header{background:linear-gradient(135deg,#080C14,#0C1220);padding:16px 20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid rgba(201,169,98,.15);flex-shrink:0}
+.ai-chat-back{background:none;border:none;color:var(--gold);font-size:22px;cursor:pointer;line-height:1;width:36px;flex-shrink:0}
+.ai-chat-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1a2a4a,#0d1e35);border:1.5px solid rgba(201,169,98,.4);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
+.ai-chat-avatar svg{width:20px;height:20px;stroke:#C9A862;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.ai-chat-avatar::after{content:'AI';position:absolute;bottom:-1px;right:-1px;background:#C9A84C;color:#080C14;font-family:'Jost',sans-serif;font-size:7px;font-weight:700;letter-spacing:.5px;border-radius:4px;padding:1px 3px;line-height:1.4}
+.ai-chat-info{flex:1}
+.ai-chat-name{font-family:'Cormorant Garamond',serif;font-weight:700;color:#C9A862;font-size:15px;letter-spacing:.5px}
+.ai-chat-status{font-size:11px;color:rgba(134,150,160,.8);display:flex;align-items:center;gap:5px;margin-top:2px}
+.ai-chat-status-dot{width:6px;height:6px;border-radius:50%;background:#7B68EE;flex-shrink:0}
+.ai-chat-messages{flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:14px;scrollbar-width:none}
+.ai-chat-messages::-webkit-scrollbar{display:none}
+.ai-msg{display:flex;flex-direction:column;gap:4px}
+.ai-msg.sent{align-items:flex-end}
+.ai-msg.recv{align-items:flex-start}
+.ai-bubble{max-width:84%;padding:13px 17px;font-size:14px;line-height:1.65;word-wrap:break-word;white-space:pre-wrap;font-family:'Jost',sans-serif}
+.ai-msg.recv .ai-bubble{background:linear-gradient(135deg,#0D1530,#111a38);color:#E9EDF0;border:1px solid rgba(123,104,238,.2);border-radius:4px 18px 18px 18px;box-shadow:0 2px 12px rgba(0,0,0,.35)}
+.ai-msg.sent .ai-bubble{background:linear-gradient(135deg,#C9A862,#8B6914);color:#060D18;font-weight:500;border-radius:18px 4px 18px 18px;box-shadow:0 2px 12px rgba(201,169,98,.2)}
+.ai-msg-time{font-size:10px;color:rgba(255,255,255,.2);padding:0 4px}
+.ai-typing{padding:0 16px 8px;color:rgba(123,104,238,.6);font-size:12px;font-style:italic;letter-spacing:.5px;display:none}
+.ai-input-row{padding:12px 16px;border-top:1px solid rgba(201,169,98,.08);background:#080C14;display:flex;gap:10px;align-items:center;flex-shrink:0}
+.ai-input{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(123,104,238,.2);border-radius:24px;padding:12px 18px;color:#F5F0E8;font-size:14px;font-family:'Jost',sans-serif;outline:none;-webkit-user-select:text;user-select:text;transition:border-color .2s}
+.ai-input:focus{border-color:rgba(123,104,238,.5)}
+.ai-send{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#7B68EE,#5a4fcf);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .2s}
+.ai-send:active{opacity:.8}
+.ai-send svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.story-circle-ai-icon svg{width:22px;height:22px;stroke:var(--gold);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -402,9 +430,9 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       </div>
       <span class="story-label" id="profileStoryLabel">My Profile</span>
     </div>
-    <div class="story-item" onclick="showPage('concierge')">
+    <div class="story-item" onclick="openAIChat()">
       <div class="story-circle">
-        <span class="story-circle-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span>
+        <span class="story-circle-ai-icon"><svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1H2a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73A2 2 0 0110 4a2 2 0 012-2z"/><circle cx="9" cy="13" r="1" fill="#C9A84C" stroke="none"/><circle cx="15" cy="13" r="1" fill="#C9A84C" stroke="none"/></svg></span>
       </div>
       <span class="story-label">AI Chat</span>
     </div>
@@ -484,6 +512,26 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
   </div>
 </div>
 
+<!-- AI CHAT OVERLAY -->
+<div id="aiChatOverlay">
+  <div class="ai-chat-header">
+    <button class="ai-chat-back" onclick="closeAIChat()">←</button>
+    <div class="ai-chat-avatar">
+      <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1H2a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73A2 2 0 0110 4a2 2 0 012-2z"/><circle cx="9" cy="13" r="1" fill="#C9A862" stroke="none"/><circle cx="15" cy="13" r="1" fill="#C9A862" stroke="none"/></svg>
+    </div>
+    <div class="ai-chat-info">
+      <div class="ai-chat-name">Billy AI</div>
+      <div class="ai-chat-status"><span class="ai-chat-status-dot"></span>Design Intelligence · Always on</div>
+    </div>
+  </div>
+  <div class="ai-chat-messages" id="aiChatMessages"></div>
+  <div class="ai-typing" id="aiTyping">Billy AI is thinking…</div>
+  <div class="ai-input-row">
+    <input class="ai-input" id="aiInput" placeholder="Ask about design, styles, rooms…" onkeypress="if(event.key==='Enter')sendAIChatMessage()">
+    <button class="ai-send" onclick="sendAIChatMessage()"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+  </div>
+</div>
+
 <!-- CONSULTATION SHEET -->
 <div class="consult-overlay" id="consultOverlay" onclick="closeConsultSheet(event)">
   <div class="consult-sheet">
@@ -524,7 +572,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
   </div>
   <div class="color-config-area">
     <div class="inner-section-label">Section A</div>
-    <div class="color-config-title">Four Mixture of Colors</div>
+    <div class="color-config-title">Color Palette</div>
     <div class="color-mixtures-row" id="colorMixturesRow"></div>
   </div>
 </div>
@@ -700,6 +748,7 @@ const fbDb   = firebase.database();
 // ─── STATE ───────────────────────────────────────────────────────────────────
 let currentUser = null, currentProfile = null;
 let cgMessages = [], cgHistory = [];
+let aiChatMessages = [], aiChatHistory = [];
 let portfolioItems = [], selectedPortfolioItems = [];
 let currentCatalogBox = null;
 let currentCatalogPaletteIndex = 0;
@@ -1086,14 +1135,12 @@ function openCatalogInner(box) {
   currentCatalogBox = box;
   document.getElementById('innerCollectionTitle').textContent  = box.value || box.topic || 'Collection';
   document.getElementById('innerCollectionFeeling').textContent = box.description || box.feeling || '';
-  // Build color mixture cards (4 slots)
+  // Build single color mixture card
   const mixRow = document.getElementById('colorMixturesRow');
-  const labels = box.mixtureLabels && box.mixtureLabels.length >= 2
-    ? box.mixtureLabels
-    : ['Mixture 1', 'Mixture 2'];
-  mixRow.innerHTML = [0, 1].map((i) => `
-    <div class="color-mixture-card" onclick="openCatalogRooms(${JSON.stringify(box).replace(/"/g,'&quot;')}, ${i})">
-      <div class="color-mixture-label">${labels[i] || 'Mixture ' + (i+1)}</div>
+  const label = (box.mixtureLabels && box.mixtureLabels[0]) ? box.mixtureLabels[0] : 'Mixture 1';
+  mixRow.innerHTML = `
+    <div class="color-mixture-card" style="grid-column:1/-1" onclick="openCatalogRooms(${JSON.stringify(box).replace(/"/g,'&quot;')}, 0)">
+      <div class="color-mixture-label">${label}</div>
       <div class="house-layout">
         <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
           <polygon points="50,10 90,40 90,90 10,90 10,40" stroke="#C9A84C" stroke-width="1.5" fill="rgba(201,168,76,0.04)"/>
@@ -1102,7 +1149,7 @@ function openCatalogInner(box) {
           <rect x="35" y="40" width="10" height="12" stroke="#C9A84C" stroke-width="1" fill="rgba(201,168,76,0.08)"/>
         </svg>
       </div>
-    </div>`).join('');
+    </div>`;
   // Show inner, hide main catalog
   document.getElementById('catalog').style.display = 'none';
   document.getElementById('catalog').classList.remove('active');
@@ -1448,6 +1495,63 @@ async function sendAIMessage(userText) {
   }
 }
 
+// ─── AI CHAT (STANDALONE) ────────────────────────────────────────────────────
+function openAIChat() {
+  document.getElementById('aiChatOverlay').classList.add('active');
+  // Send a greeting on first open
+  if (!aiChatMessages.length) {
+    const name = currentProfile?.name ? currentProfile.name.split(' ')[0] : '';
+    const greeting = name
+      ? `Welcome back, ${name}. I'm Billy AI — your personal design intelligence. Ask me anything about interior styles, room layouts, colour palettes, or your next project. Where shall we begin?`
+      : `Welcome to Billy Living. I'm Billy AI — your personal design intelligence. Ask me anything about interior styles, room layouts, colour palettes, or your dream space. Where shall we begin?`;
+    appendAIMessage(greeting, 'recv');
+    aiChatHistory.push({ role: 'assistant', content: greeting });
+  }
+}
+
+function closeAIChat() {
+  document.getElementById('aiChatOverlay').classList.remove('active');
+}
+
+function appendAIMessage(text, dir) {
+  const container = document.getElementById('aiChatMessages');
+  const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const el = document.createElement('div');
+  el.className = 'ai-msg ' + dir;
+  el.innerHTML = `<div class="ai-bubble">${text.replace(/</g, '&lt;')}</div><div class="ai-msg-time">${time}</div>`;
+  container.appendChild(el);
+  container.scrollTop = container.scrollHeight;
+  aiChatMessages.push({ text, dir });
+}
+
+async function sendAIChatMessage() {
+  const input = document.getElementById('aiInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  appendAIMessage(text, 'sent');
+  aiChatHistory.push({ role: 'user', content: text });
+
+  const typing = document.getElementById('aiTyping');
+  typing.style.display = 'block';
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: aiChatHistory })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const reply = data.reply || data.content?.[0]?.text || 'One moment please.';
+    typing.style.display = 'none';
+    appendAIMessage(reply, 'recv');
+    aiChatHistory.push({ role: 'assistant', content: reply });
+  } catch(e) {
+    typing.style.display = 'none';
+    appendAIMessage('I\'m having a moment — try again shortly, or reach out via the Concierge.', 'recv');
+  }
+}
+
 // ─── IMAGE MODAL ─────────────────────────────────────────────────────────────
 function openImageModal(src) {
   document.getElementById('imageModalImg').src = src;
@@ -1461,6 +1565,28 @@ function showToast(msg) {
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2600);
 }
+
+// ─── KEYBOARD / VIEWPORT FIX ─────────────────────────────────────────────────
+// Android Chrome keeps 100vh at full screen even when keyboard is open.
+// visualViewport.height gives the actual visible area — use it as a CSS var.
+(function() {
+  function updateVVH() {
+    const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    document.documentElement.style.setProperty('--vvh', h + 'px');
+    // Scroll messages to bottom when keyboard opens/closes
+    const cgMsgs = document.getElementById('cgMessages');
+    const aiMsgs = document.getElementById('aiChatMessages');
+    if (cgMsgs) cgMsgs.scrollTop = cgMsgs.scrollHeight;
+    if (aiMsgs) aiMsgs.scrollTop = aiMsgs.scrollHeight;
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', updateVVH);
+    window.visualViewport.addEventListener('scroll', updateVVH);
+  } else {
+    window.addEventListener('resize', updateVVH);
+  }
+  updateVVH();
+})();
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
 // Ensure catalog sub-pages start hidden
