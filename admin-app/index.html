@@ -890,6 +890,9 @@
         .color-mixture-card:hover { background: rgba(201,168,76,0.08); border-color: #C9A84C; }
         .color-mixture-card::after { content: 'Click to enter rooms ›'; display: block; font-size: 8px; letter-spacing: 1.5px; color: rgba(201,168,76,0.4); text-align: right; margin-top: 8px; text-transform: uppercase; }
         .color-mixture-label { font-size: 9px; letter-spacing: 3px; color: rgba(201,168,76,0.6); text-transform: uppercase; margin-bottom: 8px; }
+        .mixture-label-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(201,168,76,0.25); outline: none; font-family: 'Jost', sans-serif; font-size: 11px; letter-spacing: 2px; color: rgba(201,168,76,0.8); text-transform: uppercase; padding: 2px 0 4px; margin-bottom: 8px; cursor: text; transition: border-color 0.2s; }
+        .mixture-label-input:focus { border-bottom-color: #C9A84C; color: #C9A84C; }
+        .mixture-label-input::placeholder { color: rgba(201,168,76,0.3); }
         .house-layout { width: 100%; aspect-ratio: 1; position: relative; }
         .house-layout svg { width: 100%; height: 100%; }
 
@@ -1636,7 +1639,7 @@
         </div>
         <div class="color-config-area">
             <div class="inner-section-label">Section A</div>
-            <div class="color-config-title">Four Mixture of Colors</div>
+            <div class="color-config-title">Two Mixtures of Colors</div>
             <div class="color-mixtures-row" id="adminColorMixturesRow"></div>
         </div>
     </div>
@@ -2642,10 +2645,12 @@
             document.getElementById('adminInnerFeeling').textContent = box.description || box.feeling || '';
 
             const mixturesRow = document.getElementById('adminColorMixturesRow');
-            mixturesRow.innerHTML = [0,1,2,3].map(mi => {
+            const box = boxes[index];
+            if (!box.mixtureLabels) box.mixtureLabels = ['Mixture 1', 'Mixture 2'];
+            mixturesRow.innerHTML = [0,1].map(mi => {
                 const p = buildAdminPalette(index, mi);
+                const labelVal = (box.mixtureLabels && box.mixtureLabels[mi]) || `Mixture ${mi+1}`;
                 return `<div class="color-mixture-card"
-                     onclick="openAdminPaletteRooms(${mi})"
                      onmousedown="startMixPress(${index}, ${mi}, event)"
                      onmouseup="cancelCellPress()"
                      onmouseleave="cancelCellPress()"
@@ -2653,9 +2658,15 @@
                      ontouchend="cancelCellPress()"
                      ontouchmove="cancelCellPress()"
                      oncontextmenu="return false;">
-                    <div class="color-mixture-label">Mixture ${mi+1}</div>
-                    <div class="house-layout">${buildAdminHouseSVG(p)}</div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px;">
+                    <input class="mixture-label-input" value="${labelVal}"
+                        onclick="event.stopPropagation()"
+                        onmousedown="event.stopPropagation()"
+                        ontouchstart="event.stopPropagation()"
+                        onblur="saveMixtureLabel(${index}, ${mi}, this.value)"
+                        placeholder="Enter color name…"
+                        style="-webkit-user-select:text;user-select:text;">
+                    <div class="house-layout" onclick="openAdminPaletteRooms(${mi})">${buildAdminHouseSVG(p)}</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px;" onclick="openAdminPaletteRooms(${mi})">
                         ${p.q.map((col, qi) => `<div style="display:flex;align-items:center;gap:4px;">
                             <div style="width:10px;height:10px;background:${col};border:1px solid rgba(201,168,76,0.3);flex-shrink:0;"></div>
                             <span style="font-size:8px;color:rgba(201,168,76,0.5);letter-spacing:0.5px;">${p.labels[qi]}</span>
@@ -2715,6 +2726,16 @@
 
         function closeAdminCatalogInner() {
             document.getElementById('catalogInnerOverlay').classList.remove('active');
+        }
+
+        function saveMixtureLabel(collectionIndex, mixtureIndex, value) {
+            const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+            const box = boxes[collectionIndex];
+            if (!box) return;
+            if (!box.mixtureLabels) box.mixtureLabels = ['Mixture 1', 'Mixture 2'];
+            box.mixtureLabels[mixtureIndex] = value.trim() || `Mixture ${mixtureIndex + 1}`;
+            safeLocalSet('tbl_catalog_boxes', JSON.stringify(boxes));
+            syncBoxToFirebase(box);
         }
 
         function closeAdminCatalogRooms() {
@@ -2838,6 +2859,7 @@
 
         // ── Room slot (Layer 3) ────────────────────────────────────────────────
         let ctxRoomCollIdx  = null;
+        let ctxRoomBoxId    = null;
         let ctxRoomPalIdx   = null;
         let ctxRoomSlotIdx  = null;
         let ctxRoomName     = null;
@@ -2845,6 +2867,7 @@
         function startRoomPress(collectionIndex, paletteIndex, roomIndex, roomName, ev) {
             cancelCellPress();
             ctxRoomCollIdx = collectionIndex;
+            ctxRoomBoxId   = (() => { try { const b = JSON.parse(localStorage.getItem('tbl_catalog_boxes')||'[]'); return b[collectionIndex]?.id || null; } catch(e){ return null; } })();
             ctxRoomPalIdx  = paletteIndex;
             ctxRoomSlotIdx = roomIndex;
             ctxRoomName    = roomName;
@@ -2876,12 +2899,24 @@
 
         async function handleRoomImageUpload(input) {
             if (!input.files || !input.files[0]) return;
+            if (ctxRoomSlotIdx === null) return;
             showToast('Uploading…');
             try {
                 const compressed = await compressImage(input.files[0], 900, 0.75);
-                const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
-                const box   = boxes[ctxRoomCollIdx];
-                if (!box) return;
+                // Try Firebase first (source of truth), fall back to localStorage
+                const snap = await adminFbDB.ref('content/catalog').get();
+                let boxes = [];
+                if (snap.exists()) {
+                    boxes = Object.values(snap.val());
+                    // Sync back to localStorage
+                    safeLocalSet('tbl_catalog_boxes', JSON.stringify(boxes));
+                } else {
+                    boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+                }
+                // Find box by ID (not index) for reliability
+                const targetBox = boxes.find(b => b.id === ctxRoomBoxId);
+                const box = targetBox || boxes[ctxRoomCollIdx];
+                if (!box) { showToast('Error: collection not found'); return; }
                 if (!box.images) box.images = [];
                 while (box.images.length <= ctxRoomSlotIdx) box.images.push(null);
                 box.images[ctxRoomSlotIdx] = compressed;
@@ -2891,6 +2926,7 @@
                 openAdminPaletteRooms(ctxRoomPalIdx);
                 showToast(`${ctxRoomName} image updated ✓`);
             } catch(err) {
+                console.error(err);
                 showToast('Upload failed — try a smaller image');
             }
         }
@@ -2898,7 +2934,7 @@
         function contextRoomRemoveImage() {
             closeContextMenu();
             const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
-            const box   = boxes[ctxRoomCollIdx];
+            const box = boxes.find(b => b.id === ctxRoomBoxId) || boxes[ctxRoomCollIdx];
             if (!box || !box.images) return;
             box.images[ctxRoomSlotIdx] = null;
             box.count = box.images.filter(Boolean).length + ' img' + (box.images.filter(Boolean).length !== 1 ? 's' : '');
