@@ -2690,22 +2690,26 @@
             const box = boxes[adminCurrentCollectionIndex];
             if (!box) return;
 
-            document.getElementById('adminRoomsTitle').textContent    = `${box.value} — Mixture ${paletteIndex + 1}`;
+            const mixtureLabel = (box.mixtureLabels && box.mixtureLabels[paletteIndex]) || `Mixture ${paletteIndex + 1}`;
+            document.getElementById('adminRoomsTitle').textContent    = `${box.value} — ${mixtureLabel}`;
             document.getElementById('adminRoomsSubtitle').textContent = box.description || box.feeling || '';
 
             const roomArea = document.getElementById('adminRoomGalleryArea');
-            let collectionImages = [];
-            if (box.images) {
-                if (Array.isArray(box.images)) {
-                    collectionImages = box.images;
-                } else {
-                    // Firebase returns {0:x,1:y} — must preserve index positions
-                    const keys = Object.keys(box.images).map(Number).sort((a,b)=>a-b);
-                    const maxIdx = keys.length ? Math.max(...keys) : -1;
-                    collectionImages = Array(maxIdx + 1).fill(null);
-                    keys.forEach(k => { collectionImages[k] = box.images[k]; });
-                }
-            }
+
+            // Each mixture has its own image set: box.mixtureImages[paletteIndex][roomIndex]
+            const getMixtureImages = (b, palIdx) => {
+                if (!b.mixtureImages) return [];
+                const raw = b.mixtureImages[palIdx];
+                if (!raw) return [];
+                if (Array.isArray(raw)) return raw;
+                // Firebase returns object — restore by index
+                const keys = Object.keys(raw).map(Number).sort((a,b)=>a-b);
+                const maxIdx = keys.length ? Math.max(...keys) : -1;
+                const arr = Array(maxIdx + 1).fill(null);
+                keys.forEach(k => { arr[k] = raw[k]; });
+                return arr;
+            };
+            const collectionImages = getMixtureImages(box, paletteIndex);
 
             roomArea.innerHTML = adminRoomCategories.map((roomName, roomIndex) => {
                 const roomImage = collectionImages[roomIndex] || null;
@@ -2897,7 +2901,7 @@
                 // Check if image already exists
                 const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
                 const box   = boxes[collectionIndex];
-                const hasImg = box && box.images && box.images[roomIndex];
+                const hasImg = box && box.mixtureImages && box.mixtureImages[paletteIndex] && box.mixtureImages[paletteIndex][roomIndex];
                 const opts = [
                     { icon:'📷', label: hasImg ? 'Replace Image' : 'Add Image', fn:'contextRoomAddImage()' }
                 ];
@@ -2915,29 +2919,31 @@
 
         async function handleRoomImageUpload(input) {
             if (!input.files || !input.files[0]) return;
-            if (ctxRoomSlotIdx === null) return;
+            if (ctxRoomSlotIdx === null || ctxRoomPalIdx === null) return;
             showToast('Uploading…');
             try {
                 const compressed = await compressImage(input.files[0], 900, 0.75);
                 const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
-                // Find by ID first, fall back to index
                 const box = (ctxRoomBoxId && boxes.find(b => b.id === ctxRoomBoxId))
                            || boxes[ctxRoomCollIdx];
                 if (!box) { showToast('Error: collection not found'); return; }
-                // Normalize images to a proper array (Firebase returns object keys)
-                if (!box.images) {
-                    box.images = [];
-                } else if (!Array.isArray(box.images)) {
-                    // Convert Firebase object {0:x, 1:y} back to array preserving indices
-                    const keys = Object.keys(box.images).map(Number).sort((a,b)=>a-b);
+
+                // Use mixtureImages[paletteIdx][roomIdx] — each mixture is independent
+                if (!box.mixtureImages) box.mixtureImages = {};
+                if (!box.mixtureImages[ctxRoomPalIdx]) box.mixtureImages[ctxRoomPalIdx] = [];
+                // Normalize from Firebase object if needed
+                if (!Array.isArray(box.mixtureImages[ctxRoomPalIdx])) {
+                    const raw = box.mixtureImages[ctxRoomPalIdx];
+                    const keys = Object.keys(raw).map(Number).sort((a,b)=>a-b);
                     const maxIdx = keys.length ? Math.max(...keys) : -1;
                     const arr = Array(maxIdx + 1).fill(null);
-                    keys.forEach(k => { arr[k] = box.images[k]; });
-                    box.images = arr;
+                    keys.forEach(k => { arr[k] = raw[k]; });
+                    box.mixtureImages[ctxRoomPalIdx] = arr;
                 }
-                while (box.images.length <= ctxRoomSlotIdx) box.images.push(null);
-                box.images[ctxRoomSlotIdx] = compressed;
-                box.count = box.images.filter(Boolean).length + ' img' + (box.images.filter(Boolean).length !== 1 ? 's' : '');
+                while (box.mixtureImages[ctxRoomPalIdx].length <= ctxRoomSlotIdx)
+                    box.mixtureImages[ctxRoomPalIdx].push(null);
+                box.mixtureImages[ctxRoomPalIdx][ctxRoomSlotIdx] = compressed;
+
                 safeLocalSet('tbl_catalog_boxes', JSON.stringify(boxes));
                 syncBoxToFirebase(box);
                 openAdminPaletteRooms(ctxRoomPalIdx);
@@ -2952,9 +2958,9 @@
             closeContextMenu();
             const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
             const box = boxes.find(b => b.id === ctxRoomBoxId) || boxes[ctxRoomCollIdx];
-            if (!box || !box.images) return;
-            box.images[ctxRoomSlotIdx] = null;
-            box.count = box.images.filter(Boolean).length + ' img' + (box.images.filter(Boolean).length !== 1 ? 's' : '');
+            if (!box || !box.mixtureImages || !box.mixtureImages[ctxRoomPalIdx]) return;
+            if (Array.isArray(box.mixtureImages[ctxRoomPalIdx]))
+                box.mixtureImages[ctxRoomPalIdx][ctxRoomSlotIdx] = null;
             safeLocalSet('tbl_catalog_boxes', JSON.stringify(boxes));
             syncBoxToFirebase(box);
             openAdminPaletteRooms(ctxRoomPalIdx);
