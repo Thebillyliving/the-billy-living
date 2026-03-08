@@ -1845,8 +1845,12 @@
             container.innerHTML = boxes.map(box => {
                 const topic   = box.value || '';
                 const feeling = box.description || box.feeling || '';
-                const imgSrc  = box.images && box.images[0] ? box.images[0] : '';
-                const count   = box.images ? box.images.length : 0;
+                // Firebase returns images as object {0:..., 1:...}, not array — handle both
+                const imgsArr = box.images
+                    ? (Array.isArray(box.images) ? box.images : Object.values(box.images))
+                    : [];
+                const imgSrc  = imgsArr.find(i => i) || '';
+                const count   = imgsArr.filter(Boolean).length;
 
                 return `
                 <div class="elite-collection-cell-admin"
@@ -2447,7 +2451,9 @@
             const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
             const box = boxes.find(b => b.id === boxId);
             if (!box) return;
-            const images = box.images || [];
+            const images = Array.isArray(box.images)
+                ? box.images
+                : (box.images ? Object.values(box.images) : []);
 
             const modal = document.getElementById('formModal');
             document.getElementById('formTitle').textContent = `Manage Images: ${box.value}`;
@@ -2688,7 +2694,9 @@
             document.getElementById('adminRoomsSubtitle').textContent = box.description || box.feeling || '';
 
             const roomArea = document.getElementById('adminRoomGalleryArea');
-            const collectionImages = box.images || [];
+            const collectionImages = Array.isArray(box.images)
+                ? box.images
+                : (box.images ? Object.values(box.images) : []);
 
             roomArea.innerHTML = adminRoomCategories.map((roomName, roomIndex) => {
                 const roomImage = collectionImages[roomIndex] || null;
