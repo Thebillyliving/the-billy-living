@@ -877,7 +877,7 @@
 
         .color-config-area { padding: 16px 20px; border-bottom: 1px solid #C9A84C; }
         .color-config-title { font-family: 'Cormorant Garamond', serif; font-size: 13px; letter-spacing: 3px; color: #C9A84C; text-transform: uppercase; margin-bottom: 14px; }
-        .color-mixtures-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .color-mixtures-row { display: grid; grid-template-columns: 1fr; gap: 12px; }
 
         .color-mixture-card {
             border: 1px solid rgba(201,168,76,0.35);
@@ -1639,7 +1639,7 @@
         </div>
         <div class="color-config-area">
             <div class="inner-section-label">Section A</div>
-            <div class="color-config-title">Two Mixtures of Colors</div>
+            <div class="color-config-title">Color Palette</div>
             <div class="color-mixtures-row" id="adminColorMixturesRow"></div>
         </div>
     </div>
@@ -2693,34 +2693,32 @@
             document.getElementById('adminInnerFeeling').textContent = box.description || box.feeling || '';
 
             const mixturesRow = document.getElementById('adminColorMixturesRow');
-            if (!box.mixtureLabels) box.mixtureLabels = ['Mixture 1', 'Mixture 2'];
-            mixturesRow.innerHTML = [0,1].map(mi => {
-                const p = buildAdminPalette(index, mi);
-                const labelVal = (box.mixtureLabels && box.mixtureLabels[mi]) || `Mixture ${mi+1}`;
-                return `<div class="color-mixture-card"
-                     onmousedown="startMixPress(${index}, ${mi}, event)"
-                     onmouseup="cancelCellPress()"
-                     onmouseleave="cancelCellPress()"
-                     ontouchstart="startMixPress(${index}, ${mi}, event)"
-                     ontouchend="cancelCellPress()"
-                     ontouchmove="cancelCellPress()"
-                     oncontextmenu="return false;">
-                    <input class="mixture-label-input" value="${labelVal}"
-                        onclick="event.stopPropagation()"
-                        onmousedown="event.stopPropagation()"
-                        ontouchstart="event.stopPropagation()"
-                        onblur="saveMixtureLabel(${index}, ${mi}, this.value)"
-                        placeholder="Enter color name…"
-                        style="-webkit-user-select:text;user-select:text;">
-                    <div class="house-layout" onclick="openAdminPaletteRooms(${mi})">${buildAdminHouseSVG(p)}</div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px;" onclick="openAdminPaletteRooms(${mi})">
-                        ${p.q.map((col, qi) => `<div style="display:flex;align-items:center;gap:4px;">
-                            <div style="width:10px;height:10px;background:${col};border:1px solid rgba(201,168,76,0.3);flex-shrink:0;"></div>
-                            <span style="font-size:8px;color:rgba(201,168,76,0.5);letter-spacing:0.5px;">${p.labels[qi]}</span>
-                        </div>`).join('')}
-                    </div>
-                </div>`;
-            }).join('');
+            if (!box.mixtureLabels) box.mixtureLabels = ['Color Palette'];
+            const p0 = buildAdminPalette(index, 0);
+            const labelVal = (box.mixtureLabels && box.mixtureLabels[0]) || 'Color Palette';
+            mixturesRow.innerHTML = `<div class="color-mixture-card"
+                 onmousedown="startMixPress(${index}, 0, event)"
+                 onmouseup="cancelCellPress()"
+                 onmouseleave="cancelCellPress()"
+                 ontouchstart="startMixPress(${index}, 0, event)"
+                 ontouchend="cancelCellPress()"
+                 ontouchmove="cancelCellPress()"
+                 oncontextmenu="return false;">
+                <input class="mixture-label-input" value="${labelVal}"
+                    onclick="event.stopPropagation()"
+                    onmousedown="event.stopPropagation()"
+                    ontouchstart="event.stopPropagation()"
+                    onblur="saveMixtureLabel(${index}, 0, this.value)"
+                    placeholder="Enter color name…"
+                    style="-webkit-user-select:text;user-select:text;">
+                <div class="house-layout" onclick="openAdminPaletteRooms(0)">${buildAdminHouseSVG(p0)}</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px;" onclick="openAdminPaletteRooms(0)">
+                    ${p0.q.map((col, qi) => `<div style="display:flex;align-items:center;gap:4px;">
+                        <div style="width:10px;height:10px;background:${col};border:1px solid rgba(201,168,76,0.3);flex-shrink:0;"></div>
+                        <span style="font-size:8px;color:rgba(201,168,76,0.5);letter-spacing:0.5px;">${p0.labels[qi]}</span>
+                    </div>`).join('')}
+                </div>
+            </div>`;
 
             document.getElementById('catalogInnerOverlay').classList.add('active');
             document.getElementById('catalogInnerOverlay').scrollTop = 0;
