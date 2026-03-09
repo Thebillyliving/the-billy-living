@@ -1624,8 +1624,11 @@
     </div>
 
     <!-- Hidden file inputs -->
+    <label id="contextImageLabel" for="contextImageInput" style="display:none;"></label>
     <input type="file" id="contextImageInput"     accept="image/*" multiple style="display:none;" onchange="handleContextImageUpload(this)">
+    <label id="contextRoomImgLabel" for="contextRoomImgInput" style="display:none;"></label>
     <input type="file" id="contextRoomImgInput"   accept="image/*"          style="display:none;" onchange="handleRoomImageUpload(this)">
+    <label id="contextMixImgLabel" for="contextMixImgInput" style="display:none;"></label>
     <input type="file" id="contextMixImgInput"    accept="image/*" multiple style="display:none;" onchange="handleContextImageUpload(this)">
 
     <!-- Catalog Inner Overlay — Layer 2: Color Mixtures -->
@@ -2562,7 +2565,7 @@
             document.getElementById('formContent').innerHTML = `
                 <div style="font-size:12px;color:rgba(201,169,98,0.5);margin-bottom:14px;letter-spacing:0.5px;">Tap a room slot to upload its image</div>
                 <div>${roomSlots}</div>
-                <input type="file" id="catalogImageInput" accept="image/*" style="display:none;" onchange="addCatalogImage(this)">
+                <label id="catalogImageLabel" for="catalogImageInput" style="position:fixed;top:-999px"></label><input type="file" id="catalogImageInput" accept="image/*" style="display:none;" onchange="addCatalogImage(this)">
             `;
 
             modal.classList.add('active');
@@ -2572,9 +2575,8 @@
 
         function pickRoomImage(slotIndex) {
             currentCatalogRoomSlot = slotIndex;
-            const input = document.getElementById('catalogImageInput');
-            input.value = '';
-            input.click();
+            document.getElementById('catalogImageInput').value = '';
+            document.getElementById('catalogImageLabel').click();
         }
 
         async function addCatalogImage(input) {
@@ -2925,8 +2927,7 @@
                 if (cellPressEl) cellPressEl.classList.remove('pressing');
                 if (navigator.vibrate) navigator.vibrate(60);
                 showCellContextMenu(boxName, [
-                    { icon:'🖼️', label:'Add Picture',        fn:'contextAddPicture()' },
-                    { icon:'📂', label:'Manage All Images',  fn:'contextManageImages()' },
+                    { icon:'📂', label:'Manage Images',  fn:'contextManageImages()' },
                     { icon:'🗑️', label:'Delete Collection',  fn:'contextDeleteBox()', danger: true }
                 ], savedEv);
             }, CELL_LONG_MS);
@@ -2949,7 +2950,7 @@
                 const box   = boxes[collectionIndex];
                 const name  = box ? `${box.value} — Mixture ${mixIndex + 1}` : `Mixture ${mixIndex + 1}`;
                 showCellContextMenu(name, [
-                    { icon:'🖼️', label:'Add Images to Collection', fn:`contextAddPicture()` }
+                    { icon:'📂', label:'Manage Images', fn:'contextManageImages()' }
                 ], savedEv);
                 // point target at the parent box so contextAddPicture works
                 cellPressTarget = box ? box.id : null;
@@ -2992,9 +2993,8 @@
 
         function contextRoomAddImage() {
             closeContextMenu();
-            const input = document.getElementById('contextRoomImgInput');
-            input.value = '';
-            input.click();
+            document.getElementById('contextRoomImgInput').value = '';
+            document.getElementById('contextRoomImgLabel').click();
         }
 
         async function handleRoomImageUpload(input) {
@@ -3060,10 +3060,9 @@
         function contextAddPicture() {
             closeContextMenu();
             if (!cellPressTarget) return;
-            currentCatalogBox = cellPressTarget;   // reuse existing manager state
-            const input = document.getElementById('contextImageInput');
-            input.value = '';
-            input.click();
+            currentCatalogBox = cellPressTarget;
+            document.getElementById('contextImageInput').value = '';
+            document.getElementById('contextImageLabel').click();
         }
 
         async function handleContextImageUpload(input) {
