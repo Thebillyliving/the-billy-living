@@ -1350,7 +1350,7 @@
                 </div>
                 <button class="btn btn-primary" onclick="addVIP()" style="margin-top: 16px;">Add VIP Member</button>
             </div>
-            <h3 style="margin: 32px 0 16px; color: var(--gold);">Registered VIPs</h3>
+            <h3 style="margin: 32px 0 16px; color: var(--gold);">Registered VIPs <span id="vipCount" style="font-size:14px;font-weight:400;color:rgba(201,168,76,0.5);margin-left:8px;"></span></h3>
             <div class="vip-grid" id="vipGrid"></div>
         </div>
 
@@ -1924,8 +1924,9 @@
         }
 
         function renderPortfolioList() {
-            const items = JSON.parse(localStorage.getItem('tbl_portfolio') || '[]');
             const container = document.getElementById('portfolioList');
+            if (!container) return; // Portfolio panel now uses analytics view
+            const items = JSON.parse(localStorage.getItem('tbl_portfolio') || '[]');
             
             if (items.length === 0) {
                 container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🖼️</div><p>No portfolio items yet. Add your first!</p></div>';
@@ -2756,6 +2757,8 @@
 
         function openAdminPaletteRooms(paletteIndex) {
             adminActivePaletteIndex = paletteIndex;
+
+            // Get box meta from localStorage (lightweight — no images)
             const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
             const box = boxes[adminCurrentCollectionIndex];
             if (!box) return;
@@ -2766,56 +2769,61 @@
 
             const roomArea = document.getElementById('adminRoomGalleryArea');
 
-            // Each mixture has its own image set: box.mixtureImages[paletteIndex][roomIndex]
-            const getMixtureImages = (b, palIdx) => {
-                if (!b.mixtureImages) return [];
-                const raw = b.mixtureImages[palIdx];
-                if (!raw) return [];
-                if (Array.isArray(raw)) return raw;
-                // Firebase returns object — restore by index
-                const keys = Object.keys(raw).map(Number).sort((a,b)=>a-b);
-                const maxIdx = keys.length ? Math.max(...keys) : -1;
-                const arr = Array(maxIdx + 1).fill(null);
-                keys.forEach(k => { arr[k] = raw[k]; });
-                return arr;
-            };
-            const collectionImages = getMixtureImages(box, paletteIndex);
-
-            roomArea.innerHTML = adminRoomCategories.map((roomName, roomIndex) => {
-                const roomImage = collectionImages[roomIndex] || null;
-                const inputId = `roomSlotInput_${paletteIndex}_${roomIndex}`;
-                return `<div class="room-category-block">
-                    <div class="room-category-header">
-                        <div class="room-category-name">${roomName}</div>
-                    </div>
-                    <div class="room-single-slot"
-                         onmousedown="startRoomPress(${adminCurrentCollectionIndex}, ${paletteIndex}, ${roomIndex}, '${roomName}', event)"
-                         onmouseup="cancelCellPress()"
-                         onmouseleave="cancelCellPress()"
-                         ontouchstart="startRoomPress(${adminCurrentCollectionIndex}, ${paletteIndex}, ${roomIndex}, '${roomName}', event)"
-                         ontouchend="cancelCellPress()"
-                         ontouchmove="cancelCellPress()"
-                         oncontextmenu="return false;">
-                        ${roomImage ? `<img src="${roomImage}" alt="${roomName}">` : ''}
-                        <div class="elite-slot-placeholder" style="${roomImage ? 'opacity:0;' : ''}">
-                            <div class="elite-slot-icon">
-                                <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <rect x="1" y="1" width="14" height="14" stroke="#C9A84C" stroke-width="1"/>
-                                    <path d="M1 11l4-4 3 3 3-4 4 5" stroke="#C9A84C" stroke-width="1" fill="none"/>
-                                    <circle cx="11" cy="5" r="1.5" fill="#C9A84C"/>
-                                </svg>
-                            </div>
-                            <div class="elite-slot-num">${roomName}</div>
-                        </div>
-                        <input type="file" id="${inputId}" accept="image/*"
-                               style="display:none;"
-                               onchange="handleInlineRoomUpload(this, ${adminCurrentCollectionIndex}, ${paletteIndex}, ${roomIndex}, '${roomName}')">
-                    </div>
-                </div>`;
-            }).join('');
-
+            // Show overlay immediately with loading state
             document.getElementById('catalogRoomsOverlay').classList.add('active');
             document.getElementById('catalogRoomsOverlay').scrollTop = 0;
+            roomArea.innerHTML = `<div style="padding:60px 20px;text-align:center;color:rgba(201,168,76,0.35);font-size:12px;letter-spacing:2px;text-transform:uppercase;">Loading rooms…</div>`;
+
+            // ── Always fetch from Firebase so images survive localStorage quota limits ──
+            const renderRooms = (fbBox) => {
+                const getMixtureImages = (b, palIdx) => {
+                    if (!b.mixtureImages) return [];
+                    const raw = b.mixtureImages[palIdx];
+                    if (!raw) return [];
+                    if (Array.isArray(raw)) return raw;
+                    const keys = Object.keys(raw).map(Number).sort((a,b)=>a-b);
+                    const maxIdx = keys.length ? Math.max(...keys) : -1;
+                    const arr = Array(maxIdx + 1).fill(null);
+                    keys.forEach(k => { arr[k] = raw[k]; });
+                    return arr;
+                };
+                const collectionImages = getMixtureImages(fbBox, paletteIndex);
+                const collIdx = adminCurrentCollectionIndex;
+
+                roomArea.innerHTML = adminRoomCategories.map((roomName, roomIndex) => {
+                    const roomImage = collectionImages[roomIndex] || null;
+                    const inputId = `roomSlotInput_${paletteIndex}_${roomIndex}`;
+                    return `<div class="room-category-block">
+                        <div class="room-category-header">
+                            <div class="room-category-name">${roomName}</div>
+                            ${roomImage ? `<label for="${inputId}" style="font-size:11px;color:rgba(201,168,76,0.6);letter-spacing:1px;cursor:pointer;padding:4px 10px;border:1px solid rgba(201,168,76,0.2);border-radius:4px;">Replace</label>` : ''}
+                        </div>
+                        <label for="${inputId}" style="display:block;width:100%;cursor:pointer;">
+                            <div class="room-single-slot" style="cursor:pointer;">
+                                ${roomImage ? `<img src="${roomImage}" alt="${roomName}">` : `
+                                <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+                                    <div style="width:48px;height:48px;border:1px solid rgba(201,168,76,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;">📷</div>
+                                    <div style="font-size:10px;color:rgba(201,168,76,0.45);letter-spacing:2px;text-transform:uppercase;">Tap to upload</div>
+                                </div>`}
+                            </div>
+                        </label>
+                        <input type="file" id="${inputId}" accept="image/*"
+                               style="display:none;"
+                               onchange="handleInlineRoomUpload(this, ${collIdx}, ${paletteIndex}, ${roomIndex}, '${roomName}')">
+                        ${roomImage ? `<button onclick="removeRoomImage(${collIdx}, ${paletteIndex}, ${roomIndex})" style="display:block;width:100%;padding:8px;background:rgba(139,0,0,0.3);border:none;border-top:1px solid rgba(139,0,0,0.4);color:rgba(255,100,100,0.7);font-size:11px;letter-spacing:1px;cursor:pointer;">Remove Image</button>` : ''}
+                    </div>`;
+                }).join('');
+            };
+
+            // Fetch latest from Firebase (source of truth for images)
+            if (typeof adminFbDB !== 'undefined') {
+                adminFbDB.ref('content/catalog/' + box.id).once('value').then(snap => {
+                    const fbBox = snap.val() || box;
+                    renderRooms(fbBox);
+                }).catch(() => renderRooms(box));
+            } else {
+                renderRooms(box);
+            }
         }
 
         function closeAdminCatalogInner() {
@@ -2975,25 +2983,19 @@
             showToast('Uploading…');
             try {
                 const compressed = await compressImage(input.files[0], 700, 0.65);
+
+                // Write image directly to Firebase at the specific path
+                // This bypasses localStorage quota limits for large base64 images
                 const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
-                const box = boxes[collIdx];
-                if (!box) { showToast('Error: collection not found'); return; }
-                if (!box.mixtureImages) box.mixtureImages = {};
-                if (!box.mixtureImages[palIdx]) box.mixtureImages[palIdx] = [];
-                if (!Array.isArray(box.mixtureImages[palIdx])) {
-                    const raw = box.mixtureImages[palIdx];
-                    const keys = Object.keys(raw).map(Number).sort((a,b)=>a-b);
-                    const maxIdx = keys.length ? Math.max(...keys) : -1;
-                    const arr = Array(maxIdx + 1).fill(null);
-                    keys.forEach(k => { arr[k] = raw[k]; });
-                    box.mixtureImages[palIdx] = arr;
-                }
-                while (box.mixtureImages[palIdx].length <= roomIdx) box.mixtureImages[palIdx].push(null);
-                box.mixtureImages[palIdx][roomIdx] = compressed;
-                safeLocalSet('tbl_catalog_boxes', JSON.stringify(boxes));
-                syncBoxToFirebase(box);
-                openAdminPaletteRooms(palIdx);
+                const boxMeta = boxes[collIdx];
+                if (!boxMeta) { showToast('Error: collection not found'); return; }
+
+                const fbPath = 'content/catalog/' + boxMeta.id + '/mixtureImages/' + palIdx + '/' + roomIdx;
+                await adminFbDB.ref(fbPath).set(compressed);
+
                 showToast(roomName + ' image saved ✓');
+                // Refresh view -- openAdminPaletteRooms now reads from Firebase
+                openAdminPaletteRooms(palIdx);
             } catch(err) {
                 console.error(err);
                 showToast('Upload failed — try a smaller image');
@@ -3003,13 +3005,14 @@
         function removeRoomImage(collIdx, palIdx, roomIdx) {
             const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
             const box = boxes[collIdx];
-            if (!box || !box.mixtureImages || !box.mixtureImages[palIdx]) return;
-            if (Array.isArray(box.mixtureImages[palIdx]))
-                box.mixtureImages[palIdx][roomIdx] = null;
-            safeLocalSet('tbl_catalog_boxes', JSON.stringify(boxes));
-            syncBoxToFirebase(box);
-            openAdminPaletteRooms(palIdx);
-            showToast('Image removed');
+            if (!box) return;
+            // Remove directly from Firebase
+            adminFbDB.ref('content/catalog/' + box.id + '/mixtureImages/' + palIdx + '/' + roomIdx).remove()
+                .then(() => {
+                    openAdminPaletteRooms(palIdx);
+                    showToast('Image removed');
+                })
+                .catch(() => showToast('Remove failed'));
         }
 
         async function handleRoomImageUpload(input) {
