@@ -1848,9 +1848,8 @@
 
         function renderCatalogList() {
             const container = document.getElementById('catalogList');
-            container.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:rgba(201,168,76,0.35);font-size:12px;letter-spacing:2px;text-transform:uppercase;">Loading catalog…</div>';
 
-            const renderBoxes = (boxes) => {
+            const renderBoxes = (boxes, silent) => {
                 // Keep localStorage in sync so other functions work
                 try { localStorage.setItem('tbl_catalog_boxes', JSON.stringify(boxes)); } catch(e) {}
 
@@ -1893,18 +1892,21 @@
                 }).join('');
             };
 
-            // Always fetch from Firebase — survives localStorage/browsing-data clears
+            // Show cached data instantly — no spinner
+            const cached = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+            if (cached.length) renderBoxes(cached, true);
+            else container.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:rgba(201,168,76,0.35);font-size:12px;letter-spacing:2px;text-transform:uppercase;">Loading…</div>';
+
+            // Silently refresh from Firebase in background
             if (typeof adminFbDB !== 'undefined') {
                 adminFbDB.ref('content/catalog').once('value').then(snap => {
-                    if (!snap.exists()) { renderBoxes([]); return; }
+                    if (!snap.exists()) { if (!cached.length) renderBoxes([]); return; }
                     const boxes = Object.values(snap.val()).sort((a, b) => {
                         const n = s => parseInt((s.id||'').replace(/[^0-9]/g,'')) || 0;
                         return n(a) - n(b);
                     });
                     renderBoxes(boxes);
-                }).catch(() => renderBoxes(JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]')));
-            } else {
-                renderBoxes(JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]'));
+                }).catch(() => { if (!cached.length) renderBoxes([]); });
             }
         }
 
@@ -2789,12 +2791,11 @@
 
             const roomArea = document.getElementById('adminRoomGalleryArea');
 
-            // Show overlay immediately with loading state
+            // Show overlay immediately
             document.getElementById('catalogRoomsOverlay').classList.add('active');
             document.getElementById('catalogRoomsOverlay').scrollTop = 0;
-            roomArea.innerHTML = `<div style="padding:60px 20px;text-align:center;color:rgba(201,168,76,0.35);font-size:12px;letter-spacing:2px;text-transform:uppercase;">Loading rooms…</div>`;
 
-            // ── Always fetch from Firebase so images survive localStorage quota limits ──
+            // ── Render immediately from cached box, then silently refresh from Firebase ──
             const renderRooms = (fbBox) => {
                 const getMixtureImages = (b, palIdx) => {
                     if (!b.mixtureImages) return [];
@@ -2835,14 +2836,14 @@
                 }).join('');
             };
 
-            // Fetch latest from Firebase (source of truth for images)
+            // Render cached data instantly (no spinner)
+            renderRooms(box);
+
+            // Silently refresh from Firebase in background to pick up latest uploads
             if (typeof adminFbDB !== 'undefined') {
                 adminFbDB.ref('content/catalog/' + box.id).once('value').then(snap => {
-                    const fbBox = snap.val() || box;
-                    renderRooms(fbBox);
-                }).catch(() => renderRooms(box));
-            } else {
-                renderRooms(box);
+                    if (snap.exists()) renderRooms(snap.val());
+                }).catch(() => {});
             }
         }
 
