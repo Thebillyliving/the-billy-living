@@ -323,8 +323,8 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .gate-logo{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:#C9A862;letter-spacing:2px;text-align:center;margin-bottom:6px}
 .gate-tagline{font-size:11px;color:rgba(201,169,98,.5);letter-spacing:2.5px;text-transform:uppercase;text-align:center;margin-bottom:44px}
 .gate-panel{width:100%;max-width:360px}
-.gate-tab-row{display:flex;gap:0;margin-bottom:32px;border-bottom:1px solid rgba(201,169,98,.15)}
-.gate-tab{flex:1;background:none;border:none;padding:10px 0;font-size:13px;letter-spacing:1px;color:rgba(201,169,98,.4);cursor:pointer;font-family:'Jost',sans-serif;text-transform:uppercase;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s}
+.gate-tab-row{display:flex;gap:0;margin-bottom:32px;border-bottom:1px solid rgba(201,169,98,.15);position:relative;z-index:10;}
+.gate-tab{flex:1;background:none;border:none;padding:14px 0;font-size:13px;letter-spacing:1px;color:rgba(201,169,98,.4);cursor:pointer;font-family:'Jost',sans-serif;text-transform:uppercase;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;position:relative;z-index:10;-webkit-tap-highlight-color:rgba(201,169,98,0.1);}
 .gate-tab.active{color:#C9A862;border-bottom-color:#C9A862}
 .gate-input-group{margin-bottom:16px}
 .gate-input-label{font-size:10px;color:rgba(201,169,98,.6);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;display:block;font-family:'Jost',sans-serif}
@@ -354,8 +354,8 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
   <div class="gate-tagline">Luxury Interiors · Lagos &amp; Abuja</div>
   <div class="gate-panel" id="gateStep1">
     <div class="gate-tab-row">
-      <button class="gate-tab active" onclick="switchGateTab('login')">Sign In</button>
-      <button class="gate-tab" onclick="switchGateTab('signup')">Create Account</button>
+      <button class="gate-tab active" onclick="switchGateTab('login', this)">Sign In</button>
+      <button class="gate-tab" onclick="switchGateTab('signup', this)">Create Account</button>
     </div>
     <div id="gateLogin">
       <div class="gate-input-group"><label class="gate-input-label">Email Address</label><input id="loginEmail" class="gate-input" type="email" placeholder="your@email.com" autocomplete="email"></div>
@@ -715,7 +715,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const fbAuth = firebase.auth();
-fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
+
 const fbDb   = firebase.database();
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
@@ -754,9 +754,9 @@ fbAuth.onAuthStateChanged(user => {
   }
 });
 
-function switchGateTab(tab) {
+function switchGateTab(tab, el) {
   document.querySelectorAll('.gate-tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
+  if(el) el.classList.add("active");
   document.getElementById('gateLogin').style.display  = tab === 'login'  ? 'block' : 'none';
   document.getElementById('gateSignup').style.display = tab === 'signup' ? 'block' : 'none';
 }
@@ -769,9 +769,21 @@ async function handleLogin() {
   if (!email || !pw) { err.textContent = 'Please fill in all fields.'; return; }
   btn.disabled = true; btn.textContent = 'Signing in…'; err.textContent = '';
   try {
+    await fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     await fbAuth.signInWithEmailAndPassword(email, pw);
   } catch(e) {
-    err.textContent = 'Invalid email or password.';
+    const code = e.code || '';
+    if (code === 'auth/user-not-found') {
+      err.textContent = 'No account found with this email. Please create an account.';
+    } else if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+      err.textContent = 'Incorrect password. Please try again.';
+    } else if (code === 'auth/invalid-email') {
+      err.textContent = 'Please enter a valid email address.';
+    } else if (code === 'auth/too-many-requests') {
+      err.textContent = 'Too many attempts. Please wait a moment and try again.';
+    } else {
+      err.textContent = 'Sign in failed. Please check your details and try again.';
+    }
     btn.disabled = false; btn.textContent = 'Enter';
   }
 }
@@ -1532,7 +1544,7 @@ async function sendAIChatMessage() {
     aiChatHistory.push({ role: 'assistant', content: reply });
   } catch(e) {
     typing.style.display = 'none';
-    appendAIMessage('I'm having a moment — try again shortly, or reach out via the Concierge.', 'recv');
+    appendAIMessage("I'm having a moment 2014 try again shortly, or reach out via the Concierge.", 'recv');
   }
 }
 
