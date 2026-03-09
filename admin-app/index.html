@@ -1626,6 +1626,8 @@
     <!-- Hidden file inputs -->
     <label id="contextImageLabel" for="contextImageInput" style="display:none;"></label>
     <input type="file" id="contextImageInput"     accept="image/*" multiple style="display:none;" onchange="handleContextImageUpload(this)">
+    <label id="coverReplaceLabel" for="coverReplaceInput" style="display:none;"></label>
+    <input type="file" id="coverReplaceInput" accept="image/*" style="display:none;" onchange="handleCoverReplaceUpload(this)">
     <label id="contextRoomImgLabel" for="contextRoomImgInput" style="display:none;"></label>
     <input type="file" id="contextRoomImgInput"   accept="image/*"          style="display:none;" onchange="handleRoomImageUpload(this)">
     <label id="contextMixImgLabel" for="contextMixImgInput" style="display:none;"></label>
@@ -1845,49 +1847,65 @@
         }
 
         function renderCatalogList() {
-            const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
             const container = document.getElementById('catalogList');
+            container.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:rgba(201,168,76,0.35);font-size:12px;letter-spacing:2px;text-transform:uppercase;">Loading catalog…</div>';
 
-            if (boxes.length === 0) {
-                container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">📁</div><p>No categories yet. Add your first category!</p></div>';
-                return;
+            const renderBoxes = (boxes) => {
+                // Keep localStorage in sync so other functions work
+                try { localStorage.setItem('tbl_catalog_boxes', JSON.stringify(boxes)); } catch(e) {}
+
+                if (!boxes.length) {
+                    container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">📁</div><p>No categories yet. Add your first category!</p></div>';
+                    return;
+                }
+                container.innerHTML = boxes.map((box, idx) => {
+                    const topic   = box.value || '';
+                    const feeling = box.description || box.feeling || '';
+                    const imgsArr = box.images
+                        ? (Array.isArray(box.images) ? box.images : Object.values(box.images))
+                        : [];
+                    const imgSrc = imgsArr.find(i => i) || '';
+                    const count  = imgsArr.filter(Boolean).length;
+                    return `
+                    <div class="elite-collection-cell-admin"
+                         onclick="openAdminCatalogInner(${idx}, event)"
+                         onmousedown="startCellPress('${box.id}', '${topic.replace(/'/g,"\\'")}', event)"
+                         onmouseup="cancelCellPress()"
+                         onmouseleave="cancelCellPress()"
+                         ontouchstart="startCellPress('${box.id}', '${topic.replace(/'/g,"\\'")}', event)"
+                         ontouchend="cancelCellPress()"
+                         ontouchmove="cancelCellPress()"
+                         oncontextmenu="return false;">
+                        <div class="elite-cell-meta-admin">
+                            <div class="elite-cell-topic-admin">${topic}</div>
+                            <div class="elite-cell-feeling-admin">${feeling}</div>
+                        </div>
+                        <div class="elite-cell-box-admin">
+                            ${imgSrc ? `<img src="${imgSrc}" alt="${topic}">` : ''}
+                            <div class="elite-cell-grain-admin"></div>
+                            <div class="elite-cell-img-count">${count} img${count !== 1 ? 's' : ''}</div>
+                        </div>
+                        <div class="elite-cell-actions-admin" onclick="event.stopPropagation()">
+                            <button class="btn btn-primary" onclick="openCatalogImageManager('${box.id}')">Manage Images</button>
+                            <button class="btn btn-danger" onclick="deleteItem('catalog_boxes', '${box.id}')">🗑️</button>
+                        </div>
+                    </div>`;
+                }).join('');
+            };
+
+            // Always fetch from Firebase — survives localStorage/browsing-data clears
+            if (typeof adminFbDB !== 'undefined') {
+                adminFbDB.ref('content/catalog').once('value').then(snap => {
+                    if (!snap.exists()) { renderBoxes([]); return; }
+                    const boxes = Object.values(snap.val()).sort((a, b) => {
+                        const n = s => parseInt((s.id||'').replace(/[^0-9]/g,'')) || 0;
+                        return n(a) - n(b);
+                    });
+                    renderBoxes(boxes);
+                }).catch(() => renderBoxes(JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]')));
+            } else {
+                renderBoxes(JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]'));
             }
-
-            container.innerHTML = boxes.map(box => {
-                const topic   = box.value || '';
-                const feeling = box.description || box.feeling || '';
-                // Firebase returns images as object {0:..., 1:...}, not array — handle both
-                const imgsArr = box.images
-                    ? (Array.isArray(box.images) ? box.images : Object.values(box.images))
-                    : [];
-                const imgSrc  = imgsArr.find(i => i) || '';
-                const count   = imgsArr.filter(Boolean).length;
-
-                return `
-                <div class="elite-collection-cell-admin"
-                     onclick="openAdminCatalogInner(${JSON.stringify(boxes.indexOf(box))}, event)"
-                     onmousedown="startCellPress('${box.id}', '${topic.replace(/'/g,"\\'")}', event)"
-                     onmouseup="cancelCellPress()"
-                     onmouseleave="cancelCellPress()"
-                     ontouchstart="startCellPress('${box.id}', '${topic.replace(/'/g,"\\'")}', event)"
-                     ontouchend="cancelCellPress()"
-                     ontouchmove="cancelCellPress()"
-                     oncontextmenu="return false;">
-                    <div class="elite-cell-meta-admin">
-                        <div class="elite-cell-topic-admin">${topic}</div>
-                        <div class="elite-cell-feeling-admin">${feeling}</div>
-                    </div>
-                    <div class="elite-cell-box-admin">
-                        ${imgSrc ? `<img src="${imgSrc}" alt="${topic}">` : ''}
-                        <div class="elite-cell-grain-admin"></div>
-                        <div class="elite-cell-img-count">${count} img${count !== 1 ? 's' : ''}</div>
-                    </div>
-                    <div class="elite-cell-actions-admin" onclick="event.stopPropagation()">
-                        <button class="btn btn-primary" onclick="openCatalogImageManager('${box.id}')">Manage Images</button>
-                        <button class="btn btn-danger" onclick="deleteItem('catalog_boxes', '${box.id}')">🗑️</button>
-                    </div>
-                </div>`;
-            }).join('');
         }
 
         function renderTrendingList() {
@@ -2528,49 +2546,51 @@
 
         function openCatalogImageManager(boxId) {
             currentCatalogBox = boxId;
-            const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
-            const box = boxes.find(b => b.id === boxId);
-            if (!box) return;
+            const localBoxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+            const localBox = localBoxes.find(b => b.id === boxId);
+            if (!localBox && typeof adminFbDB !== 'undefined') {
+                adminFbDB.ref('content/catalog/' + boxId).once('value').then(snap => {
+                    if (!snap.exists()) { showToast('Collection not found'); return; }
+                    const fbBox = snap.val();
+                    localBoxes.push(fbBox);
+                    try { localStorage.setItem('tbl_catalog_boxes', JSON.stringify(localBoxes)); } catch(e) {}
+                    _renderCatalogImageManager(fbBox);
+                });
+                return;
+            }
+            if (!localBox) return;
+            _renderCatalogImageManager(localBox);
+        }
+
+        function _renderCatalogImageManager(box) {
             const images = Array.isArray(box.images)
                 ? box.images
                 : (box.images ? Object.values(box.images) : []);
 
             const modal = document.getElementById('formModal');
-            document.getElementById('formTitle').textContent = `Manage Images: ${box.value}`;
+            document.getElementById('formTitle').textContent = 'Manage Images: ' + box.value;
 
-            // Each slot gets its OWN inline file input inside a label — 
-            // user taps the label directly, no JS .click() needed (bypasses mobile block)
-            const roomSlots = catalogRoomNames.map((roomName, idx) => {
-                const img = images[idx];
-                const inputId = `roomImgInput_${idx}`;
-                return `
-                <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(201,169,98,0.1);">
-                    <label for="${inputId}" style="width:64px;height:64px;border-radius:8px;background:rgba(42,31,20,0.8);border:1px dashed rgba(201,169,98,0.25);overflow:hidden;flex-shrink:0;cursor:pointer;display:block;position:relative;">
-                        ${img
-                            ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;">`
-                            : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;color:rgba(201,169,98,0.3);">+</div>`
-                        }
-                        <input type="file" id="${inputId}" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;top:0;left:0;" onchange="addCatalogImage(this, ${idx})">
-                    </label>
-                    <div style="flex:1;">
-                        <div style="font-size:13px;font-weight:600;color:#F5F0E8;">${roomName}</div>
-                        <div style="font-size:11px;color:rgba(168,155,140,0.6);margin-top:2px;">${img ? 'Tap to replace' : 'Tap to upload'}</div>
-                    </div>
-                    ${img ? `<button onclick="deleteCatalogImage(${idx})" style="background:#8B0000;border:none;color:white;border-radius:50%;width:28px;height:28px;font-size:16px;cursor:pointer;flex-shrink:0;">×</button>` : ''}
-                </div>`;
+            const roomSlots = catalogRoomNames.map((roomName, slotIdx) => {
+                const img = images[slotIdx];
+                const inputId = 'roomImgInput_' + slotIdx;
+                return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(201,169,98,0.1);">'
+                    + '<label for="' + inputId + '" style="width:64px;height:64px;border-radius:8px;background:rgba(42,31,20,0.8);border:1px dashed rgba(201,169,98,0.25);overflow:hidden;flex-shrink:0;cursor:pointer;display:block;position:relative;">'
+                    + (img ? '<img src="' + img + '" style="width:100%;height:100%;object-fit:cover;">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;color:rgba(201,169,98,0.3);">+</div>')
+                    + '<input type="file" id="' + inputId + '" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;top:0;left:0;" onchange="addCatalogImage(this,' + slotIdx + ')">'
+                    + '</label>'
+                    + '<div style="flex:1;"><div style="font-size:13px;font-weight:600;color:#F5F0E8;">' + roomName + '</div>'
+                    + '<div style="font-size:11px;color:rgba(168,155,140,0.6);margin-top:2px;">' + (img ? 'Tap to replace' : 'Tap to upload') + '</div></div>'
+                    + (img ? '<button onclick="deleteCatalogImage(' + slotIdx + ')" style="background:#8B0000;border:none;color:white;border-radius:50%;width:28px;height:28px;font-size:16px;cursor:pointer;flex-shrink:0;">×</button>' : '')
+                    + '</div>';
             }).join('');
 
-            document.getElementById('formContent').innerHTML = `
-                <div style="font-size:12px;color:rgba(201,169,98,0.5);margin-bottom:14px;letter-spacing:0.5px;">Tap a room slot to upload its image</div>
-                <div>${roomSlots}</div>
-            `;
-
+            document.getElementById('formContent').innerHTML = '<div style="font-size:12px;color:rgba(201,169,98,0.5);margin-bottom:14px;">Tap a room slot to upload its image</div><div>' + roomSlots + '</div>';
             modal.classList.add('active');
             document.querySelector('.form-container .btn-secondary').onclick = closeCatalogManager;
             document.querySelector('.form-container .btn-primary').onclick = closeCatalogManager;
         }
 
-        async function addCatalogImage(input, slotIndex) {
+                async function addCatalogImage(input, slotIndex) {
             if (!input.files || !input.files[0]) return;
             showToast('Uploading…');
             try {
@@ -2906,10 +2926,15 @@
             cellPressTimer = setTimeout(() => {
                 if (cellPressEl) cellPressEl.classList.remove('pressing');
                 if (navigator.vibrate) navigator.vibrate(60);
-                showCellContextMenu(boxName, [
-                    { icon:'📂', label:'Manage Images',  fn:'contextManageImages()' },
-                    { icon:'🗑️', label:'Delete Collection',  fn:'contextDeleteBox()', danger: true }
-                ], savedEv);
+                const _pressBoxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+                const _pressBox   = _pressBoxes.find(b => b.id === boxId);
+                const _hasCover   = _pressBox && _pressBox.images && (_pressBox.images[0] || Object.values(_pressBox.images)[0]);
+                const _opts = [
+                    { icon: _hasCover ? '🔄' : '🖼️', label: _hasCover ? 'Replace Cover Image' : 'Add Cover Image', fn: 'contextReplaceCover()' },
+                    { icon:'📂', label:'Manage All Images', fn:'contextManageImages()' },
+                    { icon:'🗑️', label:'Delete Collection', fn:'contextDeleteBox()', danger: true }
+                ];
+                showCellContextMenu(boxName, _opts, savedEv);
             }, CELL_LONG_MS);
         }
 
@@ -3093,6 +3118,34 @@
                 showToast(`${files.length} image${files.length > 1 ? 's' : ''} added ✓`);
             } catch(err) {
                 showToast('Upload failed — try smaller images');
+            }
+        }
+
+        function contextReplaceCover() {
+            closeContextMenu();
+            if (!cellPressTarget) return;
+            currentCatalogBox = cellPressTarget;
+            document.getElementById('coverReplaceInput').value = '';
+            document.getElementById('coverReplaceLabel').click();
+        }
+
+        async function handleCoverReplaceUpload(input) {
+            if (!input.files || !input.files[0] || !currentCatalogBox) return;
+            showToast('Uploading cover…');
+            try {
+                const compressed = await compressImage(input.files[0], 900, 0.75);
+                const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+                const box   = boxes.find(b => b.id === currentCatalogBox);
+                if (!box) return;
+                if (!box.images) box.images = [];
+                box.images[0] = compressed; // Always replace slot 0 (the cover)
+                box.count = box.images.filter(Boolean).length + ' img' + (box.images.filter(Boolean).length !== 1 ? 's' : '');
+                safeLocalSet('tbl_catalog_boxes', JSON.stringify(boxes));
+                syncBoxToFirebase(box);
+                renderCatalogList();
+                showToast('Cover image updated ✓');
+            } catch(err) {
+                showToast('Upload failed — try a smaller image');
             }
         }
 
