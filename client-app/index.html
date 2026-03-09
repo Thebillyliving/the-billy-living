@@ -656,7 +656,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 </div>
 
 <!-- AI CHAT OVERLAY -->
-<div id="aiChatOverlay" style="display:none;position:fixed;inset:0;background:#0A0804;z-index:4500;flex-direction:column;">
+<div id="aiChatOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:var(--nav-height);background:#0A0804;z-index:4500;flex-direction:column;">
   <div style="display:flex;align-items:center;gap:14px;padding:18px 20px;border-bottom:1px solid rgba(201,168,76,0.15);flex-shrink:0;">
     <button onclick="closeAIChat()" style="background:none;border:1px solid rgba(201,168,76,0.2);color:rgba(201,168,76,0.6);border-radius:8px;padding:8px 14px;font-size:20px;cursor:pointer;line-height:1;">←</button>
     <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#7B68EE,#4B3FBF);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:14px;color:#fff;flex-shrink:0;">AI</div>
@@ -666,9 +666,9 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     </div>
   </div>
   <div id="aiChatMessages" style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px;"></div>
-  <div id="aiTyping" style="display:none;padding:0 20px 8px;font-size:12px;color:rgba(123,104,238,0.6);letter-spacing:1px;">Billy AI is thinking2026</div>
+  <div id="aiTyping" style="display:none;padding:0 20px 8px;font-size:12px;color:rgba(123,104,238,0.6);letter-spacing:1px;">Billy AI is thinking…</div>
   <div style="padding:14px 16px;border-top:1px solid rgba(201,168,76,0.1);display:flex;gap:10px;align-items:center;">
-    <input id="aiInput" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(201,168,76,0.2);border-radius:24px;padding:12px 18px;color:#F5F0E8;font-family:'Jost',sans-serif;font-size:14px;outline:none;" placeholder="Ask about design, rooms, styles2026" onkeypress="if(event.key==='Enter')sendAIChatMessage()">
+    <input id="aiInput" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(201,168,76,0.2);border-radius:24px;padding:12px 18px;color:#F5F0E8;font-family:'Jost',sans-serif;font-size:14px;outline:none;" placeholder="Ask about design, rooms, styles…" onkeypress="if(event.key==='Enter')sendAIChatMessage()">
     <button onclick="sendAIChatMessage()" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#7B68EE,#4B3FBF);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
       <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </button>
