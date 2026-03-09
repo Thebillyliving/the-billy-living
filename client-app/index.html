@@ -1492,33 +1492,10 @@ function sendAIGreeting(type) {
   sendConciergeMessage();
 }
 
-// FIX 4: sendAIMessage — calls /api/chat serverless endpoint with proper error handling
+// Concierge is Billy's private human line — client messages go to Firebase, Billy replies from admin
 async function sendAIMessage(userText) {
-  const typing = document.getElementById('cgTyping');
-  typing.style.display = 'block';
-  try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: cgHistory })
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    const reply = data.reply || data.content?.[0]?.text || 'One moment please.';
-    typing.style.display = 'none';
-    const aiMsg = { text: reply, sender: 'concierge', senderName: 'Concierge', timestamp: Date.now(), read: true };
-    cgMessages.push(aiMsg);
-    cgHistory.push({ role: 'assistant', content: reply });
-    renderConciergeMessages();
-    if (currentUser) fbDb.ref(`chats/${currentUser.uid}/messages`).push(aiMsg);
-  } catch(e) {
-    typing.style.display = 'none';
-    // Graceful fallback — don't break the UI
-    const fallback = 'Our concierge will be with you shortly. For immediate assistance, please use the WhatsApp option.';
-    const aiMsg = { text: fallback, sender: 'concierge', senderName: 'Concierge', timestamp: Date.now(), read: true };
-    cgMessages.push(aiMsg);
-    renderConciergeMessages();
-  }
+  // Nothing to do here — client message already saved in sendConciergeMessage
+  // Billy responds manually from the admin dashboard
 }
 
 // ─── IMAGE MODAL ─────────────────────────────────────────────────────────────
@@ -1579,14 +1556,21 @@ async function sendAIChatMessage() {
   const typing = document.getElementById('aiTyping');
   typing.style.display = 'block';
   try {
-    const res = await fetch('/api/chat', {
+    const contents = aiChatHistory.map(m => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }]
+    }));
+    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyCl8jnrV3VEd4dD-sIvKjQT6eHTziuVupU', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: aiChatHistory })
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: "You are the Billy Living Concierge — a sophisticated, warm AI assistant for a luxury interior design studio based in Nigeria. Your name is Billy AI. You assist clients with interior design advice, color palettes, room planning, furniture curation, and booking consultations. Be warm but refined, concise, under 3 short paragraphs. Use "we" for Billy Living. Never make up pricing." }] },
+        contents,
+        generationConfig: { maxOutputTokens: 500, temperature: 0.7 }
+      })
     });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    const reply = data.reply || data.content?.[0]?.text || 'One moment please.';
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'One moment please.';
     typing.style.display = 'none';
     appendAIMessage(reply, 'recv');
     aiChatHistory.push({ role: 'assistant', content: reply });
