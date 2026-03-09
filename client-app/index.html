@@ -636,6 +636,17 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
   </div>
 </div>
 
+<!-- VAULT ASSET DETAIL MODAL -->
+<div id="vaultAssetDetail" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:6000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);" onclick="if(event.target===this)closeVaultAsset()">
+  <div style="width:100%;max-width:480px;background:#0E0A02;border:1px solid rgba(212,175,55,0.25);border-radius:16px;overflow:hidden;max-height:85vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid rgba(212,175,55,0.1);">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:13px;letter-spacing:3px;color:rgba(212,175,55,0.5);text-transform:uppercase;">Vault · Exclusive</div>
+      <button onclick="closeVaultAsset()" style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);color:rgba(212,175,55,0.7);width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>
+    </div>
+    <div id="vaultAssetDetailContent" style="padding:24px;"></div>
+  </div>
+</div>
+
 <!-- SHARE SHEET -->
 <div class="share-backdrop" id="shareBackdrop" onclick="closeShareSheet()"></div>
 <div class="share-sheet" id="shareSheet">
@@ -1171,36 +1182,52 @@ function openCatalogRooms(box, paletteIndex) {
   currentCatalogPaletteIndex = paletteIndex;
   document.getElementById('roomsPageTitle').textContent    = box.value || box.topic || 'ROOMS';
   document.getElementById('roomsPageSubtitle').textContent = box.description || box.feeling || '';
-  const area = document.getElementById('roomGalleryArea');
 
-  // Helper: get images for a specific mixture, handling Firebase object format
-  const getMixtureImages = (b, palIdx) => {
-    if (!b.mixtureImages) return [];
-    const raw = b.mixtureImages[palIdx];
-    if (!raw) return [];
-    if (Array.isArray(raw)) return raw;
-    const keys = Object.keys(raw).map(Number).sort((a,c)=>a-c);
-    const maxIdx = keys.length ? Math.max(...keys) : -1;
-    const arr = Array(maxIdx + 1).fill(null);
-    keys.forEach(k => { arr[k] = raw[k]; });
-    return arr;
-  };
-
-  const imgs = getMixtureImages(box, paletteIndex);
-  area.innerHTML = ROOM_NAMES.map((name, i) => {
-    const img = imgs[i] || null;
-    return `<div class="room-category-block">
-      <div class="room-category-header"><span class="room-category-name">${name}</span></div>
-      <div class="room-single-slot" onclick="viewRoomImage('${name}','${img||''}')">
-        ${img ? `<img src="${img}" alt="${name}" loading="lazy">` : `<div class="elite-slot-placeholder"><div class="elite-slot-icon"><svg viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" stroke="#C9A84C" stroke-width="1"/><path d="M1 11l4-4 3 3 3-4 4 5" stroke="#C9A84C" stroke-width="1" fill="none"/></svg></div><span class="elite-slot-num">No Image</span></div>`}
-      </div>
-    </div>`;
-  }).join('');
+  // Show rooms page immediately with loading state
   document.getElementById('catalogInner').style.display = 'none';
   document.getElementById('catalogInner').classList.remove('active');
   document.getElementById('catalogRooms').style.display = 'block';
   document.getElementById('catalogRooms').classList.add('active');
   window.scrollTo(0, 0);
+
+  const area = document.getElementById('roomGalleryArea');
+  area.innerHTML = '<div style="padding:60px 20px;text-align:center;color:rgba(201,168,76,0.3);font-size:11px;letter-spacing:2px;text-transform:uppercase;">Loading rooms…</div>';
+
+  const renderRooms = (freshBox) => {
+    // Helper: get images for a specific mixture, handling Firebase object format
+    const getMixtureImages = (b, palIdx) => {
+      if (!b.mixtureImages) return [];
+      const raw = b.mixtureImages[palIdx];
+      if (!raw) return [];
+      if (Array.isArray(raw)) return raw;
+      const keys = Object.keys(raw).map(Number).sort((a,c)=>a-c);
+      const maxIdx = keys.length ? Math.max(...keys) : -1;
+      const arr = Array(maxIdx + 1).fill(null);
+      keys.forEach(k => { arr[k] = raw[k]; });
+      return arr;
+    };
+    const imgs = getMixtureImages(freshBox, paletteIndex);
+    // Update cached box so viewRoomImage works
+    currentCatalogBox = freshBox;
+    if (freshBox.id) _catalogMap[freshBox.id] = freshBox;
+
+    // Store images on window so onclick can access them cleanly
+    window._currentRoomImgs = imgs;
+    area.innerHTML = ROOM_NAMES.map((name, i) => {
+      const img = imgs[i] || null;
+      return '<div class="room-category-block">'
+        + '<div class="room-category-header"><span class="room-category-name">' + name + '</span></div>'
+        + '<div class="room-single-slot" onclick="viewRoomImage(\'' + name.replace(/'/g,"\\'") + '\',' + i + ')">'
+        + (img ? '<img src="' + img + '" alt="' + name + '" loading="lazy">'
+               : '<div class="elite-slot-placeholder"><div class="elite-slot-icon"><svg viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" stroke="#C9A84C" stroke-width="1"/><path d="M1 11l4-4 3 3 3-4 4 5" stroke="#C9A84C" stroke-width="1" fill="none"/></svg></div><span class="elite-slot-num">No Image</span></div>')
+        + '</div></div>';
+    }).join('');
+  };
+
+  // Always fetch fresh from Firebase — so admin uploads appear immediately
+  fbDb.ref('content/catalog/' + box.id).get()
+    .then(snap => renderRooms(snap.exists() ? snap.val() : box))
+    .catch(() => renderRooms(box));
 }
 
 function closeCatalogRooms() {
@@ -1210,13 +1237,15 @@ function closeCatalogRooms() {
   document.getElementById('catalogInner').classList.add('active');
 }
 
-function viewRoomImage(name, imgSrc) {
+function viewRoomImage(name, idx) {
+  const imgs = window._currentRoomImgs || [];
+  const imgSrc = imgs[idx] || null;
   if (!imgSrc) return;
   const modal = document.getElementById('viewModal');
   const imgEl = document.getElementById('viewModalImage');
   document.getElementById('viewModalTitle').textContent = name;
   document.getElementById('viewModalMeta').textContent  = (currentCatalogBox?.value||'Collection') + ' • ' + name;
-  imgEl.innerHTML = `<img src="${imgSrc}" alt="${name}" style="width:100%;height:100%;object-fit:cover">`;
+  imgEl.innerHTML = '<img src="' + imgSrc + '" alt="' + name + '" style="width:100%;height:100%;object-fit:cover">';
   modal.classList.add('active');
 }
 function closeViewModal() { document.getElementById('viewModal').classList.remove('active'); }
@@ -1289,6 +1318,8 @@ function openVaultAsset(asset) {
   const detail = document.getElementById('vaultAssetDetail');
   const content = document.getElementById('vaultAssetDetailContent');
   detail.style.display = 'flex';
+  detail.style.alignItems = 'center';
+  detail.style.justifyContent = 'center';
   content.innerHTML = `
     ${asset.url || asset.thumb ? `<div style="width:100%;aspect-ratio:4/3;border:1px solid rgba(212,175,55,.18);border-radius:8px;overflow:hidden;margin-bottom:24px"><img src="${asset.url||asset.thumb}" style="width:100%;height:100%;object-fit:cover"></div>` : ''}
     <div style="font-size:9px;letter-spacing:5px;color:rgba(212,175,55,.35);text-transform:uppercase;margin-bottom:8px">${asset.cat||'Collection'}</div>
@@ -1497,11 +1528,7 @@ if (window.visualViewport) {
       const msgs = document.getElementById('cgMessages');
       if (msgs) msgs.scrollTop = msgs.scrollHeight;
     }
-    if (aiOverlay && aiOverlay.style.display === 'flex') {
-      aiOverlay.style.bottom = keyboardHeight + 'px';
-      const aiMsgs = document.getElementById('aiChatMessages');
-      if (aiMsgs) aiMsgs.scrollTop = aiMsgs.scrollHeight;
-    }
+    // aiChatOverlay removed — handled by concierge only
   });
   window.visualViewport.addEventListener('scroll', () => {
     const keyboardHeight = window.innerHeight - window.visualViewport.height;
