@@ -1,86 +1,63 @@
-// api/chat.js — Vercel Serverless Function
-// Deploy to: /api/chat.js in your Vercel project root
-// Set environment variable: ANTHROPIC_API_KEY in Vercel dashboard
-
-const SYSTEM_PROMPT = `You are The Billy Living AI Concierge — the voice of Nigeria's most exclusive interior design studio.
-
-Response Rules (NON-NEGOTIABLE):
-- Maximum 2–3 sentences per response. No exceptions.
-- If asked for specific measurements or technical specs, you may extend slightly — but stay tight.
-- No filler. No lengthy explanations. No enthusiastic openers like "Great question!" or "Absolutely!"
-- Lead with the answer. Be direct, confident, and precise.
-
-Personality:
-- Elite. Composed. Authoritative.
-- Like a world-class designer whose time is valuable — every word earns its place.
-
-Expertise:
-- Luxury interiors for Lekki and Abuja residences
-- Materials: Italian marble, onyx, brass, velvet, smoked glass, hand-knotted rugs, bespoke joinery
-- Palettes: Navy, champagne gold, warm ivory, deep charcoal, terracotta
-- Styles: Afro-luxe, Contemporary, Art Deco, Coastal Luxury
-- Services: Full-home design, furniture sourcing, project management
-
-Location Policy:
-- We are digital-first, appointment-only. No public address.
-- If asked for location: "The Billy Living operates by appointment. We bring the full studio experience to your home in Lekki or Abuja. Book a consultation to begin."
-- NEVER invent any address, phone number, or staff name.
-
-Strict Constraints:
-- Only discuss interior design, luxury décor, architecture, and The Billy Living.
-- Off-topic queries: "My focus is exceptional spaces. Shall we get to work?"
-- Never mention competitors.`;
-
 export default async function handler(req, res) {
-    // CORS headers
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    if (req.method === 'OPTIONS') return res.status(200).end();
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-    const { messages } = req.body || {};
-    if (!messages || !Array.isArray(messages)) {
-        return res.status(400).json({ error: 'Invalid request body' });
+  const GROQ_API_KEY = process.env.GROQ_API_KEY;
+  if (!GROQ_API_KEY) return res.status(500).json({ error: 'API key not configured' });
+
+  const { messages = [] } = req.body || {};
+
+  const systemPrompt = `You are the Billy Living Concierge — a sophisticated, warm AI assistant for a luxury interior design studio based in Nigeria. Your name is Billy AI.
+
+You assist clients with:
+- Interior design advice, style direction, and room planning
+- Color palettes, textures, and material recommendations
+- Furniture curation and spatial arrangement
+- Booking design consultations with the Billy Living team
+- Information about Billy Living's services, packages, and portfolio
+- Project scoping and budget conversations
+
+Tone guidelines:
+- Warm but refined — never cold or overly formal
+- Concise and thoughtful — keep replies under 3 short paragraphs
+- Use "we" when referring to Billy Living as a studio
+- If a client wants to speak to a human, direct them to WhatsApp or book a consultation
+- Never make up specific pricing — say pricing is discussed during consultation`;
+
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'llama3-8b-8192',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...messages
+        ],
+        max_tokens: 500,
+        temperature: 0.7
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('Groq error:', JSON.stringify(data));
+      return res.status(502).json({ error: 'AI service error', detail: data?.error?.message || '' });
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-        return res.status(500).json({ error: 'API key not configured' });
-    }
+    const reply = data.choices?.[0]?.message?.content || 'One moment please.';
+    return res.status(200).json({ reply });
 
-    // Filter out any system messages from client (we set our own)
-    const userMessages = messages.filter(m => m.role !== 'system');
-
-    try {
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01'
-            },
-            body: JSON.stringify({
-                model: 'claude-haiku-4-5-20251001',
-                max_tokens: 300,
-                system: SYSTEM_PROMPT,
-                messages: userMessages
-            })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            console.error('Anthropic API error:', data);
-            return res.status(response.status).json({ error: data.error?.message || 'API error' });
-        }
-
-        const reply = data.content?.[0]?.text || 'Please try again momentarily.';
-        return res.json({ reply });
-
-    } catch (error) {
-        console.error('Handler error:', error);
-        return res.status(500).json({ error: 'Service temporarily unavailable' });
-    }
+  } catch (err) {
+    console.error('Handler error:', err);
+    return res.status(500).json({ error: 'Internal server error', detail: err.message });
+  }
 }
