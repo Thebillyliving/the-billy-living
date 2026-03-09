@@ -1849,7 +1849,7 @@
         function renderCatalogList() {
             const container = document.getElementById('catalogList');
 
-            const renderBoxes = (boxes, silent) => {
+            const renderBoxes = (boxes) => {
                 // Keep localStorage in sync so other functions work
                 try { localStorage.setItem('tbl_catalog_boxes', JSON.stringify(boxes)); } catch(e) {}
 
@@ -1892,21 +1892,20 @@
                 }).join('');
             };
 
-            // Show cached data instantly — no spinner
+            // Show metadata from cache instantly (names/feelings, no images yet)
             const cached = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
-            if (cached.length) renderBoxes(cached, true);
-            else container.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:rgba(201,168,76,0.35);font-size:12px;letter-spacing:2px;text-transform:uppercase;">Loading…</div>';
+            const sortFn = (a,b) => { const n=s=>parseInt((s.id||'').replace(/[^0-9]/g,''))||0; return n(a)-n(b); };
+            if (cached.length) renderBoxes(cached.sort(sortFn));
 
-            // Silently refresh from Firebase in background
+            // Always fetch from Firebase to get images — update grid in place when ready
             if (typeof adminFbDB !== 'undefined') {
                 adminFbDB.ref('content/catalog').once('value').then(snap => {
                     if (!snap.exists()) { if (!cached.length) renderBoxes([]); return; }
-                    const boxes = Object.values(snap.val()).sort((a, b) => {
-                        const n = s => parseInt((s.id||'').replace(/[^0-9]/g,'')) || 0;
-                        return n(a) - n(b);
-                    });
+                    const boxes = Object.values(snap.val()).sort(sortFn);
                     renderBoxes(boxes);
                 }).catch(() => { if (!cached.length) renderBoxes([]); });
+            } else if (!cached.length) {
+                renderBoxes([]);
             }
         }
 
@@ -2836,10 +2835,10 @@
                 }).join('');
             };
 
-            // Render cached data instantly (no spinner)
+            // Render immediately from cached box (images may be empty — Firebase will fill them)
             renderRooms(box);
 
-            // Silently refresh from Firebase in background to pick up latest uploads
+            // Always fetch from Firebase to get latest room images — updates in place
             if (typeof adminFbDB !== 'undefined') {
                 adminFbDB.ref('content/catalog/' + box.id).once('value').then(snap => {
                     if (snap.exists()) renderRooms(snap.val());
