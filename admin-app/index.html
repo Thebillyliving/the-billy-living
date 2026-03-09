@@ -1632,6 +1632,7 @@
     <div class="catalog-overlay" id="catalogInnerOverlay">
         <div class="inner-back-bar">
             <button class="inner-back-btn" onclick="closeAdminCatalogInner()">←</button>
+            <button onclick="forceSyncAllCatalog()" style="background:none;border:1px solid rgba(201,168,76,0.3);color:#C9A84C;font-size:10px;letter-spacing:1px;padding:5px 10px;border-radius:4px;cursor:pointer;margin-left:auto;">SYNC TO LIVE</button>
             <div>
                 <div class="inner-collection-title" id="adminInnerTitle">—</div>
                 <div class="inner-collection-feeling" id="adminInnerFeeling">—</div>
@@ -2478,9 +2479,48 @@
         }
 
         // ── Sync a catalog box to Firebase ────────────────────────────────────
+        function forceSyncAllCatalog() {
+            if (typeof adminFbDB === 'undefined') { showToast('Firebase not connected'); return; }
+            const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+            if (!boxes.length) { showToast('No catalog data to sync'); return; }
+            showToast('Syncing all catalog to Firebase…');
+            let done = 0;
+            boxes.forEach(box => {
+                const clean = JSON.parse(JSON.stringify(box));
+                if (clean.mixtureImages) {
+                    Object.keys(clean.mixtureImages).forEach(palIdx => {
+                        const arr = clean.mixtureImages[palIdx];
+                        if (Array.isArray(arr)) {
+                            const obj = {};
+                            arr.forEach((v, i) => { if (v) obj[i] = v; });
+                            clean.mixtureImages[palIdx] = obj;
+                        }
+                    });
+                }
+                adminFbDB.ref('content/catalog/' + clean.id).set(clean)
+                    .then(() => { done++; if (done === boxes.length) showToast('All catalog synced to live ✓'); })
+                    .catch(e => showToast('Sync error: ' + e.message));
+            });
+        }
+
         function syncBoxToFirebase(box) {
             if (typeof adminFbDB !== 'undefined') {
-                adminFbDB.ref('content/catalog/' + box.id).set(box);
+                // Clean nulls from mixtureImages arrays before saving to Firebase
+                const clean = JSON.parse(JSON.stringify(box));
+                if (clean.mixtureImages) {
+                    Object.keys(clean.mixtureImages).forEach(palIdx => {
+                        const arr = clean.mixtureImages[palIdx];
+                        if (Array.isArray(arr)) {
+                            // Convert sparse array to object, skipping nulls
+                            const obj = {};
+                            arr.forEach((v, i) => { if (v) obj[i] = v; });
+                            clean.mixtureImages[palIdx] = obj;
+                        }
+                    });
+                }
+                adminFbDB.ref('content/catalog/' + clean.id).set(clean)
+                    .then(() => console.log('Catalog synced: ' + clean.id))
+                    .catch(e => { showToast('Sync failed: ' + e.message); console.error(e); });
             }
         }
 
@@ -2962,7 +3002,7 @@
             if (ctxRoomSlotIdx === null || ctxRoomPalIdx === null) return;
             showToast('Uploading…');
             try {
-                const compressed = await compressImage(input.files[0], 900, 0.75);
+                const compressed = await compressImage(input.files[0], 700, 0.65);
                 const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
                 const box = (ctxRoomBoxId && boxes.find(b => b.id === ctxRoomBoxId))
                            || boxes[ctxRoomCollIdx];
