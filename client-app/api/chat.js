@@ -6,8 +6,8 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const GROQ_API_KEY = process.env.GROQ_API_KEY;
-  if (!GROQ_API_KEY) return res.status(500).json({ error: 'API key not configured' });
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+  if (!GEMINI_API_KEY) return res.status(500).json({ error: 'API key not configured' });
 
   const { messages = [] } = req.body || {};
 
@@ -28,32 +28,34 @@ Tone guidelines:
 - If a client wants to speak to a human, direct them to WhatsApp or book a consultation
 - Never make up specific pricing — say pricing is discussed during consultation`;
 
+  // Convert messages to Gemini format
+  const contents = messages.map(m => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }]
+  }));
+
   try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'llama3-8b-8192',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...messages
-        ],
-        max_tokens: 500,
-        temperature: 0.7
-      })
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents,
+          generationConfig: { maxOutputTokens: 500, temperature: 0.7 }
+        })
+      }
+    );
 
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('Groq error:', JSON.stringify(data));
+      console.error('Gemini error:', JSON.stringify(data));
       return res.status(502).json({ error: 'AI service error', detail: data?.error?.message || '' });
     }
 
-    const reply = data.choices?.[0]?.message?.content || 'One moment please.';
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'One moment please.';
     return res.status(200).json({ reply });
 
   } catch (err) {
