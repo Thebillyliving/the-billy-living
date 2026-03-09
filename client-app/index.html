@@ -1146,11 +1146,11 @@ async function loadCatalog() {
     return n(a) - n(b);
   });
 
-  // Show localStorage cache instantly — zero wait
+  // Show box structure from cache instantly (names show, images load right after)
   const cached = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
   if (cached.length) _renderCatalogGrid(sortBoxes(cached));
 
-  // Fetch from Firebase in background — silently update grid
+  // Always fetch from Firebase to get images — updates grid in place when ready
   try {
     const snap = await fbDb.ref('content/catalog').get();
     if (!snap.exists()) {
@@ -1245,10 +1245,10 @@ function openCatalogRooms(box, paletteIndex) {
     }).join('');
   };
 
-  // Render cached box immediately (no spinner)
+  // Render immediately from cached box structure
   renderRooms(box);
 
-  // Silently refresh from Firebase to pick up latest admin uploads
+  // Always fetch from Firebase to get latest room images — updates in place
   fbDb.ref('content/catalog/' + box.id).get()
     .then(snap => { if (snap.exists()) renderRooms(snap.val()); })
     .catch(() => {});
