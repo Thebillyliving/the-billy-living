@@ -1570,13 +1570,19 @@ async function sendAIChatMessage() {
       })
     });
     const data = await res.json();
+    // Show raw error from Gemini if something goes wrong
+    if (data.error) {
+      typing.style.display = 'none';
+      appendAIMessage('Error: ' + (data.error.message || JSON.stringify(data.error)), 'recv');
+      return;
+    }
     const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'One moment please.';
     typing.style.display = 'none';
     appendAIMessage(reply, 'recv');
     aiChatHistory.push({ role: 'assistant', content: reply });
   } catch(e) {
     typing.style.display = 'none';
-    appendAIMessage("I'm having a moment — try again shortly, or reach out via the Concierge.", 'recv');
+    appendAIMessage('Fetch error: ' + e.message, 'recv');
   }
 }
 
