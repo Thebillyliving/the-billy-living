@@ -220,7 +220,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .cg-msg.sent .cg-bubble{background:linear-gradient(135deg,#C9A862,#8B6914);color:#060D18;font-weight:500;border-radius:18px 4px 18px 18px;box-shadow:0 2px 12px rgba(201,169,98,.2)}
 .cg-msg-time{font-size:10px;color:rgba(255,255,255,.25);padding:0 4px}
 .cg-typing{padding:0 16px 8px;color:#8696A0;font-size:12px;font-style:italic;letter-spacing:.5px;display:none}
-.cg-input-row{padding:12px 16px;border-top:1px solid rgba(201,169,98,.1);background:#060D18;display:flex;gap:10px;align-items:center;flex-shrink:0;position:sticky;bottom:0;z-index:10}
+.cg-input-row{padding:12px 16px;border-top:1px solid rgba(201,169,98,.1);background:#060D18;display:flex;gap:10px;align-items:center;flex-shrink:0}
 .cg-input{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(201,169,98,.2);border-radius:24px;padding:12px 18px;color:#F5F0E8;font-size:14px;font-family:'Jost',sans-serif;outline:none;-webkit-user-select:text;user-select:text}
 .cg-input:focus{border-color:rgba(201,169,98,.5)}
 .cg-send{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#C9A862,#8B6914);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -848,14 +848,17 @@ function showPage(pageId) {
     trendingEl.classList.add('active');
   } else {
     const el = document.getElementById(pageId);
-    if (el) { el.style.display = 'block'; el.classList.add('active'); }
+    if (el) { el.style.display = (pageId === 'concierge') ? 'flex' : 'block'; el.classList.add('active'); }
     // Hide catalog sub-pages unless explicitly going there
     if (pageId !== 'catalogInner') { document.getElementById('catalogInner').style.display = 'none'; }
     if (pageId !== 'catalogRooms') { document.getElementById('catalogRooms').style.display = 'none'; }
   }
   // Reset concierge keyboard offset when navigating away
   const cgEl = document.getElementById('concierge');
-  if (cgEl) cgEl.style.bottom = 'var(--nav-height)';
+  if (cgEl) {
+    cgEl.style.bottom = 'var(--nav-height)';
+    if (pageId !== 'concierge') cgEl.style.display = 'none';
+  }
 
   // Vault session restore — auto-enter if within 24hrs
   if (pageId === 'vault' && !vaultSession) {
