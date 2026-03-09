@@ -848,6 +848,23 @@ function showPage(pageId) {
     if (pageId !== 'catalogInner') { document.getElementById('catalogInner').style.display = 'none'; }
     if (pageId !== 'catalogRooms') { document.getElementById('catalogRooms').style.display = 'none'; }
   }
+  // Vault session restore — auto-enter if within 24hrs
+  if (pageId === 'vault' && !vaultSession) {
+    const saved = localStorage.getItem('vaultSession');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        const hrs24 = 24 * 60 * 60 * 1000;
+        if (parsed.unlockedAt && (Date.now() - parsed.unlockedAt) < hrs24) {
+          vaultSession = parsed;
+          setTimeout(() => enterBespokeVault(), 80);
+        } else {
+          localStorage.removeItem('vaultSession');
+        }
+      } catch(e) { localStorage.removeItem('vaultSession'); }
+    }
+  }
+
   window.scrollTo(0, 0);
 }
 
@@ -873,11 +890,16 @@ async function loadUserProfile(uid) {
     document.getElementById('profileStoryPhoto').style.display = 'block';
     document.getElementById('profileStoryDefault').style.display = 'none';
   }
-  // Check VIP
-  if (p.mobile) {
+  // Check VIP — first check stored flag, then fallback to phone lookup
+  if (p.isVip) {
+    document.getElementById('profileContainer').classList.add('is-vip');
+  } else if (p.mobile) {
     const phone = p.mobile.replace(/\D/g,'').slice(-10);
     const vSnap = await fbDb.ref('vip/' + phone).get();
-    if (vSnap.exists()) document.getElementById('profileContainer').classList.add('is-vip');
+    if (vSnap.exists()) {
+      document.getElementById('profileContainer').classList.add('is-vip');
+      fbDb.ref('userProfiles/' + uid).update({ isVip: true });
+    }
   }
   updatePortfolioDashCount();
 }
@@ -1215,7 +1237,14 @@ async function handleVaultUnlock() {
     if (snap.exists()) {
       const vip = snap.val();
       if (vip.password === pin && vip.status === 'active') {
-        vaultSession = { phone, ...vip };
+        vaultSession = { phone, ...vip, unlockedAt: Date.now() };
+        // Persist vault session for 24hrs
+        localStorage.setItem('vaultSession', JSON.stringify(vaultSession));
+        // Write permanent VIP flag to user profile in Firebase
+        if (currentUser) {
+          fbDb.ref('userProfiles/' + currentUser.uid).update({ isVip: true, vipName: vip.name || '' });
+          document.getElementById('profileContainer').classList.add('is-vip');
+        }
         document.getElementById('vault-login-form').style.display = 'none';
         document.getElementById('vault-success-state').style.display = 'flex';
         return;
@@ -1272,6 +1301,7 @@ function openVaultAsset(asset) {
 function closeVaultAsset() { document.getElementById('vaultAssetDetail').style.display = 'none'; }
 function handleVaultLogout() {
   vaultSession = null;
+  localStorage.removeItem('vaultSession');
   document.getElementById('vaultLogin').style.display = 'flex';
   document.getElementById('vaultGallery').style.display = 'none';
   document.getElementById('vault-login-form').style.display = 'flex';
