@@ -2073,6 +2073,7 @@
             if (vip) {
                 vip.status = 'active';
                 localStorage.setItem('tbl_vip_users', JSON.stringify(vips));
+                adminFbDB.ref('vip/' + vip.phone + '/status').set('active');
                 renderVIPList();
                 updateStats();
                 showToast('VIP approved');
@@ -2086,6 +2087,7 @@
             if (vip) {
                 vip.status = 'rejected';
                 localStorage.setItem('tbl_vip_users', JSON.stringify(vips));
+                adminFbDB.ref('vip/' + vip.phone + '/status').set('rejected');
                 renderVIPList();
                 updateStats();
                 showToast('VIP rejected');
@@ -2100,6 +2102,7 @@
                 if (vip) {
                     vip.password = newCode;
                     localStorage.setItem('tbl_vip_users', JSON.stringify(vips));
+                    adminFbDB.ref('vip/' + vip.phone + '/password').set(newCode);
                     showToast('Password reset successfully');
                 }
             } else {
@@ -2784,27 +2787,30 @@
                 return `<div class="room-category-block">
                     <div class="room-category-header">
                         <div class="room-category-name">${roomName}</div>
-                        ${roomImage ? `<button onclick="removeRoomImage(${adminCurrentCollectionIndex},${paletteIndex},${roomIndex})" style="background:#8B0000;border:none;color:white;border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;float:right;">Remove</button>` : ''}
                     </div>
-                    <label for="${inputId}" style="display:block;cursor:pointer;">
-                        <div class="room-single-slot" style="position:relative;">
-                            ${roomImage ? `<img src="${roomImage}" alt="${roomName}">` : ''}
-                            <div class="elite-slot-placeholder" style="${roomImage ? 'opacity:0;' : ''}">
-                                <div class="elite-slot-icon">
-                                    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <rect x="1" y="1" width="14" height="14" stroke="#C9A84C" stroke-width="1"/>
-                                        <path d="M1 11l4-4 3 3 3-4 4 5" stroke="#C9A84C" stroke-width="1" fill="none"/>
-                                        <circle cx="11" cy="5" r="1.5" fill="#C9A84C"/>
-                                    </svg>
-                                </div>
-                                <div class="elite-slot-num">Tap to Upload</div>
+                    <div class="room-single-slot"
+                         onmousedown="startRoomPress(${adminCurrentCollectionIndex}, ${paletteIndex}, ${roomIndex}, '${roomName}', event)"
+                         onmouseup="cancelCellPress()"
+                         onmouseleave="cancelCellPress()"
+                         ontouchstart="startRoomPress(${adminCurrentCollectionIndex}, ${paletteIndex}, ${roomIndex}, '${roomName}', event)"
+                         ontouchend="cancelCellPress()"
+                         ontouchmove="cancelCellPress()"
+                         oncontextmenu="return false;">
+                        ${roomImage ? `<img src="${roomImage}" alt="${roomName}">` : ''}
+                        <div class="elite-slot-placeholder" style="${roomImage ? 'opacity:0;' : ''}">
+                            <div class="elite-slot-icon">
+                                <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="1" y="1" width="14" height="14" stroke="#C9A84C" stroke-width="1"/>
+                                    <path d="M1 11l4-4 3 3 3-4 4 5" stroke="#C9A84C" stroke-width="1" fill="none"/>
+                                    <circle cx="11" cy="5" r="1.5" fill="#C9A84C"/>
+                                </svg>
                             </div>
-                            ${roomImage ? '<div style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,0.5);color:#C9A84C;font-size:10px;padding:2px 6px;border-radius:3px;">Tap to Replace</div>' : ''}
+                            <div class="elite-slot-num">${roomName}</div>
                         </div>
                         <input type="file" id="${inputId}" accept="image/*"
-                               style="position:absolute;width:1px;height:1px;opacity:0;"
+                               style="display:none;"
                                onchange="handleInlineRoomUpload(this, ${adminCurrentCollectionIndex}, ${paletteIndex}, ${roomIndex}, '${roomName}')">
-                    </label>
+                    </div>
                 </div>`;
             }).join('');
 
@@ -2836,21 +2842,6 @@
         let cellPressName   = null;
         let cellPressEl     = null;
         const CELL_LONG_MS  = 500;
-
-        function startCellPress(boxId, boxName, event) {
-            cancelCellPress();
-            cellPressTarget = boxId;
-            cellPressName   = boxName;
-            cellPressEl     = event.currentTarget || event.target.closest('.elite-collection-cell-admin');
-
-            cellPressEl.classList.add('pressing');
-
-            cellPressTimer = setTimeout(() => {
-                cellPressEl.classList.remove('pressing');
-                if (navigator.vibrate) navigator.vibrate(60);
-                showCellContextMenu(boxId, boxName, event);
-            }, CELL_LONG_MS);
-        }
 
         function cancelCellPress() {
             clearTimeout(cellPressTimer);
@@ -2896,11 +2887,6 @@
         }
 
         // ── Catalog grid cell (Layer 1) ────────────────────────────────────────
-        function startCellPressOld(boxId, boxName, event) {
-            // kept for reference — replaced below
-        }
-
-        // Rewire startCellPress to use the new showCellContextMenu
         function startCellPress(boxId, boxName, ev) {
             cancelCellPress();
             cellPressTarget = boxId;
@@ -2979,8 +2965,9 @@
 
         function contextRoomAddImage() {
             closeContextMenu();
-            document.getElementById('contextRoomImgInput').value = '';
-            document.getElementById('contextRoomImgLabel').click();
+            const inputId = `roomSlotInput_${ctxRoomPalIdx}_${ctxRoomSlotIdx}`;
+            const input = document.getElementById(inputId);
+            if (input) { input.value = ''; input.click(); }
         }
 
         async function handleInlineRoomUpload(input, collIdx, palIdx, roomIdx, roomName) {
@@ -3064,17 +3051,8 @@
 
         function contextRoomRemoveImage() {
             closeContextMenu();
-            const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
-            const box = boxes.find(b => b.id === ctxRoomBoxId) || boxes[ctxRoomCollIdx];
-            if (!box || !box.mixtureImages || !box.mixtureImages[ctxRoomPalIdx]) return;
-            if (Array.isArray(box.mixtureImages[ctxRoomPalIdx]))
-                box.mixtureImages[ctxRoomPalIdx][ctxRoomSlotIdx] = null;
-            safeLocalSet('tbl_catalog_boxes', JSON.stringify(boxes));
-            syncBoxToFirebase(box);
-            openAdminPaletteRooms(ctxRoomPalIdx);
-            showToast(`${ctxRoomName} image removed`);
+            removeRoomImage(ctxRoomCollIdx, ctxRoomPalIdx, ctxRoomSlotIdx);
         }
-
         function blockNextClick(e) {
             e.stopPropagation();
             document.removeEventListener('click', blockNextClick, true);
