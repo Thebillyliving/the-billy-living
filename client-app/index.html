@@ -203,7 +203,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .portfolio-action-btn.chat{background:#C9A84C;color:#0A1628}
 .portfolio-action-btn.whatsapp{background:#25D366;color:white}
 .portfolio-action-btn.share{background:#0A0A0A;color:#C9A84C;border:2px solid #C9A84C}
-#concierge{display:none;flex-direction:column;height:calc(100vh - var(--nav-height));background:#060D18}
+#concierge{display:none;flex-direction:column;position:fixed;top:0;left:0;right:0;bottom:var(--nav-height);background:#060D18;z-index:100}
 #concierge.active{display:flex}
 .cg-header{background:linear-gradient(135deg,#0B1628,#0D1E3A);padding:16px 20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid rgba(201,169,98,.2);flex-shrink:0}
 .cg-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#C9A862,#8B6914);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:16px;color:#060D18;flex-shrink:0;position:relative}
@@ -220,7 +220,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .cg-msg.sent .cg-bubble{background:linear-gradient(135deg,#C9A862,#8B6914);color:#060D18;font-weight:500;border-radius:18px 4px 18px 18px;box-shadow:0 2px 12px rgba(201,169,98,.2)}
 .cg-msg-time{font-size:10px;color:rgba(255,255,255,.25);padding:0 4px}
 .cg-typing{padding:0 16px 8px;color:#8696A0;font-size:12px;font-style:italic;letter-spacing:.5px;display:none}
-.cg-input-row{padding:12px 16px;border-top:1px solid rgba(201,169,98,.1);background:#060D18;display:flex;gap:10px;align-items:center;flex-shrink:0}
+.cg-input-row{padding:12px 16px;border-top:1px solid rgba(201,169,98,.1);background:#060D18;display:flex;gap:10px;align-items:center;flex-shrink:0;position:sticky;bottom:0;z-index:10}
 .cg-input{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(201,169,98,.2);border-radius:24px;padding:12px 18px;color:#F5F0E8;font-size:14px;font-family:'Jost',sans-serif;outline:none;-webkit-user-select:text;user-select:text}
 .cg-input:focus{border-color:rgba(201,169,98,.5)}
 .cg-send{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#C9A862,#8B6914);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -853,6 +853,10 @@ function showPage(pageId) {
     if (pageId !== 'catalogInner') { document.getElementById('catalogInner').style.display = 'none'; }
     if (pageId !== 'catalogRooms') { document.getElementById('catalogRooms').style.display = 'none'; }
   }
+  // Reset concierge keyboard offset when navigating away
+  const cgEl = document.getElementById('concierge');
+  if (cgEl) cgEl.style.bottom = 'var(--nav-height)';
+
   // Vault session restore — auto-enter if within 24hrs
   if (pageId === 'vault' && !vaultSession) {
     const saved = localStorage.getItem('vaultSession');
@@ -1122,6 +1126,12 @@ async function loadCatalog() {
   const grid = document.getElementById('eliteCatalogGrid');
   if (!snap.exists()) { grid.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3)">No collections yet</div>'; return; }
   const boxes = Object.values(snap.val());
+  // Sort by box ID number to match admin order (box_1, box_2, etc.)
+  boxes.sort((a, b) => {
+    const aNum = parseInt((a.id || '').replace(/\D/g, '')) || 0;
+    const bNum = parseInt((b.id || '').replace(/\D/g, '')) || 0;
+    return aNum - bNum;
+  });
   boxes.forEach(box => { _catalogMap[box.id] = box; });
   grid.innerHTML = boxes.map(box => {
     const thumb = box.images ? box.images.find(i => i) : null;
@@ -1581,6 +1591,33 @@ async function sendAIChatMessage() {
     typing.style.display = 'none';
     appendAIMessage("I'm having a moment 2014 try again shortly, or reach out via the Concierge.", 'recv');
   }
+}
+
+// ─── KEYBOARD PUSH (Concierge + AI Chat) ────────────────────────────────────
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    const keyboardHeight = window.innerHeight - window.visualViewport.height;
+    const concierge = document.getElementById('concierge');
+    const aiOverlay = document.getElementById('aiChatOverlay');
+    if (concierge && concierge.style.display !== 'none') {
+      concierge.style.bottom = (keyboardHeight + parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-height') || '70')) + 'px';
+      // Scroll to bottom of messages
+      const msgs = document.getElementById('cgMessages');
+      if (msgs) msgs.scrollTop = msgs.scrollHeight;
+    }
+    if (aiOverlay && aiOverlay.style.display === 'flex') {
+      aiOverlay.style.bottom = keyboardHeight + 'px';
+      const aiMsgs = document.getElementById('aiChatMessages');
+      if (aiMsgs) aiMsgs.scrollTop = aiMsgs.scrollHeight;
+    }
+  });
+  window.visualViewport.addEventListener('scroll', () => {
+    const keyboardHeight = window.innerHeight - window.visualViewport.height;
+    const concierge = document.getElementById('concierge');
+    if (concierge && concierge.style.display !== 'none') {
+      concierge.style.bottom = (keyboardHeight + parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-height') || '70')) + 'px';
+    }
+  });
 }
 
 // ─── TOAST ───────────────────────────────────────────────────────────────────
