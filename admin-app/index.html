@@ -2969,10 +2969,12 @@
 
         // ── Mixture card (Layer 2) ─────────────────────────────────────────────
         let ctxMixBoxIndex = null;
+        let ctxMixPalIdx   = null;
 
         function startMixPress(collectionIndex, mixIndex, ev) {
             cancelCellPress();
-            ctxMixBoxIndex  = collectionIndex;
+            ctxMixBoxIndex = collectionIndex;
+            ctxMixPalIdx   = mixIndex;
             cellPressEl = ev.currentTarget || ev.target.closest('.color-mixture-card');
             if (cellPressEl) cellPressEl.classList.add('pressing');
             const savedEv = { clientX: ev.clientX, clientY: ev.clientY,
@@ -2982,14 +2984,19 @@
                 if (navigator.vibrate) navigator.vibrate(60);
                 const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
                 const box   = boxes[collectionIndex];
-                const name  = box ? `${box.value} — Mixture ${mixIndex + 1}` : `Mixture ${mixIndex + 1}`;
-                showCellContextMenu(name, [
-                    { icon:'📂', label:'Manage Images', fn:'contextManageImages()' }
-                ], savedEv);
-                // point target at the parent box so contextAddPicture works
+                const name  = box ? (box.value || 'Collection') : 'Collection';
                 cellPressTarget = box ? box.id : null;
                 cellPressName   = name;
+                showCellContextMenu(name, [
+                    { icon:'📷', label:'Upload Room Images', fn:'contextEnterRooms()' },
+                    { icon:'🖼️', label:'Manage Cover Images', fn:'contextManageImages()' }
+                ], savedEv);
             }, CELL_LONG_MS);
+        }
+
+        function contextEnterRooms() {
+            closeContextMenu();
+            openAdminPaletteRooms(ctxMixPalIdx !== null ? ctxMixPalIdx : 0);
         }
 
         // ── Room slot (Layer 3) ────────────────────────────────────────────────
