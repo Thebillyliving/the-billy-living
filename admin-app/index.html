@@ -752,6 +752,7 @@
             background: rgba(201,168,76,0.06) !important;
         }
 
+        .page-eyebrow { font-size:10px; letter-spacing:3px; text-transform:uppercase; color:rgba(201,168,76,0.4); margin-bottom:4px; }
         .elite-cell-meta-admin { margin-bottom: 8px; }
 
         .elite-cell-topic-admin {
@@ -1628,6 +1629,8 @@
     <input type="file" id="contextImageInput"     accept="image/*" multiple style="display:none;" onchange="handleContextImageUpload(this)">
     <label id="coverReplaceLabel" for="coverReplaceInput" style="display:none;"></label>
     <input type="file" id="coverReplaceInput" accept="image/*" style="display:none;" onchange="handleCoverReplaceUpload(this)">
+    <label id="palettePhotoLabel" for="palettePhotoInput" style="display:none;"></label>
+    <input type="file" id="palettePhotoInput" accept="image/*" style="display:none;" onchange="handlePalettePhotoUpload(this)">
     <label id="contextRoomImgLabel" for="contextRoomImgInput" style="display:none;"></label>
     <input type="file" id="contextRoomImgInput"   accept="image/*"          style="display:none;" onchange="handleRoomImageUpload(this)">
     <label id="contextMixImgLabel" for="contextMixImgInput" style="display:none;"></label>
@@ -2015,6 +2018,10 @@
                 // Sync back to localStorage for any other functions that need it
                 localStorage.setItem('tbl_vip_users', JSON.stringify(vips));
                 document.getElementById('vipCount').textContent = vips.length;
+                // Update sidebar nav badge with pending count
+                const pendingCount = vips.filter(v => v.status === 'pending').length;
+                const badge = document.getElementById('vipBadge');
+                if (badge) { badge.textContent = pendingCount; badge.style.display = pendingCount > 0 ? '' : 'none'; }
                 container.innerHTML = vips.map(vip => `
                 <div class="vip-card status-${vip.status}">
                     <div class="vip-name">${vip.name}</div>
@@ -2047,17 +2054,12 @@
                 return;
             }
 
-            const vips = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
-
-            // Check for duplicate (normalized)
-            const existing = vips.find(v => {
-                const existingNormalized = (v.phone || '').replace(/^\+234/, '').replace(/^0/, '');
-                return existingNormalized === phone;
-            });
-            if (existing) {
-                showToast('A VIP with this phone number already exists');
-                return;
-            }
+            // Check Firebase directly for duplicates (localStorage may be stale)
+            adminFbDB.ref('vip/' + phone).once('value').then(snap => {
+                if (snap.exists()) {
+                    showToast('A VIP with this phone number already exists');
+                    return;
+                }
 
             const newVIP = {
                 id: 'vip_' + Date.now(),
@@ -2075,10 +2077,7 @@
                 ]
             };
 
-            vips.push(newVIP);
-            localStorage.setItem('tbl_vip_users', JSON.stringify(vips));
-
-            // Save to Firebase so client can verify across domains
+            // Save to Firebase
             adminFbDB.ref('vip/' + newVIP.phone).set({
                 phone:    newVIP.phone,
                 password: newVIP.password,
@@ -2087,6 +2086,11 @@
                 id:       newVIP.id
             });
 
+            // Sync localStorage
+            const vips = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
+            vips.push(newVIP);
+            localStorage.setItem('tbl_vip_users', JSON.stringify(vips));
+
             document.getElementById('vipPhone').value = '';
             document.getElementById('vipCode').value  = '';
             document.getElementById('vipName').value  = '';
@@ -2094,6 +2098,7 @@
             renderVIPList();
             updateStats();
             showToast('VIP member added successfully');
+            }); // end Firebase duplicate check
         }
 
         function approveVIP(id) {
@@ -2519,9 +2524,13 @@
         // ── Sync a catalog box to Firebase ────────────────────────────────────
         function forceSyncAllCatalog() {
             if (typeof adminFbDB === 'undefined') { showToast('Firebase not connected'); return; }
+            // Re-fetch from Firebase and re-render (localStorage no longer holds images)
+            showToast('Refreshing catalog from Firebase…');
+            renderCatalogList();
+            return;
+            // DISABLED: old code would wipe Firebase images since localStorage strips them
             const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
             if (!boxes.length) { showToast('No catalog data to sync'); return; }
-            showToast('Syncing all catalog to Firebase…');
             let done = 0;
             boxes.forEach(box => {
                 const clean = JSON.parse(JSON.stringify(box));
@@ -2779,20 +2788,17 @@
             return { q: [`hsl(${15+offset*6},${25+offset}%,${12+offset}%)`,`hsl(${44+offset*2},${55+offset}%,${50+offset}%)`,`hsl(0,0%,${18+offset}%)`,`hsl(${48+offset},${80+offset}%,${80+offset}%)`], labels: ['Deep Tone','Rich Gold','Neutral','Highlight'] };
         }
 
-        function openAdminCatalogInner(index, event) {
-            adminCurrentCollectionIndex = index;
-            adminActivePaletteIndex = null;
-            const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
-            const box = boxes[index];
-            if (!box) return;
-
-            document.getElementById('adminInnerTitle').textContent   = box.value || '';
-            document.getElementById('adminInnerFeeling').textContent = box.description || box.feeling || '';
-
+        function _renderAdminPaletteCard(index, box, paletteImage) {
             const mixturesRow = document.getElementById('adminColorMixturesRow');
-            if (!box.mixtureLabels) box.mixtureLabels = ['Color Palette'];
+            if (!mixturesRow) return;
             const p0 = buildAdminPalette(index, 0);
             const labelVal = (box.mixtureLabels && box.mixtureLabels[0]) || 'Color Palette';
+            const houseBlock = paletteImage
+                ? `<div class="house-layout" onclick="openAdminPaletteRooms(0)" style="position:relative;overflow:hidden;">
+                    <img src="${paletteImage}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.85;border-radius:2px;">
+                    <div style="position:relative;z-index:1;opacity:0.25;">${buildAdminHouseSVG(p0)}</div>
+                   </div>`
+                : `<div class="house-layout" onclick="openAdminPaletteRooms(0)">${buildAdminHouseSVG(p0)}</div>`;
             mixturesRow.innerHTML = `<div class="color-mixture-card"
                  onmousedown="startMixPress(${index}, 0, event)"
                  onmouseup="cancelCellPress()"
@@ -2808,7 +2814,7 @@
                     onblur="saveMixtureLabel(${index}, 0, this.value)"
                     placeholder="Enter color name…"
                     style="-webkit-user-select:text;user-select:text;">
-                <div class="house-layout" onclick="openAdminPaletteRooms(0)">${buildAdminHouseSVG(p0)}</div>
+                ${houseBlock}
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px;" onclick="openAdminPaletteRooms(0)">
                     ${p0.q.map((col, qi) => `<div style="display:flex;align-items:center;gap:4px;">
                         <div style="width:10px;height:10px;background:${col};border:1px solid rgba(201,168,76,0.3);flex-shrink:0;"></div>
@@ -2816,9 +2822,27 @@
                     </div>`).join('')}
                 </div>
             </div>`;
+        }
 
+        function openAdminCatalogInner(index, event) {
+            adminCurrentCollectionIndex = index;
+            adminActivePaletteIndex = null;
+            const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+            const box = boxes[index];
+            if (!box) return;
+
+            document.getElementById('adminInnerTitle').textContent   = box.value || '';
+            document.getElementById('adminInnerFeeling').textContent = box.description || box.feeling || '';
             document.getElementById('catalogInnerOverlay').classList.add('active');
             document.getElementById('catalogInnerOverlay').scrollTop = 0;
+
+            // Render immediately with no image, then fetch paletteImage from Firebase
+            _renderAdminPaletteCard(index, box, null);
+            if (typeof adminFbDB !== 'undefined') {
+                adminFbDB.ref('content/catalog/' + box.id + '/paletteImage').once('value').then(snap => {
+                    _renderAdminPaletteCard(index, box, snap.val() || null);
+                }).catch(() => {});
+            }
         }
 
         function openAdminPaletteRooms(paletteIndex) {
@@ -2902,7 +2926,12 @@
             if (!box.mixtureLabels) box.mixtureLabels = ['Mixture 1', 'Mixture 2'];
             box.mixtureLabels[mixtureIndex] = value.trim() || `Mixture ${mixtureIndex + 1}`;
             safeLocalSet('tbl_catalog_boxes', JSON.stringify(boxes));
-            syncBoxToFirebase(box);
+            // Use .update() to patch ONLY mixtureLabels — avoids wiping images stored in Firebase
+            if (typeof adminFbDB !== 'undefined') {
+                adminFbDB.ref('content/catalog/' + box.id).update({
+                    mixtureLabels: box.mixtureLabels
+                }).catch(e => console.error('saveMixtureLabel failed:', e));
+            }
         }
 
         function closeAdminCatalogRooms() {
@@ -2971,9 +3000,8 @@
             cellPressTimer = setTimeout(() => {
                 if (cellPressEl) cellPressEl.classList.remove('pressing');
                 if (navigator.vibrate) navigator.vibrate(60);
-                const _pressBoxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
-                const _pressBox   = _pressBoxes.find(b => b.id === boxId);
-                const _hasCover   = _pressBox && _pressBox.images && (_pressBox.images[0] || Object.values(_pressBox.images)[0]);
+                // Check cover cache (localStorage no longer stores images)
+                const _hasCover = !!getCoverCache()[boxId];
                 const _opts = [
                     { icon: _hasCover ? '🔄' : '🖼️', label: _hasCover ? 'Replace Cover Image' : 'Add Cover Image', fn: 'contextReplaceCover()' },
                     { icon:'📂', label:'Manage All Images', fn:'contextManageImages()' },
@@ -3005,7 +3033,7 @@
                 cellPressName   = name;
                 showCellContextMenu(name, [
                     { icon:'📷', label:'Upload Room Images', fn:'contextEnterRooms()' },
-                    { icon:'🖼️', label:'Add Photo to Palette', fn:'contextReplaceCover()' }
+                    { icon:'🖼️', label:'Add Photo to Palette', fn:'contextUploadPalettePhoto()' }
                 ], savedEv);
             }, CELL_LONG_MS);
         }
@@ -3186,21 +3214,38 @@
             showToast('Uploading…');
             try {
                 const compressed = await compressImage(input.files[0], 900, 0.75);
-                // Write ONLY the cover image directly to Firebase — no need to read/write whole box
+                // Save to images/0 — this is the catalog GRID cover photo
                 await adminFbDB.ref('content/catalog/' + currentCatalogBox + '/images/0').set(compressed);
-                // Update the count field too
-                const snap = await adminFbDB.ref('content/catalog/' + currentCatalogBox + '/images').once('value');
-                const imgs = snap.val();
-                let count = 0;
-                if (imgs) {
-                    if (Array.isArray(imgs)) count = imgs.filter(Boolean).length;
-                    else count = Object.values(imgs).filter(Boolean).length;
-                }
-                await adminFbDB.ref('content/catalog/' + currentCatalogBox + '/count').set(count + ' img' + (count !== 1 ? 's' : ''));
-                // Update cover cache so grid re-renders with photo instantly
                 saveCoverCache(currentCatalogBox, compressed);
                 renderCatalogList();
-                showToast('Photo added ✓');
+                showToast('Cover image updated ✓');
+            } catch(err) {
+                console.error(err);
+                showToast('Upload failed — try a smaller image');
+            }
+        }
+
+        // Separate handler for the Color Palette card photo (paletteImage field)
+        function contextUploadPalettePhoto() {
+            closeContextMenu();
+            if (!cellPressTarget) return;
+            currentCatalogBox = cellPressTarget;
+            document.getElementById('palettePhotoInput').value = '';
+            document.getElementById('palettePhotoLabel').click();
+        }
+
+        async function handlePalettePhotoUpload(input) {
+            if (!input.files || !input.files[0] || !currentCatalogBox) return;
+            showToast('Uploading…');
+            try {
+                const compressed = await compressImage(input.files[0], 900, 0.75);
+                // Save to paletteImage — shown on the Color Palette house card
+                await adminFbDB.ref('content/catalog/' + currentCatalogBox + '/paletteImage').set(compressed);
+                showToast('Photo added to palette ✓');
+                // Re-render the palette card immediately with the new image
+                const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+                const box = boxes[adminCurrentCollectionIndex];
+                if (box) _renderAdminPaletteCard(adminCurrentCollectionIndex, box, compressed);
             } catch(err) {
                 console.error(err);
                 showToast('Upload failed — try a smaller image');
@@ -3217,9 +3262,14 @@
             closeContextMenu();
             if (!cellPressTarget) return;
             if (!confirm(`Delete "${cellPressName}"? This cannot be undone.`)) return;
-            const boxes    = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
-            const filtered = boxes.filter(b => b.id !== cellPressTarget);
-            localStorage.setItem('tbl_catalog_boxes', JSON.stringify(filtered));
+            // Delete from Firebase (source of truth)
+            adminFbDB.ref('content/catalog/' + cellPressTarget).remove()
+                .catch(e => console.error('Firebase delete failed:', e));
+            // Clear from cover cache
+            saveCoverCache(cellPressTarget, null);
+            // Remove from localStorage
+            const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+            localStorage.setItem('tbl_catalog_boxes', JSON.stringify(boxes.filter(b => b.id !== cellPressTarget)));
             renderCatalogList();
             updateStats();
             showToast('Collection deleted');
@@ -3629,10 +3679,13 @@
 
         function vmDeleteAsset(id) {
             if (!confirm('Delete this asset from the library?')) return;
-            vmRef('assets/' + id).remove();
-            vmRef('defaults/' + id).remove();
-            showToast('Asset removed');
-            vmRenderLibrary();
+            Promise.all([
+                vmRef('assets/' + id).remove(),
+                vmRef('defaults/' + id).remove()
+            ]).then(() => {
+                showToast('Asset removed');
+                vmRenderLibrary();
+            }).catch(e => showToast('Delete failed: ' + e.message));
         }
 
         function vmToggleDefault(id, currently) {
