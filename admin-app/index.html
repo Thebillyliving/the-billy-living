@@ -2190,29 +2190,17 @@
                 case 'post':
                     title.textContent = 'Add New Post';
                     content.innerHTML = `
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Title</label>
-                                <input type="text" class="form-input" id="formTitleInput">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Emoji</label>
-                                <input type="text" class="form-input" id="formEmoji" maxlength="2" placeholder="🏠">
-                            </div>
+                        <div class="form-group">
+                            <label class="form-label">Title</label>
+                            <input type="text" class="form-input" id="formTitleInput">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Caption</label>
                             <input type="text" class="form-input" id="formCaption">
                         </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Location</label>
-                                <input type="text" class="form-input" id="formLocation">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Category</label>
-                                <input type="text" class="form-input" id="formCategory">
-                            </div>
+                        <div class="form-group">
+                            <label class="form-label">Location</label>
+                            <input type="text" class="form-input" id="formLocation">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Image or Video</label>
@@ -2428,22 +2416,32 @@
                     const fileIsVideo = fileInput?.files?.[0]?.type?.startsWith('video/');
                     const videoPreviewEl = document.getElementById('videoPreview');
                     const imagePreviewEl = document.getElementById('imagePreview');
+                    // Audio size guard — Firebase max node is 10MB; base64 inflates ~33%
+                    const audioEl   = document.getElementById('audioPreview');
+                    const audioFile = document.getElementById('formAudio')?.files?.[0];
+                    if (audioFile && audioFile.size > 7 * 1024 * 1024) {
+                        showToast('Audio file too large (max 7 MB). Please trim or compress it first.');
+                        return;
+                    }
+                    const audioData = (audioEl && audioEl.src && audioEl.src.startsWith('data:')) ? audioEl.src : null;
                     const post = {
                         id: 'post_' + Date.now(),
                         title: document.getElementById('formTitleInput').value,
-                        emoji: document.getElementById('formEmoji').value || '🏠',
+                        emoji: '🏠',
                         caption: document.getElementById('formCaption').value,
                         location: document.getElementById('formLocation').value,
-                        category: document.getElementById('formCategory').value,
+                        category: '',
                         imageData: (!fileIsVideo && imagePreviewEl?.src && imagePreviewEl.src !== window.location.href) ? imagePreviewEl.src : null,
                         videoData: (fileIsVideo && videoPreviewEl?.src) ? videoPreviewEl.src : null,
                         videoUrl: document.getElementById('formVideo').value || null,
-                        audioData: document.getElementById('audioPreview')?.src || null,
+                        audioData: audioData,
                         likes: parseInt(document.getElementById('formLikes').value) || 0,
                         shares: parseInt(document.getElementById('formShares').value) || 0,
                         published: true
                     };
-                    adminFbDB.ref('content/posts/' + post.id).set(post);
+                    adminFbDB.ref('content/posts/' + post.id).set(post)
+                        .then(() => { showToast('Post saved!'); })
+                        .catch(e => { showToast('Save failed: ' + e.message); console.error(e); });
                     const posts = JSON.parse(localStorage.getItem('tbl_posts') || '[]');
                     posts.push(post);
                     localStorage.setItem('tbl_posts', JSON.stringify(posts));
@@ -2456,24 +2454,33 @@
                     const fileIsVideo = fileInput?.files?.[0]?.type?.startsWith('video/');
                     const videoPreviewEl = document.getElementById('videoPreview');
                     const imagePreviewEl = document.getElementById('imagePreview');
+                    const audioEl   = document.getElementById('audioPreview');
+                    const audioFile = document.getElementById('formAudio')?.files?.[0];
+                    if (audioFile && audioFile.size > 7 * 1024 * 1024) {
+                        showToast('Audio file too large (max 7 MB). Please trim or compress it first.');
+                        return;
+                    }
+                    const audioData = (audioEl && audioEl.src && audioEl.src.startsWith('data:')) ? audioEl.src : null;
                     const trending = {
                         id: 'trend_' + Date.now(),
                         title: document.getElementById('formTitleInput').value,
-                        emoji: document.getElementById('formEmoji').value || '🔥',
+                        emoji: document.getElementById('formEmoji')?.value || '🔥',
                         caption: document.getElementById('formCaption').value,
                         imageData: (!fileIsVideo && imagePreviewEl?.src && imagePreviewEl.src !== window.location.href) ? imagePreviewEl.src : null,
                         videoData: (fileIsVideo && videoPreviewEl?.src) ? videoPreviewEl.src : null,
                         videoUrl: document.getElementById('formVideo').value || null,
-                        audioData: document.getElementById('audioPreview')?.src || null,
+                        audioData: audioData,
                         views: parseInt(document.getElementById('formViews').value) || 0,
-                        badge: document.getElementById('formBadge').value || 'Trending',
+                        badge: document.getElementById('formBadge')?.value || 'Trending',
                         likes: parseInt(document.getElementById('formLikes').value) || 0,
                         shares: parseInt(document.getElementById('formShares').value) || 0
                     };
                     const trendingItems = JSON.parse(localStorage.getItem('tbl_trending') || '[]');
                     trendingItems.push(trending);
                     localStorage.setItem('tbl_trending', JSON.stringify(trendingItems));
-                    adminFbDB.ref('content/trending/' + trending.id).set(trending);
+                    adminFbDB.ref('content/trending/' + trending.id).set(trending)
+                        .then(() => { showToast('Trending item saved!'); })
+                        .catch(e => { showToast('Save failed: ' + e.message); console.error(e); });
                     renderTrendingList();
                     updateStats();
                     break;
