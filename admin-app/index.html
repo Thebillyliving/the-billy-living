@@ -3186,19 +3186,21 @@
             showToast('Uploading…');
             try {
                 const compressed = await compressImage(input.files[0], 900, 0.75);
-                // Fetch current box from Firebase so we don't lose existing images
-                const snap = await adminFbDB.ref('content/catalog/' + currentCatalogBox).once('value');
-                const box  = snap.exists() ? snap.val() : { id: currentCatalogBox, images: [] };
-                if (!box.images) box.images = [];
-                if (!Array.isArray(box.images)) box.images = Object.values(box.images);
-                box.images[0] = compressed;
-                box.count = box.images.filter(Boolean).length + ' img' + (box.images.filter(Boolean).length !== 1 ? 's' : '');
-                saveCoverCache(box.id, compressed);
-                await adminFbDB.ref('content/catalog/' + box.id).set(
-                    JSON.parse(JSON.stringify(box)) // clean undefined values
-                );
+                // Write ONLY the cover image directly to Firebase — no need to read/write whole box
+                await adminFbDB.ref('content/catalog/' + currentCatalogBox + '/images/0').set(compressed);
+                // Update the count field too
+                const snap = await adminFbDB.ref('content/catalog/' + currentCatalogBox + '/images').once('value');
+                const imgs = snap.val();
+                let count = 0;
+                if (imgs) {
+                    if (Array.isArray(imgs)) count = imgs.filter(Boolean).length;
+                    else count = Object.values(imgs).filter(Boolean).length;
+                }
+                await adminFbDB.ref('content/catalog/' + currentCatalogBox + '/count').set(count + ' img' + (count !== 1 ? 's' : ''));
+                // Update cover cache so grid re-renders with photo instantly
+                saveCoverCache(currentCatalogBox, compressed);
                 renderCatalogList();
-                showToast('Photo added to palette ✓');
+                showToast('Photo added ✓');
             } catch(err) {
                 console.error(err);
                 showToast('Upload failed — try a smaller image');
