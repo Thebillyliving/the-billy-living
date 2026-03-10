@@ -855,6 +855,7 @@
             z-index: 2000;
             overflow-y: auto;
             flex-direction: column;
+            scroll-padding-bottom: 320px;
         }
         .catalog-overlay.active { display: flex; flex-direction: column; animation: fadeIn 0.25s ease; }
 
@@ -1168,7 +1169,7 @@
                     </svg>
                 </span>
                 <span>VIP Manager</span>
-                <span class="nav-badge" id="vipBadge">0</span>
+                <span class="nav-badge" id="vipBadge" style="display:none;">0</span>
             </div>
             <div class="nav-item" onclick="showPanel('vaultmgr', this)">
                 <span class="nav-icon">
@@ -1187,8 +1188,7 @@
                     </svg>
                 </span>
                 <span>Messages</span>
-                <span class="nav-badge admin-msgs-badge" id="msgsBadge">0</span>
-            </div>
+                <span class="nav-badge admin-msgs-badge" id="msgsBadge" style="display:none;">0</span>
             </div>
         </div>
 
@@ -1795,10 +1795,11 @@
                 navElement.classList.add('active');
             }
             
-            if (panelName === 'vip') {
-                renderVIPList();
-                updateStats();
-            }
+            if (panelName === 'vip')       { renderVIPList(); updateStats(); }
+            if (panelName === 'home')      { renderHomeList(); }
+            if (panelName === 'trending')  { renderTrendingList(); }
+            if (panelName === 'designers') { renderDesignersList(); }
+            if (panelName === 'catalog')   { renderCatalogList(); }
         }
 
         // Stats
@@ -1816,16 +1817,19 @@
 
         // Render Lists
         function renderHomeList() {
-            const posts = JSON.parse(localStorage.getItem('tbl_posts') || '[]');
             const container = document.getElementById('homeList');
-            
-            if (posts.length === 0) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏠</div><p>No posts yet. Add your first post!</p></div>';
-                return;
-            }
+            // Try localStorage first (instant), then refresh from Firebase
+            const cached = JSON.parse(localStorage.getItem('tbl_posts') || '[]');
+            const renderPosts = (posts) => {
+                localStorage.setItem('tbl_posts', JSON.stringify(posts));
+                if (posts.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏠</div><p>No posts yet. Add your first post!</p></div>';
+                    return;
+                }
             
             container.innerHTML = posts.map(post => {
                 const hasVideo = post.videoData || post.videoUrl;
+                const hasAudio = post.audioData;
                 const thumb = post.imageData
                     ? `<img src="${post.imageData}" alt="">`
                     : post.videoData
@@ -1834,10 +1838,13 @@
                 const typeTag = hasVideo
                     ? `<span style="font-size:10px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:#C9A84C;border-radius:4px;padding:1px 5px;margin-left:6px;">▶ VIDEO</span>`
                     : '';
+                const audioTag = hasAudio
+                    ? `<span style="font-size:10px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:#C9A84C;border-radius:4px;padding:1px 5px;margin-left:6px;">🎵 AUDIO</span>`
+                    : '';
                 return `<div class="list-item">
                     <div class="list-image">${thumb}</div>
                     <div class="list-info">
-                        <div class="list-title">${post.emoji} ${post.title}${typeTag}</div>
+                        <div class="list-title">${post.emoji} ${post.title}${typeTag}${audioTag}</div>
                         <div class="list-meta">${post.location} • ${post.category} • ❤️ ${post.likes} • ↗️ ${post.shares}</div>
                     </div>
                     <div class="list-actions">
@@ -1846,6 +1853,15 @@
                     </div>
                 </div>`;
             }).join('');
+            }; // end renderPosts
+            if (cached.length) renderPosts(cached);
+            else container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏠</div><p>Loading…</p></div>';
+            if (typeof adminFbDB !== 'undefined') {
+                adminFbDB.ref('content/posts').once('value').then(snap => {
+                    if (snap.exists()) renderPosts(Object.values(snap.val()));
+                    else if (!cached.length) renderPosts([]);
+                }).catch(() => { if (!cached.length) renderPosts([]); });
+            }
         }
 
         function renderCatalogList() {
@@ -1931,6 +1947,7 @@
             
             container.innerHTML = items.map(item => {
                 const hasVideo = item.videoData || item.videoUrl;
+                const hasAudio = item.audioData;
                 const thumb = item.imageData
                     ? `<img src="${item.imageData}" alt="">`
                     : item.videoData
@@ -1939,10 +1956,13 @@
                 const typeTag = hasVideo
                     ? `<span style="font-size:10px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:#C9A84C;border-radius:4px;padding:1px 5px;margin-left:6px;">▶ VIDEO</span>`
                     : '';
+                const audioTag = hasAudio
+                    ? `<span style="font-size:10px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:#C9A84C;border-radius:4px;padding:1px 5px;margin-left:6px;">🎵 AUDIO</span>`
+                    : '';
                 return `<div class="list-item">
                     <div class="list-image">${thumb}</div>
                     <div class="list-info">
-                        <div class="list-title">${item.emoji} ${item.title}${typeTag}</div>
+                        <div class="list-title">${item.emoji} ${item.title}${typeTag}${audioTag}</div>
                         <div class="list-meta">👁 ${item.views} • ❤️ ${item.likes} • ↗️ ${item.shares} • Badge: ${item.badge}</div>
                     </div>
                     <div class="list-actions">
@@ -2203,6 +2223,14 @@
                             <label class="form-label">Or paste a Video URL (optional)</label>
                             <input type="text" class="form-input" id="formVideo" placeholder="https://…">
                         </div>
+                        <div class="form-group">
+                            <label class="form-label">🎵 Background Audio (optional)</label>
+                            <input type="file" class="form-input" id="formAudio" accept="audio/*" onchange="previewAudio(this)">
+                            <div id="audioPreviewWrap" style="display:none;margin-top:10px;background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.2);border-radius:8px;padding:10px;">
+                                <audio id="audioPreview" controls style="width:100%;height:36px;"></audio>
+                                <div id="audioFileName" style="font-size:11px;color:rgba(201,168,76,0.5);margin-top:6px;letter-spacing:1px;"></div>
+                            </div>
+                        </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label">Likes Count</label>
@@ -2241,6 +2269,14 @@
                         <div class="form-group">
                             <label class="form-label">Or paste a Video URL (optional)</label>
                             <input type="text" class="form-input" id="formVideo" placeholder="https://…">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">🎵 Background Audio (optional)</label>
+                            <input type="file" class="form-input" id="formAudio" accept="audio/*" onchange="previewAudio(this)">
+                            <div id="audioPreviewWrap" style="display:none;margin-top:10px;background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.2);border-radius:8px;padding:10px;">
+                                <audio id="audioPreview" controls style="width:100%;height:36px;"></audio>
+                                <div id="audioFileName" style="font-size:11px;color:rgba(201,168,76,0.5);margin-top:6px;letter-spacing:1px;"></div>
+                            </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
@@ -2368,6 +2404,23 @@
             reader.readAsDataURL(file);
         }
 
+        function previewAudio(input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const wrap = document.getElementById('audioPreviewWrap');
+                const audio = document.getElementById('audioPreview');
+                const name  = document.getElementById('audioFileName');
+                if (wrap && audio) {
+                    audio.src = e.target.result;
+                    wrap.style.display = 'block';
+                    if (name) name.textContent = '♪ ' + file.name + ' (' + (file.size/1024/1024).toFixed(1) + ' MB)';
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
         function submitForm() {
             switch(currentForm) {
                 case 'post': {
@@ -2385,6 +2438,7 @@
                         imageData: (!fileIsVideo && imagePreviewEl?.src && imagePreviewEl.src !== window.location.href) ? imagePreviewEl.src : null,
                         videoData: (fileIsVideo && videoPreviewEl?.src) ? videoPreviewEl.src : null,
                         videoUrl: document.getElementById('formVideo').value || null,
+                        audioData: document.getElementById('audioPreview')?.src || null,
                         likes: parseInt(document.getElementById('formLikes').value) || 0,
                         shares: parseInt(document.getElementById('formShares').value) || 0,
                         published: true
@@ -2410,6 +2464,7 @@
                         imageData: (!fileIsVideo && imagePreviewEl?.src && imagePreviewEl.src !== window.location.href) ? imagePreviewEl.src : null,
                         videoData: (fileIsVideo && videoPreviewEl?.src) ? videoPreviewEl.src : null,
                         videoUrl: document.getElementById('formVideo').value || null,
+                        audioData: document.getElementById('audioPreview')?.src || null,
                         views: parseInt(document.getElementById('formViews').value) || 0,
                         badge: document.getElementById('formBadge').value || 'Trending',
                         likes: parseInt(document.getElementById('formLikes').value) || 0,
@@ -2797,7 +2852,9 @@
                     <img src="${paletteImage}" style="width:100%;height:100%;object-fit:cover;border-radius:2px;display:block;">
                    </div>`
                 : `<div class="house-layout" onclick="openAdminPaletteRooms(0)">${buildAdminHouseSVG(p0)}</div>`;
-            mixturesRow.innerHTML = `<div class="color-mixture-card"
+            // Input lives OUTSIDE the card — no parent touch handlers = native paste menu works
+            mixturesRow.innerHTML = `
+            <div class="color-mixture-card"
                  onmousedown="startMixPress(${index}, 0, event)"
                  onmouseup="cancelCellPress()"
                  onmouseleave="cancelCellPress()"
@@ -2806,25 +2863,24 @@
                  ontouchmove="cancelCellPress()"
                  oncontextmenu="return false;">
                 ${houseBlock}
-                <div style="margin-top:10px;" onclick="event.stopPropagation()">
+            </div>
+            <div style="padding:10px 2px 4px;background:transparent;">
+                <div style="font-size:9px;letter-spacing:3px;color:rgba(201,168,76,0.45);text-transform:uppercase;margin-bottom:6px;">Color Description</div>
+                <div style="display:flex;align-items:flex-end;gap:8px;">
                     <input id="mixLabelInput_${index}"
-                        class="mixture-label-input"
+                        type="text"
                         value="${labelVal}"
                         autocomplete="off" autocorrect="off" spellcheck="false"
                         inputmode="text"
                         placeholder="e.g. Ivory Marble, Warm Sand…"
-                        style="-webkit-user-select:text!important;user-select:text!important;touch-action:auto;font-size:13px;font-weight:700;letter-spacing:1.5px;color:#C9A84C;border-bottom:1px solid rgba(201,168,76,0.4);padding-bottom:6px;width:calc(100% - 72px);"
-                        oninput="event.stopPropagation();document.getElementById('mixSaveBtn_${index}').style.display='inline-flex';"
-                        onkeydown="event.stopPropagation();if(event.key==='Enter'){event.preventDefault();_saveMixLabel(${index});}"
-                        onmousedown="event.stopPropagation()"
-                        ontouchstart="event.stopPropagation();event.stopImmediatePropagation();">
+                        style="flex:1;background:rgba(201,168,76,0.05);border:none;border-bottom:2px solid rgba(201,168,76,0.35);outline:none;font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:700;letter-spacing:1px;color:#C9A84C;padding:10px 6px;-webkit-user-select:text;user-select:text;-webkit-touch-callout:default;touch-action:auto;"
+                        oninput="document.getElementById('mixSaveBtn_${index}').style.display='inline-flex';"
+                        onkeydown="if(event.key==='Enter'){event.preventDefault();_saveMixLabel(${index});}"
+                        onfocus="setTimeout(()=>this.scrollIntoView({behavior:'smooth',block:'center'}),350)">
                     <button id="mixSaveBtn_${index}"
-                        style="display:none;margin-left:8px;background:linear-gradient(135deg,#C9A84C,#8B6914);border:none;color:#0A0804;font-size:10px;font-weight:700;letter-spacing:1.5px;padding:6px 10px;border-radius:6px;cursor:pointer;vertical-align:bottom;"
-                        onmousedown="event.stopPropagation()"
-                        ontouchstart="event.stopPropagation()"
-                        onclick="event.stopPropagation();_saveMixLabel(${index})">SAVE</button>
+                        style="display:none;background:linear-gradient(135deg,#C9A84C,#8B6914);border:none;color:#0A0804;font-size:10px;font-weight:700;letter-spacing:1.5px;padding:10px 14px;border-radius:6px;cursor:pointer;white-space:nowrap;"
+                        onclick="_saveMixLabel(${index})">SAVE</button>
                 </div>
-
             </div>`;
         }
 
