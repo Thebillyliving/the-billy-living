@@ -2817,7 +2817,7 @@
                         oninput="event.stopPropagation();document.getElementById('mixSaveBtn_${index}').style.display='inline-flex';"
                         onkeydown="event.stopPropagation();if(event.key==='Enter'){event.preventDefault();_saveMixLabel(${index});}"
                         onmousedown="event.stopPropagation()"
-                        ontouchstart="event.stopPropagation()">
+                        ontouchstart="event.stopPropagation();event.stopImmediatePropagation();">
                     <button id="mixSaveBtn_${index}"
                         style="display:none;margin-left:8px;background:linear-gradient(135deg,#C9A84C,#8B6914);border:none;color:#0A0804;font-size:10px;font-weight:700;letter-spacing:1.5px;padding:6px 10px;border-radius:6px;cursor:pointer;vertical-align:bottom;"
                         onmousedown="event.stopPropagation()"
@@ -3004,6 +3004,8 @@
 
         // ── Catalog grid cell (Layer 1) ────────────────────────────────────────
         function startCellPress(boxId, boxName, ev) {
+            const tgt = ev.target || ev.srcElement;
+            if (tgt && (tgt.tagName === 'INPUT' || tgt.tagName === 'TEXTAREA')) return;
             cancelCellPress();
             cellPressTarget = boxId;
             cellPressName   = boxName;
@@ -3030,6 +3032,9 @@
         let ctxMixPalIdx   = null;
 
         function startMixPress(collectionIndex, mixIndex, ev) {
+            // If the touch/click is on the text input — do nothing, let native paste menu work
+            const tgt = ev.target || ev.srcElement;
+            if (tgt && (tgt.tagName === 'INPUT' || tgt.tagName === 'TEXTAREA')) return;
             cancelCellPress();
             ctxMixBoxIndex = collectionIndex;
             ctxMixPalIdx   = mixIndex;
@@ -3065,6 +3070,8 @@
         let ctxRoomName     = null;
 
         function startRoomPress(collectionIndex, paletteIndex, roomIndex, roomName, ev) {
+            const tgt = ev.target || ev.srcElement;
+            if (tgt && (tgt.tagName === 'INPUT' || tgt.tagName === 'TEXTAREA')) return;
             cancelCellPress();
             ctxRoomCollIdx = collectionIndex;
             ctxRoomBoxId   = (() => { try { const b = JSON.parse(localStorage.getItem('tbl_catalog_boxes')||'[]'); return b[collectionIndex]?.id || null; } catch(e){ return null; } })();
