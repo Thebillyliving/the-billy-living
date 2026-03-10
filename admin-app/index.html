@@ -891,7 +891,7 @@
         .color-mixture-card:hover { background: rgba(201,168,76,0.08); border-color: #C9A84C; }
         .color-mixture-card::after { content: 'Click to enter rooms ›'; display: block; font-size: 8px; letter-spacing: 1.5px; color: rgba(201,168,76,0.4); text-align: right; margin-top: 8px; text-transform: uppercase; }
         .color-mixture-label { font-size: 9px; letter-spacing: 3px; color: rgba(201,168,76,0.6); text-transform: uppercase; margin-bottom: 8px; }
-        .mixture-label-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(201,168,76,0.3); outline: none; font-family: 'Cormorant Garamond', serif; font-size: 14px; letter-spacing: 1.5px; color: #C9A84C; font-weight: 700; padding: 6px 0; margin-top: 10px; cursor: text; transition: border-color 0.2s; }
+        .mixture-label-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(201,168,76,0.3); outline: none; font-family: 'Cormorant Garamond', serif; font-size: 14px; letter-spacing: 1.5px; color: #C9A84C; font-weight: 700; padding: 6px 0; margin-top: 10px; cursor: text; transition: border-color 0.2s; -webkit-user-select: text !important; user-select: text !important; touch-action: auto !important; -webkit-touch-callout: default !important; }
         .mixture-label-input:focus { border-bottom-color: #C9A84C; color: #C9A84C; }
         .mixture-label-input::placeholder { color: rgba(201,168,76,0.3); }
         .house-layout { width: 100%; aspect-ratio: 1; position: relative; }
@@ -2806,20 +2806,23 @@
                  ontouchmove="cancelCellPress()"
                  oncontextmenu="return false;">
                 ${houseBlock}
-                <div style="margin-top:10px;" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                <div style="margin-top:10px;" onclick="event.stopPropagation()">
                     <input id="mixLabelInput_${index}"
                         class="mixture-label-input"
                         value="${labelVal}"
                         autocomplete="off" autocorrect="off" spellcheck="false"
-                        contenteditable="true"
                         inputmode="text"
                         placeholder="e.g. Ivory Marble, Warm Sand…"
-                        style="-webkit-user-select:text;user-select:text;font-size:13px;font-weight:700;letter-spacing:1.5px;color:#C9A84C;border-bottom:1px solid rgba(201,168,76,0.4);padding-bottom:6px;width:calc(100% - 72px);"
-                        oninput="document.getElementById('mixSaveBtn_${index}').style.display='inline-flex';"
-                        onkeydown="if(event.key==='Enter'){event.preventDefault();_saveMixLabel(${index});}">
+                        style="-webkit-user-select:text!important;user-select:text!important;touch-action:auto;font-size:13px;font-weight:700;letter-spacing:1.5px;color:#C9A84C;border-bottom:1px solid rgba(201,168,76,0.4);padding-bottom:6px;width:calc(100% - 72px);"
+                        oninput="event.stopPropagation();document.getElementById('mixSaveBtn_${index}').style.display='inline-flex';"
+                        onkeydown="event.stopPropagation();if(event.key==='Enter'){event.preventDefault();_saveMixLabel(${index});}"
+                        onmousedown="event.stopPropagation()"
+                        ontouchstart="event.stopPropagation()">
                     <button id="mixSaveBtn_${index}"
                         style="display:none;margin-left:8px;background:linear-gradient(135deg,#C9A84C,#8B6914);border:none;color:#0A0804;font-size:10px;font-weight:700;letter-spacing:1.5px;padding:6px 10px;border-radius:6px;cursor:pointer;vertical-align:bottom;"
-                        onclick="_saveMixLabel(${index})">SAVE</button>
+                        onmousedown="event.stopPropagation()"
+                        ontouchstart="event.stopPropagation()"
+                        onclick="event.stopPropagation();_saveMixLabel(${index})">SAVE</button>
                 </div>
 
             </div>`;
