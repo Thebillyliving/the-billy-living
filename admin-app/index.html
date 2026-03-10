@@ -1850,20 +1850,25 @@
             const container = document.getElementById('catalogList');
 
             const renderBoxes = (boxes) => {
-                // Keep localStorage in sync so other functions work
-                try { localStorage.setItem('tbl_catalog_boxes', JSON.stringify(boxes)); } catch(e) {}
+                // Keep metadata in sync (strip images to avoid quota issues)
+                const meta = boxes.map(b => { const {images, mixtureImages, ...rest} = b; return rest; });
+                try { localStorage.setItem('tbl_catalog_boxes', JSON.stringify(meta)); } catch(e) {}
 
                 if (!boxes.length) {
                     container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">📁</div><p>No categories yet. Add your first category!</p></div>';
                     return;
                 }
+                const covers = getCoverCache();
                 container.innerHTML = boxes.map((box, idx) => {
                     const topic   = box.value || '';
                     const feeling = box.description || box.feeling || '';
                     const imgsArr = box.images
                         ? (Array.isArray(box.images) ? box.images : Object.values(box.images))
                         : [];
-                    const imgSrc = imgsArr.find(i => i) || '';
+                    // Use cover cache first (instant), fall back to images array
+                    const imgSrc = covers[box.id] || imgsArr.find(i => i) || '';
+                    // Update cover cache if we got an image from Firebase
+                    if (imgsArr.find(i => i) && !covers[box.id]) saveCoverCache(box.id, imgsArr.find(i => i));
                     const count  = imgsArr.filter(Boolean).length;
                     return `
                     <div class="elite-collection-cell-admin"
@@ -1892,12 +1897,16 @@
                 }).join('');
             };
 
-            // Show metadata from cache instantly (names/feelings, no images yet)
+            // Render immediately from metadata + cover image cache — zero Firebase wait
             const cached = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
             const sortFn = (a,b) => { const n=s=>parseInt((s.id||'').replace(/[^0-9]/g,''))||0; return n(a)-n(b); };
-            if (cached.length) renderBoxes(cached.sort(sortFn));
+            if (cached.length) {
+                renderBoxes(cached.sort(sortFn));
+            } else {
+                container.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:rgba(201,168,76,0.35);font-size:12px;letter-spacing:2px;text-transform:uppercase;">Loading…</div>';
+            }
 
-            // Always fetch from Firebase to get images — update grid in place when ready
+            // Background Firebase refresh — updates cover cache + grid silently
             if (typeof adminFbDB !== 'undefined') {
                 adminFbDB.ref('content/catalog').once('value').then(snap => {
                     if (!snap.exists()) { if (!cached.length) renderBoxes([]); return; }
@@ -2495,6 +2504,18 @@
             }
         }
 
+        // ── Cover image cache: {boxId: base64} stored separately so grid is instant ──
+        function saveCoverCache(boxId, imgSrc) {
+            try {
+                const covers = JSON.parse(localStorage.getItem('catalog_covers') || '{}');
+                if (imgSrc) covers[boxId] = imgSrc; else delete covers[boxId];
+                localStorage.setItem('catalog_covers', JSON.stringify(covers));
+            } catch(e) {}
+        }
+        function getCoverCache() {
+            try { return JSON.parse(localStorage.getItem('catalog_covers') || '{}'); } catch(e) { return {}; }
+        }
+
         // ── Sync a catalog box to Firebase ────────────────────────────────────
         function forceSyncAllCatalog() {
             if (typeof adminFbDB === 'undefined') { showToast('Firebase not connected'); return; }
@@ -2604,6 +2625,9 @@
                 box.images[slotIndex] = compressed;
                 box.count = box.images.filter(Boolean).length + ' img' + (box.images.filter(Boolean).length !== 1 ? 's' : '');
                 safeLocalSet('tbl_catalog_boxes', JSON.stringify(boxes));
+                // Always update cover cache with slot 0 (cover image)
+                if (slotIndex === 0) saveCoverCache(box.id, compressed);
+                else if (!getCoverCache()[box.id] && compressed) saveCoverCache(box.id, compressed);
                 syncBoxToFirebase(box);
                 openCatalogImageManager(currentCatalogBox);
                 showToast(catalogRoomNames[slotIndex] + ' image saved ✓');
@@ -2619,6 +2643,11 @@
             box.images[index] = null;
             box.count = box.images.filter(Boolean).length + ' img' + (box.images.filter(Boolean).length !== 1 ? 's' : '');
             safeLocalSet('tbl_catalog_boxes', JSON.stringify(boxes));
+            // Update cover cache: if slot 0 removed, find next available cover
+            if (index === 0) {
+                const nextCover = box.images.find(i => i) || null;
+                saveCoverCache(box.id, nextCover);
+            }
             syncBoxToFirebase(box);
             openCatalogImageManager(currentCatalogBox);
         }
@@ -3141,6 +3170,7 @@
                 box.images[0] = compressed; // Always replace slot 0 (the cover)
                 box.count = box.images.filter(Boolean).length + ' img' + (box.images.filter(Boolean).length !== 1 ? 's' : '');
                 safeLocalSet('tbl_catalog_boxes', JSON.stringify(boxes));
+                saveCoverCache(box.id, compressed);
                 syncBoxToFirebase(box);
                 renderCatalogList();
                 showToast('Cover image updated ✓');
