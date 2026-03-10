@@ -3005,7 +3005,7 @@
                 cellPressName   = name;
                 showCellContextMenu(name, [
                     { icon:'📷', label:'Upload Room Images', fn:'contextEnterRooms()' },
-                    { icon:'🖼️', label:'Manage Cover Images', fn:'contextManageImages()' }
+                    { icon:'🖼️', label:'Add Photo to Palette', fn:'contextReplaceCover()' }
                 ], savedEv);
             }, CELL_LONG_MS);
         }
@@ -3183,21 +3183,24 @@
 
         async function handleCoverReplaceUpload(input) {
             if (!input.files || !input.files[0] || !currentCatalogBox) return;
-            showToast('Uploading cover…');
+            showToast('Uploading…');
             try {
                 const compressed = await compressImage(input.files[0], 900, 0.75);
-                const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
-                const box   = boxes.find(b => b.id === currentCatalogBox);
-                if (!box) return;
+                // Fetch current box from Firebase so we don't lose existing images
+                const snap = await adminFbDB.ref('content/catalog/' + currentCatalogBox).once('value');
+                const box  = snap.exists() ? snap.val() : { id: currentCatalogBox, images: [] };
                 if (!box.images) box.images = [];
-                box.images[0] = compressed; // Always replace slot 0 (the cover)
+                if (!Array.isArray(box.images)) box.images = Object.values(box.images);
+                box.images[0] = compressed;
                 box.count = box.images.filter(Boolean).length + ' img' + (box.images.filter(Boolean).length !== 1 ? 's' : '');
-                safeLocalSet('tbl_catalog_boxes', JSON.stringify(boxes));
                 saveCoverCache(box.id, compressed);
-                syncBoxToFirebase(box);
+                await adminFbDB.ref('content/catalog/' + box.id).set(
+                    JSON.parse(JSON.stringify(box)) // clean undefined values
+                );
                 renderCatalogList();
-                showToast('Cover image updated ✓');
+                showToast('Photo added to palette ✓');
             } catch(err) {
+                console.error(err);
                 showToast('Upload failed — try a smaller image');
             }
         }
