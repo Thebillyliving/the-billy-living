@@ -1647,6 +1647,7 @@
             </div>
         </div>
         <div class="color-config-area">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;letter-spacing:4px;color:#C9A84C;text-transform:uppercase;padding:14px 20px 10px;text-align:center;">Color Palette</div>
             <div class="color-mixtures-row" id="adminColorMixturesRow"></div>
         </div>
     </div>
@@ -2636,7 +2637,7 @@
             if (!input.files || !input.files[0]) return;
             showToast('Uploading…');
             try {
-                const compressed = await compressImage(input.files[0], 900, 0.75);
+                const compressed = await compressImage(input.files[0], 700, 0.65);
                 // Always fetch latest box from Firebase (localStorage no longer stores images)
                 const snap = await adminFbDB.ref('content/catalog/' + currentCatalogBox).once('value');
                 if (!snap.exists()) { showToast('Collection not found'); return; }
@@ -3176,7 +3177,7 @@
             const files = Array.from(input.files);
             showToast('Uploading ' + files.length + ' image' + (files.length > 1 ? 's' : '') + '…');
             try {
-                const compressed = await Promise.all(files.map(f => compressImage(f, 900, 0.75)));
+                const compressed = await Promise.all(files.map(f => compressImage(f, 700, 0.65)));
                 const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
                 const box   = boxes.find(b => b.id === currentCatalogBox);
                 if (box) {
@@ -3205,7 +3206,7 @@
             if (!input.files || !input.files[0] || !currentCatalogBox) return;
             showToast('Uploading…');
             try {
-                const compressed = await compressImage(input.files[0], 900, 0.75);
+                const compressed = await compressImage(input.files[0], 700, 0.65);
                 // Save to images/0 — this is the catalog GRID cover photo
                 await adminFbDB.ref('content/catalog/' + currentCatalogBox + '/images/0').set(compressed);
                 saveCoverCache(currentCatalogBox, compressed);
@@ -3230,7 +3231,7 @@
             if (!input.files || !input.files[0] || !currentCatalogBox) return;
             showToast('Uploading…');
             try {
-                const compressed = await compressImage(input.files[0], 900, 0.75);
+                const compressed = await compressImage(input.files[0], 700, 0.65);
                 // Save to paletteImage — shown on the Color Palette house card
                 await adminFbDB.ref('content/catalog/' + currentCatalogBox + '/paletteImage').set(compressed);
                 showToast('Photo added to palette ✓');
@@ -3283,6 +3284,12 @@
         };
         if (!firebase.apps.length) firebase.initializeApp(adminFirebaseConfig);
         const adminFbDB  = firebase.database();
+        // keepSynced: Firebase keeps these paths in memory — instant reads after first fetch
+        try {
+            adminFbDB.ref('content/catalog').keepSynced(true);
+            adminFbDB.ref('vip').keepSynced(true);
+            adminFbDB.ref('chats').keepSynced(true);
+        } catch(e) {}
         const adminFbAuth = firebase.auth();
 
         // Sign in admin anonymously so Firebase DB rules (auth != null) are satisfied
