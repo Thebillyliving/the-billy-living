@@ -2568,20 +2568,33 @@
 
         function openCatalogImageManager(boxId) {
             currentCatalogBox = boxId;
+
+            // Show modal immediately with loading state
             const localBoxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
-            const localBox = localBoxes.find(b => b.id === boxId);
-            if (!localBox && typeof adminFbDB !== 'undefined') {
+            const localBox   = localBoxes.find(b => b.id === boxId);
+            const title      = localBox ? localBox.value : 'Collection';
+            const modal      = document.getElementById('formModal');
+            document.getElementById('formTitle').textContent = 'Manage Images: ' + title;
+            document.getElementById('formContent').innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,169,98,0.4);font-size:12px;letter-spacing:2px;">Loading…</div>';
+            modal.classList.add('active');
+            document.querySelector('.form-container .btn-secondary').onclick = closeCatalogManager;
+            document.querySelector('.form-container .btn-primary').onclick   = closeCatalogManager;
+
+            // Always fetch from Firebase (localStorage no longer stores images)
+            if (typeof adminFbDB !== 'undefined') {
                 adminFbDB.ref('content/catalog/' + boxId).once('value').then(snap => {
-                    if (!snap.exists()) { showToast('Collection not found'); return; }
-                    const fbBox = snap.val();
-                    localBoxes.push(fbBox);
-                    try { localStorage.setItem('tbl_catalog_boxes', JSON.stringify(localBoxes)); } catch(e) {}
-                    _renderCatalogImageManager(fbBox);
+                    if (!snap.exists()) {
+                        document.getElementById('formContent').innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,169,98,0.4);">Collection not found</div>';
+                        return;
+                    }
+                    _renderCatalogImageManager(snap.val());
+                }).catch(() => {
+                    if (localBox) _renderCatalogImageManager(localBox);
+                    else document.getElementById('formContent').innerHTML = '<div style="padding:40px;text-align:center;color:#ef4444;">Failed to load — check connection</div>';
                 });
-                return;
+            } else if (localBox) {
+                _renderCatalogImageManager(localBox);
             }
-            if (!localBox) return;
-            _renderCatalogImageManager(localBox);
         }
 
         function _renderCatalogImageManager(box) {
@@ -2612,44 +2625,47 @@
             document.querySelector('.form-container .btn-primary').onclick = closeCatalogManager;
         }
 
-                async function addCatalogImage(input, slotIndex) {
+        async function addCatalogImage(input, slotIndex) {
             if (!input.files || !input.files[0]) return;
             showToast('Uploading…');
             try {
                 const compressed = await compressImage(input.files[0], 900, 0.75);
-                const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
-                const box = boxes.find(b => b.id === currentCatalogBox);
-                if (!box) return;
+                // Always fetch latest box from Firebase (localStorage no longer stores images)
+                const snap = await adminFbDB.ref('content/catalog/' + currentCatalogBox).once('value');
+                if (!snap.exists()) { showToast('Collection not found'); return; }
+                const box = snap.val();
                 if (!box.images) box.images = [];
+                // Normalize from Firebase object if needed
+                if (!Array.isArray(box.images)) box.images = Object.values(box.images);
                 while (box.images.length <= slotIndex) box.images.push(null);
                 box.images[slotIndex] = compressed;
                 box.count = box.images.filter(Boolean).length + ' img' + (box.images.filter(Boolean).length !== 1 ? 's' : '');
-                safeLocalSet('tbl_catalog_boxes', JSON.stringify(boxes));
-                // Always update cover cache with slot 0 (cover image)
+                // Update cover cache
                 if (slotIndex === 0) saveCoverCache(box.id, compressed);
                 else if (!getCoverCache()[box.id] && compressed) saveCoverCache(box.id, compressed);
                 syncBoxToFirebase(box);
                 openCatalogImageManager(currentCatalogBox);
                 showToast(catalogRoomNames[slotIndex] + ' image saved ✓');
             } catch(err) {
+                console.error(err);
                 showToast('Upload failed — try a smaller image');
             }
         }
 
         function deleteCatalogImage(index) {
-            const boxes = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
-            const box = boxes.find(b => b.id === currentCatalogBox);
-            if (!box || !box.images) return;
-            box.images[index] = null;
-            box.count = box.images.filter(Boolean).length + ' img' + (box.images.filter(Boolean).length !== 1 ? 's' : '');
-            safeLocalSet('tbl_catalog_boxes', JSON.stringify(boxes));
-            // Update cover cache: if slot 0 removed, find next available cover
-            if (index === 0) {
-                const nextCover = box.images.find(i => i) || null;
-                saveCoverCache(box.id, nextCover);
-            }
-            syncBoxToFirebase(box);
-            openCatalogImageManager(currentCatalogBox);
+            // Fetch from Firebase — localStorage no longer stores images
+            adminFbDB.ref('content/catalog/' + currentCatalogBox).once('value').then(snap => {
+                if (!snap.exists()) { showToast('Collection not found'); return; }
+                const box = snap.val();
+                if (!box.images) return;
+                if (!Array.isArray(box.images)) box.images = Object.values(box.images);
+                box.images[index] = null;
+                box.count = box.images.filter(Boolean).length + ' img' + (box.images.filter(Boolean).length !== 1 ? 's' : '');
+                // Update cover cache
+                if (index === 0) saveCoverCache(box.id, box.images.find(i => i) || null);
+                syncBoxToFirebase(box);
+                openCatalogImageManager(currentCatalogBox);
+            });
         }
 
         function closeCatalogManager() {
