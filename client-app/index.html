@@ -1115,6 +1115,18 @@ async function bookmarkTrending(btn, id, item) {
 // ─── CATALOG ─────────────────────────────────────────────────────────────────
 const _catalogMap = {};
 
+// ── Cover image cache: {boxId: base64} — grid loads with photos instantly ──
+function _saveCoverCache(boxId, imgSrc) {
+  try {
+    const covers = JSON.parse(localStorage.getItem('catalog_covers') || '{}');
+    if (imgSrc) covers[boxId] = imgSrc; else delete covers[boxId];
+    localStorage.setItem('catalog_covers', JSON.stringify(covers));
+  } catch(e) {}
+}
+function _getCoverCache() {
+  try { return JSON.parse(localStorage.getItem('catalog_covers') || '{}'); } catch(e) { return {}; }
+}
+
 function _renderCatalogGrid(boxes) {
   const grid = document.getElementById('eliteCatalogGrid');
   if (!boxes || !boxes.length) {
@@ -1122,9 +1134,12 @@ function _renderCatalogGrid(boxes) {
     return;
   }
   boxes.forEach(box => { _catalogMap[box.id] = box; });
+  const _covers = _getCoverCache();
   grid.innerHTML = boxes.map(box => {
     const imgsArr = box.images ? (Array.isArray(box.images) ? box.images : Object.values(box.images)) : [];
-    const thumb = imgsArr.find(i => i) || null;
+    const fbCover = imgsArr.find(i => i) || null;
+    if (fbCover) _saveCoverCache(box.id, fbCover);
+    const thumb = _covers[box.id] || fbCover || null;
     return '<div class="elite-collection-cell" onclick="openCatalogInner(_catalogMap[\'' + box.id + '\'])">'
       + '<div class="elite-cell-meta">'
       +   '<div class="elite-cell-topic">' + (box.value||box.topic||'Collection') + '</div>'
@@ -1146,11 +1161,11 @@ async function loadCatalog() {
     return n(a) - n(b);
   });
 
-  // Show box structure from cache instantly (names show, images load right after)
+  // Show immediately from metadata + cover image cache — zero Firebase wait
   const cached = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
   if (cached.length) _renderCatalogGrid(sortBoxes(cached));
 
-  // Always fetch from Firebase to get images — updates grid in place when ready
+  // Background Firebase refresh — updates cover cache + grid silently
   try {
     const snap = await fbDb.ref('content/catalog').get();
     if (!snap.exists()) {
@@ -1158,7 +1173,9 @@ async function loadCatalog() {
       return;
     }
     const boxes = sortBoxes(Object.values(snap.val()));
-    try { localStorage.setItem('tbl_catalog_boxes', JSON.stringify(boxes)); } catch(e) {}
+    // Store only metadata (no images) to avoid localStorage quota issues
+    const meta = boxes.map(b => { const {images, mixtureImages, ...rest} = b; return rest; });
+    try { localStorage.setItem('tbl_catalog_boxes', JSON.stringify(meta)); } catch(e) {}
     _renderCatalogGrid(boxes);
   } catch(e) {
     if (!cached.length) grid.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3)">No collections yet</div>';
