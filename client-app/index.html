@@ -523,6 +523,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     <div><div class="inner-collection-title" id="innerCollectionTitle">—</div><div class="inner-collection-feeling" id="innerCollectionFeeling">—</div></div>
   </div>
   <div class="color-config-area">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;letter-spacing:4px;color:#C9A84C;text-transform:uppercase;padding:14px 20px 10px;text-align:center;">Color Palette</div>
     <div class="color-mixtures-row" id="colorMixturesRow"></div>
   </div>
 </div>
@@ -706,6 +707,12 @@ firebase.initializeApp(firebaseConfig);
 const fbAuth = firebase.auth();
 
 const fbDb   = firebase.database();
+// keepSynced: Firebase keeps these paths cached in memory — instant on repeat visits
+try {
+    fbDb.ref('content/catalog').keepSynced(true);
+    fbDb.ref('content/posts').keepSynced(true);
+    fbDb.ref('content/trending').keepSynced(true);
+} catch(e) {}
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
 let currentUser = null, currentProfile = null;
