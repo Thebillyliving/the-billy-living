@@ -1011,12 +1011,24 @@ function buildFeedItem(p) {
     +     '<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>'
     +   '</button>'
     + '</div>'
+    + (p.audioData ? '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px 4px;">'
+    +   '<button onclick="togglePostAudio(this,\'audio_post_' + id + '\')" style="background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.3);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:16px;">▶</button>'
+    +   '<div style="flex:1;overflow:hidden;"><div class="tiktok-music-text" style="color:rgba(201,168,76,0.7);font-size:11px;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🎵 Background Audio</div></div>'
+    +   '<audio id="audio_post_' + id + '" src="' + p.audioData + '" style="display:none;"></audio>'
+    + '</div>' : '')
     + '<div class="feed-caption">'
     +   '<div class="feed-caption-title">' + (p.title||'') + '</div>'
     +   '<div class="feed-caption-text">' + (p.caption||'') + '</div>'
     +   locHtml
     + '</div>'
   + '</div>';
+}
+
+function togglePostAudio(btn, audioId) {
+  const audio = document.getElementById(audioId);
+  if (!audio) return;
+  if (audio.paused) { audio.play(); btn.textContent = '⏸'; }
+  else { audio.pause(); btn.textContent = '▶'; }
 }
 
 async function toggleLike(btn, id, collection) {
@@ -1055,8 +1067,18 @@ async function loadTrending() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       const v = e.target.querySelector('video');
-      if (!v) return;
-      if (e.isIntersecting) v.play().catch(()=>{}); else v.pause();
+      if (v) { if (e.isIntersecting) v.play().catch(()=>{}); else v.pause(); }
+      // Auto-play audio when item scrolls into view, pause when out
+      const id = e.target.querySelector('audio[id^="taudio_"]');
+      if (id) {
+        if (e.isIntersecting) {
+          // Only play if not muted by user (btn shows 🔇 = muted = don't autoplay)
+          const itemId = id.id.replace('taudio_','');
+          const muteBtn = document.getElementById('tmute_' + itemId);
+          const isMuted = muteBtn && muteBtn.querySelector('.tiktok-action-icon')?.textContent === '🔇';
+          if (!isMuted) id.play().catch(()=>{});
+        } else { id.pause(); }
+      }
     });
   }, { threshold: 0.6 });
   container.querySelectorAll('.tiktok-item').forEach(el => observer.observe(el));
@@ -1074,7 +1096,17 @@ function buildTikTokItem(item) {
   } else {
     mediaHtml = '<div style="width:100%;height:100%;background:linear-gradient(135deg,#1a0f00,#2a1a00);display:flex;align-items:center;justify-content:center;font-size:64px">🛋️</div>';
   }
+  const audioEl = item.audioData
+    ? '<audio id="taudio_' + id + '" src="' + item.audioData + '" loop style="display:none;"></audio>'
+    : '';
+  const muteBtn = item.audioData
+    ? '<button class="tiktok-action" id="tmute_' + id + '" onclick="toggleTikTokAudio(this,\'' + id + '\')" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;">'
+    +   '<div class="tiktok-action-icon" style="font-size:22px;">🔇</div>'
+    +   '<span class="tiktok-action-count">Sound</span>'
+    + '</button>'
+    : '';
   return '<div class="tiktok-item">'
+    + audioEl
     + mediaHtml
     + '<div class="tiktok-actions">'
     +   '<button class="tiktok-action" onclick="toggleTikTokLike(this,\'' + id + '\')">'
@@ -1089,13 +1121,27 @@ function buildTikTokItem(item) {
     +     '<div class="tiktok-action-icon"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></div>'
     +     '<span class="tiktok-action-count">Save</span>'
     +   '</button>'
+    +   muteBtn
     + '</div>'
     + '<div class="tiktok-info">'
     +   '<div class="tiktok-user"><span class="tiktok-username">@billyliving</span><span class="tiktok-badge">✓</span></div>'
     +   '<div class="tiktok-caption">' + (item.title||'') + ' — ' + (item.caption||'') + '</div>'
-    +   '<div class="tiktok-music"><span class="tiktok-music-icon">🎵</span><div class="tiktok-music-text"><span>Billy Living · Luxury Interiors</span></div></div>'
+    +   '<div class="tiktok-music"><span class="tiktok-music-icon">🎵</span><div class="tiktok-music-text"><span>' + (item.audioData ? 'Billy Living · Original Audio' : 'Billy Living · Luxury Interiors') + '</span></div></div>'
     + '</div>'
   + '</div>';
+}
+
+function toggleTikTokAudio(btn, id) {
+  const audio = document.getElementById('taudio_' + id);
+  const icon  = btn.querySelector('.tiktok-action-icon');
+  if (!audio) return;
+  if (audio.paused) {
+    audio.play().catch(()=>{});
+    if (icon) icon.textContent = '🔊';
+  } else {
+    audio.pause();
+    if (icon) icon.textContent = '🔇';
+  }
 }
 
 async function toggleTikTokLike(btn, id) {
@@ -1555,7 +1601,12 @@ async function sendConciergeMessage() {
   cgMessages.push(userMsg);
   cgHistory.push({ role: 'user', content: text });
   renderConciergeMessages();
-  if (currentUser) fbDb.ref(`chats/${currentUser.uid}/messages`).push(userMsg);
+  if (currentUser) {
+    fbDb.ref(`chats/${currentUser.uid}/messages`).push(userMsg);
+    // Ensure clientName is always set so admin conversation list shows real name
+    fbDb.ref(`chats/${currentUser.uid}/clientName`).set(currentProfile?.name || userMsg.senderName || 'Client');
+    fbDb.ref(`chats/${currentUser.uid}/clientEmail`).set(currentUser.email || '');
+  }
   await sendAIMessage(text);
 }
 
