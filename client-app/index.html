@@ -1014,7 +1014,7 @@ function buildFeedItem(p) {
     + (p.audioData ? '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px 4px;">'
     +   '<button onclick="togglePostAudio(this,\'audio_post_' + id + '\')" style="background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.3);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:16px;">▶</button>'
     +   '<div style="flex:1;overflow:hidden;"><div class="tiktok-music-text" style="color:rgba(201,168,76,0.7);font-size:11px;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🎵 Background Audio</div></div>'
-    +   '<audio id="audio_post_' + id + '" src="' + p.audioData + '" style="display:none;"></audio>'
+    +   '<audio id="audio_post_' + id + '" src="' + p.audioData + '" loop style="display:none;"></audio>'
     + '</div>' : '')
     + '<div class="feed-caption">'
     +   '<div class="feed-caption-title">' + (p.title||'') + '</div>'
