@@ -9,6 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -2429,14 +2430,8 @@
             if (oldVideo) oldVideo.remove();
 
             if (isVideo) {
-                // Size check: videos over 8MB will exceed Firebase's 10MB limit when base64 encoded
-                if (file.size > 8 * 1024 * 1024) {
-                    showToast('Video too large (max 8 MB). Please compress it first.');
-                    input.value = '';
-                    return;
-                }
+                // No size limit — video goes to Firebase Storage, not Realtime DB
                 if (oldImg) oldImg.style.display = 'none';
-                // Use object URL for preview — no base64 encoding, instant
                 const objUrl = URL.createObjectURL(file);
                 const vid = document.createElement('video');
                 vid.id = 'videoPreview';
@@ -2444,11 +2439,9 @@
                 vid.controls = true;
                 vid.muted = true;
                 vid.style.cssText = 'max-width:100%;max-height:200px;border-radius:10px;margin-top:12px;display:block;';
+                // Store the File object directly — we'll upload to Storage on save
+                vid.dataset.hasFile = 'true';
                 input.parentNode.appendChild(vid);
-                // Read as base64 in background for Firebase save
-                const reader = new FileReader();
-                reader.onload = e => { vid.dataset.b64 = e.target.result; };
-                reader.readAsDataURL(file);
             } else {
                 const reader = new FileReader();
                 reader.onload = e => {
@@ -2479,24 +2472,23 @@
             switch(currentForm) {
                 case 'post': {
                     const videoFileInput = document.getElementById('formImage');
-                    const fileIsVideo = videoFileInput?.files?.[0]?.type?.startsWith('video/');
-                    const videoPreviewEl = document.getElementById('videoPreview');
-                    const audioEl   = document.getElementById('audioPreview');
-                    const audioFile = document.getElementById('formAudio')?.files?.[0];
-                    if (audioFile && audioFile.size > 7 * 1024 * 1024) {
-                        showToast('Audio too large — max 7 MB');
-                        return;
-                    }
-                    const audioData = (audioEl && audioEl.src && audioEl.src.startsWith('data:')) ? audioEl.src : null;
+                    const videoFile = videoFileInput?.files?.[0];
+                    const fileIsVideo = videoFile?.type?.startsWith('video/');
+                    const audioFileInput = document.getElementById('formAudio');
+                    const audioFile = audioFileInput?.files?.[0];
                     const imgs = (window._pendingImages || []).filter(Boolean);
-                    // For video: use the base64 stored in dataset.b64 (read in background by previewImage)
-                    const videoB64 = (fileIsVideo && videoPreviewEl?.dataset?.b64) ? videoPreviewEl.dataset.b64 : null;
-                    if (fileIsVideo && !videoB64) {
-                        showToast('Video still loading — wait a moment and try again.');
-                        return;
-                    }
+                    const postId = 'post_' + Date.now();
+                    showToast('Uploading…');
+
+                    // Helper: upload a file to Storage and return download URL
+                    const uploadToStorage = (file, path) => {
+                        const ref = adminFbStorage.ref(path);
+                        return ref.put(file).then(snap => snap.ref.getDownloadURL());
+                    };
+
+                    // Build base post object (no binary blobs)
                     const post = {
-                        id: 'post_' + Date.now(),
+                        id: postId,
                         title: document.getElementById('formTitleInput')?.value || '',
                         emoji: '🏠',
                         caption: document.getElementById('formCaption')?.value || '',
@@ -2504,48 +2496,57 @@
                         category: '',
                         images: imgs.length ? imgs : null,
                         imageData: imgs.length ? imgs[0] : null,
-                        videoData: videoB64,
+                        videoData: null,
                         videoUrl: document.getElementById('formVideo')?.value || null,
-                        audioData: audioData,
+                        audioData: null,
                         likes: parseInt(document.getElementById('formLikes')?.value) || 0,
                         shares: parseInt(document.getElementById('formShares')?.value) || 0,
                         published: true
                     };
                     window._pendingImages = [];
                     document.getElementById('multiPreviewGrid').innerHTML = '';
-                    showToast('Saving…');
-                    adminFbDB.ref('content/posts/' + post.id).set(post)
+
+                    // Upload video and/or audio to Storage, then save post
+                    const uploads = [];
+                    if (fileIsVideo && videoFile) {
+                        uploads.push(uploadToStorage(videoFile, 'videos/' + postId + '_' + videoFile.name)
+                            .then(url => { post.videoUrl = url; post.videoData = null; }));
+                    }
+                    if (audioFile) {
+                        uploads.push(uploadToStorage(audioFile, 'audio/' + postId + '_' + audioFile.name)
+                            .then(url => { post.audioData = url; }));
+                    }
+                    Promise.all(uploads)
+                        .then(() => adminFbDB.ref('content/posts/' + postId).set(post))
                         .then(() => { showToast('Post saved ✓'); closeForm(); renderHomeList(); updateStats(); })
-                        .catch(e => { showToast('Error: ' + e.message); console.error(e); });
+                        .catch(e => { showToast('Upload failed: ' + e.message); console.error(e); });
                     break;
                 }
                 case 'trending': {
                     const videoFileInput = document.getElementById('formImage');
-                    const fileIsVideo = videoFileInput?.files?.[0]?.type?.startsWith('video/');
-                    const videoPreviewEl = document.getElementById('videoPreview');
-                    const audioEl   = document.getElementById('audioPreview');
-                    const audioFile = document.getElementById('formAudio')?.files?.[0];
-                    if (audioFile && audioFile.size > 7 * 1024 * 1024) {
-                        showToast('Audio too large — max 7 MB');
-                        return;
-                    }
-                    const audioData = (audioEl && audioEl.src && audioEl.src.startsWith('data:')) ? audioEl.src : null;
+                    const videoFile = videoFileInput?.files?.[0];
+                    const fileIsVideo = videoFile?.type?.startsWith('video/');
+                    const audioFileInput = document.getElementById('formAudio');
+                    const audioFile = audioFileInput?.files?.[0];
                     const imgs = (window._pendingImages || []).filter(Boolean);
-                    const videoB64t = (fileIsVideo && videoPreviewEl?.dataset?.b64) ? videoPreviewEl.dataset.b64 : null;
-                    if (fileIsVideo && !videoB64t) {
-                        showToast('Video still loading — wait a moment and try again.');
-                        return;
-                    }
+                    const trendId = 'trend_' + Date.now();
+                    showToast('Uploading…');
+
+                    const uploadToStorage = (file, path) => {
+                        const ref = adminFbStorage.ref(path);
+                        return ref.put(file).then(snap => snap.ref.getDownloadURL());
+                    };
+
                     const trending = {
-                        id: 'trend_' + Date.now(),
+                        id: trendId,
                         title: document.getElementById('formTitleInput')?.value || '',
                         emoji: document.getElementById('formEmoji')?.value || '🔥',
                         caption: document.getElementById('formCaption')?.value || '',
                         images: imgs.length ? imgs : null,
                         imageData: imgs.length ? imgs[0] : null,
-                        videoData: videoB64t,
+                        videoData: null,
                         videoUrl: document.getElementById('formVideo')?.value || null,
-                        audioData: audioData,
+                        audioData: null,
                         views: parseInt(document.getElementById('formViews')?.value) || 0,
                         badge: document.getElementById('formBadge')?.value || 'Trending',
                         likes: parseInt(document.getElementById('formLikes')?.value) || 0,
@@ -2554,9 +2555,20 @@
                     };
                     window._pendingImages = [];
                     document.getElementById('multiPreviewGrid').innerHTML = '';
-                    adminFbDB.ref('content/trending/' + trending.id).set(trending)
+
+                    const tUploads = [];
+                    if (fileIsVideo && videoFile) {
+                        tUploads.push(uploadToStorage(videoFile, 'videos/' + trendId + '_' + videoFile.name)
+                            .then(url => { trending.videoUrl = url; }));
+                    }
+                    if (audioFile) {
+                        tUploads.push(uploadToStorage(audioFile, 'audio/' + trendId + '_' + audioFile.name)
+                            .then(url => { trending.audioData = url; }));
+                    }
+                    Promise.all(tUploads)
+                        .then(() => adminFbDB.ref('content/trending/' + trendId).set(trending))
                         .then(() => { showToast('Trending saved ✓'); closeForm(); renderTrendingList(); updateStats(); })
-                        .catch(e => { showToast('Error: ' + e.message); console.error(e); });
+                        .catch(e => { showToast('Upload failed: ' + e.message); console.error(e); });
                     break;
                 }
                     
@@ -3462,6 +3474,7 @@
             adminFbDB.ref('chats').keepSynced(true);
         } catch(e) {}
         const adminFbAuth = firebase.auth();
+        const adminFbStorage = firebase.storage();
 
         // Sign in admin anonymously so Firebase DB rules (auth != null) are satisfied
         adminFbAuth.signInAnonymously().catch(() => {
