@@ -2549,7 +2549,8 @@
                         views: parseInt(document.getElementById('formViews')?.value) || 0,
                         badge: document.getElementById('formBadge')?.value || 'Trending',
                         likes: parseInt(document.getElementById('formLikes')?.value) || 0,
-                        shares: parseInt(document.getElementById('formShares')?.value) || 0
+                        shares: parseInt(document.getElementById('formShares')?.value) || 0,
+                        published: true
                     };
                     window._pendingImages = [];
                     document.getElementById('multiPreviewGrid').innerHTML = '';
@@ -2822,24 +2823,26 @@
 
         // Actions
         function togglePublished(type, id) {
-            const items = JSON.parse(localStorage.getItem('tbl_' + type) || '[]');
-            const item = items.find(i => i.id === id);
-            if (item) {
-                item.published = !item.published;
-                localStorage.setItem('tbl_' + type, JSON.stringify(items));
-                adminFbDB.ref('content/posts/' + id + '/published').set(item.published);
-                renderHomeList();
+            const fbPathMap = { posts: 'content/posts', trending: 'content/trending' };
+            const fbPath = fbPathMap[type];
+            // Always fetch fresh from Firebase, update there, refresh list
+            if (fbPath) {
+                adminFbDB.ref(fbPath + '/' + id + '/published').once('value').then(snap => {
+                    const current = snap.val();
+                    const next = current === false ? true : false; // default true → toggle to false
+                    adminFbDB.ref(fbPath + '/' + id + '/published').set(next).then(() => {
+                        if (type === 'posts') renderHomeList();
+                        else if (type === 'trending') renderTrendingList();
+                    });
+                });
             }
         }
 
         function toggleDesignerStatus(id) {
-            const designers = JSON.parse(localStorage.getItem('tbl_designers') || '[]');
-            const designer = designers.find(d => d.id === id);
-            if (designer) {
-                designer.online = !designer.online;
-                localStorage.setItem('tbl_designers', JSON.stringify(designers));
-                renderDesignersList();
-            }
+            adminFbDB.ref('content/designers/' + id + '/online').once('value').then(snap => {
+                const next = !snap.val();
+                adminFbDB.ref('content/designers/' + id + '/online').set(next).then(renderDesignersList);
+            });
         }
 
         function deleteItem(type, id) {
@@ -2849,7 +2852,7 @@
             localStorage.setItem('tbl_' + type, JSON.stringify(filtered));
 
             // Delete from Firebase
-            const fbMap = { posts: 'posts', trending: 'trending', catalog_boxes: 'catalog', portfolio: 'portfolio' };
+            const fbMap = { posts: 'posts', trending: 'trending', catalog_boxes: 'catalog', portfolio: 'portfolio', designers: 'designers' };
             if (fbMap[type]) adminFbDB.ref('content/' + fbMap[type] + '/' + id).remove();
 
             switch(type) {
@@ -3605,8 +3608,17 @@
             if (!text) return;
             input.value = '';
             adminFbDB.ref(`chats/${adminSelectedUID}/messages`).push({
-                text, sender: 'admin', senderName: 'Concierge',
-                timestamp: Date.now(), read: false
+                text, sender: 'admin', senderName: 'The Billy Living Concierge',
+                timestamp: Date.now(), read: true
+            });
+            // Mark all client messages in this chat as read
+            adminFbDB.ref(`chats/${adminSelectedUID}/messages`).once('value').then(snap => {
+                if (!snap.exists()) return;
+                Object.entries(snap.val()).forEach(([key, msg]) => {
+                    if (msg.sender === 'client' && !msg.read) {
+                        adminFbDB.ref(`chats/${adminSelectedUID}/messages/${key}/read`).set(true);
+                    }
+                });
             });
         }
 
