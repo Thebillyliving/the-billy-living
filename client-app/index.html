@@ -10,7 +10,7 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 :root{--bg-primary:#120D06;--bg-card:#1E160C;--bg-secondary:#2A1F14;--text-primary:#F5F0E8;--text-secondary:#A89B8C;--gold:#C9A84C;--nav-height:80px}
 body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow-x:hidden;min-height:100vh;padding-bottom:var(--nav-height);overscroll-behavior-y:contain}
-.page{display:none;min-height:calc(100vh - var(--nav-height));pointer-events:none;overscroll-behavior-y:contain}
+.page{display:none;min-height:calc(100vh - var(--nav-height));overscroll-behavior-y:contain}
 .page.active{display:block;animation:fadeIn 0.3s ease;pointer-events:auto}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .stories-row{display:flex;gap:14px;padding:20px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid rgba(201,169,98,.1);align-items:flex-start;justify-content:center}
@@ -73,8 +73,8 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .feed-caption-location{display:flex;align-items:center;gap:4px;font-family:'Jost',sans-serif;font-size:11px;color:rgba(168,155,140,.6);letter-spacing:.3px}
 .feed-caption-location svg{width:11px;height:11px;stroke:rgba(168,155,140,.5);fill:none;stroke-width:2;flex-shrink:0}
 /* FIX 1: overscroll-behavior:contain stops scroll bleeding into nav taps */
-.trending-page{position:fixed;top:0;left:0;right:0;bottom:var(--nav-height);background:#000;z-index:100;display:none;pointer-events:none}
-.trending-page.active{display:block;pointer-events:auto}
+.trending-page{position:fixed;top:0;left:0;right:0;bottom:var(--nav-height);background:#000;z-index:100;display:none}
+.trending-page.active{display:block}
 .trending-container{height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;overscroll-behavior-y:contain}
 .trending-container::-webkit-scrollbar{display:none}
 .tiktok-item{height:100%;scroll-snap-align:start;position:relative;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -845,6 +845,7 @@ function showPage(pageId) {
   // Handle trending separately (fixed-position)
   const trendingEl = document.getElementById('trending');
   trendingEl.classList.remove('active');
+  trendingEl.style.display = 'none';
 
   // Update nav
   document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
@@ -852,10 +853,14 @@ function showPage(pageId) {
   if (navBtn) navBtn.classList.add('active');
 
   if (pageId === 'trending') {
+    trendingEl.style.display = 'block';
     trendingEl.classList.add('active');
   } else {
     const el = document.getElementById(pageId);
-    if (el) { el.style.display = (pageId === 'concierge') ? 'flex' : 'block'; el.classList.add('active'); }
+    if (el) {
+      el.style.display = (pageId === 'concierge') ? 'flex' : 'block';
+      el.classList.add('active');
+    }
     // Hide catalog sub-pages unless explicitly going there
     if (pageId !== 'catalogInner') { document.getElementById('catalogInner').style.display = 'none'; }
     if (pageId !== 'catalogRooms') { document.getElementById('catalogRooms').style.display = 'none'; }
