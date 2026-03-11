@@ -43,6 +43,14 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .consult-dismiss:hover{border-color:rgba(201,168,76,.35);color:var(--text-primary)}
 .feed-container{display:flex;flex-direction:column;gap:0}
 .feed-item{background:var(--bg-primary);border-bottom:1px solid rgba(201,169,98,.08)}
+.feed-carousel{position:relative;width:100%;overflow:hidden;}
+.feed-carousel-track{display:flex;transition:transform .3s ease;will-change:transform;}
+.feed-carousel-track img,.feed-carousel-track video{width:100%;flex-shrink:0;object-fit:cover;display:block;}
+.feed-carousel-dots{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:2;}
+.feed-carousel-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.45);transition:background .2s;}
+.feed-carousel-dot.active{background:#fff;}
+.feed-multi-icon{position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.55);border-radius:4px;padding:3px 5px;display:flex;gap:3px;}
+.feed-multi-icon span{width:4px;height:4px;border-radius:1px;background:#fff;display:inline-block;}
 .feed-header{display:flex;align-items:center;gap:10px;padding:12px 14px}
 .feed-header-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#B8860B);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:700;color:var(--bg-primary);flex-shrink:0;border:1.5px solid var(--gold)}
 .feed-header-name{font-family:'Jost',sans-serif;font-size:13px;font-weight:600;color:var(--text-primary);flex:1}
@@ -975,12 +983,47 @@ async function loadHomeFeed() {
   const posts = Object.values(snap.val()).reverse();
   posts.forEach(p => { _postsMap[p.id] = p; });
   feed.innerHTML = posts.map(p => buildFeedItem(p)).join('');
+  initCarousels();
+}
+
+function initCarousels() {
+  document.querySelectorAll('.feed-carousel').forEach(car => {
+    const id = car.id.replace('car_','');
+    const track = document.getElementById('track_' + id);
+    const dots  = car.querySelectorAll('.feed-carousel-dot');
+    if (!track || dots.length < 2) return;
+    let cur = 0;
+    const goTo = (n) => {
+      cur = Math.max(0, Math.min(n, dots.length - 1));
+      track.style.transform = 'translateX(-' + (cur * 100) + '%)';
+      dots.forEach((d, i) => d.classList.toggle('active', i === cur));
+    };
+    // Touch swipe
+    let startX = 0;
+    car.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, {passive:true});
+    car.addEventListener('touchend',   e => {
+      const dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 40) goTo(dx < 0 ? cur + 1 : cur - 1);
+    }, {passive:true});
+    // Dot click
+    dots.forEach((d, i) => d.addEventListener('click', () => goTo(i)));
+  });
 }
 
 function buildFeedItem(p) {
   const id = p.id;
   let mediaHtml;
-  if (p.videoData) {
+  const imgs = (p.images && p.images.length > 1) ? p.images : null;
+  if (imgs) {
+    // Multi-image carousel
+    const slides = imgs.map(src => '<img src="' + src + '" alt="" loading="lazy" style="width:100%;aspect-ratio:1/1;object-fit:cover;flex-shrink:0;">').join('');
+    const dots   = imgs.map((_, i) => '<span class="feed-carousel-dot' + (i===0?' active':'') + '"></span>').join('');
+    mediaHtml = '<div class="feed-carousel" id="car_' + id + '" style="aspect-ratio:1/1;">'
+      + '<div class="feed-carousel-track" id="track_' + id + '" style="height:100%;">' + slides + '</div>'
+      + '<div class="feed-carousel-dots">' + dots + '</div>'
+      + '<div class="feed-multi-icon"><span></span><span></span><span></span></div>'
+      + '</div>';
+  } else if (p.videoData) {
     mediaHtml = '<video src="' + p.videoData + '" loop muted playsinline style="width:100%;height:100%;object-fit:cover;display:block"></video>';
   } else if (p.imageData) {
     mediaHtml = '<img src="' + p.imageData + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block">';
