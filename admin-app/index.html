@@ -1974,7 +1974,7 @@
                             <div class="list-meta">👁 ${item.views||0} &nbsp;❤️ ${item.likes||0} &nbsp;Badge: ${item.badge||'—'}</div>
                         </div>
                         <div class="list-actions">
-                            <div class="toggle-switch active"></div>
+                            <div class="toggle-switch ${item.published !== false ? 'active' : ''}" onclick="togglePublished('trending', '${item.id}')"></div>
                             <button class="btn btn-danger" onclick="deleteItem('trending', '${item.id}')" style="padding:8px 12px;">🗑️</button>
                         </div>
                     </div>`;
