@@ -57,7 +57,10 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .feed-multi-icon span{width:4px;height:4px;border-radius:1px;background:#fff;display:inline-block;}
 .feed-header{display:flex;align-items:center;gap:10px;padding:12px 14px}
 .feed-header-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#B8860B);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:700;color:var(--bg-primary);flex-shrink:0;border:1.5px solid var(--gold)}
-.feed-header-name{font-family:'Jost',sans-serif;font-size:13px;font-weight:600;color:var(--text-primary);flex:1}
+.feed-header-name{font-family:'Jost',sans-serif;font-size:13px;font-weight:600;color:var(--text-primary)}
+.feed-header-info{display:flex;flex-direction:column;gap:1px;flex:1}
+.feed-header-loc{display:flex;align-items:center;gap:3px;font-family:'Jost',sans-serif;font-size:10px;color:rgba(168,155,140,.7);letter-spacing:.2px}
+.feed-header-loc svg{width:9px;height:9px;stroke:rgba(168,155,140,.6);fill:none;stroke-width:2;flex-shrink:0}
 .feed-header-more{background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer;padding:0 4px;letter-spacing:1px}
 .feed-image{width:100%;aspect-ratio:4/5;background:var(--bg-secondary);position:relative;overflow:hidden}
 .feed-image img{width:100%;height:100%;object-fit:cover;display:block}
@@ -1093,10 +1096,11 @@ function buildFeedItem(p) {
     mediaHtml = '<div class="feed-image-placeholder">🛋️</div>';
   }
   const locHtml = p.location ? '<div class="feed-caption-location"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>' + p.location + '</div>' : '';
+  const headerLocHtml = p.location ? '<div class="feed-header-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>' + p.location + '</div>' : '';
   return '<div class="feed-item" data-id="' + id + '">'
     + '<div class="feed-header">'
     +   '<div class="feed-header-avatar">BL</div>'
-    +   '<span class="feed-header-name">The Billy Living</span>'
+    +   '<div class="feed-header-info"><span class="feed-header-name">The Billy Living</span>' + headerLocHtml + '</div>'
     +   '<button class="feed-header-more" onclick="openShareSheet(_postsMap[\'' + id + '\'])">···</button>'
     + '</div>'
     + '<div class="feed-image">' + mediaHtml + '</div>'
@@ -1118,7 +1122,6 @@ function buildFeedItem(p) {
     + '<div class="feed-caption">'
     +   '<div class="feed-caption-title">' + (p.title||'') + '</div>'
     +   '<div class="feed-caption-text">' + (p.caption||'') + '</div>'
-    +   locHtml
     + '</div>'
   + '</div>';
 }
