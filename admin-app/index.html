@@ -1703,12 +1703,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             initData();
             updateStats();
-            renderHomeList();
-            renderCatalogList();
-            renderTrendingList();
-            renderPortfolioList();
-            renderDesignersList();
-            renderVIPList();
+            renderCatalogList();  // catalog uses localStorage + Firebase
+            renderDesignersList(); // designers use localStorage
         });
 
         function initData() {
@@ -1801,6 +1797,7 @@
             if (panelName === 'trending')  { renderTrendingList(); }
             if (panelName === 'designers') { renderDesignersList(); }
             if (panelName === 'catalog')   { renderCatalogList(); }
+            if (panelName === 'portfolio') { loadPortfolioAnalytics(); }
         }
 
         // Stats
@@ -1840,7 +1837,7 @@
                     const thumb = coverSrc
                         ? `<img src="${coverSrc}" alt="" style="width:100%;height:100%;object-fit:cover;">`
                         : hasVideo
-                            ? `<video src="${post.videoData||post.videoUrl}" style="width:100%;height:100%;object-fit:cover;" muted></video>`
+                            ? `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:4px;"><span style="font-size:24px;">▶</span><span style="font-size:9px;color:#C9A84C;letter-spacing:1px;">VIDEO</span></div>`
                             : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:32px;">🏠</div>`;
                     const videoTag = hasVideo ? `<span style="font-size:10px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:#C9A84C;border-radius:4px;padding:1px 5px;margin-left:6px;">▶ VIDEO</span>` : '';
                     const audioTag = hasAudio ? `<span style="font-size:10px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:#C9A84C;border-radius:4px;padding:1px 5px;margin-left:6px;">🎵</span>` : '';
@@ -1859,12 +1856,16 @@
                 }).join('');
             };
 
+            // Show cached slim metadata instantly while Firebase loads
+            const _cachedPosts = JSON.parse(localStorage.getItem('tbl_posts') || '[]');
+            if (_cachedPosts.length) renderPosts(_cachedPosts);
+
             if (typeof adminFbDB !== 'undefined') {
                 adminFbDB.ref('content/posts').once('value').then(snap => {
                     if (snap.exists()) renderPosts(Object.values(snap.val()));
-                    else renderPosts([]);
-                }).catch(e => { console.error(e); renderPosts([]); });
-            } else renderPosts([]);
+                    else if (!_cachedPosts.length) renderPosts([]);
+                }).catch(e => { console.error(e); if (!_cachedPosts.length) renderPosts([]); });
+            } else if (!_cachedPosts.length) renderPosts([]);
         }
 
         function renderCatalogList() {
@@ -1961,7 +1962,7 @@
                     const thumb = coverSrc
                         ? `<img src="${coverSrc}" alt="" style="width:100%;height:100%;object-fit:cover;">`
                         : hasVideo
-                            ? `<video src="${item.videoData||item.videoUrl}" style="width:100%;height:100%;object-fit:cover;" muted></video>`
+                            ? `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:4px;"><span style="font-size:24px;">▶</span><span style="font-size:9px;color:#C9A84C;letter-spacing:1px;">VIDEO</span></div>`
                             : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:32px;">🔥</div>`;
                     const videoTag = hasVideo ? `<span style="font-size:10px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:#C9A84C;border-radius:4px;padding:1px 5px;margin-left:6px;">▶</span>` : '';
                     const audioTag = hasAudio ? `<span style="font-size:10px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:#C9A84C;border-radius:4px;padding:1px 5px;margin-left:6px;">🎵</span>` : '';
@@ -2013,13 +2014,15 @@
         }
 
         function renderDesignersList() {
-            const designers = JSON.parse(localStorage.getItem('tbl_designers') || '[]');
             const container = document.getElementById('designersList');
-            
-            if (designers.length === 0) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👔</div><p>No designers yet. Add your first!</p></div>';
-                return;
-            }
+            if (!container) return;
+            const cached = JSON.parse(localStorage.getItem('tbl_designers') || '[]');
+            const doRender = (designers) => {
+                try { localStorage.setItem('tbl_designers', JSON.stringify(designers)); } catch(e) {}
+                if (designers.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👔</div><p>No designers yet. Add your first!</p></div>';
+                    return;
+                }
             
             container.innerHTML = designers.map(d => `
                 <div class="list-item">
@@ -2036,6 +2039,14 @@
                     </div>
                 </div>
             `).join('');
+            }; // end doRender
+            if (cached.length) doRender(cached);
+            if (typeof adminFbDB !== 'undefined') {
+                adminFbDB.ref('content/designers').once('value').then(snap => {
+                    if (snap.exists()) doRender(Object.values(snap.val()));
+                    else if (!cached.length) doRender([]);
+                }).catch(() => { if (!cached.length) doRender([]); });
+            } else if (!cached.length) doRender([]);
         }
 
         // VIP Manager
@@ -2413,29 +2424,38 @@
             if (!input.files || !input.files[0]) return;
             const file = input.files[0];
             const isVideo = file.type.startsWith('video/');
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                // Remove any existing preview elements
-                const oldImg   = document.getElementById('imagePreview');
-                const oldVideo = document.getElementById('videoPreview');
-                if (oldVideo) oldVideo.remove();
-                if (isVideo) {
-                    if (oldImg) oldImg.style.display = 'none';
-                    const vid = document.createElement('video');
-                    vid.id = 'videoPreview';
-                    vid.src = e.target.result;
-                    vid.controls = true;
-                    vid.muted = true;
-                    vid.style.cssText = 'max-width:200px;max-height:200px;border-radius:10px;margin-top:12px;display:block;';
-                    input.parentNode.appendChild(vid);
-                } else {
-                    if (oldImg) {
-                        oldImg.src = e.target.result;
-                        oldImg.style.display = 'block';
-                    }
+            const oldImg   = document.getElementById('imagePreview');
+            const oldVideo = document.getElementById('videoPreview');
+            if (oldVideo) oldVideo.remove();
+
+            if (isVideo) {
+                // Size check: videos over 8MB will exceed Firebase's 10MB limit when base64 encoded
+                if (file.size > 8 * 1024 * 1024) {
+                    showToast('Video too large (max 8 MB). Please compress it first.');
+                    input.value = '';
+                    return;
                 }
-            };
-            reader.readAsDataURL(file);
+                if (oldImg) oldImg.style.display = 'none';
+                // Use object URL for preview — no base64 encoding, instant
+                const objUrl = URL.createObjectURL(file);
+                const vid = document.createElement('video');
+                vid.id = 'videoPreview';
+                vid.src = objUrl;
+                vid.controls = true;
+                vid.muted = true;
+                vid.style.cssText = 'max-width:100%;max-height:200px;border-radius:10px;margin-top:12px;display:block;';
+                input.parentNode.appendChild(vid);
+                // Read as base64 in background for Firebase save
+                const reader = new FileReader();
+                reader.onload = e => { vid.dataset.b64 = e.target.result; };
+                reader.readAsDataURL(file);
+            } else {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    if (oldImg) { oldImg.src = e.target.result; oldImg.style.display = 'block'; }
+                };
+                reader.readAsDataURL(file);
+            }
         }
 
         function previewAudio(input) {
@@ -2469,6 +2489,12 @@
                     }
                     const audioData = (audioEl && audioEl.src && audioEl.src.startsWith('data:')) ? audioEl.src : null;
                     const imgs = (window._pendingImages || []).filter(Boolean);
+                    // For video: use the base64 stored in dataset.b64 (read in background by previewImage)
+                    const videoB64 = (fileIsVideo && videoPreviewEl?.dataset?.b64) ? videoPreviewEl.dataset.b64 : null;
+                    if (fileIsVideo && !videoB64) {
+                        showToast('Video still loading — wait a moment and try again.');
+                        return;
+                    }
                     const post = {
                         id: 'post_' + Date.now(),
                         title: document.getElementById('formTitleInput')?.value || '',
@@ -2478,7 +2504,7 @@
                         category: '',
                         images: imgs.length ? imgs : null,
                         imageData: imgs.length ? imgs[0] : null,
-                        videoData: (fileIsVideo && videoPreviewEl?.src) ? videoPreviewEl.src : null,
+                        videoData: videoB64,
                         videoUrl: document.getElementById('formVideo')?.value || null,
                         audioData: audioData,
                         likes: parseInt(document.getElementById('formLikes')?.value) || 0,
@@ -2487,6 +2513,7 @@
                     };
                     window._pendingImages = [];
                     document.getElementById('multiPreviewGrid').innerHTML = '';
+                    showToast('Saving…');
                     adminFbDB.ref('content/posts/' + post.id).set(post)
                         .then(() => { showToast('Post saved ✓'); closeForm(); renderHomeList(); updateStats(); })
                         .catch(e => { showToast('Error: ' + e.message); console.error(e); });
@@ -2504,6 +2531,11 @@
                     }
                     const audioData = (audioEl && audioEl.src && audioEl.src.startsWith('data:')) ? audioEl.src : null;
                     const imgs = (window._pendingImages || []).filter(Boolean);
+                    const videoB64t = (fileIsVideo && videoPreviewEl?.dataset?.b64) ? videoPreviewEl.dataset.b64 : null;
+                    if (fileIsVideo && !videoB64t) {
+                        showToast('Video still loading — wait a moment and try again.');
+                        return;
+                    }
                     const trending = {
                         id: 'trend_' + Date.now(),
                         title: document.getElementById('formTitleInput')?.value || '',
@@ -2511,7 +2543,7 @@
                         caption: document.getElementById('formCaption')?.value || '',
                         images: imgs.length ? imgs : null,
                         imageData: imgs.length ? imgs[0] : null,
-                        videoData: (fileIsVideo && videoPreviewEl?.src) ? videoPreviewEl.src : null,
+                        videoData: videoB64t,
                         videoUrl: document.getElementById('formVideo')?.value || null,
                         audioData: audioData,
                         views: parseInt(document.getElementById('formViews')?.value) || 0,
@@ -2570,6 +2602,7 @@
                     const designers = JSON.parse(localStorage.getItem('tbl_designers') || '[]');
                     designers.push(designer);
                     localStorage.setItem('tbl_designers', JSON.stringify(designers));
+                    adminFbDB.ref('content/designers/' + designer.id).set(designer).catch(()=>{});
                     renderDesignersList();
                     updateStats();
                     break;
@@ -3433,7 +3466,13 @@
         });
         // Also auto-start messages listener once auth is ready
         adminFbAuth.onAuthStateChanged(user => {
-            if (user) initAdminMessagesListener();
+            if (user) {
+                initAdminMessagesListener();
+                renderHomeList();
+                renderTrendingList();
+                renderVIPList();
+                updateStats();
+            }
         });
 
         // ── Messages state ───────────────────────────────────────────────────────
