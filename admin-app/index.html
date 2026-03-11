@@ -9,7 +9,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -2478,15 +2477,7 @@
                     const audioFile = audioFileInput?.files?.[0];
                     const imgs = (window._pendingImages || []).filter(Boolean);
                     const postId = 'post_' + Date.now();
-                    showToast('Uploading…');
 
-                    // Helper: upload a file to Storage and return download URL
-                    const uploadToStorage = (file, path) => {
-                        const ref = adminFbStorage.ref(path);
-                        return ref.put(file).then(snap => snap.ref.getDownloadURL());
-                    };
-
-                    // Build base post object (no binary blobs)
                     const post = {
                         id: postId,
                         title: document.getElementById('formTitleInput')?.value || '',
@@ -2506,20 +2497,32 @@
                     window._pendingImages = [];
                     document.getElementById('multiPreviewGrid').innerHTML = '';
 
-                    // Upload video and/or audio to Storage, then save post
-                    const uploads = [];
+                    const doSavePost = () => {
+                        adminFbDB.ref('content/posts/' + postId).set(post)
+                            .then(() => { showToast('Post saved ✓'); closeForm(); renderHomeList(); updateStats(); })
+                            .catch(e => { showToast('Error: ' + e.message); console.error(e); });
+                    };
+
                     if (fileIsVideo && videoFile) {
-                        uploads.push(uploadToStorage(videoFile, 'videos/' + postId + '_' + videoFile.name)
-                            .then(url => { post.videoUrl = url; post.videoData = null; }));
+                        showToast('Uploading video… 0%');
+                        uploadToCloudinary(videoFile, pct => showToast('Uploading video… ' + pct + '%'))
+                            .then(url => {
+                                post.videoUrl = url;
+                                if (audioFile) {
+                                    showToast('Uploading audio…');
+                                    return uploadToCloudinary(audioFile).then(aUrl => { post.audioData = aUrl; });
+                                }
+                            })
+                            .then(doSavePost)
+                            .catch(e => { showToast('Upload failed: ' + e.message); console.error(e); });
+                    } else if (audioFile) {
+                        showToast('Uploading audio…');
+                        uploadToCloudinary(audioFile)
+                            .then(url => { post.audioData = url; doSavePost(); })
+                            .catch(e => { showToast('Upload failed: ' + e.message); console.error(e); });
+                    } else {
+                        doSavePost();
                     }
-                    if (audioFile) {
-                        uploads.push(uploadToStorage(audioFile, 'audio/' + postId + '_' + audioFile.name)
-                            .then(url => { post.audioData = url; }));
-                    }
-                    Promise.all(uploads)
-                        .then(() => adminFbDB.ref('content/posts/' + postId).set(post))
-                        .then(() => { showToast('Post saved ✓'); closeForm(); renderHomeList(); updateStats(); })
-                        .catch(e => { showToast('Upload failed: ' + e.message); console.error(e); });
                     break;
                 }
                 case 'trending': {
@@ -2530,12 +2533,6 @@
                     const audioFile = audioFileInput?.files?.[0];
                     const imgs = (window._pendingImages || []).filter(Boolean);
                     const trendId = 'trend_' + Date.now();
-                    showToast('Uploading…');
-
-                    const uploadToStorage = (file, path) => {
-                        const ref = adminFbStorage.ref(path);
-                        return ref.put(file).then(snap => snap.ref.getDownloadURL());
-                    };
 
                     const trending = {
                         id: trendId,
@@ -2556,19 +2553,32 @@
                     window._pendingImages = [];
                     document.getElementById('multiPreviewGrid').innerHTML = '';
 
-                    const tUploads = [];
+                    const doSaveTrend = () => {
+                        adminFbDB.ref('content/trending/' + trendId).set(trending)
+                            .then(() => { showToast('Trending saved ✓'); closeForm(); renderTrendingList(); updateStats(); })
+                            .catch(e => { showToast('Error: ' + e.message); console.error(e); });
+                    };
+
                     if (fileIsVideo && videoFile) {
-                        tUploads.push(uploadToStorage(videoFile, 'videos/' + trendId + '_' + videoFile.name)
-                            .then(url => { trending.videoUrl = url; }));
+                        showToast('Uploading video… 0%');
+                        uploadToCloudinary(videoFile, pct => showToast('Uploading video… ' + pct + '%'))
+                            .then(url => {
+                                trending.videoUrl = url;
+                                if (audioFile) {
+                                    showToast('Uploading audio…');
+                                    return uploadToCloudinary(audioFile).then(aUrl => { trending.audioData = aUrl; });
+                                }
+                            })
+                            .then(doSaveTrend)
+                            .catch(e => { showToast('Upload failed: ' + e.message); console.error(e); });
+                    } else if (audioFile) {
+                        showToast('Uploading audio…');
+                        uploadToCloudinary(audioFile)
+                            .then(url => { trending.audioData = url; doSaveTrend(); })
+                            .catch(e => { showToast('Upload failed: ' + e.message); console.error(e); });
+                    } else {
+                        doSaveTrend();
                     }
-                    if (audioFile) {
-                        tUploads.push(uploadToStorage(audioFile, 'audio/' + trendId + '_' + audioFile.name)
-                            .then(url => { trending.audioData = url; }));
-                    }
-                    Promise.all(tUploads)
-                        .then(() => adminFbDB.ref('content/trending/' + trendId).set(trending))
-                        .then(() => { showToast('Trending saved ✓'); closeForm(); renderTrendingList(); updateStats(); })
-                        .catch(e => { showToast('Upload failed: ' + e.message); console.error(e); });
                     break;
                 }
                     
@@ -3474,7 +3484,29 @@
             adminFbDB.ref('chats').keepSynced(true);
         } catch(e) {}
         const adminFbAuth = firebase.auth();
-        const adminFbStorage = firebase.storage();
+
+        // ── Cloudinary upload (free, no size limit) ─────────────────────────────────
+        const CLOUDINARY_CLOUD  = 'dmxz9rw0g';
+        const CLOUDINARY_PRESET = 'billy_living';
+        function uploadToCloudinary(file, onProgress) {
+            return new Promise((resolve, reject) => {
+                const fd = new FormData();
+                fd.append('file', file);
+                fd.append('upload_preset', CLOUDINARY_PRESET);
+                const resourceType = file.type.startsWith('video/') ? 'video' : 'auto';
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', 'https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD + '/' + resourceType + '/upload');
+                if (onProgress) xhr.upload.addEventListener('progress', e => {
+                    if (e.lengthComputable) onProgress(Math.round(e.loaded / e.total * 100));
+                });
+                xhr.onload = () => {
+                    if (xhr.status === 200) resolve(JSON.parse(xhr.responseText).secure_url);
+                    else reject(new Error('Cloudinary upload failed: ' + xhr.responseText));
+                };
+                xhr.onerror = () => reject(new Error('Network error during upload'));
+                xhr.send(fd);
+            });
+        }
 
         // Sign in admin anonymously so Firebase DB rules (auth != null) are satisfied
         adminFbAuth.signInAnonymously().catch(() => {
