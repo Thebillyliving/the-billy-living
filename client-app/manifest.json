@@ -1,0 +1,22 @@
+{
+  "name": "THE BILLY LIVING INTERIOR Platform",
+  "short_name": "Billy Living",
+  "description": "Luxury interior design platform by The Billy Living.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#120D06",
+  "theme_color": "#C9A84C",
+  "categories": [
+    "lifestyle",
+    "shopping"
+  ],
+  "icons": [
+    {
+      "src": "ic_launcher-web.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
