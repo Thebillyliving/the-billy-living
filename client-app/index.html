@@ -247,7 +247,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .image-modal.active{display:flex}
 .image-modal img{max-width:90%;max-height:90%;object-fit:contain}
 .image-modal-close{position:absolute;top:20px;right:20px;background:none;border:none;color:white;font-size:32px;cursor:pointer}
-.profile-screen{display:none;position:fixed;inset:0;z-index:3000;flex-direction:column;overflow-y:auto;scrollbar-width:none;padding-bottom:40px;background:#0A0804}
+.profile-screen{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:3000;flex-direction:column;overflow-y:auto;scrollbar-width:none;padding-bottom:calc(var(--nav-height) + 20px);background:#0A0804}
 .profile-screen::-webkit-scrollbar{display:none}
 .profile-screen.active{display:flex;animation:fadeIn .3s ease}
 .profile-topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid rgba(201,168,76,.15);position:sticky;top:0;background:#0A0804;z-index:10;flex-shrink:0}
@@ -410,7 +410,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       </div>
       <span class="story-label" id="profileStoryLabel">My Profile</span>
     </div>
-    <div class="story-item" onclick="window.open('https://wa.me/2348084410220','_blank')">
+    <div class="story-item" onclick="window.open('https://wa.me/2348084410220?text=' + encodeURIComponent('Good day. I am exploring the 2026 Collection on the app and would like to request a private consultation for my residence'), '_blank')">
       <div class="story-circle" style="background:linear-gradient(135deg,#25D366,#128C7E)">
         <span class="story-circle-icon"><svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.564 4.14 1.548 5.872L0 24l6.336-1.524A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.877 9.877 0 01-5.031-1.378l-.36-.214-3.762.904.944-3.659-.235-.374A9.861 9.861 0 012.118 12C2.118 6.533 6.533 2.118 12 2.118c5.466 0 9.882 4.415 9.882 9.882 0 5.466-4.416 9.882-9.882 9.882z"/></svg></span>
       </div>
@@ -829,11 +829,10 @@ async function handleFinishSignup() {
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
 function showPage(pageId) {
+  // Close profile screen if open
+  document.getElementById('profileScreen').classList.remove('active');
   // Close AI chat overlay if open
-  const aiOverlay = document.getElementById('aiChatOverlay');
-  if (aiOverlay && aiOverlay.style.display === 'flex') {
-    aiOverlay.style.display = 'none';
-  }
+  // aiChatOverlay no longer exists — concierge is the chat page
   // Hide all standard pages
   document.querySelectorAll('.page').forEach(p => {
     p.classList.remove('active');
@@ -1125,12 +1124,37 @@ async function loadTrending() {
     });
   }, { threshold: 0.6 });
   container.querySelectorAll('.tiktok-item').forEach(el => observer.observe(el));
+  // Init tiktok carousels (multi-image items)
+  container.querySelectorAll('.tiktok-car').forEach(car => {
+    const trackId = car.id.replace('car_t_','track_t_');
+    const track = document.getElementById(trackId);
+    const dots  = car.querySelectorAll('.feed-carousel-dot');
+    if (!track || dots.length < 2) return;
+    let cur = 0;
+    const goTo = (n) => {
+      cur = Math.max(0, Math.min(n, dots.length-1));
+      track.style.transform = 'translateX(-' + (cur*100) + '%)';
+      dots.forEach((d,i) => d.classList.toggle('active', i===cur));
+    };
+    let sx = 0;
+    car.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, {passive:true});
+    car.addEventListener('touchend',   e => { const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx)>40) goTo(dx<0?cur+1:cur-1); }, {passive:true});
+  });
 }
 
 function buildTikTokItem(item) {
   const id = item.id;
   let mediaHtml;
-  if (item.videoData) {
+  const timgs = (item.images && item.images.length > 1) ? item.images : null;
+  if (timgs) {
+    // Multi-image tiktok carousel
+    const slides = timgs.map(src => '<img src="' + src + '" alt="" style="width:100%;height:100%;object-fit:cover;flex-shrink:0;">').join('');
+    const dots   = timgs.map((_,i) => '<span class="feed-carousel-dot' + (i===0?' active':'') + '"></span>').join('');
+    mediaHtml = '<div class="feed-carousel tiktok-car" id="car_t_' + id + '" style="width:100%;height:100%;">'
+      + '<div class="feed-carousel-track" id="track_t_' + id + '" style="height:100%;">' + slides + '</div>'
+      + '<div class="feed-carousel-dots">' + dots + '</div>'
+      + '</div>';
+  } else if (item.videoData) {
     mediaHtml = '<video src="' + item.videoData + '" loop muted playsinline style="width:100%;height:100%;object-fit:cover"></video>';
   } else if (item.videoUrl) {
     mediaHtml = '<video src="' + item.videoUrl + '" loop muted playsinline style="width:100%;height:100%;object-fit:cover"></video>';
@@ -1603,7 +1627,7 @@ function closeConsultSheet(e) {
 }
 function handleConsultOption(type) {
   document.getElementById('consultOverlay').classList.remove('active');
-  if (type === 'whatsapp') { window.open('https://wa.me/2348000000000?text=Hi%2C%20I%27d%20like%20to%20book%20a%20consultation%20with%20Billy%20Living','_blank'); }
+  if (type === 'whatsapp') { window.open('https://wa.me/2348084410220?text=' + encodeURIComponent('Hello The Billy Living. I would like to discuss a custom interior design project'), '_blank'); }
   else if (type === 'call') { showPage('concierge'); sendAIGreeting('booking'); }
   else if (type === 'quote') { showPage('concierge'); sendAIGreeting('quote'); }
 }
@@ -1680,20 +1704,17 @@ if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', () => {
     const keyboardHeight = window.innerHeight - window.visualViewport.height;
     const concierge = document.getElementById('concierge');
-    const aiOverlay = document.getElementById('aiChatOverlay');
     if (concierge && concierge.style.display !== 'none') {
       concierge.style.bottom = (keyboardHeight + parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-height') || '70')) + 'px';
-      // Scroll to bottom of messages
       const msgs = document.getElementById('cgMessages');
       if (msgs) msgs.scrollTop = msgs.scrollHeight;
     }
-    // aiChatOverlay removed — handled by concierge only
   });
   window.visualViewport.addEventListener('scroll', () => {
-    const keyboardHeight = window.innerHeight - window.visualViewport.height;
-    const concierge = document.getElementById('concierge');
-    if (concierge && concierge.style.display !== 'none') {
-      concierge.style.bottom = (keyboardHeight + parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-height') || '70')) + 'px';
+    const kbH2 = window.innerHeight - window.visualViewport.height;
+    const cgEl2 = document.getElementById('concierge');
+    if (cgEl2 && cgEl2.style.display !== 'none') {
+      cgEl2.style.bottom = (kbH2 + parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-height') || '70')) + 'px';
     }
   });
 }
