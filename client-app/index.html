@@ -78,7 +78,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .trending-container{height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;overscroll-behavior-y:contain}
 .trending-container::-webkit-scrollbar{display:none}
 .tiktok-item{height:100%;scroll-snap-align:start;position:relative;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.tiktok-item video,.tiktok-item img{width:100%;height:100%;object-fit:cover}
+.tiktok-item video{width:100%;height:100%;object-fit:cover}.tiktok-item img{width:100%;height:100%;object-fit:contain;background:#000}
 .tiktok-actions{position:absolute;right:12px;bottom:100px;display:flex;flex-direction:column;gap:16px;z-index:20}
 .tiktok-action{display:flex;flex-direction:column;align-items:center;gap:4px;color:white;background:none;border:none;cursor:pointer;font-family:'Jost',sans-serif;text-shadow:0 2px 4px rgba(0,0,0,.8)}
 .tiktok-action-icon{width:48px;height:48px;background:rgba(22,22,22,.6);backdrop-filter:blur(12px);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s}
