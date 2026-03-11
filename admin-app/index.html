@@ -856,6 +856,7 @@
             overflow-y: auto;
             flex-direction: column;
             scroll-padding-bottom: 320px;
+            transition: bottom 0.2s ease;
         }
         .catalog-overlay.active { display: flex; flex-direction: column; animation: fadeIn 0.25s ease; }
 
@@ -2189,6 +2190,7 @@
             switch(type) {
                 case 'post':
                     title.textContent = 'Add New Post';
+                    window._pendingImages = [];
                     content.innerHTML = `
                         <div class="form-group">
                             <label class="form-label">Title</label>
@@ -2203,9 +2205,13 @@
                             <input type="text" class="form-input" id="formLocation">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Image or Video</label>
-                            <input type="file" class="form-input" id="formImage" accept="image/*,video/*" onchange="previewImage(this)">
-                            <img id="imagePreview" class="image-preview" style="display: none;">
+                            <label class="form-label">Images (select multiple)</label>
+                            <input type="file" class="form-input" id="formImages" accept="image/*" multiple onchange="previewMultiImages(this, 'multiPreviewGrid')">
+                            <div id="multiPreviewGrid" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Or a single Video</label>
+                            <input type="file" class="form-input" id="formImage" accept="video/*" onchange="previewImage(this)">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Or paste a Video URL (optional)</label>
@@ -2250,9 +2256,13 @@
                             <input type="text" class="form-input" id="formCaption">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Image or Video</label>
-                            <input type="file" class="form-input" id="formImage" accept="image/*,video/*" onchange="previewImage(this)">
-                            <img id="imagePreview" class="image-preview" style="display: none;">
+                            <label class="form-label">Images (select multiple)</label>
+                            <input type="file" class="form-input" id="formImages" accept="image/*" multiple onchange="previewMultiImages(this, 'multiPreviewGrid')">
+                            <div id="multiPreviewGrid" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Or a single Video</label>
+                            <input type="file" class="form-input" id="formImage" accept="video/*" onchange="previewImage(this)">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Or paste a Video URL (optional)</label>
@@ -2363,6 +2373,28 @@
             currentForm = null;
         }
 
+        // Stores compressed base64 array for multi-image posts
+        window._pendingImages = [];
+
+        function previewMultiImages(input, gridId) {
+            if (!input.files || !input.files.length) return;
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = '';
+            window._pendingImages = [];
+            const files = Array.from(input.files).slice(0, 10); // max 10
+            let loaded = 0;
+            files.forEach((file, idx) => {
+                compressImage(file, 700, 0.65).then(b64 => {
+                    window._pendingImages[idx] = b64;
+                    loaded++;
+                    const img = document.createElement('img');
+                    img.src = b64;
+                    img.style.cssText = 'width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid rgba(201,168,76,0.3);';
+                    grid.appendChild(img);
+                });
+            });
+        }
+
         function previewImage(input) {
             if (!input.files || !input.files[0]) return;
             const file = input.files[0];
@@ -2412,77 +2444,72 @@
         function submitForm() {
             switch(currentForm) {
                 case 'post': {
-                    const fileInput = document.getElementById('formImage');
-                    const fileIsVideo = fileInput?.files?.[0]?.type?.startsWith('video/');
+                    const videoFileInput = document.getElementById('formImage');
+                    const fileIsVideo = videoFileInput?.files?.[0]?.type?.startsWith('video/');
                     const videoPreviewEl = document.getElementById('videoPreview');
-                    const imagePreviewEl = document.getElementById('imagePreview');
-                    // Audio size guard — Firebase max node is 10MB; base64 inflates ~33%
                     const audioEl   = document.getElementById('audioPreview');
                     const audioFile = document.getElementById('formAudio')?.files?.[0];
                     if (audioFile && audioFile.size > 7 * 1024 * 1024) {
-                        showToast('Audio file too large (max 7 MB). Please trim or compress it first.');
+                        showToast('Audio too large — max 7 MB');
                         return;
                     }
                     const audioData = (audioEl && audioEl.src && audioEl.src.startsWith('data:')) ? audioEl.src : null;
+                    const imgs = (window._pendingImages || []).filter(Boolean);
                     const post = {
                         id: 'post_' + Date.now(),
-                        title: document.getElementById('formTitleInput').value,
+                        title: document.getElementById('formTitleInput')?.value || '',
                         emoji: '🏠',
-                        caption: document.getElementById('formCaption').value,
-                        location: document.getElementById('formLocation').value,
+                        caption: document.getElementById('formCaption')?.value || '',
+                        location: document.getElementById('formLocation')?.value || '',
                         category: '',
-                        imageData: (!fileIsVideo && imagePreviewEl?.src && imagePreviewEl.src !== window.location.href) ? imagePreviewEl.src : null,
+                        images: imgs.length ? imgs : null,
+                        imageData: imgs.length ? imgs[0] : null,
                         videoData: (fileIsVideo && videoPreviewEl?.src) ? videoPreviewEl.src : null,
-                        videoUrl: document.getElementById('formVideo').value || null,
+                        videoUrl: document.getElementById('formVideo')?.value || null,
                         audioData: audioData,
-                        likes: parseInt(document.getElementById('formLikes').value) || 0,
-                        shares: parseInt(document.getElementById('formShares').value) || 0,
+                        likes: parseInt(document.getElementById('formLikes')?.value) || 0,
+                        shares: parseInt(document.getElementById('formShares')?.value) || 0,
                         published: true
                     };
+                    window._pendingImages = [];
+                    document.getElementById('multiPreviewGrid').innerHTML = '';
                     adminFbDB.ref('content/posts/' + post.id).set(post)
-                        .then(() => { showToast('Post saved!'); })
-                        .catch(e => { showToast('Save failed: ' + e.message); console.error(e); });
-                    const posts = JSON.parse(localStorage.getItem('tbl_posts') || '[]');
-                    posts.push(post);
-                    localStorage.setItem('tbl_posts', JSON.stringify(posts));
-                    renderHomeList();
-                    updateStats();
+                        .then(() => { showToast('Post saved ✓'); closeForm(); renderHomeList(); updateStats(); })
+                        .catch(e => { showToast('Error: ' + e.message); console.error(e); });
                     break;
                 }
                 case 'trending': {
-                    const fileInput = document.getElementById('formImage');
-                    const fileIsVideo = fileInput?.files?.[0]?.type?.startsWith('video/');
+                    const videoFileInput = document.getElementById('formImage');
+                    const fileIsVideo = videoFileInput?.files?.[0]?.type?.startsWith('video/');
                     const videoPreviewEl = document.getElementById('videoPreview');
-                    const imagePreviewEl = document.getElementById('imagePreview');
                     const audioEl   = document.getElementById('audioPreview');
                     const audioFile = document.getElementById('formAudio')?.files?.[0];
                     if (audioFile && audioFile.size > 7 * 1024 * 1024) {
-                        showToast('Audio file too large (max 7 MB). Please trim or compress it first.');
+                        showToast('Audio too large — max 7 MB');
                         return;
                     }
                     const audioData = (audioEl && audioEl.src && audioEl.src.startsWith('data:')) ? audioEl.src : null;
+                    const imgs = (window._pendingImages || []).filter(Boolean);
                     const trending = {
                         id: 'trend_' + Date.now(),
-                        title: document.getElementById('formTitleInput').value,
+                        title: document.getElementById('formTitleInput')?.value || '',
                         emoji: document.getElementById('formEmoji')?.value || '🔥',
-                        caption: document.getElementById('formCaption').value,
-                        imageData: (!fileIsVideo && imagePreviewEl?.src && imagePreviewEl.src !== window.location.href) ? imagePreviewEl.src : null,
+                        caption: document.getElementById('formCaption')?.value || '',
+                        images: imgs.length ? imgs : null,
+                        imageData: imgs.length ? imgs[0] : null,
                         videoData: (fileIsVideo && videoPreviewEl?.src) ? videoPreviewEl.src : null,
-                        videoUrl: document.getElementById('formVideo').value || null,
+                        videoUrl: document.getElementById('formVideo')?.value || null,
                         audioData: audioData,
-                        views: parseInt(document.getElementById('formViews').value) || 0,
+                        views: parseInt(document.getElementById('formViews')?.value) || 0,
                         badge: document.getElementById('formBadge')?.value || 'Trending',
-                        likes: parseInt(document.getElementById('formLikes').value) || 0,
-                        shares: parseInt(document.getElementById('formShares').value) || 0
+                        likes: parseInt(document.getElementById('formLikes')?.value) || 0,
+                        shares: parseInt(document.getElementById('formShares')?.value) || 0
                     };
-                    const trendingItems = JSON.parse(localStorage.getItem('tbl_trending') || '[]');
-                    trendingItems.push(trending);
-                    localStorage.setItem('tbl_trending', JSON.stringify(trendingItems));
+                    window._pendingImages = [];
+                    document.getElementById('multiPreviewGrid').innerHTML = '';
                     adminFbDB.ref('content/trending/' + trending.id).set(trending)
-                        .then(() => { showToast('Trending item saved!'); })
-                        .catch(e => { showToast('Save failed: ' + e.message); console.error(e); });
-                    renderTrendingList();
-                    updateStats();
+                        .then(() => { showToast('Trending saved ✓'); closeForm(); renderTrendingList(); updateStats(); })
+                        .catch(e => { showToast('Error: ' + e.message); console.error(e); });
                     break;
                 }
                     
@@ -2534,8 +2561,11 @@
                     break;
             }
             
-            closeForm();
-            showToast('Saved successfully!');
+            // post/trending close themselves in .then(); other cases fall through here
+            if (currentForm && !['post','trending'].includes(currentForm)) {
+                closeForm();
+                showToast('Saved successfully!');
+            }
         }
 
         // ── Image compression helper ───────────────────────────────────────────
@@ -2883,7 +2913,7 @@
                         style="flex:1;background:rgba(201,168,76,0.05);border:none;border-bottom:2px solid rgba(201,168,76,0.35);outline:none;font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:700;letter-spacing:1px;color:#C9A84C;padding:10px 6px;-webkit-user-select:text;user-select:text;-webkit-touch-callout:default;touch-action:auto;"
                         oninput="document.getElementById('mixSaveBtn_${index}').style.display='inline-flex';"
                         onkeydown="if(event.key==='Enter'){event.preventDefault();_saveMixLabel(${index});}"
-                        onfocus="setTimeout(()=>this.scrollIntoView({behavior:'smooth',block:'center'}),350)">
+                        onfocus="const _el=this;[150,400,750].forEach(t=>setTimeout(()=>{_el.scrollIntoView({behavior:'smooth',block:'center'});},t))">
                     <button id="mixSaveBtn_${index}"
                         style="display:none;background:linear-gradient(135deg,#C9A84C,#8B6914);border:none;color:#0A0804;font-size:10px;font-weight:700;letter-spacing:1.5px;padding:10px 14px;border-radius:6px;cursor:pointer;white-space:nowrap;"
                         onclick="_saveMixLabel(${index})">SAVE</button>
@@ -4041,6 +4071,25 @@
         function closeClientProfile() {
             document.getElementById('clientProfileDrawer').style.display  = 'none';
             document.getElementById('clientProfileOverlay').style.display = 'none';
+        }
+
+        // ── Keyboard push-up for catalog overlay inputs ──────────────────────
+        if (window.visualViewport) {
+            const _overlayIds = ['catalogInnerOverlay', 'catalogRoomsOverlay'];
+            const _onViewport = () => {
+                const kbH = Math.max(0, window.innerHeight - window.visualViewport.height);
+                _overlayIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (!el || !el.classList.contains('active')) return;
+                    el.style.bottom = kbH + 'px';
+                    if (kbH > 50) {
+                        const focused = el.querySelector('input:focus, textarea:focus');
+                        if (focused) setTimeout(() => focused.scrollIntoView({behavior:'smooth', block:'center'}), 80);
+                    }
+                });
+            };
+            window.visualViewport.addEventListener('resize', _onViewport);
+            window.visualViewport.addEventListener('scroll', _onViewport);
         }
     </script>
 
