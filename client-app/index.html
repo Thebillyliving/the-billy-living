@@ -976,13 +976,27 @@ function requestConciergeSupport() {
 const _postsMap = {};
 
 async function loadHomeFeed() {
-  const snap = await fbDb.ref('content/posts').orderByChild('published').equalTo(true).get();
   const feed = document.getElementById('homeFeed');
-  if (!snap.exists()) { feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>'; return; }
-  const posts = Object.values(snap.val()).reverse();
-  posts.forEach(p => { _postsMap[p.id] = p; });
-  feed.innerHTML = posts.map(p => buildFeedItem(p)).join('');
-  initCarousels();
+  try {
+    const snap = await fbDb.ref('content/posts').get();
+    if (!snap.exists()) {
+      feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
+      return;
+    }
+    const posts = Object.values(snap.val())
+      .filter(p => p.published !== false)
+      .reverse();
+    if (!posts.length) {
+      feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
+      return;
+    }
+    posts.forEach(p => { _postsMap[p.id] = p; });
+    feed.innerHTML = posts.map(p => buildFeedItem(p)).join('');
+    initCarousels();
+  } catch(e) {
+    console.error('loadHomeFeed:', e);
+    feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
+  }
 }
 
 function initCarousels() {
@@ -1103,7 +1117,8 @@ async function loadTrending() {
   try { snap = await fbDb.ref('content/trending').get(); }
   catch(e) { console.error('loadTrending error:', e); container.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:Cormorant Garamond,serif;font-size:22px">No trending yet</div>'; return; }
   if (!snap.exists()) { container.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:Cormorant Garamond,serif;font-size:22px">No trending yet</div>'; return; }
-  const items = Object.values(snap.val());
+  const items = Object.values(snap.val()).filter(item => item.published !== false);
+  if (!items.length) { container.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:Cormorant Garamond,serif;font-size:22px">No trending yet</div>'; return; }
   items.forEach(item => { _trendMap[item.id] = item; });
   container.innerHTML = items.map(item => buildTikTokItem(item)).join('');
   const firstVideo = container.querySelector('video');
