@@ -1098,8 +1098,10 @@ async function bookmarkPost(btn, id, post) {
 const _trendMap = {};
 
 async function loadTrending() {
-  const snap = await fbDb.ref('content/trending').get();
   const container = document.getElementById('trendingContainer');
+  let snap;
+  try { snap = await fbDb.ref('content/trending').get(); }
+  catch(e) { console.error('loadTrending error:', e); container.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:Cormorant Garamond,serif;font-size:22px">No trending yet</div>'; return; }
   if (!snap.exists()) { container.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:Cormorant Garamond,serif;font-size:22px">No trending yet</div>'; return; }
   const items = Object.values(snap.val());
   items.forEach(item => { _trendMap[item.id] = item; });
