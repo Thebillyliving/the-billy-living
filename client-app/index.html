@@ -354,6 +354,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 </head>
 <body>
 <!-- GATEKEEPER -->
@@ -993,6 +994,7 @@ async function loadHomeFeed() {
     posts.forEach(p => { _postsMap[p.id] = p; });
     feed.innerHTML = posts.map(p => buildFeedItem(p)).join('');
     initCarousels();
+    initFeedVideos();
   } catch(e) {
     console.error('loadHomeFeed:', e);
     feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
@@ -1037,11 +1039,11 @@ function buildFeedItem(p) {
       + '<div class="feed-multi-icon"><span></span><span></span><span></span></div>'
       + '</div>';
   } else if (p.videoData) {
-    mediaHtml = '<video src="' + p.videoData + '" loop muted playsinline style="width:100%;height:100%;object-fit:cover;display:block"></video>';
+    mediaHtml = '<video src="' + p.videoData + '" loop muted autoplay playsinline style="width:100%;height:100%;object-fit:cover;display:block"></video>';
   } else if (p.imageData) {
     mediaHtml = '<img src="' + p.imageData + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block">';
   } else if (p.videoUrl) {
-    mediaHtml = '<video src="' + p.videoUrl + '" loop muted playsinline style="width:100%;height:100%;object-fit:cover;display:block"></video>';
+    mediaHtml = '<video src="' + p.videoUrl + '" loop muted autoplay playsinline style="width:100%;height:100%;object-fit:cover;display:block"></video>';
   } else {
     mediaHtml = '<div class="feed-image-placeholder">🛋️</div>';
   }
@@ -1083,8 +1085,39 @@ function buildFeedItem(p) {
 function togglePostAudio(btn, audioId) {
   const audio = document.getElementById(audioId);
   if (!audio) return;
-  if (audio.paused) { audio.play(); btn.textContent = '⏸'; }
-  else { audio.pause(); btn.textContent = '▶'; }
+  if (audio.paused) {
+    audio.play().then(() => { btn.textContent = '⏸'; }).catch(e => {
+      console.error('audio play failed:', e);
+      // Reload src and retry once
+      const src = audio.src;
+      audio.src = '';
+      audio.src = src;
+      audio.play().then(() => { btn.textContent = '⏸'; }).catch(()=>{});
+    });
+  } else {
+    audio.pause();
+    btn.textContent = '▶';
+  }
+}
+
+function initFeedVideos() {
+  if (!('IntersectionObserver' in window)) {
+    // Fallback: just play all muted videos
+    document.querySelectorAll('.feed-image video').forEach(v => v.play().catch(()=>{}));
+    return;
+  }
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      const v = e.target;
+      if (e.isIntersecting) v.play().catch(()=>{});
+      else v.pause();
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('.feed-image video').forEach(v => {
+    v.muted = true;
+    v.playsInline = true;
+    obs.observe(v);
+  });
 }
 
 async function toggleLike(btn, id, collection) {
