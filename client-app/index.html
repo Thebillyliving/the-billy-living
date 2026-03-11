@@ -892,6 +892,7 @@ function openProfile()  { document.getElementById('profileScreen').classList.add
 function closeProfile() { document.getElementById('profileScreen').classList.remove('active'); }
 
 async function loadUserProfile(uid) {
+  try {
   const snap = await fbDb.ref('userProfiles/' + uid).get();
   if (!snap.exists()) return;
   const p = snap.val();
@@ -921,6 +922,7 @@ async function loadUserProfile(uid) {
     }
   }
   updatePortfolioDashCount();
+  } catch(e) { console.error('loadUserProfile:', e); }
 }
 
 function onProfileChange() {
@@ -929,6 +931,7 @@ function onProfileChange() {
 
 async function saveProfileUpdates() {
   if (!currentUser) return;
+  try {
   const updates = {
     name:      document.getElementById('profileNameInput').value.trim(),
     residence: document.getElementById('profileResidenceInput').value.trim(),
@@ -939,6 +942,7 @@ async function saveProfileUpdates() {
   document.getElementById('saveProfileBtn').style.display = 'none';
   showToast('Profile saved');
   document.getElementById('profileStoryLabel').textContent = (updates.name || 'My Profile').split(' ')[0];
+  } catch(e) { showToast('Error saving profile'); console.error(e); }
 }
 
 async function handleAvatarUpload(event) {
@@ -989,7 +993,11 @@ async function loadHomeFeed() {
     }
     const posts = Object.values(snap.val())
       .filter(p => p.published !== false)
-      .reverse();
+      .sort((a, b) => {
+        const ta = parseInt((a.id||'').replace('post_','')) || 0;
+        const tb = parseInt((b.id||'').replace('post_','')) || 0;
+        return tb - ta;
+      });
     if (!posts.length) {
       feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
       return;
@@ -1061,11 +1069,11 @@ function buildFeedItem(p) {
     + '<div class="feed-actions">'
     +   '<button class="feed-action-btn" onclick="toggleLike(this,\'' + id + '\',\'posts\')">'
     +     '<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>'
-    +     '<span class="feed-action-count">' + (p.likes||0) + '</span>'
+    +     '<span class="feed-action-count">' + fmtCount(p.likes||0) + '</span>'
     +   '</button>'
     +   '<button class="feed-action-btn" onclick="openShareSheet(_postsMap[\'' + id + '\'])">'
     +     '<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>'
-    +     '<span class="feed-action-count">' + (p.shares||0) + '</span>'
+    +     '<span class="feed-action-count">' + fmtCount(p.shares||0) + '</span>'
     +   '</button>'
     +   '<div class="feed-action-spacer"></div>'
     +   '<button class="feed-action-btn" onclick="bookmarkPost(this,\'' + id + '\',_postsMap[\'' + id + '\'])">'
@@ -1099,7 +1107,24 @@ function togglePostAudio(btn, audioId) {
   }
 }
 
+function fmtCount(n) {
+  if (!n) return 0;
+  if (n >= 1000000) return (n/1000000).toFixed(1).replace(/\.0$/,'') + 'M';
+  if (n >= 1000) return (n/1000).toFixed(1).replace(/\.0$/,'') + 'k';
+  return n;
+}
+
 let _feedSoundOn = false;
+
+// Pause all feed audio when user leaves the app, resume when they return
+document.addEventListener('visibilitychange', () => {
+  const audios = document.querySelectorAll('audio[id^="audio_post_"]');
+  if (document.hidden) {
+    audios.forEach(a => a.pause());
+  } else if (_feedSoundOn) {
+    audios.forEach(a => a.play().catch(()=>{}));
+  }
+});
 
 function toggleFeedSound(btn) {
   _feedSoundOn = !_feedSoundOn;
@@ -1257,7 +1282,7 @@ function buildTikTokItem(item) {
     + '<div class="tiktok-actions">'
     +   '<button class="tiktok-action" onclick="toggleTikTokLike(this,\'' + id + '\')">'
     +     '<div class="tiktok-action-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>'
-    +     '<span class="tiktok-action-count">' + (item.likes||0) + '</span>'
+    +     '<span class="tiktok-action-count">' + fmtCount(item.likes||0) + '</span>'
     +   '</button>'
     +   '<button class="tiktok-action" onclick="openShareSheet(_trendMap[\'' + id + '\'])">'
     +     '<div class="tiktok-action-icon"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></div>'
@@ -1545,6 +1570,7 @@ async function enterBespokeVault() {
   document.getElementById('vaultLogin').style.display = 'none';
   document.getElementById('vaultGallery').style.display = 'block';
   // Load vault assets: client-specific + defaults
+  try {
   const [clientSnap, defaultSnap] = await Promise.all([
     fbDb.ref(`vault/clients/${currentUser.uid}`).get(),
     fbDb.ref('vault/defaults').get()
@@ -1569,6 +1595,7 @@ async function enterBespokeVault() {
     + '</div>';
   }).join('');
   window._vaultAssets = _vaultAssets;
+  } catch(e) { showToast('Error loading vault'); console.error(e); }
 }
 
 function openVaultAsset(asset) {
@@ -1600,10 +1627,12 @@ function handleVaultLogout() {
 // ─── PORTFOLIO ────────────────────────────────────────────────────────────────
 async function loadPortfolio() {
   if (!currentUser) return;
+  try {
   const snap = await fbDb.ref(`portfolios/${currentUser.uid}/items`).get();
   portfolioItems = snap.exists() ? Object.values(snap.val()).sort((a,b)=>(b.savedAt||0)-(a.savedAt||0)) : [];
   updatePortfolioDashCount();
   renderPortfolioGrid();
+  } catch(e) { console.error('loadPortfolio:', e); }
 }
 
 function updatePortfolioDashCount() {
@@ -1680,11 +1709,13 @@ function shareNative() {
 
 async function addToPortfolioFromShare() {
   if (!currentUser || !currentShareItem) return;
+  try {
   const item = { id: 'port_'+Date.now(), title: currentShareItem.title||'Design', emoji: '🛋️', imageData: currentShareItem.imageData||'', description: currentShareItem.caption||'', savedAt: Date.now() };
   await fbDb.ref(`portfolios/${currentUser.uid}/items/${item.id}`).set(item);
   showToast('Saved to Portfolio');
   loadPortfolio();
   closeShareSheet();
+  } catch(e) { showToast('Error saving'); console.error(e); }
 }
 
 // ─── SHARE SHEET ─────────────────────────────────────────────────────────────
@@ -1714,12 +1745,14 @@ function handleConsultOption(type) {
 // ─── CONCIERGE / AI CHAT ─────────────────────────────────────────────────────
 async function loadConciergeHistory() {
   if (!currentUser) return;
+  try {
   const snap = await fbDb.ref(`chats/${currentUser.uid}/messages`).orderByChild('timestamp').get();
   if (!snap.exists()) return;
   const msgs = Object.values(snap.val());
   cgHistory = msgs.map(m => ({ role: m.sender === 'client' ? 'user' : 'assistant', content: m.text }));
   cgMessages = msgs;
   renderConciergeMessages();
+  } catch(e) { console.error('loadConciergeHistory:', e); }
 }
 
 function renderConciergeMessages() {
@@ -1743,6 +1776,7 @@ async function sendConciergeMessage() {
   const text = input.value.trim();
   if (!text) return;
   input.value = '';
+  try {
   const userMsg = { text, sender: 'client', senderName: currentProfile?.name||'Client', timestamp: Date.now(), read: false };
   cgMessages.push(userMsg);
   cgHistory.push({ role: 'user', content: text });
@@ -1754,6 +1788,7 @@ async function sendConciergeMessage() {
     fbDb.ref(`chats/${currentUser.uid}/clientEmail`).set(currentUser.email || '');
   }
   await sendAIMessage(text);
+  } catch(e) { console.error('sendConciergeMessage:', e); }
 }
 
 function sendAIGreeting(type) {
