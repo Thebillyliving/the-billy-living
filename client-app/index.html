@@ -236,7 +236,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .cg-send svg{width:18px;height:18px;stroke:#060D18;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .cg-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgba(201,169,98,.3);text-align:center;padding:40px;gap:12px}
 /* FIX 2: touch-action:manipulation kills 300ms delay on Android nav taps */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-height);background:rgba(18,13,6,.98);display:flex;justify-content:space-around;align-items:center;z-index:9000;border-top:1px solid rgba(201,169,98,.1);padding:0 2px;isolation:isolate;will-change:transform}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-height);background:rgba(18,13,6,.98);display:flex;justify-content:space-around;align-items:center;z-index:99000;border-top:1px solid rgba(201,169,98,.1);padding:0 2px;isolation:isolate;will-change:transform}
 .bottom-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--text-secondary);font-size:9px;cursor:pointer;padding:6px 4px;border:none;background:none;flex:1;min-width:0;letter-spacing:.2px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;position:relative;z-index:5001}
 .bottom-nav-item.active{color:var(--gold)}
 .bottom-nav-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center}
@@ -833,10 +833,19 @@ async function handleFinishSignup() {
 function showPage(pageId) {
   const soundBtn = document.getElementById('feedSoundBtn');
   if (soundBtn) soundBtn.style.display = pageId === 'home' ? 'flex' : 'none';
-  // Close profile screen if open
-  document.getElementById('profileScreen').classList.remove('active');
-  // Close AI chat overlay if open
-  // aiChatOverlay no longer exists — concierge is the chat page
+  // Force-close ALL overlays that could block nav taps
+  const _ps = document.getElementById('profileScreen');
+  if (_ps) { _ps.classList.remove('active'); _ps.style.display = 'none'; }
+  const _sb = document.getElementById('shareBackdrop');
+  if (_sb) { _sb.classList.remove('active'); _sb.style.display = 'none'; }
+  const _ss = document.querySelector('.share-sheet');
+  if (_ss) _ss.style.bottom = '-100%';
+  const _co = document.getElementById('consultOverlay');
+  if (_co) { _co.classList.remove('active'); _co.style.display = 'none'; }
+  const _im = document.getElementById('imageModal');
+  if (_im) { _im.classList.remove('active'); _im.style.display = 'none'; }
+  const _va = document.getElementById('vaultAssetDetail');
+  if (_va) _va.style.display = 'none';
   // Hide all standard pages
   document.querySelectorAll('.page').forEach(p => {
     p.classList.remove('active');
@@ -1123,11 +1132,14 @@ let _feedSoundOn = false;
 
 // Pause all feed audio when user leaves the app, resume when they return
 document.addEventListener('visibilitychange', () => {
-  const audios = document.querySelectorAll('audio[id^="audio_post_"]');
+  const feedAudios = document.querySelectorAll('audio[id^="audio_post_"]');
+  const trendAudios = document.querySelectorAll('audio[id^="taudio_"]');
   if (document.hidden) {
-    audios.forEach(a => a.pause());
-  } else if (_feedSoundOn) {
-    audios.forEach(a => a.play().catch(()=>{}));
+    feedAudios.forEach(a => a.pause());
+    trendAudios.forEach(a => a.pause());
+  } else {
+    if (_feedSoundOn) feedAudios.forEach(a => a.play().catch(()=>{}));
+    // Don't auto-resume trending audio — user must re-enter the app
   }
 });
 
