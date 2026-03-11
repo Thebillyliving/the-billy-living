@@ -470,7 +470,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     </div>
   </div>
   <div class="feed-container" id="homeFeed"></div>
-  <button class="feed-sound-btn" id="feedSoundBtn" onclick="toggleFeedSound(this)" title="Toggle sound">🔇</button>
+
 </div>
 
 <!-- PROFILE SCREEN -->
@@ -876,8 +876,6 @@ async function handleFinishSignup() {
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
 function showPage(pageId) {
-  const soundBtn = document.getElementById('feedSoundBtn');
-  if (soundBtn) soundBtn.style.display = pageId === 'home' ? 'flex' : 'none';
   // Force-close ALL overlays that could block nav taps
   const _ps = document.getElementById('profileScreen');
   if (_ps) { _ps.classList.remove('active'); _ps.style.display = 'none'; }
@@ -1136,6 +1134,7 @@ function buildFeedItem(p) {
     +     '<span class="feed-action-count">' + fmtCount(p.shares||0) + '</span>'
     +   '</button>'
     +   '<div class="feed-action-spacer"></div>'
+    +   (p.audioData ? '<button class="feed-action-btn feed-post-sound" onclick="togglePostSound(this,\'audio_post_' + id + '\')" style="font-size:18px;padding:4px 6px;">🔇</button>' : '')
     +   '<button class="feed-action-btn" onclick="bookmarkPost(this,\'' + id + '\',_postsMap[\'' + id + '\'])">'
     +     '<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>'
     +   '</button>'
@@ -1173,28 +1172,24 @@ function fmtCount(n) {
   return n;
 }
 
-let _feedSoundOn = false;
-
-// Pause all feed audio when user leaves the app, resume when they return
+// Pause all feed audio when user leaves the app
 document.addEventListener('visibilitychange', () => {
-  const feedAudios = document.querySelectorAll('audio[id^="audio_post_"]');
-  const trendAudios = document.querySelectorAll('audio[id^="taudio_"]');
   if (document.hidden) {
-    feedAudios.forEach(a => a.pause());
-    trendAudios.forEach(a => a.pause());
-  } else {
-    if (_feedSoundOn) feedAudios.forEach(a => a.play().catch(()=>{}));
-    // Don't auto-resume trending audio — user must re-enter the app
+    document.querySelectorAll('audio[id^="audio_post_"], audio[id^="taudio_"]').forEach(a => a.pause());
   }
+  // Don't auto-resume — user re-taps to play
 });
 
-function toggleFeedSound(btn) {
-  _feedSoundOn = !_feedSoundOn;
-  btn.textContent = _feedSoundOn ? '🔊' : '🔇';
-  document.querySelectorAll('audio[id^="audio_post_"]').forEach(a => {
-    if (_feedSoundOn) a.play().catch(()=>{});
-    else a.pause();
-  });
+function togglePostSound(btn, audioId) {
+  const audio = document.getElementById(audioId);
+  if (!audio) return;
+  const isPlaying = !audio.paused;
+  // Pause all feed audios and reset all sound buttons
+  document.querySelectorAll('audio[id^="audio_post_"]').forEach(a => a.pause());
+  document.querySelectorAll('.feed-post-sound').forEach(b => b.textContent = '🔇');
+  if (isPlaying) return; // was playing — toggled off
+  audio.play().catch(()=>{});
+  btn.textContent = '🔊';
 }
 
 function initFeedVideos() {
@@ -1209,10 +1204,14 @@ function initFeedVideos() {
       const audio = feedItem ? feedItem.querySelector('audio[id^="audio_post_"]') : null;
       if (e.isIntersecting) {
         v.play().catch(()=>{});
-        if (audio && _feedSoundOn) audio.play().catch(()=>{});
       } else {
         v.pause();
-        if (audio) audio.pause();
+        // Auto-pause audio and reset button when post scrolls out
+        if (audio && !audio.paused) {
+          audio.pause();
+          const soundBtn = feedItem.querySelector('.feed-post-sound');
+          if (soundBtn) soundBtn.textContent = '🔇';
+        }
       }
     });
   }, { threshold: 0.5 });
@@ -1221,16 +1220,20 @@ function initFeedVideos() {
     v.playsInline = true;
     obs.observe(v);
   });
-  // Image posts with audio
+  // Image posts with audio — pause when scrolled out
   const imgObs = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       const feedItem = e.target.closest('.feed-item');
-      const hasVideo = feedItem && feedItem.querySelector('.feed-image video');
+      if (!feedItem) return;
+      const hasVideo = feedItem.querySelector('.feed-image video');
       if (hasVideo) return;
-      const audio = feedItem ? feedItem.querySelector('audio[id^="audio_post_"]') : null;
+      const audio = feedItem.querySelector('audio[id^="audio_post_"]');
       if (!audio) return;
-      if (e.isIntersecting && _feedSoundOn) audio.play().catch(()=>{});
-      else audio.pause();
+      if (!e.isIntersecting && !audio.paused) {
+        audio.pause();
+        const soundBtn = feedItem.querySelector('.feed-post-sound');
+        if (soundBtn) soundBtn.textContent = '🔇';
+      }
     });
   }, { threshold: 0.5 });
   document.querySelectorAll('.feed-item .feed-image').forEach(el => imgObs.observe(el));
@@ -1921,7 +1924,7 @@ function openPlayStore() {
 }
 function dismissBanner() {
   const b = document.getElementById('downloadBanner');
-  if (b) { b.style.transform = 'translateY(100%)'; }
+  if (b) { b.classList.remove('show'); }
   sessionStorage.setItem('dlBannerDismissed', '1');
 }
 (function initDownloadBanner() {
