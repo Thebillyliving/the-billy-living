@@ -1096,10 +1096,19 @@ function togglePostAudio(btn, audioId) {
 }
 
 function initFeedVideos() {
-  // Auto-play all audio elements (background audio, no UI)
-  document.querySelectorAll('.feed-item audio[id^="audio_post_"]').forEach(audio => {
-    audio.play().catch(() => {});
-  });
+  // Mobile browsers block audio autoplay — unlock on first user touch
+  let audioUnlocked = false;
+  const unlockAudio = () => {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+    document.querySelectorAll('audio[id^="audio_post_"]').forEach(a => {
+      a.play().catch(()=>{});
+    });
+    document.removeEventListener('touchstart', unlockAudio);
+    document.removeEventListener('click', unlockAudio);
+  };
+  document.addEventListener('touchstart', unlockAudio, { once: true });
+  document.addEventListener('click', unlockAudio, { once: true });
 
   if (!('IntersectionObserver' in window)) {
     document.querySelectorAll('.feed-image video').forEach(v => v.play().catch(()=>{}));
@@ -1112,7 +1121,7 @@ function initFeedVideos() {
       const audio = feedItem ? feedItem.querySelector('audio[id^="audio_post_"]') : null;
       if (e.isIntersecting) {
         v.play().catch(()=>{});
-        if (audio) audio.play().catch(()=>{});
+        if (audio && audioUnlocked) audio.play().catch(()=>{});
       } else {
         v.pause();
         if (audio) audio.pause();
@@ -1132,7 +1141,7 @@ function initFeedVideos() {
       if (hasVideo) return; // handled by video observer
       const audio = feedItem ? feedItem.querySelector('audio[id^="audio_post_"]') : null;
       if (!audio) return;
-      if (e.isIntersecting) audio.play().catch(()=>{});
+      if (e.isIntersecting && audioUnlocked) audio.play().catch(()=>{});
       else audio.pause();
     });
   }, { threshold: 0.5 });
