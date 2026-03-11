@@ -58,6 +58,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .feed-image{width:100%;aspect-ratio:4/5;background:var(--bg-secondary);position:relative;overflow:hidden}
 .feed-image img{width:100%;height:100%;object-fit:cover;display:block}
 .feed-image-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-secondary);font-size:64px}
+.feed-sound-btn{position:fixed;bottom:calc(var(--nav-height) + 16px);right:16px;z-index:500;background:rgba(18,13,6,0.75);border:1px solid rgba(201,168,76,0.4);border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;backdrop-filter:blur(8px);transition:opacity .3s;}
 .feed-actions{display:flex;align-items:center;padding:10px 14px 6px;gap:16px}
 .feed-action-btn{background:none;border:none;color:var(--text-primary);cursor:pointer;display:flex;align-items:center;gap:5px;padding:4px 0;transition:opacity .2s,transform .15s}
 .feed-action-btn:active{transform:scale(.88)}
@@ -424,6 +425,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     </div>
   </div>
   <div class="feed-container" id="homeFeed"></div>
+  <button class="feed-sound-btn" id="feedSoundBtn" onclick="toggleFeedSound(this)" title="Toggle sound">🔇</button>
 </div>
 
 <!-- PROFILE SCREEN -->
@@ -829,6 +831,8 @@ async function handleFinishSignup() {
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
 function showPage(pageId) {
+  const soundBtn = document.getElementById('feedSoundBtn');
+  if (soundBtn) soundBtn.style.display = pageId === 'home' ? 'flex' : 'none';
   // Close profile screen if open
   document.getElementById('profileScreen').classList.remove('active');
   // Close AI chat overlay if open
@@ -1095,21 +1099,18 @@ function togglePostAudio(btn, audioId) {
   }
 }
 
-function initFeedVideos() {
-  // Mobile browsers block audio autoplay — unlock on first user touch
-  let audioUnlocked = false;
-  const unlockAudio = () => {
-    if (audioUnlocked) return;
-    audioUnlocked = true;
-    document.querySelectorAll('audio[id^="audio_post_"]').forEach(a => {
-      a.play().catch(()=>{});
-    });
-    document.removeEventListener('touchstart', unlockAudio);
-    document.removeEventListener('click', unlockAudio);
-  };
-  document.addEventListener('touchstart', unlockAudio, { once: true });
-  document.addEventListener('click', unlockAudio, { once: true });
+let _feedSoundOn = false;
 
+function toggleFeedSound(btn) {
+  _feedSoundOn = !_feedSoundOn;
+  btn.textContent = _feedSoundOn ? '🔊' : '🔇';
+  document.querySelectorAll('audio[id^="audio_post_"]').forEach(a => {
+    if (_feedSoundOn) a.play().catch(()=>{});
+    else a.pause();
+  });
+}
+
+function initFeedVideos() {
   if (!('IntersectionObserver' in window)) {
     document.querySelectorAll('.feed-image video').forEach(v => v.play().catch(()=>{}));
     return;
@@ -1121,7 +1122,7 @@ function initFeedVideos() {
       const audio = feedItem ? feedItem.querySelector('audio[id^="audio_post_"]') : null;
       if (e.isIntersecting) {
         v.play().catch(()=>{});
-        if (audio && audioUnlocked) audio.play().catch(()=>{});
+        if (audio && _feedSoundOn) audio.play().catch(()=>{});
       } else {
         v.pause();
         if (audio) audio.pause();
@@ -1133,15 +1134,15 @@ function initFeedVideos() {
     v.playsInline = true;
     obs.observe(v);
   });
-  // For image posts (no video), observe the feed-image div itself for audio
+  // Image posts with audio
   const imgObs = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       const feedItem = e.target.closest('.feed-item');
       const hasVideo = feedItem && feedItem.querySelector('.feed-image video');
-      if (hasVideo) return; // handled by video observer
+      if (hasVideo) return;
       const audio = feedItem ? feedItem.querySelector('audio[id^="audio_post_"]') : null;
       if (!audio) return;
-      if (e.isIntersecting && audioUnlocked) audio.play().catch(()=>{});
+      if (e.isIntersecting && _feedSoundOn) audio.play().catch(()=>{});
       else audio.pause();
     });
   }, { threshold: 0.5 });
