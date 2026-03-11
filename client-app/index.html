@@ -1068,11 +1068,7 @@ function buildFeedItem(p) {
     +     '<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>'
     +   '</button>'
     + '</div>'
-    + (p.audioData ? '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px 4px;">'
-    +   '<button onclick="togglePostAudio(this,\'audio_post_' + id + '\')" style="background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.3);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:16px;">▶</button>'
-    +   '<div style="flex:1;overflow:hidden;"><div class="tiktok-music-text" style="color:rgba(201,168,76,0.7);font-size:11px;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🎵 Background Audio</div></div>'
-    +   '<audio id="audio_post_' + id + '" src="' + p.audioData + '" loop style="display:none;"></audio>'
-    + '</div>' : '')
+    + (p.audioData ? '<audio id="audio_post_' + id + '" src="' + p.audioData + '" loop style="display:none;"></audio>' : '')
     + '<div class="feed-caption">'
     +   '<div class="feed-caption-title">' + (p.title||'') + '</div>'
     +   '<div class="feed-caption-text">' + (p.caption||'') + '</div>'
@@ -1100,16 +1096,27 @@ function togglePostAudio(btn, audioId) {
 }
 
 function initFeedVideos() {
+  // Auto-play all audio elements (background audio, no UI)
+  document.querySelectorAll('.feed-item audio[id^="audio_post_"]').forEach(audio => {
+    audio.play().catch(() => {});
+  });
+
   if (!('IntersectionObserver' in window)) {
-    // Fallback: just play all muted videos
     document.querySelectorAll('.feed-image video').forEach(v => v.play().catch(()=>{}));
     return;
   }
   const obs = new IntersectionObserver((entries) => {
     entries.forEach(e => {
+      const feedItem = e.target.closest('.feed-item');
       const v = e.target;
-      if (e.isIntersecting) v.play().catch(()=>{});
-      else v.pause();
+      const audio = feedItem ? feedItem.querySelector('audio[id^="audio_post_"]') : null;
+      if (e.isIntersecting) {
+        v.play().catch(()=>{});
+        if (audio) audio.play().catch(()=>{});
+      } else {
+        v.pause();
+        if (audio) audio.pause();
+      }
     });
   }, { threshold: 0.5 });
   document.querySelectorAll('.feed-image video').forEach(v => {
@@ -1117,6 +1124,19 @@ function initFeedVideos() {
     v.playsInline = true;
     obs.observe(v);
   });
+  // For image posts (no video), observe the feed-image div itself for audio
+  const imgObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      const feedItem = e.target.closest('.feed-item');
+      const hasVideo = feedItem && feedItem.querySelector('.feed-image video');
+      if (hasVideo) return; // handled by video observer
+      const audio = feedItem ? feedItem.querySelector('audio[id^="audio_post_"]') : null;
+      if (!audio) return;
+      if (e.isIntersecting) audio.play().catch(()=>{});
+      else audio.pause();
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('.feed-item .feed-image').forEach(el => imgObs.observe(el));
 }
 
 async function toggleLike(btn, id, collection) {
