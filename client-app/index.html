@@ -2464,13 +2464,20 @@ function dismissBanner() {
 })();
 
 // ─── SPLASH DISMISS ──────────────────────────────────────────────────────────
-window.addEventListener('load', () => {
-  setTimeout(() => {
+(function() {
+  let dismissed = false;
+  function dismissSplash() {
+    if (dismissed) return;
+    dismissed = true;
     const s = document.getElementById('splashScreen');
     if (s) s.classList.add('hidden');
-    setTimeout(() => { if (s) s.remove(); }, 700);
-  }, 2400);
-});
+    setTimeout(() => { if (s && s.parentNode) s.remove(); }, 700);
+  }
+  // Dismiss on load (normal case)
+  window.addEventListener('load', () => setTimeout(dismissSplash, 2400));
+  // Hard fallback: always dismiss after 3.5s max no matter what
+  setTimeout(dismissSplash, 3500);
+})();
 </script>
 <div id="vaultGlint"></div>
 </body>
