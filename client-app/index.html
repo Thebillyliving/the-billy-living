@@ -353,7 +353,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .share-action-item-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .share-action-item-icon svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .share-action-item-label{font-size:15px;color:#E5E5E5}
-#gatekeeper{position:fixed;inset:0;z-index:9999;background:#060D18;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 28px;transition:opacity .6s ease}
+#gatekeeper{position:fixed;inset:0;z-index:100001;background:#060D18;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 28px;transition:opacity .6s ease}
 #gatekeeper.hidden{opacity:0;pointer-events:none}
 .gate-logo{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:#C9A862;letter-spacing:2px;text-align:center;margin-bottom:6px}
 .gate-tagline{font-size:11px;color:rgba(201,169,98,.5);letter-spacing:2.5px;text-transform:uppercase;text-align:center;margin-bottom:44px}
@@ -854,29 +854,45 @@ function switchGateTab(tab, el) {
   document.getElementById('gateSignup').style.display = tab === 'signup' ? 'block' : 'none';
 }
 
+function gateAuthError(code, context) {
+  // Returns a friendly, specific error message for every Firebase Auth error code
+  const map = {
+    // ── Sign-in errors ──────────────────────────────────────────────────────
+    'auth/user-not-found':        'No account found with this email. Please create an account.',
+    'auth/wrong-password':        'Wrong password. Please try again.',
+    'auth/invalid-credential':    'Wrong password. Please try again.',
+    'auth/invalid-email':         'Please enter a valid email address.',
+    'auth/user-disabled':         'This account has been disabled. Please contact support.',
+    'auth/too-many-requests':     'Too many failed attempts. Please wait a few minutes and try again.',
+    'auth/network-request-failed':'No internet connection. Please check your network and try again.',
+    // ── Sign-up errors ──────────────────────────────────────────────────────
+    'auth/email-already-in-use':  'An account with this email already exists. Please sign in instead.',
+    'auth/weak-password':         'Password is too weak. Please use at least 6 characters.',
+    'auth/operation-not-allowed': 'Account creation is currently unavailable. Please try again later.',
+    // ── General ─────────────────────────────────────────────────────────────
+    'auth/requires-recent-login': 'Session expired. Please sign in again.',
+    'auth/popup-blocked':         'Popup was blocked by your browser. Please allow popups and retry.',
+  };
+  return map[code] || (context === 'login'
+    ? 'Sign in failed. Please check your email and password.'
+    : 'Account creation failed. Please check your details and try again.');
+}
+
 async function handleLogin() {
   const btn = document.getElementById('loginBtn');
   const err = document.getElementById('loginError');
   const email = document.getElementById('loginEmail').value.trim();
   const pw    = document.getElementById('loginPassword').value;
-  if (!email || !pw) { err.textContent = 'Please fill in all fields.'; return; }
-  btn.disabled = true; btn.textContent = 'Signing in…'; err.textContent = '';
+  err.textContent = '';
+  if (!email && !pw) { err.textContent = 'Please enter your email and password.'; return; }
+  if (!email)        { err.textContent = 'Please enter your email address.'; return; }
+  if (!pw)           { err.textContent = 'Please enter your password.'; return; }
+  btn.disabled = true; btn.textContent = 'Signing in…';
   try {
     await fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     await fbAuth.signInWithEmailAndPassword(email, pw);
   } catch(e) {
-    const code = e.code || '';
-    if (code === 'auth/user-not-found') {
-      err.textContent = 'No account found with this email. Please create an account.';
-    } else if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
-      err.textContent = 'Incorrect password. Please try again.';
-    } else if (code === 'auth/invalid-email') {
-      err.textContent = 'Please enter a valid email address.';
-    } else if (code === 'auth/too-many-requests') {
-      err.textContent = 'Too many attempts. Please wait a moment and try again.';
-    } else {
-      err.textContent = 'Sign in failed. Please check your details and try again.';
-    }
+    err.textContent = gateAuthError(e.code || '', 'login');
     btn.disabled = false; btn.textContent = 'Enter';
   }
 }
@@ -887,22 +903,29 @@ async function handleSignup() {
   const name  = document.getElementById('signupName').value.trim();
   const email = document.getElementById('signupEmail').value.trim();
   const pw    = document.getElementById('signupPassword').value;
-  if (!name || !email || !pw) { err.textContent = 'Please fill in all fields.'; return; }
+  err.textContent = '';
+  if (!name)         { err.textContent = 'Please enter your full name.'; return; }
+  if (!email)        { err.textContent = 'Please enter your email address.'; return; }
+  if (!pw)           { err.textContent = 'Please enter a password.'; return; }
   if (pw.length < 6) { err.textContent = 'Password must be at least 6 characters.'; return; }
-  btn.disabled = true; btn.textContent = 'Creating…'; err.textContent = '';
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) { err.textContent = 'Please enter a valid email address.'; return; }
+  btn.disabled = true; btn.textContent = 'Creating…';
   try {
     pendingSignupName = name; pendingSignupEmail = email; pendingSignupPw = pw;
     document.getElementById('gateStep1').style.display = 'none';
     document.getElementById('gateStep2').style.display = 'block';
     document.getElementById('gateNameReveal').textContent = name.split(' ')[0];
   } catch(e) {
-    err.textContent = e.message;
+    err.textContent = gateAuthError(e.code || '', 'signup');
     btn.disabled = false; btn.textContent = 'Continue →';
   }
 }
 
 async function handleFinishSignup() {
   const btn = document.getElementById('finishBtn');
+  const err = document.getElementById('photoError');
+  err.textContent = '';
   btn.disabled = true; btn.textContent = 'Creating account…';
   try {
     const cred = await fbAuth.createUserWithEmailAndPassword(pendingSignupEmail, pendingSignupPw);
@@ -911,7 +934,7 @@ async function handleFinishSignup() {
       avatar: '', residence: '', mobile: '', measure: '', createdAt: Date.now()
     });
   } catch(e) {
-    document.getElementById('photoError').textContent = e.message;
+    err.textContent = gateAuthError(e.code || '', 'signup');
     btn.disabled = false; btn.textContent = 'Enter The Billy Living';
   }
 }
