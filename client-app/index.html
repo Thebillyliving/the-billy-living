@@ -836,11 +836,9 @@ fbAuth.onAuthStateChanged(user => {
     currentUser = user;
     hideGatekeeper();
     loadUserProfile(user.uid);
-    loadHomeFeed();
-    loadTrending();
-    loadCatalog();
-    loadPortfolio();
-    loadConciergeHistory();
+    loadHomeFeed();   // immediate — user sees this first
+    loadCatalog();    // immediate — cache-first, near-instant
+    // Trending, portfolio, concierge deferred — loaded on first navigation to each
   } else {
     currentUser = null;
     document.getElementById('gatekeeper').classList.remove('hidden');
@@ -975,31 +973,40 @@ function showPage(pageId) {
     // Never set inline display — CSS .active class controls visibility
   }
 
-  // Load portfolio when navigating to it
+  // On-demand loads — only fire once on first visit, or on explicit refresh
   if (pageId === 'portfolio') loadPortfolio();
+  if (pageId === 'trending' && !document.querySelector('.tiktok-item')) loadTrending();
+  if (pageId === 'concierge' && _conciergeListener === null) loadConciergeHistory();
 
-  // Vault session restore — auto-enter if within 24hrs
-  if (pageId === 'vault' && !vaultSession) {
-    const saved = localStorage.getItem('vaultSession');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        const hrs24 = 24 * 60 * 60 * 1000;
-        if (parsed.unlockedAt && (Date.now() - parsed.unlockedAt) < hrs24) {
-          vaultSession = parsed;
-          // Restore personalized greeting if name available
-          const _savedName = (parsed.name || '').split(' ')[0];
-          if (_savedName) {
-            const titleEl = document.getElementById('vaultWelcomeTitle');
-            const subEl = document.getElementById('vaultWelcomeSub');
-            if (titleEl) titleEl.innerHTML = 'Welcome back, ' + _savedName + '.<br><span style="font-size:22px;opacity:.75">Your Inner Circle awaits.</span>';
-            if (subEl) subEl.textContent = 'Your private archive is ready.';
+  // Vault page — always reset button to clean state on every visit
+  if (pageId === 'vault') {
+    const _vb = document.getElementById('vault-btn');
+    if (_vb) { _vb.textContent = 'UNLOCK'; _vb.disabled = false; }
+    // Auto-enter if valid session within 24hrs
+    if (!vaultSession) {
+      const saved = localStorage.getItem('vaultSession');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          const hrs24 = 24 * 60 * 60 * 1000;
+          if (parsed.unlockedAt && (Date.now() - parsed.unlockedAt) < hrs24) {
+            vaultSession = parsed;
+            const _savedName = (parsed.name || '').split(' ')[0];
+            if (_savedName) {
+              const titleEl = document.getElementById('vaultWelcomeTitle');
+              const subEl   = document.getElementById('vaultWelcomeSub');
+              if (titleEl) titleEl.innerHTML = 'Welcome back, ' + _savedName + '.<br><span style="font-size:22px;opacity:.75">Your Inner Circle awaits.</span>';
+              if (subEl)   subEl.textContent  = 'Your private archive is ready.';
+            }
+            enterBespokeVault();
+          } else {
+            localStorage.removeItem('vaultSession');
           }
-          setTimeout(() => enterBespokeVault(), 80);
-        } else {
-          localStorage.removeItem('vaultSession');
-        }
-      } catch(e) { localStorage.removeItem('vaultSession'); }
+        } catch(e) { localStorage.removeItem('vaultSession'); }
+      }
+    } else {
+      // Already have a session — go straight in
+      enterBespokeVault();
     }
   }
 
@@ -1144,60 +1151,73 @@ function requestConciergeSupport() {
 // Lookup map — keeps base64 blobs OUT of onclick HTML attributes
 const _postsMap = {};
 
+function _renderFeed(posts) {
+  const feed = document.getElementById('homeFeed');
+  if (!posts || !posts.length) {
+    feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
+    return;
+  }
+  posts.forEach(p => { _postsMap[p.id] = p; });
+  feed.innerHTML = posts.map(p => buildFeedItem(p)).join('');
+  initCarousels();
+  initFeedVideos();
+  // Restore liked + bookmarked state
+  if (currentUser) {
+    fbDb.ref(`userLikes/${currentUser.uid}`).get().then(likeSnap => {
+      if (!likeSnap.exists()) return;
+      const liked = likeSnap.val();
+      document.querySelectorAll('.feed-item').forEach(item => {
+        const pid = item.dataset.id;
+        if (pid && liked[pid]) { const btn = item.querySelector('.feed-action-btn'); if (btn) btn.classList.add('liked'); }
+      });
+    });
+    fbDb.ref(`userBookmarks/${currentUser.uid}`).get().then(bmSnap => {
+      if (!bmSnap.exists()) return;
+      const bookmarks = bmSnap.val();
+      document.querySelectorAll('.feed-item').forEach(item => {
+        const pid = item.dataset.id;
+        if (pid && bookmarks[pid]) {
+          const btns = item.querySelectorAll('.feed-action-btn');
+          const bmBtn = btns[btns.length - 1];
+          if (bmBtn) bmBtn.classList.add('bookmarked');
+        }
+      });
+    });
+  }
+}
+
 async function loadHomeFeed() {
   const feed = document.getElementById('homeFeed');
+  const _sortPosts = arr => arr.filter(p => p.published !== false).sort((a,b) => {
+    const ta = parseInt((a.id||'').replace('post_','')) || 0;
+    const tb = parseInt((b.id||'').replace('post_','')) || 0;
+    return tb - ta;
+  });
+
+  // ── CACHE-FIRST: render instantly from localStorage ──
+  try {
+    const cached = JSON.parse(localStorage.getItem('tbl_feed_posts') || '[]');
+    if (cached.length) _renderFeed(_sortPosts(cached));
+  } catch(e) {}
+
+  // ── BACKGROUND: fetch from Firebase, update if changed ──
   try {
     const snap = await fbDb.ref('content/posts').get();
     if (!snap.exists()) {
-      feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
+      if (!document.querySelector('.feed-item')) feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
       return;
     }
-    const posts = Object.values(snap.val())
-      .filter(p => p.published !== false)
-      .sort((a, b) => {
-        const ta = parseInt((a.id||'').replace('post_','')) || 0;
-        const tb = parseInt((b.id||'').replace('post_','')) || 0;
-        return tb - ta;
-      });
-    if (!posts.length) {
-      feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
-      return;
-    }
-    posts.forEach(p => { _postsMap[p.id] = p; });
-    feed.innerHTML = posts.map(p => buildFeedItem(p)).join('');
-    initCarousels();
-    initFeedVideos();
-    // Restore per-user liked state
-    if (currentUser) {
-      fbDb.ref(`userLikes/${currentUser.uid}`).get().then(likeSnap => {
-        if (!likeSnap.exists()) return;
-        const liked = likeSnap.val();
-        document.querySelectorAll('.feed-item').forEach(item => {
-          const pid = item.dataset.id;
-          if (pid && liked[pid]) {
-            const btn = item.querySelector('.feed-action-btn');
-            if (btn) btn.classList.add('liked');
-          }
-        });
-      });
-      // Restore bookmarked state
-      fbDb.ref(`userBookmarks/${currentUser.uid}`).get().then(bmSnap => {
-        if (!bmSnap.exists()) return;
-        const bookmarks = bmSnap.val();
-        document.querySelectorAll('.feed-item').forEach(item => {
-          const pid = item.dataset.id;
-          if (pid && bookmarks[pid]) {
-            const btns = item.querySelectorAll('.feed-action-btn');
-            // Bookmark is the last button
-            const bmBtn = btns[btns.length - 1];
-            if (bmBtn) bmBtn.classList.add('bookmarked');
-          }
-        });
-      });
-    }
+    const posts = _sortPosts(Object.values(snap.val()));
+    if (!posts.length) return;
+    // Save to cache (metadata only — skip large imageData blobs to avoid quota)
+    try {
+      const meta = posts.map(p => { const {imageData, videoData, audioData, ...rest} = p; return rest; });
+      localStorage.setItem('tbl_feed_posts', JSON.stringify(meta));
+    } catch(e) {}
+    _renderFeed(posts);
   } catch(e) {
     console.error('loadHomeFeed:', e);
-    feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
+    if (!document.querySelector('.feed-item')) feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
   }
 }
 
@@ -1420,46 +1440,43 @@ const _trendMap = {};
 
 async function loadTrending() {
   const container = document.getElementById('trendingContainer');
+  const EMPTY_HTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:Cormorant Garamond,serif;font-size:22px">No trending yet</div>';
+
+  // ── CACHE-FIRST ──
+  try {
+    const cached = JSON.parse(localStorage.getItem('tbl_trending') || '[]');
+    if (cached.length) {
+      cached.forEach(item => { _trendMap[item.id] = item; });
+      container.innerHTML = cached.map(item => buildTikTokItem(item)).join('');
+      _initTrendingObservers(container);
+    }
+  } catch(e) {}
+
+  // ── BACKGROUND REFRESH ──
   let snap;
   try { snap = await fbDb.ref('content/trending').get(); }
-  catch(e) { console.error('loadTrending error:', e); container.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:Cormorant Garamond,serif;font-size:22px">No trending yet</div>'; return; }
-  if (!snap.exists()) { container.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:Cormorant Garamond,serif;font-size:22px">No trending yet</div>'; return; }
+  catch(e) { console.error('loadTrending error:', e); if (!container.querySelector('.tiktok-item')) container.innerHTML = EMPTY_HTML; return; }
+  if (!snap.exists()) { if (!container.querySelector('.tiktok-item')) container.innerHTML = EMPTY_HTML; return; }
   const items = Object.values(snap.val()).filter(item => item.published !== false);
-  if (!items.length) { container.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:Cormorant Garamond,serif;font-size:22px">No trending yet</div>'; return; }
+  if (!items.length) { if (!container.querySelector('.tiktok-item')) container.innerHTML = EMPTY_HTML; return; }
+  // Save metadata to cache (no blobs)
+  try {
+    const meta = items.map(i => { const {videoData, imageData, audioData, ...rest} = i; return rest; });
+    localStorage.setItem('tbl_trending', JSON.stringify(meta));
+  } catch(e) {}
   items.forEach(item => { _trendMap[item.id] = item; });
   container.innerHTML = items.map(item => buildTikTokItem(item)).join('');
-  const firstVideo = container.querySelector('video');
-  if (firstVideo) firstVideo.play().catch(()=>{});
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      const v = e.target.querySelector('video');
-      if (v) { if (e.isIntersecting) v.play().catch(()=>{}); else v.pause(); }
-      // Auto-play audio when item scrolls into view, pause when out
-      const audioEl = e.target.querySelector('audio[id^="taudio_"]');
-      if (audioEl) {
-        if (e.isIntersecting) {
-          audioEl.play().catch(()=>{});
-        } else {
-          audioEl.pause();
-        }
-      }
-    });
-  }, { threshold: 0.6 });
-  container.querySelectorAll('.tiktok-item').forEach(el => observer.observe(el));
-  // Restore per-user trending liked state
+  _initTrendingObservers(container);
+  // Restore liked/bookmarked state after fresh load
   if (currentUser) {
     fbDb.ref(`userTrendingLikes/${currentUser.uid}`).get().then(likeSnap => {
       if (!likeSnap.exists()) return;
       const liked = likeSnap.val();
       container.querySelectorAll('.tiktok-item').forEach(el => {
         const pid = el.dataset.id;
-        if (pid && liked[pid]) {
-          const btn = el.querySelector('.tiktok-action');
-          if (btn) btn.classList.add('liked');
-        }
+        if (pid && liked[pid]) { const btn = el.querySelector('.tiktok-action'); if (btn) btn.classList.add('liked'); }
       });
     });
-    // Restore trending bookmarked state
     fbDb.ref(`userBookmarks/${currentUser.uid}`).get().then(bmSnap => {
       if (!bmSnap.exists()) return;
       const bookmarks = bmSnap.val();
@@ -1467,14 +1484,27 @@ async function loadTrending() {
         const pid = el.dataset.id;
         if (pid && bookmarks['trend_' + pid]) {
           const btns = el.querySelectorAll('.tiktok-action');
-          // Bookmark is the last tiktok-action
           const bmBtn = btns[btns.length - 1];
           if (bmBtn) bmBtn.classList.add('bookmarked');
         }
       });
     });
   }
-  // Init tiktok carousels (multi-image items)
+}
+
+function _initTrendingObservers(container) {
+  const firstVideo = container.querySelector('video');
+  if (firstVideo) firstVideo.play().catch(()=>{});
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      const v = e.target.querySelector('video');
+      if (v) { if (e.isIntersecting) v.play().catch(()=>{}); else v.pause(); }
+      const audioEl = e.target.querySelector('audio[id^="taudio_"]');
+      if (audioEl) { if (e.isIntersecting) audioEl.play().catch(()=>{}); else audioEl.pause(); }
+    });
+  }, { threshold: 0.6 });
+  container.querySelectorAll('.tiktok-item').forEach(el => observer.observe(el));
+  // Init carousels
   container.querySelectorAll('.tiktok-car').forEach(car => {
     const trackId = car.id.replace('car_t_','track_t_');
     const track = document.getElementById(trackId);
@@ -1838,6 +1868,7 @@ async function handleVaultUnlock() {
         const subEl = document.getElementById('vaultWelcomeSub');
         if (titleEl) titleEl.innerHTML = 'Welcome back, ' + _vipFirstName + '.<br><span style="font-size:22px;opacity:.75">Your Inner Circle awaits.</span>';
         if (subEl) subEl.textContent = 'Your private archive is ready.';
+        btn.textContent = 'UNLOCK'; btn.disabled = false;  // reset for next time login form appears
         document.getElementById('vault-login-form').style.display = 'none';
         document.getElementById('vault-success-state').style.display = 'flex';
         return;
@@ -1849,42 +1880,65 @@ async function handleVaultUnlock() {
   btn.textContent = 'UNLOCK'; btn.disabled = false;
 }
 
-async function enterBespokeVault() {
-  if (!currentUser || !vaultSession) return;
-  document.getElementById('vaultLogin').style.display = 'none';
-  document.getElementById('vaultGallery').style.display = 'block';
-  // Gold shimmer glint
-  const glint = document.getElementById('vaultGlint');
-  if (glint) {
-    glint.style.display = 'block';
-    setTimeout(() => { glint.style.display = 'none'; }, 1200);
-  }
-  // Load vault assets: client-specific + defaults
-  try {
-  const [clientSnap, defaultSnap] = await Promise.all([
-    fbDb.ref(`vault/clients/${currentUser.uid}`).get(),
-    fbDb.ref('vault/defaults').get()
-  ]);
-  const assets = [];
-  if (defaultSnap.exists()) assets.push(...Object.values(defaultSnap.val()));
-  if (clientSnap.exists())  assets.push(...Object.values(clientSnap.val()));
-  document.getElementById('vaultGalleryMeta').textContent = `${assets.length} Exclusive Item${assets.length!==1?'s':''} · VIP Access`;
+function _renderVaultGrid(assets) {
   const grid = document.getElementById('vaultGalleryGrid');
-  if (!assets.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(212,175,55,.3);font-family:Cormorant Garamond,serif;font-size:18px">Your exclusive content is being curated</div>'; return; }
-  const _vaultAssets = {};
-  assets.forEach((a, i) => { _vaultAssets['va_' + i] = a; });
+  const meta = document.getElementById('vaultGalleryMeta');
+  if (meta) meta.textContent = `${assets.length} Exclusive Item${assets.length!==1?'s':''} · VIP Access`;
+  if (!assets.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(212,175,55,.3);font-family:Cormorant Garamond,serif;font-size:18px">Your exclusive content is being curated</div>';
+    return;
+  }
+  const va = {};
+  assets.forEach((a, i) => { va['va_' + i] = a; });
+  window._vaultAssets = va;
   grid.innerHTML = assets.map((a, i) => {
     const key = 'va_' + i;
-    _vaultAssets[key] = a;
-    return '<div style="aspect-ratio:1;border:1px solid rgba(212,175,55,.18);border-radius:8px;overflow:hidden;background:#0E0A02;cursor:pointer;position:relative" onclick="openVaultAsset(_vaultAssets[\'' + key + '\'])">'
-      + (a.thumb ? '<img src="' + a.thumb + '" style="width:100%;height:100%;object-fit:cover">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px">🔐</div>')
+    return '<div style="aspect-ratio:1;border:1px solid rgba(212,175,55,.18);border-radius:8px;overflow:hidden;background:#0E0A02;cursor:pointer;position:relative" onclick="openVaultAsset(window._vaultAssets['' + key + ''])">'
+      + (a.thumb ? '<img src="' + a.thumb + '" style="width:100%;height:100%;object-fit:cover" loading="lazy">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px">🔐</div>')
       + '<div style="position:absolute;bottom:0;left:0;right:0;padding:10px 10px 8px;background:linear-gradient(transparent,rgba(0,0,0,.75))">'
       +   '<div style="font-family:\'Cormorant Garamond\',serif;font-size:13px;color:#E8D5A3;letter-spacing:.5px;line-height:1.2">' + (a.title||'Exclusive') + '</div>'
       +   '<div style="font-size:9px;color:rgba(212,175,55,.5);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px">' + (a.cat||'Collection') + '</div>'
       + '</div>'
     + '</div>';
   }).join('');
-  window._vaultAssets = _vaultAssets;
+}
+
+async function enterBespokeVault() {
+  if (!vaultSession) return;
+  document.getElementById('vaultLogin').style.display = 'none';
+  document.getElementById('vaultGallery').style.display = 'block';
+  // Gold shimmer glint
+  const glint = document.getElementById('vaultGlint');
+  if (glint) { glint.style.display = 'block'; setTimeout(() => { glint.style.display = 'none'; }, 1200); }
+
+  // ── CACHE-FIRST: render instantly ──
+  // Use uid if ready, else phone as fallback cache key (same data, user-specific)
+  const cacheKey = currentUser ? ('tbl_vault_' + currentUser.uid) : ('tbl_vault_phone_' + vaultSession.phone);
+  try {
+    const cached = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+    if (cached.length) _renderVaultGrid(cached);
+  } catch(e) {}
+
+  // ── BACKGROUND: fetch fresh from Firebase (requires auth) ──
+  if (!currentUser) {
+    // Auth not ready yet — onAuthStateChanged will re-trigger loadUserProfile
+    // which will set currentUser; user can tap "ENTER YOUR VAULT" again if needed
+    return;
+  }
+  try {
+    const [clientSnap, defaultSnap] = await Promise.all([
+      fbDb.ref(`vault/clients/${currentUser.uid}`).get(),
+      fbDb.ref('vault/defaults').get()
+    ]);
+    const assets = [];
+    if (defaultSnap.exists()) assets.push(...Object.values(defaultSnap.val()));
+    if (clientSnap.exists())  assets.push(...Object.values(clientSnap.val()));
+    // Cache thumb/title/cat only — skip large url blobs for quota safety
+    try {
+      const cacheable = assets.map(a => ({ title: a.title||'', cat: a.cat||'', thumb: a.thumb||'' }));
+      localStorage.setItem(cacheKey, JSON.stringify(cacheable));
+    } catch(e) {}
+    _renderVaultGrid(assets);
   } catch(e) { showToast('Error loading vault'); console.error(e); }
 }
 
@@ -1905,23 +1959,46 @@ function closeVaultAsset() { document.getElementById('vaultAssetDetail').style.d
 function handleVaultLogout() {
   vaultSession = null;
   localStorage.removeItem('vaultSession');
+  if (currentUser) { try { localStorage.removeItem('tbl_vault_' + currentUser.uid); } catch(e) {} }
   document.getElementById('vaultLogin').style.display = 'flex';
   document.getElementById('vaultGallery').style.display = 'none';
   document.getElementById('vault-login-form').style.display = 'flex';
   document.getElementById('vault-success-state').style.display = 'none';
   document.getElementById('vault-phone').value = '';
   document.getElementById('vault-pin').value = '';
+  // Always reset button — it may be stuck as "Verifying…" from previous session
+  const vaultBtn = document.getElementById('vault-btn');
+  if (vaultBtn) { vaultBtn.textContent = 'UNLOCK'; vaultBtn.disabled = false; }
   clearVaultError();
 }
 
 // ─── PORTFOLIO ────────────────────────────────────────────────────────────────
 async function loadPortfolio() {
   if (!currentUser) return;
+  // ── CACHE-FIRST: render instantly from memory or localStorage ──
+  const cacheKey = 'tbl_portfolio_' + currentUser.uid;
+  if (!portfolioItems.length) {
+    try {
+      const cached = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+      if (cached.length) { portfolioItems = cached; updatePortfolioDashCount(); renderPortfolioGrid(); }
+    } catch(e) {}
+  } else {
+    // Already have items in memory — render immediately
+    updatePortfolioDashCount();
+    renderPortfolioGrid();
+  }
+  // ── BACKGROUND: sync from Firebase ──
   try {
-  const snap = await fbDb.ref(`portfolios/${currentUser.uid}/items`).get();
-  portfolioItems = snap.exists() ? Object.values(snap.val()).sort((a,b)=>(b.savedAt||0)-(a.savedAt||0)) : [];
-  updatePortfolioDashCount();
-  renderPortfolioGrid();
+    const snap = await fbDb.ref(`portfolios/${currentUser.uid}/items`).get();
+    const fresh = snap.exists() ? Object.values(snap.val()).sort((a,b)=>(b.savedAt||0)-(a.savedAt||0)) : [];
+    portfolioItems = fresh;
+    // Cache metadata only (skip imageData blobs)
+    try {
+      const meta = fresh.map(p => { const {imageData, ...rest} = p; return {...rest, imageData: p.imageData ? '[img]' : ''}; });
+      localStorage.setItem(cacheKey, JSON.stringify(meta));
+    } catch(e) {}
+    updatePortfolioDashCount();
+    renderPortfolioGrid();
   } catch(e) { console.error('loadPortfolio:', e); }
 }
 
