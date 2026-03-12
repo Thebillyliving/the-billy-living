@@ -369,7 +369,8 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .gate-btn{width:100%;padding:15px;background:linear-gradient(135deg,#C9A862,#8B6914);border:none;border-radius:8px;color:#060D18;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-family:'Jost',sans-serif;cursor:pointer;margin-top:8px;transition:opacity .2s}
 .gate-btn:active{opacity:.85}
 .gate-btn:disabled{opacity:.5;cursor:not-allowed}
-.gate-error{font-size:12px;color:#ff6b6b;text-align:center;margin-top:12px;min-height:18px;font-family:'Jost',sans-serif}
+.gate-error{font-size:13px;color:#ff6b6b;text-align:center;margin-top:14px;font-family:'Jost',sans-serif;background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.25);border-radius:8px;padding:10px 12px;display:none;line-height:1.4;letter-spacing:.2px}
+.gate-error.visible{display:block}
 #gateStep2{display:none;text-align:center}
 .gate-photo-ring{width:110px;height:110px;border-radius:50%;border:2px solid #C9A862;margin:0 auto 20px;position:relative;cursor:default;overflow:hidden;background:rgba(201,169,98,.06);display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(201,169,98,.15)}
 .gate-photo-ring img{width:100%;height:100%;object-fit:cover;display:none}
@@ -855,9 +856,7 @@ function switchGateTab(tab, el) {
 }
 
 function gateAuthError(code, context) {
-  // Returns a friendly, specific error message for every Firebase Auth error code
   const map = {
-    // ── Sign-in errors ──────────────────────────────────────────────────────
     'auth/user-not-found':        'No account found with this email. Please create an account.',
     'auth/wrong-password':        'Wrong password. Please try again.',
     'auth/invalid-credential':    'Wrong password. Please try again.',
@@ -865,51 +864,58 @@ function gateAuthError(code, context) {
     'auth/user-disabled':         'This account has been disabled. Please contact support.',
     'auth/too-many-requests':     'Too many failed attempts. Please wait a few minutes and try again.',
     'auth/network-request-failed':'No internet connection. Please check your network and try again.',
-    // ── Sign-up errors ──────────────────────────────────────────────────────
     'auth/email-already-in-use':  'An account with this email already exists. Please sign in instead.',
     'auth/weak-password':         'Password is too weak. Please use at least 6 characters.',
     'auth/operation-not-allowed': 'Account creation is currently unavailable. Please try again later.',
-    // ── General ─────────────────────────────────────────────────────────────
     'auth/requires-recent-login': 'Session expired. Please sign in again.',
-    'auth/popup-blocked':         'Popup was blocked by your browser. Please allow popups and retry.',
   };
   return map[code] || (context === 'login'
     ? 'Sign in failed. Please check your email and password.'
     : 'Account creation failed. Please check your details and try again.');
 }
 
+function showGateError(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+function clearGateError(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = '';
+  el.classList.remove('visible');
+}
+
 async function handleLogin() {
   const btn = document.getElementById('loginBtn');
-  const err = document.getElementById('loginError');
   const email = document.getElementById('loginEmail').value.trim();
   const pw    = document.getElementById('loginPassword').value;
-  err.textContent = '';
-  if (!email && !pw) { err.textContent = 'Please enter your email and password.'; return; }
-  if (!email)        { err.textContent = 'Please enter your email address.'; return; }
-  if (!pw)           { err.textContent = 'Please enter your password.'; return; }
+  clearGateError('loginError');
+  if (!email && !pw) { showGateError('loginError', 'Please enter your email and password.'); return; }
+  if (!email)        { showGateError('loginError', 'Please enter your email address.'); return; }
+  if (!pw)           { showGateError('loginError', 'Please enter your password.'); return; }
   btn.disabled = true; btn.textContent = 'Signing in…';
   try {
     await fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     await fbAuth.signInWithEmailAndPassword(email, pw);
   } catch(e) {
-    err.textContent = gateAuthError(e.code || '', 'login');
+    showGateError('loginError', gateAuthError(e.code || '', 'login'));
     btn.disabled = false; btn.textContent = 'Enter';
   }
 }
 
 async function handleSignup() {
   const btn = document.getElementById('signupBtn');
-  const err = document.getElementById('signupError');
   const name  = document.getElementById('signupName').value.trim();
   const email = document.getElementById('signupEmail').value.trim();
   const pw    = document.getElementById('signupPassword').value;
-  err.textContent = '';
-  if (!name)         { err.textContent = 'Please enter your full name.'; return; }
-  if (!email)        { err.textContent = 'Please enter your email address.'; return; }
-  if (!pw)           { err.textContent = 'Please enter a password.'; return; }
-  if (pw.length < 6) { err.textContent = 'Password must be at least 6 characters.'; return; }
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) { err.textContent = 'Please enter a valid email address.'; return; }
+  clearGateError('signupError');
+  if (!name)         { showGateError('signupError', 'Please enter your full name.'); return; }
+  if (!email)        { showGateError('signupError', 'Please enter your email address.'); return; }
+  if (!pw)           { showGateError('signupError', 'Please enter a password.'); return; }
+  if (pw.length < 6) { showGateError('signupError', 'Password must be at least 6 characters.'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showGateError('signupError', 'Please enter a valid email address.'); return; }
   btn.disabled = true; btn.textContent = 'Creating…';
   try {
     pendingSignupName = name; pendingSignupEmail = email; pendingSignupPw = pw;
@@ -917,15 +923,14 @@ async function handleSignup() {
     document.getElementById('gateStep2').style.display = 'block';
     document.getElementById('gateNameReveal').textContent = name.split(' ')[0];
   } catch(e) {
-    err.textContent = gateAuthError(e.code || '', 'signup');
+    showGateError('signupError', gateAuthError(e.code || '', 'signup'));
     btn.disabled = false; btn.textContent = 'Continue →';
   }
 }
 
 async function handleFinishSignup() {
   const btn = document.getElementById('finishBtn');
-  const err = document.getElementById('photoError');
-  err.textContent = '';
+  clearGateError('photoError');
   btn.disabled = true; btn.textContent = 'Creating account…';
   try {
     const cred = await fbAuth.createUserWithEmailAndPassword(pendingSignupEmail, pendingSignupPw);
@@ -934,10 +939,27 @@ async function handleFinishSignup() {
       avatar: '', residence: '', mobile: '', measure: '', createdAt: Date.now()
     });
   } catch(e) {
-    err.textContent = gateAuthError(e.code || '', 'signup');
+    showGateError('photoError', gateAuthError(e.code || '', 'signup'));
     btn.disabled = false; btn.textContent = 'Enter The Billy Living';
   }
 }
+
+// Enter key triggers login/signup
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('loginPassword').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleLogin();
+  });
+  document.getElementById('loginEmail').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleLogin();
+  });
+  document.getElementById('signupPassword').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleSignup();
+  });
+  // Also wire buttons via addEventListener as backup to onclick
+  document.getElementById('loginBtn').addEventListener('click', handleLogin);
+  document.getElementById('signupBtn').addEventListener('click', handleSignup);
+  document.getElementById('finishBtn').addEventListener('click', handleFinishSignup);
+});
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
 function showPage(pageId) {
