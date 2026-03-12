@@ -389,8 +389,9 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .dl-banner-close{background:none;border:none;color:rgba(168,155,140,.5);font-size:20px;cursor:pointer;padding:4px;flex-shrink:0;line-height:1}
 
 /* ─── SPLASH SCREEN ─────────────────────────────────────────────────────────── */
-#splashScreen{position:fixed;inset:0;background:#120D06;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .6s ease,visibility .6s ease}
+#splashScreen{position:fixed;inset:0;background:#120D06;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .6s ease,visibility .6s ease;animation:splashAutoDismiss .7s ease 2.8s forwards}
 #splashScreen.hidden{opacity:0;visibility:hidden;pointer-events:none}
+@keyframes splashAutoDismiss{0%{opacity:1;visibility:visible;pointer-events:auto}100%{opacity:0;visibility:hidden;pointer-events:none}}
 .splash-logo{width:140px;height:140px;border-radius:28px;animation:splashPop .7s cubic-bezier(.22,1,.36,1) both}
 .splash-name{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;letter-spacing:7px;color:#C9A84C;text-transform:uppercase;text-align:center;animation:splashFadeUp .6s .3s ease both}
 .splash-tagline{font-family:'Jost',sans-serif;font-size:9px;letter-spacing:4px;color:rgba(201,168,76,.45);text-transform:uppercase;animation:splashFadeUp .6s .45s ease both}
@@ -2474,9 +2475,9 @@ function dismissBanner() {
     setTimeout(() => { if (s && s.parentNode) s.remove(); }, 700);
   }
   // Dismiss on load (normal case)
-  window.addEventListener('load', () => setTimeout(dismissSplash, 2400));
-  // Hard fallback: always dismiss after 3.5s max no matter what
-  setTimeout(dismissSplash, 3500);
+  window.addEventListener('load', () => setTimeout(dismissSplash, 1800));
+  // Hard fallback: always dismiss after 2.8s max (matches CSS animation)
+  setTimeout(dismissSplash, 2800);
 })();
 </script>
 <div id="vaultGlint"></div>
