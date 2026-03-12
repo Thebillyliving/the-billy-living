@@ -220,14 +220,16 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .empty-state-icon svg{width:100%;height:100%;overflow:visible}
 .empty-state-text{font-family:'Cormorant Garamond',serif;font-size:11px;letter-spacing:2.5px;color:rgba(201,168,76,.65);text-transform:uppercase;text-align:center;line-height:1.6}
 .empty-state-subtext{font-family:'Jost',sans-serif;font-size:9px;letter-spacing:1.5px;color:rgba(201,168,76,.35);text-transform:uppercase;margin-top:-8px}
-.portfolio-select{position:absolute;top:12px;right:12px;width:28px;height:28px;background:rgba(0,0,0,.5);border:2px solid rgba(201,168,76,.5);border-radius:50%;display:flex;align-items:center;justify-content:center;color:transparent;font-size:14px;transition:all .2s}
-.portfolio-item.selected .portfolio-select{background:#C9A84C;border-color:#C9A84C;color:#0A0A0A}
+.portfolio-select{position:absolute;top:12px;right:12px;width:28px;height:28px;background:rgba(0,0,0,.5);border:2px solid rgba(201,168,76,.5);border-radius:50%;display:none;align-items:center;justify-content:center;color:transparent;font-size:14px;transition:all .2s}
+.portfolio-grid.selection-mode .portfolio-item:not(.empty-state) .portfolio-select{display:flex}
+.portfolio-item.selected .portfolio-select{background:#C9A84C;border-color:#C9A84C;color:#0A0A0A;display:flex}
 .portfolio-actions{position:fixed;bottom:calc(var(--nav-height) + 20px);right:20px;display:none;flex-direction:column;gap:12px;z-index:100}
 .portfolio-actions.active{display:flex}
 .portfolio-action-btn{width:56px;height:56px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.3);transition:transform .2s}
 .portfolio-action-btn:active{transform:scale(.95)}
 .portfolio-action-btn.chat{background:#C9A84C;color:#0A1628}
 .portfolio-action-btn.whatsapp{background:#25D366;color:white}
+.portfolio-action-btn.delete{background:#c0392b;color:white}
 .portfolio-action-btn.share{background:#0A0A0A;color:#C9A84C;border:2px solid #C9A84C}
 #concierge{display:none;flex-direction:column;position:fixed;top:0;left:0;right:0;bottom:var(--nav-height);background:#060D18;z-index:100}
 #concierge.active{display:flex}
@@ -603,7 +605,11 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 <div class="view-modal" id="viewModal">
   <button class="view-modal-close" onclick="closeViewModal()">×</button>
   <div class="view-modal-content">
-    <div class="view-modal-image" id="viewModalImage"></div>
+    <div class="view-modal-image" id="viewModalImage" style="position:relative">
+      <div id="viewModalWatermark" style="position:absolute;bottom:0;left:0;right:0;z-index:10;padding:10px 0 10px;text-align:center;pointer-events:none;background:linear-gradient(transparent,rgba(0,0,0,0.35))">
+        <div style="font-family:'Jost',sans-serif;font-size:9px;font-weight:500;letter-spacing:4px;color:rgba(255,255,255,0.55);text-transform:uppercase;line-height:1">THE BILLY LIVING INTERIOR PLATFORM</div>
+      </div>
+    </div>
     <div class="view-modal-info">
       <div class="view-modal-title" id="viewModalTitle">Room Design</div>
       <div class="view-modal-meta" id="viewModalMeta">Collection • Room</div>
@@ -668,9 +674,18 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
   </div>
   <div class="portfolio-grid" id="portfolioGrid"></div>
   <div class="portfolio-actions" id="portfolioActions">
-    <button class="portfolio-action-btn chat" onclick="shareToDesigner()">💬</button>
-    <button class="portfolio-action-btn whatsapp" onclick="shareToWhatsApp()">📱</button>
-    <button class="portfolio-action-btn share" onclick="shareNative()">↗️</button>
+    <button class="portfolio-action-btn delete" onclick="deleteSelected()" title="Delete">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+    </button>
+    <button class="portfolio-action-btn chat" onclick="shareToDesigner()" title="Send to Concierge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    </button>
+    <button class="portfolio-action-btn whatsapp" onclick="shareToWhatsApp()" title="WhatsApp">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.136.564 4.14 1.548 5.872L0 24l6.336-1.524A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.877 9.877 0 01-5.031-1.378l-.36-.214-3.762.904.944-3.659-.235-.374A9.861 9.861 0 012.118 12C2.118 6.533 6.533 2.118 12 2.118c5.466 0 9.882 4.415 9.882 9.882 0 5.466-4.416 9.882-9.882 9.882z"/></svg>
+    </button>
+    <button class="portfolio-action-btn share" onclick="shareNative()" title="Share">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    </button>
   </div>
 </div>
 
@@ -904,7 +919,7 @@ function showPage(pageId) {
   // Hide all standard pages
   document.querySelectorAll('.page').forEach(p => {
     p.classList.remove('active');
-    p.style.display = 'none';
+    p.style.display = '';  // rely on CSS — .page default is display:none, .page.active overrides
   });
   // Handle trending separately (fixed-position)
   const trendingEl = document.getElementById('trending');
@@ -930,7 +945,7 @@ function showPage(pageId) {
     document.querySelectorAll('audio[id^="taudio_"]').forEach(a => a.pause());
     const el = document.getElementById(pageId);
     if (el) {
-      el.style.display = (pageId === 'concierge') ? 'flex' : 'block';
+      el.style.display = '';  // clear inline — let CSS .active class control display
       el.classList.add('active');
     }
     // Hide catalog sub-pages unless explicitly going there
@@ -940,8 +955,8 @@ function showPage(pageId) {
   // Reset concierge keyboard offset when navigating away
   const cgEl = document.getElementById('concierge');
   if (cgEl) {
-    cgEl.style.bottom = 'var(--nav-height)';
-    if (pageId !== 'concierge') cgEl.style.display = 'none';
+    if (pageId !== 'concierge') cgEl.style.bottom = 'var(--nav-height)';
+    // Never set inline display — CSS .active class controls visibility
   }
 
   // Load portfolio when navigating to it
@@ -1063,7 +1078,7 @@ function handleLogout() {
     showToast('Signed out');
     // Reset all in-memory state
     cgMessages = []; cgHistory = [];
-    portfolioItems = []; selectedPortfolioItems = [];
+    portfolioItems = []; selectedPortfolioItems = []; portfolioSelectionMode = false;
     currentProfile = null;
     vaultSession = null;
     currentShareItem = null;
@@ -1856,7 +1871,7 @@ function openVaultAsset(asset) {
   detail.style.alignItems = 'center';
   detail.style.justifyContent = 'center';
   content.innerHTML = `
-    ${asset.url || asset.thumb ? `<div style="width:100%;aspect-ratio:4/3;border:1px solid rgba(212,175,55,.18);border-radius:8px;overflow:hidden;margin-bottom:24px"><img src="${asset.url||asset.thumb}" style="width:100%;height:100%;object-fit:cover"></div>` : ''}
+    ${asset.url || asset.thumb ? `<div style="width:100%;aspect-ratio:4/3;border:1px solid rgba(212,175,55,.18);border-radius:8px;overflow:hidden;margin-bottom:24px;position:relative"><img src="${asset.url||asset.thumb}" style="width:100%;height:100%;object-fit:cover"><div style="position:absolute;bottom:0;left:0;right:0;padding:10px 0 10px;text-align:center;pointer-events:none;background:linear-gradient(transparent,rgba(0,0,0,0.35))"><div style="font-family:'Jost',sans-serif;font-size:9px;font-weight:500;letter-spacing:4px;color:rgba(255,255,255,0.55);text-transform:uppercase;line-height:1">THE BILLY LIVING INTERIOR PLATFORM</div></div></div>` : ''}
     <div style="font-size:9px;letter-spacing:5px;color:rgba(212,175,55,.35);text-transform:uppercase;margin-bottom:8px">${asset.cat||'Collection'}</div>
     <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:#E8D5A3;margin-bottom:16px">${asset.title||'Exclusive Design'}</h2>
     <p style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.7">${asset.desc||'Exclusive content for verified VIP members.'}</p>`;
@@ -1890,15 +1905,27 @@ function updatePortfolioDashCount() {
   document.getElementById('dashSavesCount').textContent = portfolioItems.length;
 }
 
+let portfolioSelectionMode = false;
+
 function renderPortfolioGrid() {
   const grid = document.getElementById('portfolioGrid');
   const SLOTS = Math.max(6, portfolioItems.length);
-  let html = portfolioItems.slice(0, SLOTS).map(item => `
-    <div class="portfolio-item ${selectedPortfolioItems.includes(item.id)?'selected':''}" onclick="togglePortfolioItem('${item.id}')">
-      ${item.imageData ? `<img src="${item.imageData}" alt="${item.title||''}">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px">${item.emoji||'🛋️'}</div>`}
-      <div class="portfolio-select">${selectedPortfolioItems.includes(item.id)?'✓':''}</div>
-    </div>`).join('');
-  // Fill empty slots
+  let html = portfolioItems.slice(0, SLOTS).map(item => {
+    const isSel = selectedPortfolioItems.includes(item.id);
+    const mediaHtml = item.imageData
+      ? `<img src="${item.imageData}" alt="${item.title||''}">`
+      : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px">${item.emoji||'🛋️'}</div>`;
+    return `<div class="portfolio-item${isSel?' selected':''}"
+        data-id="${item.id}"
+        onclick="onPortfolioItemTap('${item.id}')"
+        oncontextmenu="enterPortfolioSelectionMode(event,'${item.id}')"
+        ontouchstart="startPortfolioLongPress(event,'${item.id}')"
+        ontouchend="cancelPortfolioLongPress()"
+        ontouchmove="cancelPortfolioLongPress()">
+      ${mediaHtml}
+      <div class="portfolio-select">${isSel?'✓':''}</div>
+    </div>`;
+  }).join('');
   const remaining = Math.max(0, SLOTS - portfolioItems.length);
   for (let i = 0; i < remaining; i++) {
     html += `<div class="portfolio-item empty-state"><div class="empty-state-content">
@@ -1908,22 +1935,92 @@ function renderPortfolioGrid() {
     </div></div>`;
   }
   grid.innerHTML = html;
+  // Apply selection-mode class so checkboxes show/hide via CSS
+  grid.classList.toggle('selection-mode', portfolioSelectionMode);
 }
 
-function togglePortfolioItem(id) {
-  const idx = selectedPortfolioItems.indexOf(id);
-  if (idx > -1) selectedPortfolioItems.splice(idx, 1); else selectedPortfolioItems.push(id);
-  renderPortfolioGrid();
-  document.getElementById('portfolioActions').classList.toggle('active', selectedPortfolioItems.length > 0);
-  document.getElementById('selectionCount').textContent = selectedPortfolioItems.length + ' Selected';
-  document.getElementById('selectionModeBar').classList.toggle('active', selectedPortfolioItems.length > 0);
+// ── Single tap: view OR toggle if in selection mode ──
+function onPortfolioItemTap(id) {
+  if (portfolioSelectionMode) {
+    const idx = selectedPortfolioItems.indexOf(id);
+    if (idx > -1) selectedPortfolioItems.splice(idx, 1); else selectedPortfolioItems.push(id);
+    // Exit selection mode if nothing left selected
+    if (!selectedPortfolioItems.length) portfolioSelectionMode = false;
+    renderPortfolioGrid();
+    const hasAny = selectedPortfolioItems.length > 0;
+    document.getElementById('portfolioActions').classList.toggle('active', hasAny);
+    document.getElementById('selectionCount').textContent = selectedPortfolioItems.length + ' Selected';
+    document.getElementById('selectionModeBar').classList.toggle('active', hasAny);
+  } else {
+    // View the item
+    const item = portfolioItems.find(i => i.id === id);
+    if (item) openPortfolioItem(item);
+  }
 }
+
+function openPortfolioItem(item) {
+  const src = item.imageData || item.imageUrl || null;
+  if (!src) { showToast(item.title || 'Design'); return; }
+  document.getElementById('imageModalImg').src = src;
+  document.getElementById('imageModal').classList.add('active');
+}
+
+// ── Long press: enter selection mode ──
+let _portfolioLongPressTimer = null;
+function startPortfolioLongPress(e, id) {
+  _portfolioLongPressTimer = setTimeout(() => {
+    _portfolioLongPressTimer = null;
+    enterPortfolioSelectionMode(e, id);
+  }, 500);
+}
+function cancelPortfolioLongPress() {
+  if (_portfolioLongPressTimer) { clearTimeout(_portfolioLongPressTimer); _portfolioLongPressTimer = null; }
+}
+function enterPortfolioSelectionMode(e, id) {
+  if (e) e.preventDefault();
+  portfolioSelectionMode = true;
+  if (!selectedPortfolioItems.includes(id)) selectedPortfolioItems.push(id);
+  renderPortfolioGrid();
+  document.getElementById('portfolioActions').classList.add('active');
+  document.getElementById('selectionCount').textContent = selectedPortfolioItems.length + ' Selected';
+  document.getElementById('selectionModeBar').classList.add('active');
+}
+
+function togglePortfolioItem(id) { onPortfolioItemTap(id); }
 
 function clearSelection() {
   selectedPortfolioItems = [];
+  portfolioSelectionMode = false;
   renderPortfolioGrid();
   document.getElementById('portfolioActions').classList.remove('active');
   document.getElementById('selectionModeBar').classList.remove('active');
+}
+
+async function deleteSelected() {
+  if (!currentUser || !selectedPortfolioItems.length) return;
+  const count = selectedPortfolioItems.length;
+  const label = count === 1 ? '1 item' : count + ' items';
+  // Remove from Firebase
+  const removes = selectedPortfolioItems.map(portId =>
+    fbDb.ref(`portfolios/${currentUser.uid}/items/${portId}`).remove()
+  );
+  // Also clean up bookmark refs
+  const bmRemoves = selectedPortfolioItems.map(async portId => {
+    const item = portfolioItems.find(i => i.id === portId);
+    if (item && item.postId) {
+      await fbDb.ref(`userBookmarks/${currentUser.uid}/${item.postId}`).remove().catch(()=>{});
+      await fbDb.ref(`userBookmarks/${currentUser.uid}/trend_${item.postId}`).remove().catch(()=>{});
+    }
+  });
+  try {
+    await Promise.all([...removes, ...bmRemoves]);
+    showToast(`Removed ${label}`);
+  } catch(e) { showToast('Error removing items'); console.error(e); }
+  selectedPortfolioItems = [];
+  portfolioSelectionMode = false;
+  document.getElementById('portfolioActions').classList.remove('active');
+  document.getElementById('selectionModeBar').classList.remove('active');
+  loadPortfolio();
 }
 
 function shareSelection() {
@@ -2045,15 +2142,17 @@ async function loadConciergeHistory() {
 
 function renderConciergeMessages() {
   const container = document.getElementById('cgMessages');
+  if (!container) return;
   if (!cgMessages.length) return;
-  document.getElementById('cgEmpty').style.display = 'none';
+  const emptyEl = document.getElementById('cgEmpty');
+  if (emptyEl) emptyEl.style.display = 'none';
   const existing = container.querySelectorAll('.cg-msg');
   existing.forEach(e => e.remove());
   cgMessages.forEach(m => {
     const el = document.createElement('div');
     el.className = 'cg-msg ' + (m.sender === 'client' ? 'sent' : 'recv');
     const time = m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
-    const safeText = m.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const safeText = (m.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     el.innerHTML = `<div class="cg-bubble">${safeText}</div><div class="cg-msg-time">${time}</div>`;
     container.appendChild(el);
   });
@@ -2071,10 +2170,19 @@ async function sendConciergeMessage() {
   cgHistory.push({ role: 'user', content: text });
   renderConciergeMessages();
   if (currentUser) {
-    fbDb.ref(`chats/${currentUser.uid}/messages`).push(userMsg);
-    // Ensure clientName is always set so admin conversation list shows real name
-    fbDb.ref(`chats/${currentUser.uid}/clientName`).set(currentProfile?.name || userMsg.senderName || 'Client');
-    fbDb.ref(`chats/${currentUser.uid}/clientEmail`).set(currentUser.email || '');
+    try {
+      await fbDb.ref(`chats/${currentUser.uid}/messages`).push(userMsg);
+      // Ensure clientName is always set so admin conversation list shows real name
+      fbDb.ref(`chats/${currentUser.uid}/clientName`).set(currentProfile?.name || userMsg.senderName || 'Client');
+      fbDb.ref(`chats/${currentUser.uid}/clientEmail`).set(currentUser.email || '');
+    } catch(fbErr) {
+      console.error('Firebase write failed:', fbErr);
+      showToast('Message failed to send — check connection');
+      // Remove the local message since Firebase failed
+      cgMessages = cgMessages.filter(m => m !== userMsg);
+      renderConciergeMessages();
+      return;
+    }
   }
   await sendAIMessage(text);
   } catch(e) { console.error('sendConciergeMessage:', e); }
