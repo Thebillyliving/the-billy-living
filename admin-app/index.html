@@ -4059,12 +4059,12 @@
         function vmOpenClientPOV(uid, name, phone) {
             vmCurrentClientUID  = uid;
             vmCurrentClientName = name;
+            vmCurrentProjectId  = null;
             const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
             document.getElementById('vmPOVAv').textContent   = initials;
             document.getElementById('vmPOVName').textContent = name;
             vmShowView('pov');
             vmLoadPOVGrid(uid);
-            tmLoadTimeline(uid);
         }
 
         function vmLoadPOVGrid(uid) {
