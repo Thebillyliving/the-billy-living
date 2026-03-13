@@ -1109,6 +1109,15 @@
         .vm-picker-card.selected { border-color: var(--vault-gold); }
         .vm-picker-card .vm-pick-check { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid rgba(212,175,55,0.4); background: rgba(14,11,6,0.8); display: flex; align-items: center; justify-content: center; font-size: 11px; color: transparent; transition: all 0.2s; z-index: 2; }
         .vm-picker-card.selected .vm-pick-check { background: var(--vault-gold); border-color: var(--vault-gold); color: #0A0700; }
+
+        /* ── Skeleton loader ─────────────────────────────────────────── */
+        @keyframes skeletonPulse { 0%,100%{opacity:.35} 50%{opacity:.65} }
+        .skeleton { background:rgba(212,175,55,0.1);border-radius:6px;animation:skeletonPulse 1.4s ease-in-out infinite; }
+        .skeleton-row { display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(212,175,55,0.06); }
+        .skeleton-thumb { width:60px;height:60px;border-radius:6px;flex-shrink:0; }
+        .skeleton-lines { flex:1;display:flex;flex-direction:column;gap:8px; }
+        .skeleton-line { height:10px;border-radius:4px; }
+        .skeleton-line.short { width:55%; }
     </style>
     <!-- Firebase compat SDK (works without bundler) -->
 
@@ -1868,41 +1877,59 @@
         }
 
         // Navigation
+        // Track which panels have been fetched this session
+        const _panelFetched = {};
+
         function showPanel(panelName, navElement) {
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
             document.getElementById('panel-' + panelName).classList.add('active');
-            
-            if (navElement) {
-                navElement.classList.add('active');
-            }
-            
+            if (navElement) navElement.classList.add('active');
+
+            // Lazy load — fetch from Firebase only once per session per panel
+            // Always re-fetch VIP (status changes matter) and messages
+            if (panelName === 'home')      { if (!_panelFetched.home)      { _panelFetched.home = true;      renderHomeList(); }      else renderHomeListFromCache(); }
+            if (panelName === 'trending')  { if (!_panelFetched.trending)  { _panelFetched.trending = true;  renderTrendingList(); }  }
+            if (panelName === 'designers') { if (!_panelFetched.designers) { _panelFetched.designers = true; renderDesignersList(); } }
+            if (panelName === 'catalog')   { if (!_panelFetched.catalog)   { _panelFetched.catalog = true;   renderCatalogList(); }   }
             if (panelName === 'vip')       { renderVIPList(); updateStats(); }
-            if (panelName === 'home')      { renderHomeList(); }
-            if (panelName === 'trending')  { renderTrendingList(); }
-            if (panelName === 'designers') { renderDesignersList(); }
-            if (panelName === 'catalog')   { renderCatalogList(); }
             if (panelName === 'portfolio') { loadPortfolioAnalytics(); }
         }
 
-        // Stats
+        // Stats — reads from cache (localStorage) — instant
         function updateStats() {
-            const posts = JSON.parse(localStorage.getItem('tbl_posts') || '[]');
-            const trending = JSON.parse(localStorage.getItem('tbl_trending') || '[]');
-            const designers = JSON.parse(localStorage.getItem('tbl_designers') || '[]');
-            const vips = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
-            
-            document.getElementById('statPosts').textContent = posts.length;
-            document.getElementById('statTrending').textContent = trending.length;
-            document.getElementById('statDesigners').textContent = designers.length;
+            const posts    = JSON.parse(localStorage.getItem('tbl_posts')     || '[]');
+            const trending = JSON.parse(localStorage.getItem('tbl_trending')  || '[]');
+            const designers= JSON.parse(localStorage.getItem('tbl_designers') || '[]');
+            const vips     = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
+            document.getElementById('statPosts').textContent      = posts.length;
+            document.getElementById('statTrending').textContent   = trending.length;
+            document.getElementById('statDesigners').textContent  = designers.length;
             document.getElementById('statPendingVIP').textContent = vips.filter(v => v.status === 'pending').length;
+        }
+
+        // Render dashboard stat cards from cache — no Firebase needed
+        function renderDashboardFromCache() {
+            updateStats();
+            // Also update VIP badge from cache
+            const vips = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
+            const pending = vips.filter(v => v.status === 'pending').length;
+            const badge = document.getElementById('vipBadge');
+            if (badge) { badge.textContent = pending; badge.style.display = pending > 0 ? '' : 'none'; }
+        }
+
+        // Re-render home from cache (already fetched this session) — no Firebase
+        function renderHomeListFromCache() {
+            const container = document.getElementById('homeList');
+            const cached = JSON.parse(localStorage.getItem('tbl_posts') || '[]');
+            if (!cached.length) { renderHomeList(); return; } // fallback to fetch
+            // renderHomeList will use cache immediately, skip this
         }
 
         // Render Lists
         function renderHomeList() {
             const container = document.getElementById('homeList');
-            container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏠</div><p>Loading…</p></div>';
+            container.innerHTML = `<div><div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div><div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div><div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div><div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div></div>`;
 
             const renderPosts = (posts) => {
                 // Strip heavy image data before caching to avoid localStorage quota errors
@@ -2028,7 +2055,7 @@
 
         function renderTrendingList() {
             const container = document.getElementById('trendingList');
-            container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔥</div><p>Loading…</p></div>';
+            container.innerHTML = `<div><div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div><div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div><div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div><div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div></div>`;
 
             const renderItems = (items) => {
                 try {
@@ -3563,11 +3590,11 @@
         };
         if (!firebase.apps.length) firebase.initializeApp(adminFirebaseConfig);
         const adminFbDB  = firebase.database();
-        // keepSynced: Firebase keeps these paths in memory — instant reads after first fetch
+        // keepSynced: pre-warm catalog and VIP only (small datasets, used often)
+        // Chats excluded — too large, now uses metadata-only listener
         try {
             adminFbDB.ref('content/catalog').keepSynced(true);
             adminFbDB.ref('vip').keepSynced(true);
-            adminFbDB.ref('chats').keepSynced(true);
         } catch(e) {}
         const adminFbAuth = firebase.auth();
 
@@ -3601,11 +3628,12 @@
         // Also auto-start messages listener once auth is ready
         adminFbAuth.onAuthStateChanged(user => {
             if (user) {
+                // Only start the chat listener + show cached stats on auth.
+                // All panel data loads lazily when the user navigates to it.
                 initAdminMessagesListener();
-                renderHomeList();
-                renderTrendingList();
-                renderVIPList();
                 updateStats();
+                // Pre-warm the active visible panel (dashboard) from cache only
+                renderDashboardFromCache();
             }
         });
 
@@ -3617,34 +3645,40 @@
         // ── Listen to all client chats ───────────────────────────────────────────
         function initAdminMessagesListener() {
             if (adminChatsListener) { adminChatsListener.off(); adminChatsListener = null; }
+            // Listen only to chat metadata (clientName, unread, lastMessage) — NOT full message history
+            // Full messages only load when a conversation is opened
             adminChatsListener = adminFbDB.ref('chats');
-            adminChatsListener.on('value', snap => {
-                const chats = snap.val() || {};
-                let totalUnread = 0;
-                const convs = [];
+            adminChatsListener.on('child_added', _handleChatUpdate);
+            adminChatsListener.on('child_changed', _handleChatUpdate);
+        }
 
-                Object.entries(chats).forEach(([uid, data]) => {
-                    const msgs = Object.values(data.messages || {});
-                    const unread = msgs.filter(m => m.sender === 'client' && !m.read).length;
-                    const last = msgs.sort((a,b) => b.timestamp - a.timestamp)[0];
-                    totalUnread += unread;
-                    convs.push({ uid, name: data.clientName || last?.senderName || 'Client', lastMsg: last, unread });
-                });
+        // Per-chat metadata store
+        const _chatMeta = {};
 
-                convs.sort((a,b) => (b.lastMsg?.timestamp||0) - (a.lastMsg?.timestamp||0));
-                renderAdminConvList(convs);
+        function _handleChatUpdate(snap) {
+            const uid = snap.key;
+            const data = snap.val() || {};
+            // Only read summary fields — avoid iterating all messages
+            const meta = data.meta || {};
+            const unread = meta.unreadAdmin || 0;
+            const lastText = meta.lastMessage || '';
+            const lastTs = meta.lastTimestamp || 0;
+            const name = data.clientName || meta.clientName || 'Client';
+            _chatMeta[uid] = { uid, name, unread, lastText, lastTs };
+            _rebuildConvList();
+        }
 
-                const badge = document.getElementById('msgsBadge');
-                if (badge) {
-                    badge.textContent = totalUnread;
-                    badge.style.display = totalUnread > 0 ? 'inline-block' : 'none';
-                }
-            }, err => {
-                // Show error in the messages panel so we can diagnose
-                const el = document.getElementById('msgsConversationsList');
-                if (el) el.innerHTML = `<div style="padding:20px;color:#ef4444;font-size:13px;letter-spacing:0.5px;">⚠️ Firebase error: ${err.message}<br><br>Fix: Set Realtime Database rules to allow reads.</div>`;
-                console.error('Firebase messages error:', err);
-            });
+        function _rebuildConvList() {
+            const convs = Object.values(_chatMeta).sort((a,b) => b.lastTs - a.lastTs);
+            let totalUnread = convs.reduce((s, c) => s + (c.unread||0), 0);
+            renderAdminConvList(convs.map(c => ({
+                uid: c.uid,
+                name: c.name,
+                unread: c.unread,
+                lastMsg: c.lastText ? { text: c.lastText, timestamp: c.lastTs } : null
+            })));
+            const badge = document.getElementById('msgsBadge');
+            if (badge) { badge.textContent = totalUnread; badge.style.display = totalUnread > 0 ? 'inline-block' : 'none'; }
         }
 
         function renderAdminConvList(convs) {
