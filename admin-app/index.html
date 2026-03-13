@@ -1103,6 +1103,12 @@
         .tm-save-btn { width: 100%; margin-top: 8px; padding: 14px; background: linear-gradient(135deg, rgba(201,168,76,0.12), rgba(201,168,76,0.06)); border: 1px solid rgba(212,175,55,0.3); border-radius: 10px; color: var(--vault-gold); font-family: 'Jost', sans-serif; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
         .tm-save-btn:hover { background: rgba(201,168,76,0.18); border-color: rgba(212,175,55,0.6); }
         .tm-save-btn:active { transform: scale(0.98); }
+
+        /* ── POV Library Picker ─────────────────────────────────── */
+        .vm-picker-card { position: relative; cursor: pointer; border-radius: 10px; overflow: hidden; border: 2px solid transparent; transition: border-color 0.2s; }
+        .vm-picker-card.selected { border-color: var(--vault-gold); }
+        .vm-picker-card .vm-pick-check { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid rgba(212,175,55,0.4); background: rgba(14,11,6,0.8); display: flex; align-items: center; justify-content: center; font-size: 11px; color: transparent; transition: all 0.2s; z-index: 2; }
+        .vm-picker-card.selected .vm-pick-check { background: var(--vault-gold); border-color: var(--vault-gold); color: #0A0700; }
     </style>
     <!-- Firebase compat SDK (works without bundler) -->
 
@@ -1406,35 +1412,8 @@
                     </div>
                     <button class="vm-pov-sync" onclick="vmOpenCreateForm()">+ Add Asset</button>
                 </div>
-                <div id="vmLibraryGrid" class="vm-asset-grid" style="overflow-y:auto;flex:1;"></div>
-            </div>
-
-            <!-- View 3: Default Contents -->
-            <div id="vmDefaultsView" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
-                <div class="vm-pov-header">
-                    <button class="vm-detail-back" onclick="vmShowView('main')">← Back</button>
-                    <div>
-                        <div class="vm-eyebrow">Sent to all new VIPs</div>
-                        <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--vault-text);">Default Contents</div>
-                    </div>
-                </div>
-                <div style="padding:16px 24px;border-bottom:1px solid var(--vault-gold-border);font-size:12px;color:rgba(212,175,55,0.4);">Assets marked as Default are automatically synced into every VIP client's vault.</div>
-                <div id="vmDefaultsGrid" class="vm-asset-grid" style="overflow-y:auto;flex:1;"></div>
-            </div>
-
-            <!-- View 4: Client POV -->
-            <div id="vmClientPOV" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
-                <div class="vm-pov-header">
-                    <button class="vm-detail-back" onclick="vmShowView('main')">← All Clients</button>
-                    <div class="vm-client-av" id="vmPOVAv" style="width:40px;height:40px;font-size:15px;">?</div>
-                    <div>
-                        <div style="font-size:15px;font-weight:600;color:var(--vault-text);" id="vmPOVName">Client</div>
-                        <div style="font-size:11px;color:rgba(212,175,55,0.35);letter-spacing:1px;" id="vmPOVSub">0 vault items</div>
-                    </div>
-                    <button class="vm-pov-sync" onclick="vmSyncDefaults()">↓ Sync Defaults</button>
-                </div>
                 <div style="overflow-y:auto;flex:1;display:flex;flex-direction:column;">
-                    <div id="vmPOVGrid" class="vm-asset-grid"></div>
+                    <div id="vmLibraryGrid" class="vm-asset-grid" style="padding:16px;"></div>
                     <div class="tm-section" id="vmTimelineSection">
                         <div class="tm-section-label">Project Status</div>
                         <div class="tm-section-title">Timeline Manager</div>
@@ -1488,6 +1467,58 @@
                         </div>
                         <button class="tm-save-btn" onclick="tmSaveTimeline()">✦ &nbsp;Save Timeline</button>
                     </div>
+                </div>
+            </div>
+
+            <!-- View 3: Default Contents -->
+            <div id="vmDefaultsView" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
+                <div class="vm-pov-header">
+                    <button class="vm-detail-back" onclick="vmShowView('main')">← Back</button>
+                    <div>
+                        <div class="vm-eyebrow">Sent to all new VIPs</div>
+                        <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--vault-text);">Default Contents</div>
+                    </div>
+                </div>
+                <div style="padding:16px 24px;border-bottom:1px solid var(--vault-gold-border);font-size:12px;color:rgba(212,175,55,0.4);">Assets marked as Default are automatically synced into every VIP client's vault.</div>
+                <div id="vmDefaultsGrid" class="vm-asset-grid" style="overflow-y:auto;flex:1;"></div>
+            </div>
+
+            <!-- View 4: Client POV -->
+            <div id="vmClientPOV" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
+                <div class="vm-pov-header">
+                    <button class="vm-detail-back" onclick="vmShowView('main')">← All Clients</button>
+                    <div class="vm-client-av" id="vmPOVAv" style="width:40px;height:40px;font-size:15px;">?</div>
+                    <div>
+                        <div style="font-size:15px;font-weight:600;color:var(--vault-text);" id="vmPOVName">Client</div>
+                        <div style="font-size:11px;color:rgba(212,175,55,0.35);letter-spacing:1px;" id="vmPOVSub">0 vault items</div>
+                    </div>
+                    <button class="vm-pov-sync" onclick="vmSyncDefaults()">↓ Sync Defaults</button>
+                </div>
+                <div style="overflow-y:auto;flex:1;display:flex;flex-direction:column;">
+
+                    <!-- ── Vault Library Picker (inside POV) ── -->
+                    <div id="vmPOVLibraryPanel" style="border-bottom:1px solid var(--vault-gold-border);">
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px 10px;cursor:pointer;" onclick="vmToggleLibraryPicker()">
+                            <div>
+                                <div style="font-size:8px;letter-spacing:4px;text-transform:uppercase;color:rgba(212,175,55,0.4);font-family:'Jost',sans-serif;margin-bottom:3px;">Assign Content</div>
+                                <div style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--vault-text);">Vault Library</div>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <div id="vmPOVPickerCount" style="display:none;background:var(--vault-gold);color:#0A0700;font-size:10px;font-weight:700;letter-spacing:1px;padding:4px 10px;border-radius:20px;">0 selected</div>
+                                <span id="vmLibPickerChevron" style="color:rgba(212,175,55,0.5);font-size:18px;transition:transform 0.2s;">›</span>
+                            </div>
+                        </div>
+                        <div id="vmPOVLibraryGrid" style="display:none;padding:0 16px 12px;">
+                            <div class="vm-asset-grid" id="vmPOVLibraryInnerGrid" style="margin-bottom:12px;"></div>
+                            <button id="vmMoveHereBtn" onclick="vmMoveSelectedToClient()" style="display:none;width:100%;padding:13px;background:linear-gradient(135deg,#C9A84C,#8B6914);border:none;border-radius:10px;color:#0A0700;font-family:'Jost',sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;cursor:pointer;">✦ &nbsp;Move Here</button>
+                        </div>
+                    </div>
+
+                    <!-- ── Client's current vault assets ── -->
+                    <div style="padding:14px 20px 8px;display:flex;align-items:center;justify-content:space-between;">
+                        <div style="font-size:8px;letter-spacing:4px;text-transform:uppercase;color:rgba(212,175,55,0.4);font-family:'Jost',sans-serif;">Client's Vault</div>
+                    </div>
+                    <div id="vmPOVGrid" class="vm-asset-grid" style="padding:0 16px 20px;"></div>
                 </div>
             </div>
         </div>
@@ -4310,6 +4341,110 @@
             adminFbDB.ref('timelines/' + vmCurrentClientUID).set(updates).then(() => {
                 showToast('✦ Timeline saved');
             }).catch(() => showToast('Error saving timeline'));
+        }
+
+
+        // ── POV Library Picker ──────────────────────────────────────────
+        let vmPickerSelection = new Set();
+
+        function vmToggleLibraryPicker() {
+            const grid = document.getElementById('vmPOVLibraryGrid');
+            const chevron = document.getElementById('vmLibPickerChevron');
+            const isOpen = grid.style.display !== 'none';
+            grid.style.display = isOpen ? 'none' : 'block';
+            chevron.style.transform = isOpen ? '' : 'rotate(90deg)';
+            if (!isOpen) vmLoadPOVLibraryPicker();
+        }
+
+        function vmLoadPOVLibraryPicker() {
+            const grid = document.getElementById('vmPOVLibraryInnerGrid');
+            grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;color:rgba(212,175,55,0.3);font-size:12px;">Loading…</div>`;
+            vmPickerSelection.clear();
+            vmUpdatePickerUI();
+            vmRef('assets').once('value').then(snap => {
+                const assets = Object.values(snap.val() || {});
+                if (!assets.length) {
+                    grid.innerHTML = `<div style="grid-column:1/-1" class="vm-empty"><div class="vm-empty-ornament">◇</div><div class="vm-empty-title">No library assets yet</div></div>`;
+                    return;
+                }
+                // Get client's existing assets to grey them out
+                vmRef('clients/' + vmCurrentClientUID).once('value').then(cSnap => {
+                    const clientAssets = Object.keys(cSnap.val() || {});
+                    grid.innerHTML = assets.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).map(a => {
+                        const alreadyAdded = clientAssets.includes(a.id);
+                        const emoji = vmCatEmoji[a.cat] || '◆';
+                        const thumbHTML = a.thumb
+                            ? `<div class="vm-asset-thumb"><img src="${escHtml(a.thumb)}"></div>`
+                            : `<div class="vm-asset-thumb" style="font-size:28px;">${emoji}</div>`;
+                        return `<div class="vm-asset-card vm-picker-card${alreadyAdded ? ' selected' : ''}" data-id="${a.id}" onclick="vmTogglePickerItem('${a.id}', ${alreadyAdded})" style="${alreadyAdded ? 'opacity:0.45;pointer-events:none;' : ''}">
+                            <div class="vm-pick-check">✓</div>
+                            ${thumbHTML}
+                            <div class="vm-asset-body">
+                                <div class="vm-asset-cat">${escHtml(a.cat||'')}</div>
+                                <div class="vm-asset-title" style="font-size:12px;">${escHtml(a.title||'Untitled')}</div>
+                            </div>
+                            ${alreadyAdded ? '<div style="position:absolute;bottom:6px;right:8px;font-size:9px;letter-spacing:1px;color:rgba(212,175,55,0.5);font-family:Jost,sans-serif;">ADDED</div>' : ''}
+                        </div>`;
+                    }).join('');
+                });
+            });
+        }
+
+        function vmTogglePickerItem(id, alreadyAdded) {
+            if (alreadyAdded) return;
+            if (vmPickerSelection.has(id)) {
+                vmPickerSelection.delete(id);
+                const el = document.querySelector(`.vm-picker-card[data-id="${id}"]`);
+                if (el) el.classList.remove('selected');
+            } else {
+                vmPickerSelection.add(id);
+                const el = document.querySelector(`.vm-picker-card[data-id="${id}"]`);
+                if (el) el.classList.add('selected');
+            }
+            vmUpdatePickerUI();
+        }
+
+        function vmUpdatePickerUI() {
+            const count = vmPickerSelection.size;
+            const countEl = document.getElementById('vmPOVPickerCount');
+            const moveBtn = document.getElementById('vmMoveHereBtn');
+            if (count > 0) {
+                countEl.style.display = 'block';
+                countEl.textContent = count + ' selected';
+                moveBtn.style.display = 'block';
+                moveBtn.textContent = '✦  Move ' + count + ' Item' + (count !== 1 ? 's' : '') + ' Here';
+            } else {
+                countEl.style.display = 'none';
+                moveBtn.style.display = 'none';
+            }
+        }
+
+        function vmMoveSelectedToClient() {
+            if (!vmCurrentClientUID || !vmPickerSelection.size) return;
+            const ids = Array.from(vmPickerSelection);
+            const btn = document.getElementById('vmMoveHereBtn');
+            btn.textContent = 'Moving…';
+            btn.disabled = true;
+            // Fetch each asset and write to client vault
+            const fetches = ids.map(id => vmRef('assets/' + id).once('value').then(s => ({ id, data: s.val() })));
+            Promise.all(fetches).then(results => {
+                const updates = {};
+                results.forEach(({ id, data }) => {
+                    if (data) updates['vault/clients/' + vmCurrentClientUID + '/' + id] = data;
+                });
+                return adminFbDB.ref().update(updates);
+            }).then(() => {
+                showToast('✦ ' + ids.length + ' item' + (ids.length !== 1 ? 's' : '') + ' added to vault');
+                vmPickerSelection.clear();
+                vmUpdatePickerUI();
+                vmLoadPOVLibraryPicker(); // refresh to show ADDED badges
+                vmLoadPOVGrid(vmCurrentClientUID); // refresh client vault
+                btn.disabled = false;
+            }).catch(() => {
+                showToast('Error moving assets');
+                btn.disabled = false;
+                vmUpdatePickerUI();
+            });
         }
 
     </script>
