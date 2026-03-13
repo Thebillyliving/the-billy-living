@@ -82,8 +82,8 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .feed-action-count{font-family:'Jost',sans-serif;font-size:13px;font-weight:500;color:var(--text-primary)}
 .feed-action-spacer{flex:1}
 .feed-caption{padding:4px 14px 14px}
-.feed-caption-title{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:var(--gold);margin-bottom:2px;line-height:1.3}
-.feed-caption-text{font-family:'Jost',sans-serif;font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:4px}
+.feed-caption-title{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:var(--gold);margin-bottom:2px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feed-caption-text{font-family:'Jost',sans-serif;font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .feed-caption-location{display:flex;align-items:center;gap:4px;font-family:'Jost',sans-serif;font-size:11px;color:rgba(168,155,140,.6);letter-spacing:.3px}
 .feed-caption-location svg{width:11px;height:11px;stroke:rgba(168,155,140,.5);fill:none;stroke-width:2;flex-shrink:0}
 /* FIX 1: overscroll-behavior:contain stops scroll bleeding into nav taps */
@@ -212,26 +212,27 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .portfolio-item:hover{border-color:rgba(201,168,76,.35)}
 .portfolio-item.selected{border-color:#C9A84C;box-shadow:0 0 0 1.5px #C9A84C,0 8px 32px rgba(201,168,76,.18)}
 .portfolio-item img{width:100%;height:100%;object-fit:cover}
-.portfolio-item.empty-state{display:flex;align-items:center;justify-content:center;background:#0C0804;border:1px solid rgba(201,168,76,.15)}
+.portfolio-item.empty-state{display:flex;align-items:center;justify-content:center;background:#0C0804;border:1px dashed rgba(201,168,76,.5)}
 .portfolio-item.empty-state:hover,.portfolio-item.empty-state:active{border-color:rgba(201,168,76,.4)}
-.empty-state-content{display:flex;flex-direction:column;align-items:center;gap:14px;opacity:.55;transition:opacity .35s ease,transform .35s ease}
+.empty-state-content{display:flex;flex-direction:column;align-items:center;gap:14px;opacity:.9;transition:opacity .35s ease,transform .35s ease}
 .portfolio-item.empty-state:hover .empty-state-content,.portfolio-item.empty-state:active .empty-state-content{opacity:1;transform:scale(1.04)}
 .empty-state-icon{width:52px;height:52px;display:flex;align-items:center;justify-content:center}
 .empty-state-icon svg{width:100%;height:100%;overflow:visible}
-.empty-state-text{font-family:'Cormorant Garamond',serif;font-size:11px;letter-spacing:2.5px;color:rgba(201,168,76,.65);text-transform:uppercase;text-align:center;line-height:1.6}
-.empty-state-subtext{font-family:'Jost',sans-serif;font-size:9px;letter-spacing:1.5px;color:rgba(201,168,76,.35);text-transform:uppercase;margin-top:-8px}
+.empty-state-text{font-family:'Cormorant Garamond',serif;font-size:11px;letter-spacing:2.5px;color:rgba(201,168,76,.9);text-transform:uppercase;text-align:center;line-height:1.6}
+.empty-state-subtext{font-family:'Jost',sans-serif;font-size:9px;letter-spacing:1.5px;color:rgba(201,168,76,.65);text-transform:uppercase;margin-top:-8px}
 .portfolio-select{position:absolute;top:12px;right:12px;width:28px;height:28px;background:rgba(0,0,0,.5);border:2px solid rgba(201,168,76,.5);border-radius:50%;display:none;align-items:center;justify-content:center;color:transparent;font-size:14px;transition:all .2s}
 .portfolio-grid.selection-mode .portfolio-item:not(.empty-state) .portfolio-select{display:flex}
 .portfolio-item.selected .portfolio-select{background:#C9A84C;border-color:#C9A84C;color:#0A0A0A;display:flex}
 .portfolio-actions{position:fixed;bottom:calc(var(--nav-height) + 20px);right:20px;display:none;flex-direction:column;gap:12px;z-index:100}
 .portfolio-actions.active{display:flex}
-.portfolio-action-btn{width:56px;height:56px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.3);transition:transform .2s}
+.portfolio-action-btn{width:56px;height:56px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;box-shadow:0 4px 24px rgba(0,0,0,.5);transition:transform .2s;filter:brightness(1.25)}
 .portfolio-action-btn:active{transform:scale(.95)}
 .portfolio-action-btn.chat{background:#C9A84C;color:#0A1628}
 .portfolio-action-btn.whatsapp{background:#25D366;color:white}
 .portfolio-action-btn.delete{background:#c0392b;color:white}
 .portfolio-action-btn.share{background:#0A0A0A;color:#C9A84C;border:2px solid #C9A84C}
-#concierge{display:none;flex-direction:column;position:fixed;top:0;left:0;right:0;bottom:var(--nav-height);background:#060D18;z-index:100}
+#concierge{display:none;flex-direction:column;position:fixed;top:0;left:0;right:0;bottom:var(--nav-height);background:#060D18;z-index:99500}
+#concierge .cg-input-row{padding-bottom:max(12px, env(safe-area-inset-bottom))}
 #concierge.active{display:flex}
 .cg-header{background:linear-gradient(135deg,#0B1628,#0D1E3A);padding:16px 20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid rgba(201,169,98,.2);flex-shrink:0}
 .cg-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#C9A862,#8B6914);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:16px;color:#060D18;flex-shrink:0;position:relative}
@@ -285,7 +286,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .profile-container.is-vip .profile-avatar-ring{border-width:3px;box-shadow:0 0 0 1px rgba(201,168,76,.25),0 0 20px rgba(201,168,76,.5),0 0 50px rgba(201,168,76,.2)}
 .profile-avatar-img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
 .profile-name-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;position:relative}
-.profile-client-name{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--gold);letter-spacing:1px;text-align:center;background:transparent;border:none;outline:none;width:220px;-webkit-user-select:text;user-select:text}
+.profile-client-name{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--gold);letter-spacing:1px;text-align:center;background:transparent;border:none;outline:none;width:220px;-webkit-user-select:text;user-select:text;-webkit-box-shadow:0 0 0 1000px transparent inset!important;-webkit-text-fill-color:var(--gold)!important;caret-color:var(--gold)}
 .profile-client-name::placeholder{color:rgba(201,168,76,.35)}
 .profile-client-name:focus{border-bottom:1px solid rgba(201,168,76,.3)}
 .profile-name-pencil{flex-shrink:0;opacity:.3;pointer-events:none}
@@ -312,7 +313,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .profile-field-row{display:flex;align-items:center;padding:0 16px;border-bottom:1px solid rgba(201,168,76,.08);position:relative;min-height:60px}
 .profile-field-row:last-child{border-bottom:none}
 .profile-field-label{font-family:'Jost',sans-serif;font-size:9px;letter-spacing:2.5px;color:rgba(201,168,76,.65);text-transform:uppercase;white-space:nowrap;width:100px;flex-shrink:0}
-.profile-field-input{flex:1;background:transparent;border:none;outline:none;color:var(--text-primary);font-family:'Jost',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3px;padding:18px 32px 18px 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;-webkit-user-select:text;user-select:text}
+.profile-field-input{flex:1;background:transparent;border:none;outline:none;color:var(--text-primary);font-family:'Jost',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3px;padding:18px 32px 18px 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;-webkit-user-select:text;user-select:text;-webkit-box-shadow:0 0 0 1000px transparent inset!important;-webkit-text-fill-color:var(--text-primary)!important;caret-color:var(--gold)}
 .profile-field-input::placeholder{color:rgba(168,155,140,.25)}
 .profile-field-input:focus{color:var(--gold);white-space:normal}
 .profile-field-select{flex:1;background:transparent;border:none;outline:none;color:var(--text-primary);font-family:'Jost',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3px;padding:18px 32px 18px 0;appearance:none;-webkit-appearance:none;cursor:pointer;min-width:0}
@@ -504,7 +505,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       <div class="profile-ornament">— Billy Living —</div>
       <div class="profile-avatar-ring" onclick="document.getElementById('avatarFileInput').click()">
         <div class="profile-avatar-placeholder" id="avatarPlaceholder">
-          <svg viewBox="0 0 60 72" fill="none"><circle cx="30" cy="20" r="13" fill="rgba(201,168,76,0.18)" stroke="rgba(201,168,76,0.3)" stroke-width="1"/><path d="M4 70c0-14.36 11.64-26 26-26s26 11.64 26 26" fill="rgba(201,168,76,0.15)" stroke="rgba(201,168,76,0.3)" stroke-width="1"/></svg>
+          <svg viewBox="0 0 60 72" fill="none"><circle cx="30" cy="20" r="13" fill="rgba(201,168,76,0.18)" stroke="rgba(201,168,76,0.65)" stroke-width="1"/><path d="M4 70c0-14.36 11.64-26 26-26s26 11.64 26 26" fill="rgba(201,168,76,0.15)" stroke="rgba(201,168,76,0.65)" stroke-width="1"/></svg>
         </div>
         <img class="profile-avatar-img" id="profileAvatarImg" src="" alt="" style="display:none">
         <div class="profile-avatar-camera"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
@@ -961,10 +962,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('signupPassword').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') handleSignup();
   });
-  // Also wire buttons via addEventListener as backup to onclick
-  document.getElementById('loginBtn').addEventListener('click', handleLogin);
-  document.getElementById('signupBtn').addEventListener('click', handleSignup);
-  document.getElementById('finishBtn').addEventListener('click', handleFinishSignup);
+  // onclick attributes already handle clicks — no duplicate listeners needed
 });
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
@@ -1079,7 +1077,7 @@ async function loadUserProfile(uid) {
   document.getElementById('profileResidenceInput').value = p.residence|| '';
   document.getElementById('profileMobileInput').value    = p.mobile   || '';
   if (p.measure) document.getElementById('profileMeasurementSelect').value = p.measure;
-  document.getElementById('profileStoryLabel').textContent = (p.name || 'My Profile').split(' ')[0];
+  document.getElementById('profileStoryLabel').textContent = 'My Profile';
   if (p.avatar) {
     document.getElementById('profileAvatarImg').src = p.avatar;
     document.getElementById('profileAvatarImg').style.display = 'block';
@@ -1119,7 +1117,7 @@ async function saveProfileUpdates() {
   await fbDb.ref('userProfiles/' + currentUser.uid).update(updates);
   document.getElementById('saveProfileBtn').style.display = 'none';
   showToast('Profile saved');
-  document.getElementById('profileStoryLabel').textContent = (updates.name || 'My Profile').split(' ')[0];
+  document.getElementById('profileStoryLabel').textContent = 'My Profile';
   } catch(e) { showToast('Error saving profile'); console.error(e); }
 }
 
@@ -1389,63 +1387,84 @@ document.addEventListener('visibilitychange', () => {
 const _svgMuted = '<svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
 const _svgUnmuted = '<svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M11 5L6 9H2v6h4l5 4V5z" fill="white"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
 
+// Global sound flag — once user enables sound, all posts auto-unmute on scroll-in
+window._feedSoundEnabled = false;
+
+function _setFeedSoundState(enabled) {
+  window._feedSoundEnabled = enabled;
+  document.querySelectorAll('.feed-post-sound').forEach(b => {
+    b.innerHTML = enabled ? _svgUnmuted : _svgMuted;
+  });
+  if (!enabled) {
+    document.querySelectorAll('audio[id^="audio_post_"]').forEach(a => a.pause());
+  }
+}
+
 function togglePostSound(btn, audioId) {
   const audio = document.getElementById(audioId);
   if (!audio) return;
-  const isPlaying = !audio.paused;
-  // Pause all feed audios and reset all sound buttons
-  document.querySelectorAll('audio[id^="audio_post_"]').forEach(a => a.pause());
-  document.querySelectorAll('.feed-post-sound').forEach(b => b.innerHTML = _svgMuted);
-  if (isPlaying) return; // was playing — toggled off
-  audio.play().catch(()=>{});
-  btn.innerHTML = _svgUnmuted;
+  if (window._feedSoundEnabled) {
+    _setFeedSoundState(false);
+  } else {
+    _setFeedSoundState(true);
+    audio.play().catch(()=>{});
+  }
 }
 
 function initFeedVideos() {
+  // Disconnect previous observers to avoid stacking on re-render
+  if (window._feedVideoObserver) { window._feedVideoObserver.disconnect(); window._feedVideoObserver = null; }
+  if (window._feedImgObserver) { window._feedImgObserver.disconnect(); window._feedImgObserver = null; }
   if (!('IntersectionObserver' in window)) {
     document.querySelectorAll('.feed-image video').forEach(v => v.play().catch(()=>{}));
     return;
   }
-  const obs = new IntersectionObserver((entries) => {
+  window._feedVideoObserver = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       const feedItem = e.target.closest('.feed-item');
       const v = e.target;
       const audio = feedItem ? feedItem.querySelector('audio[id^="audio_post_"]') : null;
+      const soundBtn = feedItem ? feedItem.querySelector('.feed-post-sound') : null;
       if (e.isIntersecting) {
         v.play().catch(()=>{});
+        if (window._feedSoundEnabled && audio) {
+          audio.play().catch(()=>{});
+          if (soundBtn) soundBtn.innerHTML = _svgUnmuted;
+        }
       } else {
         v.pause();
-        // Auto-pause audio and reset button when post scrolls out
         if (audio && !audio.paused) {
           audio.pause();
-          const soundBtn = feedItem.querySelector('.feed-post-sound');
-          if (soundBtn) soundBtn.innerHTML = _svgMuted;
         }
+        if (soundBtn) soundBtn.innerHTML = window._feedSoundEnabled ? _svgUnmuted : _svgMuted;
       }
     });
   }, { threshold: 0.5 });
   document.querySelectorAll('.feed-image video').forEach(v => {
     v.muted = true;
     v.playsInline = true;
-    obs.observe(v);
+    window._feedVideoObserver.observe(v);
   });
-  // Image posts with audio — pause when scrolled out
-  const imgObs = new IntersectionObserver((entries) => {
+  // Image posts with audio
+  window._feedImgObserver = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       const feedItem = e.target.closest('.feed-item');
       if (!feedItem) return;
       const hasVideo = feedItem.querySelector('.feed-image video');
       if (hasVideo) return;
       const audio = feedItem.querySelector('audio[id^="audio_post_"]');
+      const soundBtn = feedItem.querySelector('.feed-post-sound');
       if (!audio) return;
-      if (!e.isIntersecting && !audio.paused) {
+      if (e.isIntersecting && window._feedSoundEnabled) {
+        audio.play().catch(()=>{});
+        if (soundBtn) soundBtn.innerHTML = _svgUnmuted;
+      } else if (!e.isIntersecting) {
         audio.pause();
-        const soundBtn = feedItem.querySelector('.feed-post-sound');
-        if (soundBtn) soundBtn.innerHTML = _svgMuted;
+        if (soundBtn) soundBtn.innerHTML = window._feedSoundEnabled ? _svgUnmuted : _svgMuted;
       }
     });
   }, { threshold: 0.5 });
-  document.querySelectorAll('.feed-item .feed-image').forEach(el => imgObs.observe(el));
+  document.querySelectorAll('.feed-item .feed-image').forEach(el => window._feedImgObserver.observe(el));
 }
 
 async function toggleLike(btn, id, collection) {
@@ -1937,7 +1956,57 @@ function _renderVaultGrid(assets) {
   const meta = document.getElementById('vaultGalleryMeta');
   if (meta) meta.textContent = `${assets.length} Exclusive Item${assets.length!==1?'s':''} · VIP Access`;
   if (!assets.length) {
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(212,175,55,.3);font-family:Cormorant Garamond,serif;font-size:18px">Your exclusive content is being curated</div>';
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:32px 20px 40px">
+      <div style="text-align:center;margin-bottom:32px">
+        <div style="font-family:'Jost',sans-serif;font-size:8px;letter-spacing:5px;color:rgba(212,175,55,.45);text-transform:uppercase;margin-bottom:8px">Status Update</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:#E8D5A3;letter-spacing:1px">Curation in Progress</div>
+        <div style="width:28px;height:1px;background:rgba(212,175,55,.35);margin:12px auto 0"></div>
+      </div>
+      <div style="position:relative;padding-left:36px">
+        <!-- Vertical line -->
+        <div style="position:absolute;left:11px;top:12px;bottom:12px;width:1px;background:linear-gradient(to bottom,rgba(212,175,55,.6),rgba(212,175,55,.08))"></div>
+
+        <!-- Step 1: Selection — ACTIVE -->
+        <div style="position:relative;margin-bottom:32px">
+          <div style="position:absolute;left:-36px;top:2px;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#C9A84C,#8B6914);box-shadow:0 0 14px rgba(201,168,76,.55),0 0 28px rgba(201,168,76,.2);display:flex;align-items:center;justify-content:center">
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none"><polyline points="20 6 9 17 4 12" stroke="#0A1628" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div style="font-family:'Jost',sans-serif;font-size:8px;letter-spacing:3px;color:#C9A84C;text-transform:uppercase;margin-bottom:4px">Active</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:#F5F0E8;letter-spacing:.5px;margin-bottom:4px">Selection</div>
+          <div style="font-family:'Jost',sans-serif;font-size:11px;color:rgba(168,155,140,.7);line-height:1.6;font-weight:300">Curation in progress. Choosing marbles and HDF finishes.</div>
+        </div>
+
+        <!-- Step 2: Sourcing — PENDING -->
+        <div style="position:relative;margin-bottom:32px;opacity:.45">
+          <div style="position:absolute;left:-36px;top:2px;width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(212,175,55,.35);background:transparent;display:flex;align-items:center;justify-content:center">
+            <div style="width:6px;height:6px;border-radius:50%;background:rgba(212,175,55,.3)"></div>
+          </div>
+          <div style="font-family:'Jost',sans-serif;font-size:8px;letter-spacing:3px;color:rgba(212,175,55,.4);text-transform:uppercase;margin-bottom:4px">Pending</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:#F5F0E8;letter-spacing:.5px;margin-bottom:4px">Sourcing</div>
+          <div style="font-family:'Jost',sans-serif;font-size:11px;color:rgba(168,155,140,.6);line-height:1.6;font-weight:300">Materials secured from global partners.</div>
+        </div>
+
+        <!-- Step 3: Transit — PENDING -->
+        <div style="position:relative;margin-bottom:32px;opacity:.35">
+          <div style="position:absolute;left:-36px;top:2px;width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(212,175,55,.25);background:transparent;display:flex;align-items:center;justify-content:center">
+            <div style="width:6px;height:6px;border-radius:50%;background:rgba(212,175,55,.2)"></div>
+          </div>
+          <div style="font-family:'Jost',sans-serif;font-size:8px;letter-spacing:3px;color:rgba(212,175,55,.3);text-transform:uppercase;margin-bottom:4px">Pending</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:#F5F0E8;letter-spacing:.5px;margin-bottom:4px">Transit</div>
+          <div style="font-family:'Jost',sans-serif;font-size:11px;color:rgba(168,155,140,.5);line-height:1.6;font-weight:300">Luxury selections are en route to the site.</div>
+        </div>
+
+        <!-- Step 4: Installation — PENDING -->
+        <div style="position:relative;opacity:.25">
+          <div style="position:absolute;left:-36px;top:2px;width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(212,175,55,.18);background:transparent;display:flex;align-items:center;justify-content:center">
+            <div style="width:6px;height:6px;border-radius:50%;background:rgba(212,175,55,.15)"></div>
+          </div>
+          <div style="font-family:'Jost',sans-serif;font-size:8px;letter-spacing:3px;color:rgba(212,175,55,.25);text-transform:uppercase;margin-bottom:4px">Pending</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:#F5F0E8;letter-spacing:.5px;margin-bottom:4px">Installation</div>
+          <div style="font-family:'Jost',sans-serif;font-size:11px;color:rgba(168,155,140,.4);line-height:1.6;font-weight:300">On-site artisans bringing the vision to life.</div>
+        </div>
+      </div>
+    </div>`;
     return;
   }
   const va = {};
@@ -2062,7 +2131,7 @@ let portfolioSelectionMode = false;
 
 function renderPortfolioGrid() {
   const grid = document.getElementById('portfolioGrid');
-  const SLOTS = Math.max(6, portfolioItems.length);
+  const SLOTS = portfolioItems.length + 1;
   let html = portfolioItems.slice(0, SLOTS).map(item => {
     const isSel = selectedPortfolioItems.includes(item.id);
     const mediaHtml = item.imageData
@@ -2082,7 +2151,7 @@ function renderPortfolioGrid() {
   const remaining = Math.max(0, SLOTS - portfolioItems.length);
   for (let i = 0; i < remaining; i++) {
     html += `<div class="portfolio-item empty-state"><div class="empty-state-content">
-      <div class="empty-state-icon"><svg viewBox="0 0 52 52" fill="none"><rect x="8" y="14" width="36" height="28" rx="2" stroke="rgba(201,168,76,0.35)" stroke-width="1.5"/><path d="M8 30l10-10 8 8 6-6 12 10" stroke="rgba(201,168,76,0.25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="19" cy="23" r="3" stroke="rgba(201,168,76,0.3)" stroke-width="1.2"/></svg></div>
+      <div class="empty-state-icon"><svg viewBox="0 0 52 52" fill="none"><rect x="8" y="14" width="36" height="28" rx="2" stroke="rgba(201,168,76,0.7)" stroke-width="1.5"/><path d="M8 30l10-10 8 8 6-6 12 10" stroke="rgba(201,168,76,0.55)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="19" cy="23" r="3" stroke="rgba(201,168,76,0.65)" stroke-width="1.2"/></svg></div>
       <div class="empty-state-text">Save Designs</div>
       <div class="empty-state-subtext">Tap bookmark</div>
     </div></div>`;
