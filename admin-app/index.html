@@ -258,6 +258,8 @@
         /* Content Panels */
         .panel {
             display: none;
+            position: relative;
+            min-height: 400px;
         }
 
         .panel.active {
@@ -276,6 +278,40 @@
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Loading Spinner */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .panel-loading {
+            position: absolute;
+            inset: 0;
+            background: rgba(18,13,6,0.95);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+        
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(201,168,76,0.1);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
+        }
+        
+        .loading-text {
+            color: var(--gold);
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 500;
         }
 
         /* Lists */
@@ -1787,6 +1823,47 @@
         let vmCurrentClientUID = null;
         let vmCurrentClientName = null;
         let vmCurrentProjectId = null;
+        let isLoading = false;
+        const LOADING_TIMEOUT = 8000; // 8 second timeout
+
+        // Loading state management
+        function showPanelLoading(panelId) {
+            const panel = document.getElementById(panelId);
+            if (!panel) return;
+            
+            // Remove any existing loader
+            hidePanelLoading(panelId);
+            
+            const loader = document.createElement('div');
+            loader.className = 'panel-loading';
+            loader.innerHTML = `
+                <div style="text-align:center;">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">LOADING</div>
+                </div>
+            `;
+            panel.style.position = 'relative';
+            panel.appendChild(loader);
+        }
+
+        function hidePanelLoading(panelId) {
+            const panel = document.getElementById(panelId);
+            const loader = panel?.querySelector('.panel-loading');
+            if (loader) loader.remove();
+        }
+
+        // Cache management
+        const dataCache = {
+            catalog: null,
+            vip: null,
+            portfolios: null,
+            lastFetch: 0,
+            home: null,
+            trending: null,
+            designers: null
+        };
+
+        const CACHE_DURATION = 30000; // 30 seconds
 
         // Default catalog data for initialization
         const defaultCatalogData = [
@@ -1818,14 +1895,14 @@
         document.addEventListener('DOMContentLoaded', () => {
             initData();
             updateStats();
-            renderCatalogList();
-            renderDesignersList();
+            renderCatalogList();  // catalog uses localStorage + Firebase
+            renderDesignersList(); // designers use localStorage
         });
 
         function initData() {
             // Load catalog boxes from Firebase first, fallback to localStorage/defaults
             if (typeof adminFbDB !== 'undefined') {
-                adminFbDB.ref('content/catalog').once('value').then(snap => {
+                adminFbDB.ref('content/catalog').limitToFirst(20).once('value').then(snap => {
                     const fbData = snap.val();
                     if (fbData && Object.keys(fbData).length > 0) {
                         const fbBoxes = Object.values(fbData);
@@ -1895,21 +1972,106 @@
         // Navigation
         const _panelFetched = {};
 
-        function showPanel(panelName, navElement) {
+        // Optimized showPanel function
+        async function showPanel(panelName, navElement) {
+            // Show loading immediately
+            showPanelLoading('panel-' + panelName);
+            
+            // Hide other panels
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('panel-' + panelName).classList.add('active');
             if (navElement) navElement.classList.add('active');
+            
+            try {
+                // Load data with timeout
+                const loadPromise = (async () => {
+                    switch(panelName) {
+                        case 'catalog':
+                            if (!dataCache.catalog || Date.now() - dataCache.lastFetch > CACHE_DURATION) {
+                                await loadCatalogData();
+                            } else {
+                                renderCatalogList();
+                            }
+                            break;
+                        case 'vip':
+                            await renderVIPList();
+                            break;
+                        case 'portfolio':
+                            await loadPortfolioUsers();
+                            break;
+                        case 'vaultmgr':
+                            vmInit();
+                            break;
+                        case 'home':
+                            if (!dataCache.home || Date.now() - dataCache.lastFetch > CACHE_DURATION) {
+                                renderHomeList();
+                            } else {
+                                renderHomeListFromCache();
+                            }
+                            break;
+                        case 'trending':
+                            if (!dataCache.trending || Date.now() - dataCache.lastFetch > CACHE_DURATION) {
+                                renderTrendingList();
+                            }
+                            break;
+                        case 'designers':
+                            if (!dataCache.designers || Date.now() - dataCache.lastFetch > CACHE_DURATION) {
+                                renderDesignersList();
+                            }
+                            break;
+                        case 'messages':
+                            adminBackToList();
+                            initAdminMessagesListener();
+                            break;
+                        default:
+                            if (!_panelFetched[panelName]) {
+                                _panelFetched[panelName] = true;
+                            }
+                    }
+                })();
 
-            if (panelName === 'home')      { if (!_panelFetched.home)      { _panelFetched.home = true;      renderHomeList(); }      else renderHomeListFromCache(); }
-            if (panelName === 'trending')  { if (!_panelFetched.trending)  { _panelFetched.trending = true;  renderTrendingList(); }  }
-            if (panelName === 'designers') { if (!_panelFetched.designers) { _panelFetched.designers = true; renderDesignersList(); } }
-            if (panelName === 'catalog')   { if (!_panelFetched.catalog)   { _panelFetched.catalog = true;   renderCatalogList(); }   }
-            if (panelName === 'vip')       { renderVIPList(); updateStats(); }
-            if (panelName === 'portfolio') { loadPortfolioUsers(); }
-            if (panelName === 'vaultmgr')  { vmInit(); }
+                // Set timeout for loading
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('Loading timeout')), LOADING_TIMEOUT);
+                });
+
+                await Promise.race([loadPromise, timeoutPromise]);
+                
+            } catch (error) {
+                console.error('Loading error:', error);
+                showToast('Loading timeout - showing cached data');
+                // Fallback to cached/local data
+                if (panelName === 'catalog') renderCatalogList();
+                if (panelName === 'vip') {
+                    const vips = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
+                    renderVIPListFromCache(vips);
+                }
+                if (panelName === 'portfolio') loadPortfolioUsersFromCache();
+            } finally {
+                hidePanelLoading('panel-' + panelName);
+            }
         }
 
+        // Optimized catalog loading
+        async function loadCatalogData() {
+            return new Promise((resolve) => {
+                adminFbDB.ref('content/catalog').limitToFirst(20).once('value').then(snap => {
+                    if (snap.exists()) {
+                        const boxes = Object.values(snap.val());
+                        dataCache.catalog = boxes;
+                        dataCache.lastFetch = Date.now();
+                        renderCatalogList();
+                    }
+                    resolve();
+                }).catch(() => {
+                    renderCatalogList(); // Fallback to cache
+                    resolve();
+                });
+            });
+        }
+
+        // Stats — reads from cache (localStorage) — instant
         function updateStats() {
             const posts    = JSON.parse(localStorage.getItem('tbl_posts')     || '[]');
             const trending = JSON.parse(localStorage.getItem('tbl_trending')  || '[]');
@@ -1921,76 +2083,89 @@
             document.getElementById('statPendingVIP').textContent = vips.filter(v => v.status === 'pending').length;
         }
 
+        // Render dashboard stat cards from cache — no Firebase needed
         function renderDashboardFromCache() {
             updateStats();
+            // Also update VIP badge from cache
             const vips = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
             const pending = vips.filter(v => v.status === 'pending').length;
             const badge = document.getElementById('vipBadge');
             if (badge) { badge.textContent = pending; badge.style.display = pending > 0 ? '' : 'none'; }
         }
 
+        // Re-render home from cache (already fetched this session) — no Firebase
         function renderHomeListFromCache() {
             const container = document.getElementById('homeList');
             const cached = JSON.parse(localStorage.getItem('tbl_posts') || '[]');
-            if (!cached.length) { renderHomeList(); return; }
+            if (!cached.length) { renderHomeList(); return; } // fallback to fetch
+            renderHomeListWithData(cached);
+        }
+
+        function renderHomeListWithData(posts) {
+            const container = document.getElementById('homeList');
+            if (!posts.length) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏠</div><p>No posts yet. Add your first post!</p></div>';
+                return;
+            }
+            container.innerHTML = posts.slice(0, 20).map(post => {
+                const coverSrc = (post.images && post.images[0]) || post.imageData || null;
+                const hasVideo = post.videoData || post.videoUrl;
+                const hasAudio = post.audioData;
+                const hasMulti = post.images && post.images.length > 1;
+                const thumb = coverSrc
+                    ? `<img src="${coverSrc}" alt="" style="width:100%;height:100%;object-fit:cover;">`
+                    : hasVideo
+                        ? `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:4px;"><span style="font-size:24px;">▶</span><span style="font-size:9px;color:#C9A84C;letter-spacing:1px;">VIDEO</span></div>`
+                        : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:32px;">🏠</div>`;
+                const videoTag = hasVideo ? `<span style="font-size:10px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:#C9A84C;border-radius:4px;padding:1px 5px;margin-left:6px;">▶ VIDEO</span>` : '';
+                const audioTag = hasAudio ? `<span style="font-size:10px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:#C9A84C;border-radius:4px;padding:1px 5px;margin-left:6px;">🎵</span>` : '';
+                const multiTag = hasMulti ? `<span style="font-size:10px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:#C9A84C;border-radius:4px;padding:1px 5px;margin-left:6px;">🖼 ${post.images.length}</span>` : '';
+                return `<div class="list-item">
+                    <div class="list-image">${thumb}</div>
+                    <div class="list-info">
+                        <div class="list-title">${post.title || '(no title)'}${videoTag}${audioTag}${multiTag}</div>
+                        <div class="list-meta">📍 ${post.location || '—'} &nbsp;❤️ ${post.likes||0} &nbsp;↗️ ${post.shares||0}</div>
+                    </div>
+                    <div class="list-actions">
+                        <div class="toggle-switch ${post.published ? 'active' : ''}" onclick="togglePublished('posts', '${post.id}')"></div>
+                        <button class="btn btn-danger" onclick="deleteItem('posts', '${post.id}')" style="padding:8px 12px;">🗑️</button>
+                    </div>
+                </div>`;
+            }).join('');
         }
 
         function renderHomeList() {
             const container = document.getElementById('homeList');
-            container.innerHTML = `<div><div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div><div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div><div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div><div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div></div>`;
-
-            const renderPosts = (posts) => {
-                try {
-                    const slim = posts.map(p => { const {images, imageData, videoData, audioData, ...rest} = p; return rest; });
-                    localStorage.setItem('tbl_posts', JSON.stringify(slim));
-                } catch(e) {}
-
-                if (!posts.length) {
-                    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏠</div><p>No posts yet. Add your first post!</p></div>';
-                    return;
-                }
-                container.innerHTML = posts.map(post => {
-                    const coverSrc = (post.images && post.images[0]) || post.imageData || null;
-                    const hasVideo = post.videoData || post.videoUrl;
-                    const hasAudio = post.audioData;
-                    const hasMulti = post.images && post.images.length > 1;
-                    const thumb = coverSrc
-                        ? `<img src="${coverSrc}" alt="" style="width:100%;height:100%;object-fit:cover;">`
-                        : hasVideo
-                            ? `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:4px;"><span style="font-size:24px;">▶</span><span style="font-size:9px;color:#C9A84C;letter-spacing:1px;">VIDEO</span></div>`
-                            : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:32px;">🏠</div>`;
-                    const videoTag = hasVideo ? `<span style="font-size:10px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:#C9A84C;border-radius:4px;padding:1px 5px;margin-left:6px;">▶ VIDEO</span>` : '';
-                    const audioTag = hasAudio ? `<span style="font-size:10px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:#C9A84C;border-radius:4px;padding:1px 5px;margin-left:6px;">🎵</span>` : '';
-                    const multiTag = hasMulti ? `<span style="font-size:10px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:#C9A84C;border-radius:4px;padding:1px 5px;margin-left:6px;">🖼 ${post.images.length}</span>` : '';
-                    return `<div class="list-item">
-                        <div class="list-image">${thumb}</div>
-                        <div class="list-info">
-                            <div class="list-title">${post.title || '(no title)'}${videoTag}${audioTag}${multiTag}</div>
-                            <div class="list-meta">📍 ${post.location || '—'} &nbsp;❤️ ${post.likes||0} &nbsp;↗️ ${post.shares||0}</div>
-                        </div>
-                        <div class="list-actions">
-                            <div class="toggle-switch ${post.published ? 'active' : ''}" onclick="togglePublished('posts', '${post.id}')"></div>
-                            <button class="btn btn-danger" onclick="deleteItem('posts', '${post.id}')" style="padding:8px 12px;">🗑️</button>
-                        </div>
-                    </div>`;
-                }).join('');
-            };
-
+            
+            // Show cached slim metadata instantly while Firebase loads
             const _cachedPosts = JSON.parse(localStorage.getItem('tbl_posts') || '[]');
-            if (_cachedPosts.length) renderPosts(_cachedPosts);
+            if (_cachedPosts.length) {
+                renderHomeListWithData(_cachedPosts);
+                dataCache.home = _cachedPosts;
+            } else {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏠</div><p>No posts yet. Add your first post!</p></div>';
+            }
 
             if (typeof adminFbDB !== 'undefined') {
-                adminFbDB.ref('content/posts').once('value').then(snap => {
-                    if (snap.exists()) renderPosts(Object.values(snap.val()));
-                    else if (!_cachedPosts.length) renderPosts([]);
-                }).catch(e => { console.error(e); if (!_cachedPosts.length) renderPosts([]); });
-            } else if (!_cachedPosts.length) renderPosts([]);
+                adminFbDB.ref('content/posts').limitToFirst(20).once('value').then(snap => {
+                    if (snap.exists()) {
+                        const posts = Object.values(snap.val());
+                        try {
+                            const slim = posts.map(p => { const {images, imageData, videoData, audioData, ...rest} = p; return rest; });
+                            localStorage.setItem('tbl_posts', JSON.stringify(slim));
+                            dataCache.home = slim;
+                        } catch(e) {}
+                        renderHomeListWithData(posts);
+                    }
+                }).catch(e => { console.error(e); });
+            }
         }
 
         function renderCatalogList() {
             const container = document.getElementById('catalogList');
 
             const renderBoxes = (boxes) => {
+                // Keep metadata in sync (strip images to avoid quota issues)
                 const meta = boxes.map(b => { const {images, mixtureImages, ...rest} = b; return rest; });
                 try { localStorage.setItem('tbl_catalog_boxes', JSON.stringify(meta)); } catch(e) {}
 
@@ -1999,13 +2174,15 @@
                     return;
                 }
                 const covers = getCoverCache();
-                container.innerHTML = boxes.map((box, idx) => {
+                container.innerHTML = boxes.slice(0, 20).map((box, idx) => {
                     const topic   = box.value || '';
                     const feeling = box.description || box.feeling || '';
                     const imgsArr = box.images
                         ? (Array.isArray(box.images) ? box.images : Object.values(box.images))
                         : [];
+                    // Use cover cache first (instant), fall back to images array
                     const imgSrc = covers[box.id] || imgsArr.find(i => i) || '';
+                    // Update cover cache if we got an image from Firebase
                     if (imgsArr.find(i => i) && !covers[box.id]) saveCoverCache(box.id, imgsArr.find(i => i));
                     const count  = imgsArr.filter(Boolean).length;
                     return `
@@ -2035,6 +2212,7 @@
                 }).join('');
             };
 
+            // Render immediately from metadata + cover image cache — zero Firebase wait
             const cached = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
             const sortFn = (a,b) => { const n=s=>parseInt((s.id||'').replace(/[^0-9]/g,''))||0; return n(a)-n(b); };
             if (cached.length) {
@@ -2043,8 +2221,9 @@
                 container.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:rgba(201,168,76,0.35);font-size:12px;letter-spacing:2px;text-transform:uppercase;">Loading…</div>';
             }
 
+            // Background Firebase refresh — updates cover cache + grid silently
             if (typeof adminFbDB !== 'undefined') {
-                adminFbDB.ref('content/catalog').once('value').then(snap => {
+                adminFbDB.ref('content/catalog').limitToFirst(20).once('value').then(snap => {
                     if (!snap.exists()) { if (!cached.length) renderBoxes([]); return; }
                     const boxes = Object.values(snap.val()).sort(sortFn);
                     renderBoxes(boxes);
@@ -2056,19 +2235,19 @@
 
         function renderTrendingList() {
             const container = document.getElementById('trendingList');
-            container.innerHTML = `<div><div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div><div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div><div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div><div class="skeleton-row"><div class="skeleton skeleton-thumb"></div><div class="skeleton-lines"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div></div>`;
 
             const renderItems = (items) => {
                 try {
                     const slim = items.map(p => { const {images, imageData, videoData, audioData, ...rest} = p; return rest; });
                     localStorage.setItem('tbl_trending', JSON.stringify(slim));
+                    dataCache.trending = slim;
                 } catch(e) {}
 
                 if (!items.length) {
                     container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔥</div><p>No trending items yet. Add your first!</p></div>';
                     return;
                 }
-                container.innerHTML = items.map(item => {
+                container.innerHTML = items.slice(0, 20).map(item => {
                     const coverSrc = (item.images && item.images[0]) || item.imageData || null;
                     const hasVideo = item.videoData || item.videoUrl;
                     const hasAudio = item.audioData;
@@ -2095,26 +2274,35 @@
                 }).join('');
             };
 
+            // Show cached data immediately
+            const cached = JSON.parse(localStorage.getItem('tbl_trending') || '[]');
+            if (cached.length) renderItems(cached);
+
+            // Refresh from Firebase
             if (typeof adminFbDB !== 'undefined') {
-                adminFbDB.ref('content/trending').once('value').then(snap => {
+                adminFbDB.ref('content/trending').limitToFirst(20).once('value').then(snap => {
                     if (snap.exists()) renderItems(Object.values(snap.val()));
-                    else renderItems([]);
-                }).catch(e => { console.error(e); renderItems([]); });
-            } else renderItems([]);
+                    else if (!cached.length) renderItems([]);
+                }).catch(e => { console.error(e); if (!cached.length) renderItems([]); });
+            } else if (!cached.length) renderItems([]);
         }
 
         function renderDesignersList() {
             const container = document.getElementById('designersList');
             if (!container) return;
-            const cached = JSON.parse(localStorage.getItem('tbl_designers') || '[]');
+            
             const doRender = (designers) => {
-                try { localStorage.setItem('tbl_designers', JSON.stringify(designers)); } catch(e) {}
+                try { 
+                    localStorage.setItem('tbl_designers', JSON.stringify(designers));
+                    dataCache.designers = designers;
+                } catch(e) {}
+                
                 if (designers.length === 0) {
                     container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👔</div><p>No designers yet. Add your first!</p></div>';
                     return;
                 }
             
-            container.innerHTML = designers.map(d => `
+            container.innerHTML = designers.slice(0, 20).map(d => `
                 <div class="list-item">
                     <div class="list-image" style="display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; background: var(--gold); color: var(--bg-primary);">
                         ${d.initials}
@@ -2130,9 +2318,14 @@
                 </div>
             `).join('');
             };
+
+            // Show cached immediately
+            const cached = JSON.parse(localStorage.getItem('tbl_designers') || '[]');
             if (cached.length) doRender(cached);
+
+            // Refresh from Firebase
             if (typeof adminFbDB !== 'undefined') {
-                adminFbDB.ref('content/designers').once('value').then(snap => {
+                adminFbDB.ref('content/designers').limitToFirst(20).once('value').then(snap => {
                     if (snap.exists()) doRender(Object.values(snap.val()));
                     else if (!cached.length) doRender([]);
                 }).catch(() => { if (!cached.length) doRender([]); });
@@ -2140,21 +2333,14 @@
         }
 
         // VIP Manager
-        function renderVIPList() {
-            adminFbDB.ref('vip').once('value').then(snap => {
-                const container = document.getElementById('vipGrid');
-                if (!snap.exists()) {
-                    container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1; padding: 40px;"><p>No VIP members registered yet</p></div>';
-                    document.getElementById('vipCount').textContent = '0';
-                    return;
-                }
-                const vips = Object.values(snap.val());
-                localStorage.setItem('tbl_vip_users', JSON.stringify(vips));
-                document.getElementById('vipCount').textContent = vips.length;
-                const pendingCount = vips.filter(v => v.status === 'pending').length;
-                const badge = document.getElementById('vipBadge');
-                if (badge) { badge.textContent = pendingCount; badge.style.display = pendingCount > 0 ? '' : 'none'; }
-                container.innerHTML = vips.map(vip => `
+        function renderVIPListFromCache(vips) {
+            const container = document.getElementById('vipGrid');
+            document.getElementById('vipCount').textContent = vips.length;
+            const pendingCount = vips.filter(v => v.status === 'pending').length;
+            const badge = document.getElementById('vipBadge');
+            if (badge) { badge.textContent = pendingCount; badge.style.display = pendingCount > 0 ? '' : 'none'; }
+            
+            container.innerHTML = vips.slice(0, 20).map(vip => `
                 <div class="vip-card status-${vip.status}">
                     <div class="vip-name">${vip.name}</div>
                     <div class="vip-phone">${vip.phone}</div>
@@ -2170,6 +2356,31 @@
                     </div>
                 </div>
             `).join('');
+        }
+
+        function renderVIPList() {
+            const container = document.getElementById('vipGrid');
+            
+            // Show cached data immediately
+            const cached = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
+            if (cached.length) renderVIPListFromCache(cached);
+
+            // Refresh from Firebase
+            adminFbDB.ref('vip').limitToFirst(50).once('value').then(snap => {
+                if (!snap.exists()) {
+                    if (!cached.length) {
+                        container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1; padding: 40px;"><p>No VIP members registered yet</p></div>';
+                        document.getElementById('vipCount').textContent = '0';
+                    }
+                    return;
+                }
+                const vips = Object.values(snap.val());
+                localStorage.setItem('tbl_vip_users', JSON.stringify(vips));
+                renderVIPListFromCache(vips);
+            }).catch(() => {
+                if (!cached.length) {
+                    container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1; padding: 40px;"><p>No VIP members registered yet</p></div>';
+                }
             });
         }
 
@@ -3535,7 +3746,7 @@
 
         function initAdminMessagesListener() {
             if (adminChatsListener) { adminChatsListener.off(); adminChatsListener = null; }
-            adminChatsListener = adminFbDB.ref('chats');
+            adminChatsListener = adminFbDB.ref('chats').limitToFirst(20);
             adminChatsListener.on('child_added', _handleChatUpdate);
             adminChatsListener.on('child_changed', _handleChatUpdate);
         }
@@ -3555,7 +3766,7 @@
         }
 
         function _rebuildConvList() {
-            const convs = Object.values(_chatMeta).sort((a,b) => b.lastTs - a.lastTs);
+            const convs = Object.values(_chatMeta).sort((a,b) => b.lastTs - a.lastTs).slice(0, 20);
             let totalUnread = convs.reduce((s, c) => s + (c.unread||0), 0);
             renderAdminConvList(convs.map(c => ({
                 uid: c.uid,
@@ -3606,7 +3817,7 @@
             document.getElementById('adminChatClientName').textContent = name;
             document.getElementById('adminChatAv').textContent = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
 
-            adminFbDB.ref(`chats/${uid}/messages`).once('value', snap => {
+            adminFbDB.ref(`chats/${uid}/messages`).limitToLast(50).once('value', snap => {
                 const msgs = snap.val() || {};
                 Object.entries(msgs).forEach(([key, msg]) => {
                     if (msg.sender === 'client' && !msg.read) {
@@ -3618,7 +3829,7 @@
             if (adminMsgsRef) adminMsgsRef.off();
             const container = document.getElementById('adminChatMsgs');
             container.innerHTML = '';
-            adminMsgsRef = adminFbDB.ref(`chats/${uid}/messages`);
+            adminMsgsRef = adminFbDB.ref(`chats/${uid}/messages`).limitToLast(50);
             adminMsgsRef.orderByChild('timestamp').on('child_added', snap => {
                 renderAdminMsg(snap.val());
             });
@@ -3658,7 +3869,7 @@
                 text, sender: 'admin', senderName: 'The Billy Living Concierge',
                 timestamp: Date.now(), read: true
             });
-            adminFbDB.ref(`chats/${adminSelectedUID}/messages`).once('value').then(snap => {
+            adminFbDB.ref(`chats/${adminSelectedUID}/messages`).limitToLast(50).once('value').then(snap => {
                 if (!snap.exists()) return;
                 Object.entries(snap.val()).forEach(([key, msg]) => {
                     if (msg.sender === 'client' && !msg.read) {
@@ -3688,22 +3899,11 @@
             const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML;
         }
 
-        const _origShowPanel = window.showPanel;
-        window.showPanel = function(name, el) {
-            _origShowPanel(name, el);
-            if (name === 'messages') {
-                adminBackToList();
-                initAdminMessagesListener();
-            }
-            if (name === 'portfolio') {
-                loadPortfolioUsers();
-            }
-            if (name === 'vaultmgr') {
-                vmInit();
-            }
-        };
-
         // ── Portfolio Analytics ──────────────────────────────────────────────────
+        function loadPortfolioUsersFromCache() {
+            // Implement cache loading if needed
+        }
+
         function loadPortfolioUsers() {
             document.getElementById('portfolioUsersView').style.display = 'block';
             document.getElementById('portfolioClientView').style.display = 'none';
@@ -3711,7 +3911,7 @@
             const list = document.getElementById('portfolioUsersList');
             list.innerHTML = `<div class="port-empty"><div style="font-size:32px;margin-bottom:12px;opacity:0.4;">📋</div><div style="font-size:13px;letter-spacing:1px;">Loading...</div></div>`;
 
-            adminFbDB.ref('portfolios').once('value').then(snap => {
+            adminFbDB.ref('portfolios').limitToFirst(20).once('value').then(snap => {
                 const data = snap.val() || {};
                 const users = Object.entries(data);
                 document.getElementById('portfolioUserTotal').textContent = users.length;
@@ -3725,7 +3925,7 @@
                     return;
                 }
 
-                list.innerHTML = users.map(([uid, udata]) => {
+                list.innerHTML = users.slice(0, 20).map(([uid, udata]) => {
                     const info    = udata.userInfo || {};
                     const items   = Object.values(udata.items || {});
                     const name    = info.name || 'Client';
@@ -3765,7 +3965,7 @@
             const grid = document.getElementById('portfolioClientGrid');
             grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(168,155,140,0.4);">Loading…</div>`;
 
-            adminFbDB.ref(`portfolios/${uid}/items`).once('value').then(snap => {
+            adminFbDB.ref(`portfolios/${uid}/items`).limitToFirst(30).once('value').then(snap => {
                 const items = Object.values(snap.val() || {});
                 items.sort((a,b) => (b.savedAt||0) - (a.savedAt||0));
                 document.getElementById('portfolioClientTotal').textContent = items.length;
@@ -3774,7 +3974,7 @@
                     grid.innerHTML = `<div style="grid-column:1/-1;" class="port-empty">No items saved yet</div>`;
                     return;
                 }
-                grid.innerHTML = items.map(item => `
+                grid.innerHTML = items.slice(0, 30).map(item => `
                     <div class="port-grid-item">
                         ${item.imageData
                             ? `<img src="${escHtml(item.imageData)}" alt="${escHtml(item.title||'')}">`
@@ -3822,7 +4022,7 @@
             const list = document.getElementById('vmClientList');
             list.innerHTML = `<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">Loading clients…</div></div>`;
 
-            adminFbDB.ref('vip').once('value').then(snap => {
+            adminFbDB.ref('vip').limitToFirst(20).once('value').then(snap => {
                 const vips = Object.values(snap.val() || {});
                 if (!vips.length) {
                     list.innerHTML = `<div class="vm-empty">
@@ -3832,7 +4032,7 @@
                     </div>`;
                     return;
                 }
-                list.innerHTML = vips.map(v => {
+                list.innerHTML = vips.slice(0, 20).map(v => {
                     const name = v.name || 'Client';
                     const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
                     return `<div class="vm-client-item" onclick="vmOpenClientPOV('${escHtml(v.id||v.phone)}','${escHtml(name)}','${escHtml(v.phone)}')">
@@ -3932,7 +4132,7 @@
         function vmRenderLibrary() {
             const grid = document.getElementById('vmLibraryGrid');
             grid.innerHTML = `<div style="grid-column:1/-1" class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">Loading…</div></div>`;
-            vmRef('assets').once('value').then(snap => {
+            vmRef('assets').limitToFirst(20).once('value').then(snap => {
                 const assets = Object.values(snap.val() || {});
                 if (!assets.length) {
                     grid.innerHTML = `<div style="grid-column:1/-1" class="vm-empty">
@@ -3949,7 +4149,7 @@
         function vmRenderDefaults() {
             const grid = document.getElementById('vmDefaultsGrid');
             grid.innerHTML = `<div style="grid-column:1/-1" class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">Loading…</div></div>`;
-            vmRef('defaults').once('value').then(snap => {
+            vmRef('defaults').limitToFirst(20).once('value').then(snap => {
                 const assets = Object.values(snap.val() || {});
                 if (!assets.length) {
                     grid.innerHTML = `<div style="grid-column:1/-1" class="vm-empty">
@@ -3977,7 +4177,7 @@
         function vmLoadPOVGrid(uid) {
             const grid = document.getElementById('vmPOVGrid');
             grid.innerHTML = `<div style="grid-column:1/-1" class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">Loading…</div></div>`;
-            vmRef('clients/' + uid).once('value').then(snap => {
+            vmRef('clients/' + uid).limitToFirst(20).once('value').then(snap => {
                 const assets = Object.values(snap.val() || {});
                 document.getElementById('vmPOVSub').textContent = assets.length + ' vault item' + (assets.length!==1?'s':'');
                 if (!assets.length) {
@@ -3994,7 +4194,7 @@
 
         function vmSyncDefaults() {
             if (!vmCurrentClientUID) return;
-            vmRef('defaults').once('value').then(snap => {
+            vmRef('defaults').limitToFirst(20).once('value').then(snap => {
                 const defaults = snap.val() || {};
                 const count = Object.keys(defaults).length;
                 if (!count) { showToast('No defaults set yet'); return; }
@@ -4137,7 +4337,7 @@
                 document.getElementById('cpMeasure').textContent   = data.measure   || '—';
             });
 
-            adminFbDB.ref(`portfolios/${uid}/items`).once('value').then(snap => {
+            adminFbDB.ref(`portfolios/${uid}/items`).limitToFirst(20).once('value').then(snap => {
                 const items = Object.values(snap.val() || {});
                 items.sort((a,b)=>(b.savedAt||0)-(a.savedAt||0));
                 document.getElementById('cpPortfolioNum').textContent = items.length;
@@ -4146,7 +4346,7 @@
                     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:30px;color:rgba(168,155,140,0.3);font-size:13px;">No items saved yet</div>`;
                     return;
                 }
-                grid.innerHTML = items.map(item => `
+                grid.innerHTML = items.slice(0, 20).map(item => `
                     <div class="port-grid-item">
                         ${item.imageData
                             ? `<img src="${escHtml(item.imageData)}" alt="${escHtml(item.title||'')}">`
@@ -4156,7 +4356,7 @@
                     </div>`).join('');
             });
 
-            adminFbDB.ref(`chats/${uid}/messages`).once('value').then(snap => {
+            adminFbDB.ref(`chats/${uid}/messages`).limitToFirst(1).once('value').then(snap => {
                 const count = Object.keys(snap.val() || {}).length;
                 document.getElementById('cpMsgNum').textContent = count;
             });
@@ -4232,13 +4432,13 @@
             grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;color:rgba(212,175,55,0.3);font-size:12px;">Loading…</div>`;
             vmPickerSelection.clear();
             vmUpdatePickerUI();
-            vmRef('assets').once('value').then(snap => {
+            vmRef('assets').limitToFirst(20).once('value').then(snap => {
                 const assets = Object.values(snap.val() || {});
                 if (!assets.length) {
                     grid.innerHTML = `<div style="grid-column:1/-1" class="vm-empty"><div class="vm-empty-ornament">◇</div><div class="vm-empty-title">No library assets yet</div></div>`;
                     return;
                 }
-                vmRef('clients/' + vmCurrentClientUID).once('value').then(cSnap => {
+                vmRef('clients/' + vmCurrentClientUID).limitToFirst(20).once('value').then(cSnap => {
                     const clientAssets = Object.keys(cSnap.val() || {});
                     grid.innerHTML = assets.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).map(a => {
                         const alreadyAdded = clientAssets.includes(a.id);
@@ -4327,7 +4527,7 @@
 
         function vmUpdateProjectCount() {
             if (!vmCurrentClientUID) return;
-            adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects').once('value').then(snap => {
+            adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects').limitToFirst(1).once('value').then(snap => {
                 const projects = snap.val() || {};
                 const count = Object.keys(projects).length;
                 const badge = document.getElementById('vmProjectCount');
@@ -4339,7 +4539,7 @@
             if (!vmCurrentClientUID) return;
             const list = document.getElementById('vmPTProjectList');
             list.innerHTML = '<div style="font-size:11px;color:rgba(212,175,55,0.3);font-family:Jost,sans-serif;padding:4px 0 12px;">Loading…</div>';
-            adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects').once('value').then(snap => {
+            adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects').limitToFirst(10).once('value').then(snap => {
                 const projects = snap.val() || {};
                 const entries = Object.entries(projects);
                 
@@ -4363,7 +4563,6 @@
             });
         }
 
-        // FIXED: vmPromptNewProject function - now properly defined and called
         function vmPromptNewProject() {
             console.log('vmPromptNewProject called');
             const modal = document.getElementById('vmPTModal');
@@ -4414,7 +4613,6 @@
             });
         }
 
-        // FIXED: vmBackFromProject function
         function vmBackFromProject() {
             console.log('vmBackFromProject called');
             vmCurrentProjectId = null;
@@ -4434,7 +4632,7 @@
             const list = document.getElementById('vmWorkflowList');
             list.innerHTML = '<div style="font-size:11px;color:rgba(212,175,55,0.3);font-family:Jost,sans-serif;text-align:center;padding:24px 0;">Loading&#8230;</div>';
             adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + vmCurrentProjectId + '/workflows')
-                .once('value').then(snap => {
+                .limitToFirst(20).once('value').then(snap => {
                     const data = snap.val() || {};
                     const entries = Object.entries(data).sort((a,b) => (a[1].createdAt||0)-(b[1].createdAt||0));
                     if (!entries.length) {
@@ -4483,7 +4681,6 @@
                 .set(newStatus).then(() => vmLoadWorkflows());
         }
 
-        // FIXED: vmPromptNewWorkflow function
         function vmPromptNewWorkflow() {
             console.log('vmPromptNewWorkflow called');
             document.getElementById('vmWFNameInput').value = '';
