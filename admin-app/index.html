@@ -1422,22 +1422,29 @@
                     <button class="vm-pov-sync" onclick="vmOpenCreateForm()">+ Add Asset</button>
                 </div>
                 <div style="overflow-y:auto;flex:1;display:flex;flex-direction:column;">
-                    <div id="vmLibraryGrid" class="vm-asset-grid" style="padding:16px;"></div>
-                    <div class="tm-section" id="vmTimelineSection">
-                        <!-- Header row -->
-                        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="vmToggleProgressTracker()">
+                    <!-- Progress Tracker - Premium Redesign -->
+                    <div class="tm-section" id="vmTimelineSection" style="margin-bottom:20px; border-top: none; background: linear-gradient(145deg, #0E0B06 0%, #151008 100%); border-radius: 0 0 24px 24px;">
+                        <!-- Header row with count badge and create button -->
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;">
                             <div>
-                                <div class="tm-section-label">Project Status</div>
-                                <div class="tm-section-title" style="margin-bottom:0;">Progress Tracker</div>
+                                <div class="tm-section-label" style="color: rgba(212,175,55,0.5);">Project Status</div>
+                                <div style="display:flex;align-items:center;gap:12px;">
+                                    <div class="tm-section-title" style="margin-bottom:0; font-size:22px; letter-spacing:2px;">Progress Tracker</div>
+                                    <span id="vmProjectCount" style="background:rgba(212,175,55,0.15);color:#D4AF37;font-size:12px;font-weight:600;padding:4px 12px;border-radius:40px;border:1px solid rgba(212,175,55,0.25);">0</span>
+                                </div>
                             </div>
-                            <span id="vmPTChevron" style="color:rgba(212,175,55,0.5);font-size:20px;font-family:'Jost',sans-serif;transition:transform 0.25s;">›</span>
+                            <button onclick="vmPromptNewProject()" style="background: linear-gradient(135deg, #D4AF37, #B8860B); border: none; border-radius: 40px; padding: 12px 24px; color: #0A0700; font-family: 'Jost', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 16px rgba(212,175,55,0.2); transition: all 0.25s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(212,175,55,0.3)';" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 16px rgba(212,175,55,0.2)';">✦ CREATE PROJECT</button>
                         </div>
-                        <!-- Expandable body -->
-                        <div id="vmPTBody" style="display:none;margin-top:20px;">
-                            <div id="vmPTProjectList" style="margin-bottom:14px;"></div>
-                            <button onclick="vmPromptNewProject()" style="width:100%;padding:13px;background:rgba(212,175,55,0.06);border:1px dashed rgba(212,175,55,0.3);border-radius:10px;color:rgba(212,175,55,0.7);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(212,175,55,0.12)'" onmouseout="this.style.background='rgba(212,175,55,0.06)'">+ New Project</button>
+                        <!-- Projects List -->
+                        <div id="vmPTBody" style="display:block;padding:0 20px 16px;">
+                            <div id="vmPTProjectList" style="margin-bottom:8px;">
+                                <!-- Empty state will show "No projects yet" but won't affect asset area -->
+                            </div>
                         </div>
                     </div>
+                    
+                    <!-- Assets Grid - Now BELOW the tracker -->
+                    <div id="vmLibraryGrid" class="vm-asset-grid" style="padding:16px;"></div>
                 </div>
             </div>
 
@@ -1504,7 +1511,7 @@
                 </div>
                 <div style="overflow-y:auto;flex:1;padding:16px 20px 60px;">
                     <button onclick="vmPromptNewWorkflow()" style="width:100%;padding:14px;background:linear-gradient(135deg,rgba(201,168,76,0.1),rgba(201,168,76,0.04));border:1px solid rgba(212,175,55,0.3);border-radius:12px;color:var(--vault-gold);font-family:'Jost',sans-serif;font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;cursor:pointer;margin-bottom:20px;transition:all 0.2s;" onmouseover="this.style.background='rgba(212,175,55,0.16)'" onmouseout="this.style.background='linear-gradient(135deg,rgba(201,168,76,0.1),rgba(201,168,76,0.04))'">+ Create Next Workflow</button>
-                    <div id="vmWorkflowList"></div>
+                    <div id="vmWorkflowList" style="display:flex;flex-direction:column;gap:16px;"></div>
                 </div>
             </div>
 
@@ -3914,6 +3921,7 @@
         // ═══════════════════════════════════════════════════════════════════
         let vmCurrentClientUID  = null;
         let vmCurrentClientName = null;
+        let vmCurrentProjectId  = null;
 
         function vmInit() {
             vmShowView('main');
@@ -4355,7 +4363,6 @@
             }).catch(() => showToast('Error saving timeline'));
         }
 
-
         // ── POV Library Picker ──────────────────────────────────────────
         let vmPickerSelection = new Set();
 
@@ -4459,7 +4466,6 @@
             });
         }
 
-
         // ── Progress Tracker ──────────────────────────────────────────────
         function vmToggleProgressTracker() {
             const body = document.getElementById('vmPTBody');
@@ -4470,6 +4476,16 @@
             if (!isOpen) vmLoadPTProjects();
         }
 
+        function vmUpdateProjectCount() {
+            if (!vmCurrentClientUID) return;
+            adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects').once('value').then(snap => {
+                const projects = snap.val() || {};
+                const count = Object.keys(projects).length;
+                const badge = document.getElementById('vmProjectCount');
+                if (badge) badge.textContent = count;
+            });
+        }
+
         function vmLoadPTProjects() {
             if (!vmCurrentClientUID) return;
             const list = document.getElementById('vmPTProjectList');
@@ -4477,8 +4493,12 @@
             adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects').once('value').then(snap => {
                 const projects = snap.val() || {};
                 const entries = Object.entries(projects);
+                
+                // Update badge count
+                vmUpdateProjectCount();
+                
                 if (!entries.length) {
-                    list.innerHTML = '<div style="font-size:11px;color:rgba(212,175,55,0.25);font-family:Jost,sans-serif;padding:4px 0 12px;letter-spacing:0.5px;">No projects yet. Create one below.</div>';
+                    list.innerHTML = '<div style="font-size:11px;color:rgba(212,175,55,0.25);font-family:Jost,sans-serif;padding:12px 0;letter-spacing:0.5px;text-align:center;border:1px dashed rgba(212,175,55,0.15);border-radius:10px;">✨ No projects yet. Create one above.</div>';
                     return;
                 }
                 list.innerHTML = entries.map(([id, p]) => `
@@ -4522,6 +4542,9 @@
                 showToast('❖ Project created');
                 vmClosePTModal();
                 vmLoadPTProjects();
+                vmUpdateProjectCount();
+                // Auto-open the project workflow view
+                vmOpenProject(id, name);
             }).catch(() => showToast('Error creating project'));
         }
 
@@ -4531,9 +4554,9 @@
             adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + id).remove().then(() => {
                 showToast('Project removed');
                 vmLoadPTProjects();
+                vmUpdateProjectCount();
             });
         }
-
 
         // ── Project Detail & Workflows ────────────────────────────────────
         let vmCurrentProjectId = null;
@@ -4569,23 +4592,30 @@
 
         function vmWorkflowCard(wid, w) {
             const isProgressed = w.status === 'progressed';
-            const statusLabel = isProgressed ? 'PROGRESSED &#10003;' : 'IN PROGRESS &#9874;';
-            const statusBg    = isProgressed ? 'rgba(80,200,120,0.12)' : 'rgba(212,175,55,0.08)';
-            const statusColor = isProgressed ? '#50C878' : 'rgba(212,175,55,0.85)';
-            const statusBorder = isProgressed ? 'rgba(80,200,120,0.3)' : 'rgba(212,175,55,0.25)';
+            const statusLabel = isProgressed ? 'PROGRESSED' : 'PROGRESSING';
+            const statusBg    = isProgressed ? 'rgba(80,200,120,0.15)' : 'rgba(212,175,55,0.15)';
+            const statusColor = isProgressed ? '#50C878' : '#D4AF37';
+            const statusBorder = isProgressed ? 'rgba(80,200,120,0.3)' : 'rgba(212,175,55,0.3)';
+            const checkmark = isProgressed ? '✓' : '';
+            
             const thumb = w.imageData
-                ? `<div style="width:100%;aspect-ratio:16/9;border-radius:8px;overflow:hidden;margin-bottom:12px;"><img src="${w.imageData}" style="width:100%;height:100%;object-fit:cover;"></div>`
-                : '';
-            return `<div style="background:rgba(212,175,55,0.04);border:1px solid rgba(212,175,55,0.12);border-radius:12px;padding:14px 14px 14px 16px;margin-bottom:12px;">
+                ? `<div style="width:100%;aspect-ratio:16/10;border-radius:16px;overflow:hidden;margin-bottom:16px;border:1px solid rgba(212,175,55,0.15);box-shadow:0 8px 24px rgba(0,0,0,0.3);">
+                    <img src="${w.imageData}" style="width:100%;height:100%;object-fit:cover;">
+                   </div>`
+                : `<div style="width:100%;aspect-ratio:16/10;border-radius:16px;margin-bottom:16px;background:rgba(212,175,55,0.04);border:1px dashed rgba(212,175,55,0.2);display:flex;align-items:center;justify-content:center;color:rgba(212,175,55,0.3);font-size:12px;letter-spacing:2px;text-transform:uppercase;">NO IMAGE</div>`;
+            
+            return `<div style="background:linear-gradient(145deg, #0E0B06 0%, #151008 100%);border:1px solid rgba(212,175,55,0.2);border-radius:24px;padding:20px;margin-bottom:16px;box-shadow:0 12px 32px rgba(0,0,0,0.4);">
                 ${thumb}
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
                     <div style="flex:1;min-width:0;">
-                        <div style="font-family:'Cormorant Garamond',serif;font-size:16px;color:#E8D9B5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(w.name||'Untitled')}</div>
-                        <div style="font-size:9px;letter-spacing:1px;color:rgba(212,175,55,0.3);font-family:Jost,sans-serif;margin-top:2px;">${w.createdAt ? new Date(w.createdAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : ''}</div>
+                        <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:#E8D9B5;letter-spacing:0.5px;margin-bottom:4px;">${escHtml(w.name||'Untitled Workflow')}</div>
+                        <div style="font-size:10px;letter-spacing:1px;color:rgba(212,175,55,0.4);font-family:Jost,sans-serif;">${w.createdAt ? new Date(w.createdAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : ''}</div>
                     </div>
                     <button onclick="vmToggleWorkflowStatus('${wid}','${w.status||'inprogress'}')"
-                        style="flex-shrink:0;padding:8px 12px;background:${statusBg};border:1px solid ${statusBorder};border-radius:8px;color:${statusColor};font-family:Jost,sans-serif;font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
-                        ${statusLabel}
+                        style="flex-shrink:0;min-width:140px;padding:14px 20px;background:${statusBg};border:1px solid ${statusBorder};border-radius:40px;color:${statusColor};font-family:Jost,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;backdrop-filter:blur(4px);"
+                        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(212,175,55,0.2)';"
+                        onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none';">
+                        ${statusLabel} ${checkmark ? '<span style="font-size:14px;">✓</span>' : ''}
                     </button>
                 </div>
             </div>`;
@@ -4604,7 +4634,7 @@
             const preview = document.getElementById('vmWFPreview');
             preview.style.display = 'none';
             preview.src = '';
-            document.getElementById('vmWFSaveBtn').textContent = '&#10022; Create Workflow';
+            document.getElementById('vmWFSaveBtn').textContent = '✦ Create Workflow';
             document.getElementById('vmWFSaveBtn').disabled = false;
             document.getElementById('vmWFModal').style.display = 'flex';
             setTimeout(() => document.getElementById('vmWFNameInput').focus(), 100);
@@ -4640,7 +4670,7 @@
                 return;
             }
             const saveBtn = document.getElementById('vmWFSaveBtn');
-            saveBtn.textContent = 'Saving&#8230;';
+            saveBtn.textContent = 'Creating…';
             saveBtn.disabled = true;
             const preview = document.getElementById('vmWFPreview');
             const imageData = (preview.src && preview.src !== window.location.href && !preview.src.endsWith('/')) ? preview.src : '';
@@ -4648,12 +4678,12 @@
             adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + vmCurrentProjectId + '/workflows/' + wid).set({
                 name, imageData, status: 'inprogress', createdAt: Date.now()
             }).then(() => {
-                showToast('&#10022; Workflow created');
+                showToast('✦ Workflow created');
                 vmCloseWFModal();
                 vmLoadWorkflows();
             }).catch(() => {
                 showToast('Error saving workflow');
-                saveBtn.textContent = '&#10022; Create Workflow';
+                saveBtn.textContent = '✦ Create Workflow';
                 saveBtn.disabled = false;
             });
         }
@@ -4702,13 +4732,13 @@
                     <div style="font-size:10px;color:rgba(212,175,55,0.45);font-family:'Jost',sans-serif;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;">Image &nbsp;<span style="color:rgba(212,175,55,0.25);text-transform:none;letter-spacing:0;">(Optional)</span></div>
                     <input id="vmWFImageInput" type="file" accept="image/*" capture="environment" style="display:none;" onchange="vmWFImageSelected(this)">
                     <button onclick="vmWFPickImage()" style="width:100%;padding:12px;background:rgba(212,175,55,0.05);border:1px dashed rgba(212,175,55,0.25);border-radius:10px;color:rgba(212,175,55,0.6);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(212,175,55,0.1)'" onmouseout="this.style.background='rgba(212,175,55,0.05)'">
-                        &#128444; &nbsp;Choose from Gallery
+                        📸 &nbsp;Choose from Gallery
                     </button>
                     <img id="vmWFPreview" src="" alt="" style="display:none;width:100%;border-radius:10px;margin-top:10px;max-height:180px;object-fit:cover;border:1px solid rgba(212,175,55,0.15);">
                 </div>
                 <div style="display:flex;gap:10px;margin-top:22px;">
                     <button onclick="vmCloseWFModal()" style="flex:1;padding:13px;background:none;border:1px solid rgba(212,175,55,0.15);border-radius:10px;color:rgba(212,175,55,0.4);font-family:'Jost',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">Cancel</button>
-                    <button id="vmWFSaveBtn" onclick="vmSaveNewWorkflow()" style="flex:2;padding:13px;background:linear-gradient(135deg,#C9A84C,#8B6914);border:none;border-radius:10px;color:#0A0700;font-family:'Jost',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">&#10022; Create Workflow</button>
+                    <button id="vmWFSaveBtn" onclick="vmSaveNewWorkflow()" style="flex:2;padding:13px;background:linear-gradient(135deg,#C9A84C,#8B6914);border:none;border-radius:10px;color:#0A0700;font-family:'Jost',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">✦ Create Workflow</button>
                 </div>
             </div>
         </div>
