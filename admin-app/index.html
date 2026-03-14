@@ -1,4 +1,4 @@
-<!-- admin.html - Billy Living Admin Dashboard (FULLY WORKING) -->
+<!-- admin.html - Billy Living Admin Dashboard (WITH MOVE HERE BUTTONS) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1593,7 +1593,7 @@
                     <div id="vmClientLibraryPanel" class="vm-library-panel" style="display:none;">
                         <div class="vm-library-header"><div class="vm-library-title">Vault Library</div></div>
                         
-                        <!-- PROGRESS TRACKER INSIDE LIBRARY PANEL (WITH WORKING CREATE BUTTON) -->
+                        <!-- PROGRESS TRACKER INSIDE LIBRARY PANEL -->
                         <div class="progress-section">
                             <div class="progress-header">
                                 <div><div class="progress-title">Progress Tracker</div></div>
@@ -1606,11 +1606,11 @@
                             </div>
                         </div>
                         
-                        <!-- Library Assets Grid -->
+                        <!-- Library Assets Grid - WITH MOVE HERE BUTTONS -->
                         <div id="vmClientLibraryGrid" class="vm-asset-grid" style="padding:0;"></div>
                     </div>
                     
-                    <!-- Client's Vault Assets -->
+                    <!-- Client's Vault Assets (where moved items appear) -->
                     <div style="padding:14px 20px 8px;display:flex;align-items:center;justify-content:space-between;"><div style="font-size:8px;letter-spacing:4px;text-transform:uppercase;color:rgba(212,175,55,0.4);">CLIENT'S VAULT</div></div>
                     <div id="vmPOVGrid" class="vm-asset-grid" style="padding:0 16px 20px;"></div>
                 </div>
@@ -1961,7 +1961,7 @@
             adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + vmCurrentProjectId + '/workflows/' + wid + '/status').set(newStatus).then(vmLoadWorkflows);
         }
 
-        // FIXED: Project creation - now saves properly
+        // Project creation
         function vmPromptNewProject() {
             document.getElementById('vmPTModal').style.display = 'flex';
             setTimeout(() => document.getElementById('vmPTProjectNameInput').focus(), 100);
@@ -1975,7 +1975,6 @@
         function vmSaveNewProject() {
             console.log('Save project clicked');
             const name = document.getElementById('vmPTProjectNameInput').value.trim();
-            console.log('Project name:', name);
             
             if (!name) { 
                 showToast('Please enter a project name'); 
@@ -1984,14 +1983,12 @@
             
             if (!vmCurrentClientUID) {
                 showToast('No client selected');
-                console.error('No client UID');
                 return;
             }
             
             const id = 'proj_' + Date.now();
-            console.log('Saving to path:', 'timelines/' + vmCurrentClientUID + '/projects/' + id);
             
-            // Show loading state on button
+            // Show loading state
             const createBtn = document.querySelector('#vmPTModal .gold-modal-btn-primary');
             const originalText = createBtn.textContent;
             createBtn.textContent = 'SAVING...';
@@ -2001,19 +1998,13 @@
                 name, 
                 createdAt: Date.now() 
             }).then(() => {
-                console.log('Save successful');
                 showToast('✓ Project created');
                 vmClosePTModal();
                 vmLoadClientProjects(vmCurrentClientUID);
-                
-                // Reset button
                 createBtn.textContent = originalText;
                 createBtn.disabled = false;
             }).catch(err => {
-                console.error('Save error:', err);
                 showToast('Error: ' + err.message);
-                
-                // Reset button
                 createBtn.textContent = originalText;
                 createBtn.disabled = false;
             });
@@ -2041,7 +2032,6 @@
             }
             const id = 'wf_' + Date.now();
             
-            // Show loading state
             const createBtn = document.querySelector('#vmWFModal .gold-modal-btn-primary');
             const originalText = createBtn.textContent;
             createBtn.textContent = 'SAVING...';
@@ -2055,7 +2045,6 @@
                 showToast('✓ Workflow created');
                 vmCloseWFModal();
                 vmLoadWorkflows();
-                
                 createBtn.textContent = originalText;
                 createBtn.disabled = false;
             }).catch(err => {
@@ -2134,33 +2123,57 @@
             if (panel.style.display === 'block') vmLoadClientLibraryAssets();
         }
 
+        // IMPORTANT: This function renders the library assets with MOVE HERE buttons
         function vmLoadClientLibraryAssets() {
             const grid = document.getElementById('vmClientLibraryGrid');
-            grid.innerHTML = '<div style="text-align:center;padding:20px;">Loading...</div>';
+            grid.innerHTML = '<div style="text-align:center; padding:40px; color:rgba(212,175,55,0.4);">Loading library assets...</div>';
+            
             vmRef('assets').limitToFirst(20).once('value').then(s => {
                 const assets = Object.values(s.val() || {});
                 if (!assets.length) {
-                    grid.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(212,175,55,0.4);">No assets in library</div>';
+                    grid.innerHTML = '<div style="text-align:center; padding:40px; color:rgba(212,175,55,0.4);">No assets in library</div>';
                     return;
                 }
+                
+                // Get client's existing assets
                 vmRef('clients/' + vmCurrentClientUID).once('value').then(c => {
                     const clientAssets = Object.keys(c.val() || {});
+                    
                     grid.innerHTML = assets.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).map(a => {
                         const inClient = clientAssets.includes(a.id);
                         const isProgress = a.cat === 'Progress Tracker';
                         const thumb = a.thumb ? `<img src="${a.thumb}" style="width:100%; height:100%; object-fit:cover;">` : `<span style="font-size:42px;">${isProgress ? '📊' : '📦'}</span>`;
-                        return `<div class="vm-asset-card ${isProgress ? 'vm-progress-card' : ''}" style="${inClient ? 'opacity:0.6;' : ''}" onclick="vmOpenAsset('${a.id}')"><div class="vm-asset-thumb">${thumb}</div><div class="vm-asset-body"><div class="vm-asset-cat">${a.cat||''}</div><div class="vm-asset-title">${a.title||''}</div>${a.desc ? '<div class="vm-asset-desc">'+a.desc.substring(0,40)+(a.desc.length>40?'...':'')+'</div>' : ''}</div>${!inClient ? '<div class="vm-asset-actions"><button class="vm-asset-btn vm-asset-btn-move" onclick="event.stopPropagation(); vmMoveAssetToClient(\''+a.id+'\')">MOVE HERE</button></div>' : '<div style="padding:16px;text-align:center;color:rgba(212,175,55,0.5);font-size:10px;">✓ IN VAULT</div>'}</div>`;
+                        
+                        // Asset card with MOVE HERE button
+                        return `<div class="vm-asset-card ${isProgress ? 'vm-progress-card' : ''}" style="${inClient ? 'opacity:0.6;' : ''}">
+                            <div class="vm-asset-thumb">${thumb}</div>
+                            <div class="vm-asset-body">
+                                <div class="vm-asset-cat">${a.cat||'Asset'}</div>
+                                <div class="vm-asset-title">${a.title||'Untitled'}</div>
+                                ${a.desc ? '<div class="vm-asset-desc">'+a.desc.substring(0,40)+(a.desc.length>40?'...':'')+'</div>' : ''}
+                            </div>
+                            ${!inClient ? 
+                                '<div class="vm-asset-actions"><button class="vm-asset-btn vm-asset-btn-move" onclick="event.stopPropagation(); vmMoveAssetToClient(\''+a.id+'\')">MOVE HERE</button></div>' : 
+                                '<div style="padding:16px; text-align:center; color:rgba(212,175,55,0.5); font-size:10px;">✓ IN VAULT</div>'
+                            }
+                        </div>`;
                     }).join('');
                 });
             });
         }
 
+        // Move asset to client's vault
         function vmMoveAssetToClient(id) {
             vmRef('assets/' + id).once('value').then(s => {
                 const asset = s.val();
-                if (!asset) return;
+                if (!asset) {
+                    showToast('Asset not found');
+                    return;
+                }
+                
                 vmRef('clients/' + vmCurrentClientUID + '/' + id).set(asset).then(() => {
-                    showToast('✓ Asset added to vault');
+                    showToast('✓ Asset moved to client vault');
+                    // Refresh both the library panel and the client's vault
                     vmLoadClientLibraryAssets();
                     vmLoadPOVGrid(vmCurrentClientUID);
                 }).catch(err => {
@@ -2210,7 +2223,7 @@
             setTimeout(vmRenderLibrary, 400);
         }
 
-        // Stubs for other functions (to avoid errors)
+        // Stubs for other functions
         function renderHomeList() { document.getElementById('homeList').innerHTML = '<div class="empty-state">No posts</div>'; }
         function renderCatalogList() { document.getElementById('catalogList').innerHTML = '<div class="empty-state">No catalog</div>'; }
         function renderTrendingList() { document.getElementById('trendingList').innerHTML = '<div class="empty-state">No trending</div>'; }
