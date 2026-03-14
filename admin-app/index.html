@@ -1,4 +1,4 @@
-<!-- admin.html - Billy Living Admin Dashboard (COMPLETELY FIXED) -->
+<!-- admin.html - Billy Living Admin Dashboard (FULLY WORKING) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1204,6 +1204,8 @@
             text-transform: uppercase;
             cursor: pointer;
             white-space: nowrap;
+            width: 100%;
+            margin-bottom: 12px;
         }
         .progress-create-btn:hover {
             background: #e8c440;
@@ -1591,15 +1593,16 @@
                     <div id="vmClientLibraryPanel" class="vm-library-panel" style="display:none;">
                         <div class="vm-library-header"><div class="vm-library-title">Vault Library</div></div>
                         
-                        <!-- PROGRESS TRACKER INSIDE LIBRARY PANEL (EXACTLY like main library's design) -->
+                        <!-- PROGRESS TRACKER INSIDE LIBRARY PANEL (WITH WORKING CREATE BUTTON) -->
                         <div class="progress-section">
                             <div class="progress-header">
                                 <div><div class="progress-title">Progress Tracker</div></div>
                                 <span id="vmClientProjectCount" class="progress-count">0</span>
                             </div>
-                            <button class="progress-create-btn" onclick="event.stopPropagation(); vmPromptNewProject(); return false;" style="margin-bottom:16px; width:100%;">+ CREATE PROJECT</button>
-                            <div id="vmClientProjectList" style="margin-top:8px;">
+                            <button class="progress-create-btn" onclick="vmPromptNewProject()">+ CREATE PROJECT</button>
+                            <div id="vmClientProjectList">
                                 <!-- Projects will load here -->
+                                <div style="text-align:center; padding:20px; color:rgba(212,175,55,0.3);">No projects yet</div>
                             </div>
                         </div>
                         
@@ -1620,7 +1623,7 @@
                     <div><div class="vm-eyebrow">Progress Tracker</div><div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--vault-text);" id="vmProjectDetailTitle">Project</div></div>
                 </div>
                 <div style="overflow-y:auto;flex:1;padding:16px 20px 60px;">
-                    <button onclick="event.stopPropagation(); vmPromptNewWorkflow(); return false;" class="progress-create-btn" style="width:100%; margin-bottom:20px;">+ CREATE WORKFLOW</button>
+                    <button onclick="vmPromptNewWorkflow()" class="progress-create-btn" style="width:100%; margin-bottom:20px;">+ CREATE WORKFLOW</button>
                     <div id="vmWorkflowList" class="workflow-list" style="padding:0;"></div>
                 </div>
             </div>
@@ -1684,8 +1687,28 @@
     </main>
 
     <!-- Modals -->
-    <div id="vmPTModal" class="gold-modal"><div class="gold-modal-content"><div class="gold-modal-title">New Project</div><input id="vmPTProjectNameInput" class="gold-modal-input" placeholder="e.g. Living Room Renovation"><div class="gold-modal-actions"><button class="gold-modal-btn gold-modal-btn-secondary" onclick="vmClosePTModal()">CANCEL</button><button class="gold-modal-btn gold-modal-btn-primary" onclick="vmSaveNewProject()">CREATE</button></div></div></div>
-    <div id="vmWFModal" class="gold-modal"><div class="gold-modal-content"><div class="gold-modal-title">New Workflow</div><input id="vmWFNameInput" class="gold-modal-input" placeholder="e.g. Wall Screeding"><div class="gold-modal-actions"><button class="gold-modal-btn gold-modal-btn-secondary" onclick="vmCloseWFModal()">CANCEL</button><button class="gold-modal-btn gold-modal-btn-primary" onclick="vmSaveNewWorkflow()">CREATE</button></div></div></div>
+    <div id="vmPTModal" class="gold-modal">
+        <div class="gold-modal-content">
+            <div class="gold-modal-title">New Project</div>
+            <input id="vmPTProjectNameInput" class="gold-modal-input" placeholder="e.g. Living Room Renovation">
+            <div class="gold-modal-actions">
+                <button class="gold-modal-btn gold-modal-btn-secondary" onclick="vmClosePTModal()">CANCEL</button>
+                <button class="gold-modal-btn gold-modal-btn-primary" onclick="vmSaveNewProject()">CREATE</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="vmWFModal" class="gold-modal">
+        <div class="gold-modal-content">
+            <div class="gold-modal-title">New Workflow</div>
+            <input id="vmWFNameInput" class="gold-modal-input" placeholder="e.g. Wall Screeding">
+            <div class="gold-modal-actions">
+                <button class="gold-modal-btn gold-modal-btn-secondary" onclick="vmCloseWFModal()">CANCEL</button>
+                <button class="gold-modal-btn gold-modal-btn-primary" onclick="vmSaveNewWorkflow()">CREATE</button>
+            </div>
+        </div>
+    </div>
+    
     <div id="formModal" class="form-modal"><div class="form-container"><h2 class="form-title" id="formTitle">Add New</h2><div id="formContent"></div><div style="display:flex;gap:12px;margin-top:24px;"><button class="btn btn-secondary" onclick="closeForm()" style="flex:1;">Cancel</button><button class="btn btn-primary" onclick="submitForm()" style="flex:1;">Save</button></div></div></div>
     <div id="vmDetailOverlay" class="vm-detail-overlay"><div class="vm-detail-header"><button class="vm-detail-back" onclick="vmCloseDetail()">← Back</button><div style="font-size:9px;letter-spacing:4px;color:rgba(212,175,55,0.4);text-transform:uppercase;">Asset Preview</div></div><div class="vm-detail-body" id="vmDetailContent"></div></div>
     <div class="context-backdrop" id="contextBackdrop" onclick="closeContextMenu()"></div>
@@ -1724,8 +1747,6 @@
         let vmCurrentClientName = null;
         let vmCurrentProjectId = null;
         let vmCurrentProgressAssetId = null;
-        let vmCurrentWorkflowProjectId = null;
-        const LOADING_TIMEOUT = 8000;
         const _panelFetched = {};
 
         // Firebase config
@@ -1942,46 +1963,72 @@
 
         // FIXED: Project creation - now saves properly
         function vmPromptNewProject() {
-            document.getElementById('vmPTModal').classList.add('active');
+            document.getElementById('vmPTModal').style.display = 'flex';
             setTimeout(() => document.getElementById('vmPTProjectNameInput').focus(), 100);
         }
+        
         function vmClosePTModal() { 
-            document.getElementById('vmPTModal').classList.remove('active'); 
+            document.getElementById('vmPTModal').style.display = 'none'; 
             document.getElementById('vmPTProjectNameInput').value = ''; 
         }
+        
         function vmSaveNewProject() {
+            console.log('Save project clicked');
             const name = document.getElementById('vmPTProjectNameInput').value.trim();
+            console.log('Project name:', name);
+            
             if (!name) { 
                 showToast('Please enter a project name'); 
                 return; 
             }
+            
             if (!vmCurrentClientUID) {
                 showToast('No client selected');
+                console.error('No client UID');
                 return;
             }
+            
             const id = 'proj_' + Date.now();
+            console.log('Saving to path:', 'timelines/' + vmCurrentClientUID + '/projects/' + id);
+            
+            // Show loading state on button
+            const createBtn = document.querySelector('#vmPTModal .gold-modal-btn-primary');
+            const originalText = createBtn.textContent;
+            createBtn.textContent = 'SAVING...';
+            createBtn.disabled = true;
+            
             adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + id).set({ 
                 name, 
                 createdAt: Date.now() 
             }).then(() => {
-                showToast('Project created successfully');
+                console.log('Save successful');
+                showToast('✓ Project created');
                 vmClosePTModal();
-                // Refresh both the mini list and the full list
                 vmLoadClientProjects(vmCurrentClientUID);
-                if (vmCurrentProjectId) vmLoadProjects();
+                
+                // Reset button
+                createBtn.textContent = originalText;
+                createBtn.disabled = false;
             }).catch(err => {
-                showToast('Error creating project: ' + err.message);
+                console.error('Save error:', err);
+                showToast('Error: ' + err.message);
+                
+                // Reset button
+                createBtn.textContent = originalText;
+                createBtn.disabled = false;
             });
         }
 
         function vmPromptNewWorkflow() {
-            document.getElementById('vmWFModal').classList.add('active');
+            document.getElementById('vmWFModal').style.display = 'flex';
             setTimeout(() => document.getElementById('vmWFNameInput').focus(), 100);
         }
+        
         function vmCloseWFModal() { 
-            document.getElementById('vmWFModal').classList.remove('active'); 
+            document.getElementById('vmWFModal').style.display = 'none'; 
             document.getElementById('vmWFNameInput').value = ''; 
         }
+        
         function vmSaveNewWorkflow() {
             const name = document.getElementById('vmWFNameInput').value.trim();
             if (!name) { 
@@ -1993,16 +2040,28 @@
                 return;
             }
             const id = 'wf_' + Date.now();
+            
+            // Show loading state
+            const createBtn = document.querySelector('#vmWFModal .gold-modal-btn-primary');
+            const originalText = createBtn.textContent;
+            createBtn.textContent = 'SAVING...';
+            createBtn.disabled = true;
+            
             adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + vmCurrentProjectId + '/workflows/' + id).set({ 
                 name, 
                 status: 'inprogress', 
                 createdAt: Date.now() 
             }).then(() => {
-                showToast('Workflow created');
+                showToast('✓ Workflow created');
                 vmCloseWFModal();
                 vmLoadWorkflows();
+                
+                createBtn.textContent = originalText;
+                createBtn.disabled = false;
             }).catch(err => {
-                showToast('Error creating workflow: ' + err.message);
+                showToast('Error: ' + err.message);
+                createBtn.textContent = originalText;
+                createBtn.disabled = false;
             });
         }
 
@@ -2038,18 +2097,25 @@
         }
 
         function vmLoadClientProjects(uid) {
+            if (!uid) return;
             adminFbDB.ref('timelines/' + uid + '/projects').limitToFirst(10).once('value').then(s => {
                 const projects = s.val() || {};
                 const list = document.getElementById('vmClientProjectList');
                 const count = Object.keys(projects).length;
                 document.getElementById('vmClientProjectCount').textContent = count;
                 if (!list) return;
+                
+                if (count === 0) {
+                    list.innerHTML = '<div style="text-align:center; padding:20px; color:rgba(212,175,55,0.3);">No projects yet</div>';
+                    return;
+                }
+                
                 list.innerHTML = Object.entries(projects).map(([id,p], i) => `
                     <div class="progress-item" onclick="vmOpenProjectFromClient('${id}','${p.name}')">
                         <div class="progress-item-left"><div class="progress-number">${i+1}</div><div><div class="progress-name">${p.name}</div><div class="progress-date">${new Date(p.createdAt).toLocaleDateString()}</div></div></div>
                         <span style="color:rgba(212,175,55,0.4);font-size:14px;">›</span>
                     </div>
-                `).join('') || '<div style="text-align:center;padding:12px;color:rgba(212,175,55,0.3);font-size:11px;">No projects yet</div>';
+                `).join('');
             }).catch(err => {
                 console.error('Error loading projects:', err);
             });
