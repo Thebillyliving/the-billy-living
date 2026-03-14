@@ -188,9 +188,9 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            pointer-events: auto;
+            pointer-events: auto !important;
             position: relative;
-            z-index: 10;
+            z-index: 100;
         }
 
         .btn-primary {
@@ -556,9 +556,9 @@
             font-size: 12px;
             cursor: pointer;
             font-weight: 600;
-            pointer-events: auto;
+            pointer-events: auto !important;
             position: relative;
-            z-index: 10;
+            z-index: 20;
         }
 
         /* Catalog Image Manager */
@@ -1061,7 +1061,7 @@
         .vm-title { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 600; color: var(--vault-text); margin-bottom: 20px; }
 
         .vm-action-row { display: flex; gap: 10px; flex-wrap: wrap; }
-        .vm-btn { padding: 10px 18px; border-radius: 8px; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; pointer-events: auto; position: relative; z-index: 10; }
+        .vm-btn { padding: 10px 18px; border-radius: 8px; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; pointer-events: auto !important; position: relative; z-index: 50; }
         .vm-btn-primary { background: var(--vault-gold); color: #0A0700; border: none; }
         .vm-btn-primary:hover { background: #e8c440; transform: translateY(-1px); }
         .vm-btn-outline { background: none; border: 1px solid var(--vault-gold-border); color: rgba(212,175,55,0.7); }
@@ -1089,7 +1089,7 @@
         .vm-asset-title { font-family: 'Cormorant Garamond',serif; font-size: 17px; font-weight: 600; color: var(--vault-text); margin-bottom: 4px; line-height: 1.3; }
         .vm-asset-desc { font-size: 11px; color: rgba(232,217,181,0.45); line-height: 1.5; }
         .vm-asset-actions { display: flex; gap: 8px; padding: 0 14px 14px; }
-        .vm-asset-btn { flex: 1; padding: 7px; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; border-radius: 6px; cursor: pointer; transition: all 0.2s; text-align: center; pointer-events: auto; position: relative; z-index: 20; }
+        .vm-asset-btn { flex: 1; padding: 7px; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; border-radius: 6px; cursor: pointer; transition: all 0.2s; text-align: center; pointer-events: auto !important; position: relative; z-index: 30; }
         .vm-asset-btn-add { background: var(--vault-gold-dim); border: 1px solid var(--vault-gold-border); color: var(--vault-gold); }
         .vm-asset-btn-add:hover { background: var(--vault-gold); color: #0A0700; }
         .vm-asset-btn-del { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: rgba(239,68,68,0.6); }
@@ -1098,7 +1098,7 @@
 
         /* Client POV */
         .vm-pov-header { display: flex; align-items: center; gap: 14px; padding: 20px 24px; border-bottom: 1px solid var(--vault-gold-border); flex-shrink: 0; }
-        .vm-pov-sync { margin-left: auto; padding: 10px 20px; background: var(--vault-gold); color: #0A0700; border: none; border-radius: 8px; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; cursor: pointer; transition: all 0.2s; pointer-events: auto; position: relative; z-index: 10; }
+        .vm-pov-sync { margin-left: auto; padding: 10px 20px; background: var(--vault-gold); color: #0A0700; border: none; border-radius: 8px; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; cursor: pointer; transition: all 0.2s; pointer-events: auto !important; position: relative; z-index: 30; }
         .vm-pov-sync:hover { background: #e8c440; transform: translateY(-1px); }
 
         /* Form modal override for vault */
@@ -1122,7 +1122,7 @@
         .vm-detail-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; flex-direction: column; }
         .vm-detail-overlay.active { display: flex; }
         .vm-detail-header { display: flex; align-items: center; gap: 14px; padding: 20px 24px; border-bottom: 1px solid var(--vault-gold-border); flex-shrink: 0; }
-        .vm-detail-back { background: none; border: 1px solid var(--vault-gold-border); color: rgba(212,175,55,0.6); border-radius: 8px; padding: 8px 14px; font-size: 12px; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; pointer-events: auto; position: relative; z-index: 10; }
+        .vm-detail-back { background: none; border: 1px solid var(--vault-gold-border); color: rgba(212,175,55,0.6); border-radius: 8px; padding: 8px 14px; font-size: 12px; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; pointer-events: auto !important; position: relative; z-index: 30; }
         .vm-detail-body { flex: 1; overflow-y: auto; padding: 32px 24px; display: flex; flex-direction: column; align-items: center; }
 
 
@@ -1163,6 +1163,84 @@
         .skeleton-lines { flex:1;display:flex;flex-direction:column;gap:8px; }
         .skeleton-line { height:10px;border-radius:4px; }
         .skeleton-line.short { width:55%; }
+
+        /* Vault Library Button inside Client POV */
+        .vm-pov-library-btn {
+            background: linear-gradient(135deg, #D4AF37, #B8860B);
+            border: none;
+            border-radius: 40px;
+            padding: 12px 24px;
+            color: #0A0700;
+            font-family: 'Jost', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 16px rgba(212,175,55,0.2);
+            transition: all 0.25s;
+            pointer-events: auto !important;
+            position: relative;
+            z-index: 40;
+            margin-left: auto;
+            text-decoration: none;
+            border: none;
+        }
+        .vm-pov-library-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(212,175,55,0.3);
+        }
+        
+        .vm-library-panel {
+            background: rgba(14,11,6,0.95);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 16px;
+            margin: 16px 20px;
+            padding: 20px;
+            backdrop-filter: blur(8px);
+        }
+        
+        .vm-library-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(212,175,55,0.15);
+        }
+        
+        .vm-library-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 18px;
+            color: var(--vault-text);
+            letter-spacing: 1px;
+        }
+        
+        .vm-move-btn {
+            background: var(--vault-gold);
+            color: #0A0700;
+            border: none;
+            border-radius: 30px;
+            padding: 8px 20px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            pointer-events: auto !important;
+        }
+        .vm-move-btn:hover {
+            background: #e8c440;
+            transform: translateY(-1px);
+        }
+        .vm-move-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
     <!-- Firebase compat SDK (works without bundler) -->
 
@@ -1478,7 +1556,7 @@
                                     <span id="vmProjectCount" style="background:rgba(212,175,55,0.15);color:#D4AF37;font-size:12px;font-weight:600;padding:4px 12px;border-radius:40px;border:1px solid rgba(212,175,55,0.25);">0</span>
                                 </div>
                             </div>
-                            <button onclick="event.stopPropagation(); vmPromptNewProject(); return false;" style="background: linear-gradient(135deg, #D4AF37, #B8860B); border: none; border-radius: 40px; padding: 12px 24px; color: #0A0700; font-family: 'Jost', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 16px rgba(212,175,55,0.2); transition: all 0.25s; pointer-events: auto; position: relative; z-index: 10;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(212,175,55,0.3)';" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 16px rgba(212,175,55,0.2)';">✦ CREATE PROJECT</button>
+                            <button onclick="event.stopPropagation(); vmPromptNewProject(); return false;" class="vm-pov-library-btn" style="padding: 10px 20px;">✦ CREATE PROJECT</button>
                         </div>
                         <!-- Projects List -->
                         <div id="vmPTBody" style="display:block;padding:0 20px 16px;">
@@ -1506,7 +1584,7 @@
                 <div id="vmDefaultsGrid" class="vm-asset-grid" style="overflow-y:auto;flex:1;"></div>
             </div>
 
-            <!-- View 4: Client POV -->
+            <!-- View 4: Client POV (Updated with Vault Library Button) -->
             <div id="vmClientPOV" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
                 <div class="vm-pov-header">
                     <button class="vm-detail-back" onclick="event.stopPropagation(); vmShowView('main'); return false;">← All Clients</button>
@@ -1515,26 +1593,18 @@
                         <div style="font-size:15px;font-weight:600;color:var(--vault-text);" id="vmPOVName">Client</div>
                         <div style="font-size:11px;color:rgba(212,175,55,0.35);letter-spacing:1px;" id="vmPOVSub">0 vault items</div>
                     </div>
+                    <button class="vm-pov-library-btn" onclick="event.stopPropagation(); vmShowClientLibrary(); return false;">📚 Vault Library</button>
                     <button class="vm-pov-sync" onclick="event.stopPropagation(); vmSyncDefaults(); return false;">↓ Sync Defaults</button>
                 </div>
                 <div style="overflow-y:auto;flex:1;display:flex;flex-direction:column;">
 
-                    <!-- ── Vault Library Picker (inside POV) ── -->
-                    <div id="vmPOVLibraryPanel" style="border-bottom:1px solid var(--vault-gold-border);">
-                        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px 10px;cursor:pointer;" onclick="event.stopPropagation(); vmToggleLibraryPicker();">
-                            <div>
-                                <div style="font-size:8px;letter-spacing:4px;text-transform:uppercase;color:rgba(212,175,55,0.4);font-family:'Jost',sans-serif;margin-bottom:3px;">Assign Content</div>
-                                <div style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--vault-text);">Vault Library</div>
-                            </div>
-                            <div style="display:flex;align-items:center;gap:10px;">
-                                <div id="vmPOVPickerCount" style="display:none;background:var(--vault-gold);color:#0A0700;font-size:10px;font-weight:700;letter-spacing:1px;padding:4px 10px;border-radius:20px;">0 selected</div>
-                                <span id="vmLibPickerChevron" style="color:rgba(212,175,55,0.5);font-size:18px;transition:transform 0.2s;">›</span>
-                            </div>
+                    <!-- Library Picker Panel (hidden by default) -->
+                    <div id="vmClientLibraryPanel" class="vm-library-panel" style="display:none;">
+                        <div class="vm-library-header">
+                            <div class="vm-library-title">Vault Library Assets</div>
+                            <button id="vmClientMoveHereBtn" class="vm-move-btn" onclick="vmMoveSelectedToClientFromLibrary()" disabled>MOVE HERE (0)</button>
                         </div>
-                        <div id="vmPOVLibraryGrid" style="display:none;padding:0 16px 12px;">
-                            <div class="vm-asset-grid" id="vmPOVLibraryInnerGrid" style="margin-bottom:12px;"></div>
-                            <button id="vmMoveHereBtn" onclick="event.stopPropagation(); vmMoveSelectedToClient(); return false;" style="display:none;width:100%;padding:13px;background:linear-gradient(135deg,#C9A84C,#8B6914);border:none;border-radius:10px;color:#0A0700;font-family:'Jost',sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;cursor:pointer;pointer-events: auto; position: relative; z-index: 20;">✦ &nbsp;Move Here</button>
-                        </div>
+                        <div id="vmClientLibraryGrid" class="vm-asset-grid" style="padding:0;"></div>
                     </div>
 
                     <!-- ── Client's current vault assets ── -->
@@ -1823,17 +1893,15 @@
         let vmCurrentClientUID = null;
         let vmCurrentClientName = null;
         let vmCurrentProjectId = null;
+        let vmClientLibrarySelection = new Set();
         let isLoading = false;
-        const LOADING_TIMEOUT = 8000; // 8 second timeout
+        const LOADING_TIMEOUT = 8000;
 
         // Loading state management
         function showPanelLoading(panelId) {
             const panel = document.getElementById(panelId);
             if (!panel) return;
-            
-            // Remove any existing loader
             hidePanelLoading(panelId);
-            
             const loader = document.createElement('div');
             loader.className = 'panel-loading';
             loader.innerHTML = `
@@ -1860,12 +1928,12 @@
             lastFetch: 0,
             home: null,
             trending: null,
-            designers: null
+            designers: null,
+            vaultAssets: null
         };
 
-        const CACHE_DURATION = 30000; // 30 seconds
+        const CACHE_DURATION = 30000;
 
-        // Default catalog data for initialization
         const defaultCatalogData = [
             { topic: 'Penthouse Serenity',      feeling: 'Calm & Elevated' },
             { topic: 'Golden Hour Lounge',       feeling: 'Warm & Rich' },
@@ -1891,16 +1959,14 @@
             { topic: 'The Monarch Suite',        feeling: 'Absolute Pinnacle' },
         ];
 
-        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             initData();
             updateStats();
-            renderCatalogList();  // catalog uses localStorage + Firebase
-            renderDesignersList(); // designers use localStorage
+            renderCatalogList();
+            renderDesignersList();
         });
 
         function initData() {
-            // Load catalog boxes from Firebase first, fallback to localStorage/defaults
             if (typeof adminFbDB !== 'undefined') {
                 adminFbDB.ref('content/catalog').limitToFirst(20).once('value').then(snap => {
                     const fbData = snap.val();
@@ -1928,25 +1994,12 @@
                 _initLocalCatalog();
             }
 
-            // Initialize other tables if empty
-            if (!localStorage.getItem('tbl_posts')) {
-                localStorage.setItem('tbl_posts', JSON.stringify([]));
-            }
-            if (!localStorage.getItem('tbl_trending')) {
-                localStorage.setItem('tbl_trending', JSON.stringify([]));
-            }
-            if (!localStorage.getItem('tbl_portfolio')) {
-                localStorage.setItem('tbl_portfolio', JSON.stringify([]));
-            }
-            if (!localStorage.getItem('tbl_designers')) {
-                localStorage.setItem('tbl_designers', JSON.stringify([]));
-            }
-            if (!localStorage.getItem('tbl_vip_users')) {
-                localStorage.setItem('tbl_vip_users', JSON.stringify([]));
-            }
-            if (!localStorage.getItem('tbl_designer_chats')) {
-                localStorage.setItem('tbl_designer_chats', JSON.stringify([]));
-            }
+            if (!localStorage.getItem('tbl_posts')) localStorage.setItem('tbl_posts', JSON.stringify([]));
+            if (!localStorage.getItem('tbl_trending')) localStorage.setItem('tbl_trending', JSON.stringify([]));
+            if (!localStorage.getItem('tbl_portfolio')) localStorage.setItem('tbl_portfolio', JSON.stringify([]));
+            if (!localStorage.getItem('tbl_designers')) localStorage.setItem('tbl_designers', JSON.stringify([]));
+            if (!localStorage.getItem('tbl_vip_users')) localStorage.setItem('tbl_vip_users', JSON.stringify([]));
+            if (!localStorage.getItem('tbl_designer_chats')) localStorage.setItem('tbl_designer_chats', JSON.stringify([]));
             if (!localStorage.getItem('tbl_settings')) {
                 localStorage.setItem('tbl_settings', JSON.stringify({
                     appName: 'Billy Living',
@@ -1969,22 +2022,16 @@
             }
         }
 
-        // Navigation
         const _panelFetched = {};
 
-        // Optimized showPanel function
         async function showPanel(panelName, navElement) {
-            // Show loading immediately
             showPanelLoading('panel-' + panelName);
-            
-            // Hide other panels
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('panel-' + panelName).classList.add('active');
             if (navElement) navElement.classList.add('active');
             
             try {
-                // Load data with timeout
                 const loadPromise = (async () => {
                     switch(panelName) {
                         case 'catalog':
@@ -2025,35 +2072,28 @@
                             initAdminMessagesListener();
                             break;
                         default:
-                            if (!_panelFetched[panelName]) {
-                                _panelFetched[panelName] = true;
-                            }
+                            if (!_panelFetched[panelName]) _panelFetched[panelName] = true;
                     }
                 })();
 
-                // Set timeout for loading
                 const timeoutPromise = new Promise((_, reject) => {
                     setTimeout(() => reject(new Error('Loading timeout')), LOADING_TIMEOUT);
                 });
 
                 await Promise.race([loadPromise, timeoutPromise]);
-                
             } catch (error) {
                 console.error('Loading error:', error);
                 showToast('Loading timeout - showing cached data');
-                // Fallback to cached/local data
                 if (panelName === 'catalog') renderCatalogList();
                 if (panelName === 'vip') {
                     const vips = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
                     renderVIPListFromCache(vips);
                 }
-                if (panelName === 'portfolio') loadPortfolioUsersFromCache();
             } finally {
                 hidePanelLoading('panel-' + panelName);
             }
         }
 
-        // Optimized catalog loading
         async function loadCatalogData() {
             return new Promise((resolve) => {
                 adminFbDB.ref('content/catalog').limitToFirst(20).once('value').then(snap => {
@@ -2065,13 +2105,12 @@
                     }
                     resolve();
                 }).catch(() => {
-                    renderCatalogList(); // Fallback to cache
+                    renderCatalogList();
                     resolve();
                 });
             });
         }
 
-        // Stats — reads from cache (localStorage) — instant
         function updateStats() {
             const posts    = JSON.parse(localStorage.getItem('tbl_posts')     || '[]');
             const trending = JSON.parse(localStorage.getItem('tbl_trending')  || '[]');
@@ -2083,21 +2122,17 @@
             document.getElementById('statPendingVIP').textContent = vips.filter(v => v.status === 'pending').length;
         }
 
-        // Render dashboard stat cards from cache — no Firebase needed
         function renderDashboardFromCache() {
             updateStats();
-            // Also update VIP badge from cache
             const vips = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
             const pending = vips.filter(v => v.status === 'pending').length;
             const badge = document.getElementById('vipBadge');
             if (badge) { badge.textContent = pending; badge.style.display = pending > 0 ? '' : 'none'; }
         }
 
-        // Re-render home from cache (already fetched this session) — no Firebase
         function renderHomeListFromCache() {
-            const container = document.getElementById('homeList');
             const cached = JSON.parse(localStorage.getItem('tbl_posts') || '[]');
-            if (!cached.length) { renderHomeList(); return; } // fallback to fetch
+            if (!cached.length) { renderHomeList(); return; }
             renderHomeListWithData(cached);
         }
 
@@ -2136,8 +2171,6 @@
 
         function renderHomeList() {
             const container = document.getElementById('homeList');
-            
-            // Show cached slim metadata instantly while Firebase loads
             const _cachedPosts = JSON.parse(localStorage.getItem('tbl_posts') || '[]');
             if (_cachedPosts.length) {
                 renderHomeListWithData(_cachedPosts);
@@ -2165,7 +2198,6 @@
             const container = document.getElementById('catalogList');
 
             const renderBoxes = (boxes) => {
-                // Keep metadata in sync (strip images to avoid quota issues)
                 const meta = boxes.map(b => { const {images, mixtureImages, ...rest} = b; return rest; });
                 try { localStorage.setItem('tbl_catalog_boxes', JSON.stringify(meta)); } catch(e) {}
 
@@ -2180,9 +2212,7 @@
                     const imgsArr = box.images
                         ? (Array.isArray(box.images) ? box.images : Object.values(box.images))
                         : [];
-                    // Use cover cache first (instant), fall back to images array
                     const imgSrc = covers[box.id] || imgsArr.find(i => i) || '';
-                    // Update cover cache if we got an image from Firebase
                     if (imgsArr.find(i => i) && !covers[box.id]) saveCoverCache(box.id, imgsArr.find(i => i));
                     const count  = imgsArr.filter(Boolean).length;
                     return `
@@ -2212,7 +2242,6 @@
                 }).join('');
             };
 
-            // Render immediately from metadata + cover image cache — zero Firebase wait
             const cached = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
             const sortFn = (a,b) => { const n=s=>parseInt((s.id||'').replace(/[^0-9]/g,''))||0; return n(a)-n(b); };
             if (cached.length) {
@@ -2221,7 +2250,6 @@
                 container.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:rgba(201,168,76,0.35);font-size:12px;letter-spacing:2px;text-transform:uppercase;">Loading…</div>';
             }
 
-            // Background Firebase refresh — updates cover cache + grid silently
             if (typeof adminFbDB !== 'undefined') {
                 adminFbDB.ref('content/catalog').limitToFirst(20).once('value').then(snap => {
                     if (!snap.exists()) { if (!cached.length) renderBoxes([]); return; }
@@ -2274,11 +2302,9 @@
                 }).join('');
             };
 
-            // Show cached data immediately
             const cached = JSON.parse(localStorage.getItem('tbl_trending') || '[]');
             if (cached.length) renderItems(cached);
 
-            // Refresh from Firebase
             if (typeof adminFbDB !== 'undefined') {
                 adminFbDB.ref('content/trending').limitToFirst(20).once('value').then(snap => {
                     if (snap.exists()) renderItems(Object.values(snap.val()));
@@ -2319,11 +2345,9 @@
             `).join('');
             };
 
-            // Show cached immediately
             const cached = JSON.parse(localStorage.getItem('tbl_designers') || '[]');
             if (cached.length) doRender(cached);
 
-            // Refresh from Firebase
             if (typeof adminFbDB !== 'undefined') {
                 adminFbDB.ref('content/designers').limitToFirst(20).once('value').then(snap => {
                     if (snap.exists()) doRender(Object.values(snap.val()));
@@ -2332,7 +2356,6 @@
             } else if (!cached.length) doRender([]);
         }
 
-        // VIP Manager
         function renderVIPListFromCache(vips) {
             const container = document.getElementById('vipGrid');
             document.getElementById('vipCount').textContent = vips.length;
@@ -2360,12 +2383,9 @@
 
         function renderVIPList() {
             const container = document.getElementById('vipGrid');
-            
-            // Show cached data immediately
             const cached = JSON.parse(localStorage.getItem('tbl_vip_users') || '[]');
             if (cached.length) renderVIPListFromCache(cached);
 
-            // Refresh from Firebase
             adminFbDB.ref('vip').limitToFirst(50).once('value').then(snap => {
                 if (!snap.exists()) {
                     if (!cached.length) {
@@ -2494,7 +2514,6 @@
             updateStats();
         }
 
-        // Forms
         function openForm(type) {
             currentForm = type;
             const modal = document.getElementById('formModal');
@@ -3900,9 +3919,7 @@
         }
 
         // ── Portfolio Analytics ──────────────────────────────────────────────────
-        function loadPortfolioUsersFromCache() {
-            // Implement cache loading if needed
-        }
+        function loadPortfolioUsersFromCache() {}
 
         function loadPortfolioUsers() {
             document.getElementById('portfolioUsersView').style.display = 'block';
@@ -4134,6 +4151,7 @@
             grid.innerHTML = `<div style="grid-column:1/-1" class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">Loading…</div></div>`;
             vmRef('assets').limitToFirst(20).once('value').then(snap => {
                 const assets = Object.values(snap.val() || {});
+                dataCache.vaultAssets = assets;
                 if (!assets.length) {
                     grid.innerHTML = `<div style="grid-column:1/-1" class="vm-empty">
                         <div class="vm-empty-ornament">🖼</div>
@@ -4163,13 +4181,134 @@
             });
         }
 
+        // New function to show client library panel
+        function vmShowClientLibrary() {
+            const panel = document.getElementById('vmClientLibraryPanel');
+            if (panel.style.display === 'none' || panel.style.display === '') {
+                panel.style.display = 'block';
+                vmLoadClientLibraryAssets();
+            } else {
+                panel.style.display = 'none';
+                vmClientLibrarySelection.clear();
+                vmUpdateClientLibraryUI();
+            }
+        }
+
+        function vmLoadClientLibraryAssets() {
+            const grid = document.getElementById('vmClientLibraryGrid');
+            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;">Loading library assets...</div>';
+            
+            vmRef('assets').limitToFirst(20).once('value').then(snap => {
+                const assets = Object.values(snap.val() || {});
+                if (!assets.length) {
+                    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:rgba(212,175,55,0.4);">No assets in library</div>';
+                    return;
+                }
+                
+                // Get client's existing assets
+                vmRef('clients/' + vmCurrentClientUID).once('value').then(cSnap => {
+                    const clientAssets = Object.keys(cSnap.val() || {});
+                    
+                    grid.innerHTML = assets.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).map(a => {
+                        const alreadyAdded = clientAssets.includes(a.id);
+                        const emoji = vmCatEmoji[a.cat] || '◆';
+                        const thumbHTML = a.thumb
+                            ? `<div class="vm-asset-thumb"><img src="${escHtml(a.thumb)}" onerror="this.parentNode.innerHTML='<span style=font-size:36px>${emoji}</span>'"></div>`
+                            : `<div class="vm-asset-thumb" style="font-size:36px;">${emoji}</div>`;
+                        const selected = vmClientLibrarySelection.has(a.id);
+                        return `<div class="vm-asset-card vm-picker-card ${selected ? 'selected' : ''} ${alreadyAdded ? 'disabled' : ''}" 
+                                     data-id="${a.id}" 
+                                     onclick="if(!${alreadyAdded}) vmToggleClientLibrarySelection('${a.id}')"
+                                     style="${alreadyAdded ? 'opacity:0.45;cursor:not-allowed;' : 'cursor:pointer;'}">
+                            <div class="vm-pick-check">✓</div>
+                            ${thumbHTML}
+                            <div class="vm-asset-body">
+                                <div class="vm-asset-cat">${escHtml(a.cat||'')}</div>
+                                <div class="vm-asset-title">${escHtml(a.title||'Untitled')}</div>
+                                ${a.desc ? `<div class="vm-asset-desc">${escHtml(a.desc.substring(0, 40))}${a.desc.length > 40 ? '...' : ''}</div>` : ''}
+                            </div>
+                            ${alreadyAdded ? '<div style="position:absolute;bottom:6px;right:8px;font-size:9px;color:rgba(212,175,55,0.5);">IN VAULT</div>' : ''}
+                        </div>`;
+                    }).join('');
+                    
+                    vmUpdateClientLibraryUI();
+                });
+            });
+        }
+
+        function vmToggleClientLibrarySelection(assetId) {
+            if (vmClientLibrarySelection.has(assetId)) {
+                vmClientLibrarySelection.delete(assetId);
+            } else {
+                vmClientLibrarySelection.add(assetId);
+            }
+            
+            // Update UI
+            const cards = document.querySelectorAll('#vmClientLibraryGrid .vm-asset-card');
+            cards.forEach(card => {
+                const id = card.dataset.id;
+                if (id === assetId) {
+                    if (vmClientLibrarySelection.has(id)) {
+                        card.classList.add('selected');
+                    } else {
+                        card.classList.remove('selected');
+                    }
+                }
+            });
+            
+            vmUpdateClientLibraryUI();
+        }
+
+        function vmUpdateClientLibraryUI() {
+            const count = vmClientLibrarySelection.size;
+            const moveBtn = document.getElementById('vmClientMoveHereBtn');
+            if (moveBtn) {
+                moveBtn.textContent = `MOVE HERE (${count})`;
+                moveBtn.disabled = count === 0;
+            }
+        }
+
+        function vmMoveSelectedToClientFromLibrary() {
+            if (!vmCurrentClientUID || vmClientLibrarySelection.size === 0) return;
+            
+            const ids = Array.from(vmClientLibrarySelection);
+            const btn = document.getElementById('vmClientMoveHereBtn');
+            btn.textContent = 'MOVING...';
+            btn.disabled = true;
+            
+            const fetches = ids.map(id => vmRef('assets/' + id).once('value').then(s => ({ id, data: s.val() })));
+            
+            Promise.all(fetches).then(results => {
+                const updates = {};
+                results.forEach(({ id, data }) => {
+                    if (data) updates['vault/clients/' + vmCurrentClientUID + '/' + id] = data;
+                });
+                return adminFbDB.ref().update(updates);
+            }).then(() => {
+                showToast('✦ ' + ids.length + ' asset' + (ids.length !== 1 ? 's' : '') + ' added to client vault');
+                vmClientLibrarySelection.clear();
+                vmLoadClientLibraryAssets(); // Refresh library view
+                vmLoadPOVGrid(vmCurrentClientUID); // Refresh client vault
+                vmUpdateClientLibraryUI();
+            }).catch(() => {
+                showToast('Error moving assets');
+                btn.disabled = false;
+                vmUpdateClientLibraryUI();
+            });
+        }
+
         function vmOpenClientPOV(uid, name, phone) {
-            vmCurrentClientUID  = uid;
+            vmCurrentClientUID = uid;
             vmCurrentClientName = name;
-            vmCurrentProjectId  = null;
+            vmCurrentProjectId = null;
+            vmClientLibrarySelection.clear(); // Clear any previous selections
             const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-            document.getElementById('vmPOVAv').textContent   = initials;
+            document.getElementById('vmPOVAv').textContent = initials;
             document.getElementById('vmPOVName').textContent = name;
+            
+            // Hide library panel by default when opening
+            document.getElementById('vmClientLibraryPanel').style.display = 'none';
+            
             vmShowView('pov');
             vmLoadPOVGrid(uid);
         }
@@ -4184,7 +4323,7 @@
                     grid.innerHTML = `<div style="grid-column:1/-1" class="vm-empty">
                         <div class="vm-empty-ornament">◇</div>
                         <div class="vm-empty-title" style="font-style:italic;">This client's vault is empty</div>
-                        <div class="vm-empty-sub">Use Sync Defaults or add assets from the Library</div>
+                        <div class="vm-empty-sub">Use Vault Library to add assets</div>
                     </div>`;
                     return;
                 }
