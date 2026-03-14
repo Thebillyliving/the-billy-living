@@ -1079,26 +1079,28 @@
         .vm-client-chevron { color: rgba(212,175,55,0.25); font-size: 20px; }
 
         /* Asset cards — library / defaults */
-        .vm-asset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 16px; padding: 20px 24px; }
-        .vm-asset-card { background: var(--vault-card); border: 1px solid var(--vault-gold-border); border-radius: 12px; overflow: hidden; transition: all 0.25s; cursor: pointer; position: relative; }
-        .vm-asset-card:hover { border-color: var(--vault-gold); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(212,175,55,0.1); }
-        .vm-asset-thumb { width: 100%; aspect-ratio: 16/9; object-fit: cover; background: #1A1408; display: flex; align-items: center; justify-content: center; font-size: 36px; }
+        .vm-asset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 20px; padding: 20px 24px; }
+        .vm-asset-card { background: var(--vault-card); border: 1px solid var(--vault-gold-border); border-radius: 16px; overflow: hidden; transition: all 0.25s; cursor: pointer; position: relative; display: flex; flex-direction: column; }
+        .vm-asset-card:hover { border-color: var(--vault-gold); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(212,175,55,0.15); }
+        .vm-asset-thumb { width: 100%; aspect-ratio: 16/9; object-fit: cover; background: #1A1408; display: flex; align-items: center; justify-content: center; font-size: 42px; }
         .vm-asset-thumb img { width: 100%; height: 100%; object-fit: cover; }
-        .vm-asset-body { padding: 14px; }
+        .vm-asset-body { padding: 16px; flex: 1; }
         .vm-asset-cat { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--vault-gold); margin-bottom: 6px; }
-        .vm-asset-title { font-family: 'Cormorant Garamond',serif; font-size: 17px; font-weight: 600; color: var(--vault-text); margin-bottom: 4px; line-height: 1.3; }
-        .vm-asset-desc { font-size: 11px; color: rgba(232,217,181,0.45); line-height: 1.5; }
-        .vm-asset-actions { display: flex; gap: 8px; padding: 0 14px 14px; }
-        .vm-asset-btn { flex: 1; padding: 7px; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; border-radius: 6px; cursor: pointer; transition: all 0.2s; text-align: center; pointer-events: auto !important; position: relative; z-index: 30; }
+        .vm-asset-title { font-family: 'Cormorant Garamond',serif; font-size: 18px; font-weight: 600; color: var(--vault-text); margin-bottom: 6px; line-height: 1.3; }
+        .vm-asset-desc { font-size: 12px; color: rgba(232,217,181,0.55); line-height: 1.5; margin-bottom: 16px; }
+        .vm-asset-actions { display: flex; gap: 10px; padding: 0 16px 16px; }
+        .vm-asset-btn { flex: 1; padding: 10px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; border-radius: 8px; cursor: pointer; transition: all 0.2s; text-align: center; pointer-events: auto !important; position: relative; z-index: 30; font-weight: 600; }
         .vm-asset-btn-add { background: var(--vault-gold-dim); border: 1px solid var(--vault-gold-border); color: var(--vault-gold); }
         .vm-asset-btn-add:hover { background: var(--vault-gold); color: #0A0700; }
-        .vm-asset-btn-del { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: rgba(239,68,68,0.6); }
-        .vm-asset-btn-del:hover { background: rgba(239,68,68,0.15); color: #ef4444; }
-        .vm-default-badge { position: absolute; top: 10px; left: 10px; background: var(--vault-gold); color: #0A0700; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; font-weight: 700; }
+        .vm-asset-btn-del { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #ef4444; }
+        .vm-asset-btn-del:hover { background: rgba(239,68,68,0.2); }
+        .vm-asset-btn-move { background: var(--vault-gold); color: #0A0700; border: none; font-weight: 700; }
+        .vm-asset-btn-move:hover { background: #e8c440; transform: scale(1.02); }
+        .vm-default-badge { position: absolute; top: 12px; left: 12px; background: var(--vault-gold); color: #0A0700; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; font-weight: 700; z-index: 10; }
 
         /* Client POV */
-        .vm-pov-header { display: flex; align-items: center; gap: 14px; padding: 20px 24px; border-bottom: 1px solid var(--vault-gold-border); flex-shrink: 0; }
-        .vm-pov-sync { margin-left: auto; padding: 10px 20px; background: var(--vault-gold); color: #0A0700; border: none; border-radius: 8px; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; cursor: pointer; transition: all 0.2s; pointer-events: auto !important; position: relative; z-index: 30; }
+        .vm-pov-header { display: flex; align-items: center; gap: 14px; padding: 20px 24px; border-bottom: 1px solid var(--vault-gold-border); flex-shrink: 0; flex-wrap: wrap; }
+        .vm-pov-sync { padding: 10px 20px; background: var(--vault-gold); color: #0A0700; border: none; border-radius: 30px; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; cursor: pointer; transition: all 0.2s; pointer-events: auto !important; position: relative; z-index: 30; white-space: nowrap; }
         .vm-pov-sync:hover { background: #e8c440; transform: translateY(-1px); }
 
         /* Form modal override for vault */
@@ -1110,13 +1112,13 @@
         .vm-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23D4AF37' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; }
 
         /* Empty state */
-        .vm-empty { text-align: center; padding: 80px 32px; }
+        .vm-empty { text-align: center; padding: 60px 32px; }
         .vm-empty-ornament { font-size: 48px; margin-bottom: 20px; opacity: 0.3; }
         .vm-empty-title { font-family: 'Cormorant Garamond',serif; font-size: 22px; color: rgba(232,217,181,0.5); margin-bottom: 10px; font-style: italic; }
         .vm-empty-sub { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(212,175,55,0.25); }
 
         /* Wainscoting border effect on cards */
-        .vm-asset-card::before { content: ''; position: absolute; inset: 5px; border: 1px solid rgba(212,175,55,0.06); border-radius: 8px; pointer-events: none; }
+        .vm-asset-card::before { content: ''; position: absolute; inset: 5px; border: 1px solid rgba(212,175,55,0.06); border-radius: 12px; pointer-events: none; }
 
         /* Asset detail overlay */
         .vm-detail-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; flex-direction: column; }
@@ -1127,9 +1129,9 @@
 
 
         /* ── Progress Tracker ─────────────────────────────────── */
-        .tm-section { padding: 24px 20px 32px; border-top: 1px solid var(--vault-gold-border); margin-top: 4px; }
+        .tm-section { padding: 20px 24px 24px; border-top: 1px solid var(--vault-gold-border); margin-top: 4px; }
         .tm-section-label { font-size: 8px; letter-spacing: 5px; text-transform: uppercase; color: rgba(212,175,55,0.4); margin-bottom: 6px; font-family: 'Jost', sans-serif; }
-        .tm-section-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; color: var(--vault-text); margin-bottom: 24px; letter-spacing: 0.5px; }
+        .tm-section-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; color: var(--vault-text); margin-bottom: 20px; letter-spacing: 0.5px; }
         .tm-phase-row { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; position: relative; }
         .tm-phase-row:not(:last-child)::after { content: ''; position: absolute; left: 15px; top: 32px; height: calc(100% + 4px); width: 1px; background: linear-gradient(to bottom, rgba(212,175,55,0.3), rgba(212,175,55,0.05)); pointer-events: none; }
         .tm-dot-wrap { width: 32px; height: 32px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; }
@@ -1168,13 +1170,13 @@
         .vm-pov-library-btn {
             background: linear-gradient(135deg, #D4AF37, #B8860B);
             border: none;
-            border-radius: 40px;
-            padding: 12px 24px;
+            border-radius: 30px;
+            padding: 10px 20px;
             color: #0A0700;
             font-family: 'Jost', sans-serif;
             font-size: 11px;
             font-weight: 700;
-            letter-spacing: 2px;
+            letter-spacing: 1.5px;
             text-transform: uppercase;
             cursor: pointer;
             display: inline-flex;
@@ -1185,29 +1187,29 @@
             pointer-events: auto !important;
             position: relative;
             z-index: 40;
-            margin-left: auto;
-            text-decoration: none;
-            border: none;
+            white-space: nowrap;
         }
         .vm-pov-library-btn:hover {
+            background: #e8c440;
             transform: translateY(-2px);
             box-shadow: 0 8px 24px rgba(212,175,55,0.3);
         }
         
         .vm-library-panel {
-            background: rgba(14,11,6,0.95);
-            border: 1px solid rgba(212,175,55,0.2);
-            border-radius: 16px;
+            background: rgba(14,11,6,0.98);
+            border: 1px solid rgba(212,175,55,0.25);
+            border-radius: 20px;
             margin: 16px 20px;
             padding: 20px;
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
         }
         
         .vm-library-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
             padding-bottom: 12px;
             border-bottom: 1px solid rgba(212,175,55,0.15);
         }
@@ -1219,27 +1221,60 @@
             letter-spacing: 1px;
         }
         
-        .vm-move-btn {
-            background: var(--vault-gold);
-            color: #0A0700;
-            border: none;
-            border-radius: 30px;
-            padding: 8px 20px;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
+        /* Client POV Progress Tracker */
+        .vm-client-progress {
+            margin: 0 20px 20px;
+            background: linear-gradient(145deg, #0E0B06 0%, #151008 100%);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 16px;
+            padding: 16px 20px;
+        }
+        
+        .vm-client-progress-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        
+        .vm-client-progress-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 16px;
+            color: var(--vault-text);
+            letter-spacing: 1px;
+        }
+        
+        .vm-client-projects {
+            margin-top: 12px;
+        }
+        
+        .vm-client-project-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            background: rgba(212,175,55,0.04);
+            border: 1px solid rgba(212,175,55,0.12);
+            border-radius: 12px;
+            margin-bottom: 8px;
             cursor: pointer;
             transition: all 0.2s;
-            pointer-events: auto !important;
         }
-        .vm-move-btn:hover {
-            background: #e8c440;
-            transform: translateY(-1px);
+        .vm-client-project-item:hover {
+            background: rgba(212,175,55,0.08);
+            border-color: rgba(212,175,55,0.25);
         }
-        .vm-move-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        
+        .vm-client-project-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 14px;
+            color: #E8D9B5;
+        }
+        
+        .vm-client-project-date {
+            font-size: 9px;
+            color: rgba(212,175,55,0.35);
+            letter-spacing: 1px;
         }
     </style>
     <!-- Firebase compat SDK (works without bundler) -->
@@ -1584,7 +1619,7 @@
                 <div id="vmDefaultsGrid" class="vm-asset-grid" style="overflow-y:auto;flex:1;"></div>
             </div>
 
-            <!-- View 4: Client POV (Updated with Vault Library Button) -->
+            <!-- View 4: Client POV (Updated with Progress Tracker and per-asset Move buttons) -->
             <div id="vmClientPOV" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
                 <div class="vm-pov-header">
                     <button class="vm-detail-back" onclick="event.stopPropagation(); vmShowView('main'); return false;">← All Clients</button>
@@ -1593,16 +1628,27 @@
                         <div style="font-size:15px;font-weight:600;color:var(--vault-text);" id="vmPOVName">Client</div>
                         <div style="font-size:11px;color:rgba(212,175,55,0.35);letter-spacing:1px;" id="vmPOVSub">0 vault items</div>
                     </div>
-                    <button class="vm-pov-library-btn" onclick="event.stopPropagation(); vmShowClientLibrary(); return false;">📚 Vault Library</button>
-                    <button class="vm-pov-sync" onclick="event.stopPropagation(); vmSyncDefaults(); return false;">↓ Sync Defaults</button>
+                    <button class="vm-pov-library-btn" onclick="event.stopPropagation(); vmShowClientLibrary(); return false;">📚 VAULT LIBRARY</button>
+                    <button class="vm-pov-sync" onclick="event.stopPropagation(); vmSyncDefaults(); return false;">↓ SYNC DEFAULTS</button>
                 </div>
+                
                 <div style="overflow-y:auto;flex:1;display:flex;flex-direction:column;">
+                    <!-- Progress Tracker Section for Client -->
+                    <div class="vm-client-progress">
+                        <div class="vm-client-progress-header">
+                            <div class="vm-client-progress-title">Progress Tracker</div>
+                            <span class="vm-project-count-client" id="vmProjectCountClient" style="background:rgba(212,175,55,0.15);color:#D4AF37;font-size:11px;padding:3px 10px;border-radius:30px;">0</span>
+                        </div>
+                        <div id="vmClientProjectList" class="vm-client-projects">
+                            <!-- Projects will be loaded here -->
+                            <div style="text-align:center;padding:12px;color:rgba(212,175,55,0.3);font-size:11px;">No projects yet</div>
+                        </div>
+                    </div>
 
                     <!-- Library Picker Panel (hidden by default) -->
                     <div id="vmClientLibraryPanel" class="vm-library-panel" style="display:none;">
                         <div class="vm-library-header">
                             <div class="vm-library-title">Vault Library Assets</div>
-                            <button id="vmClientMoveHereBtn" class="vm-move-btn" onclick="vmMoveSelectedToClientFromLibrary()" disabled>MOVE HERE (0)</button>
                         </div>
                         <div id="vmClientLibraryGrid" class="vm-asset-grid" style="padding:0;"></div>
                     </div>
@@ -1893,7 +1939,6 @@
         let vmCurrentClientUID = null;
         let vmCurrentClientName = null;
         let vmCurrentProjectId = null;
-        let vmClientLibrarySelection = new Set();
         let isLoading = false;
         const LOADING_TIMEOUT = 8000;
 
@@ -4181,7 +4226,7 @@
             });
         }
 
-        // New function to show client library panel
+        // Function to show client library panel (now hidden by default)
         function vmShowClientLibrary() {
             const panel = document.getElementById('vmClientLibraryPanel');
             if (panel.style.display === 'none' || panel.style.display === '') {
@@ -4189,8 +4234,6 @@
                 vmLoadClientLibraryAssets();
             } else {
                 panel.style.display = 'none';
-                vmClientLibrarySelection.clear();
-                vmUpdateClientLibraryUI();
             }
         }
 
@@ -4201,7 +4244,7 @@
             vmRef('assets').limitToFirst(20).once('value').then(snap => {
                 const assets = Object.values(snap.val() || {});
                 if (!assets.length) {
-                    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:rgba(212,175,55,0.4);">No assets in library</div>';
+                    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(212,175,55,0.4);">No assets in library</div>';
                     return;
                 }
                 
@@ -4213,87 +4256,48 @@
                         const alreadyAdded = clientAssets.includes(a.id);
                         const emoji = vmCatEmoji[a.cat] || '◆';
                         const thumbHTML = a.thumb
-                            ? `<div class="vm-asset-thumb"><img src="${escHtml(a.thumb)}" onerror="this.parentNode.innerHTML='<span style=font-size:36px>${emoji}</span>'"></div>`
-                            : `<div class="vm-asset-thumb" style="font-size:36px;">${emoji}</div>`;
-                        const selected = vmClientLibrarySelection.has(a.id);
-                        return `<div class="vm-asset-card vm-picker-card ${selected ? 'selected' : ''} ${alreadyAdded ? 'disabled' : ''}" 
-                                     data-id="${a.id}" 
-                                     onclick="if(!${alreadyAdded}) vmToggleClientLibrarySelection('${a.id}')"
-                                     style="${alreadyAdded ? 'opacity:0.45;cursor:not-allowed;' : 'cursor:pointer;'}">
-                            <div class="vm-pick-check">✓</div>
-                            ${thumbHTML}
+                            ? `<div class="vm-asset-thumb"><img src="${escHtml(a.thumb)}" onerror="this.parentNode.innerHTML='<span style=font-size:42px>${emoji}</span>'"></div>`
+                            : `<div class="vm-asset-thumb" style="font-size:42px;">${emoji}</div>`;
+                        
+                        // Add per-asset move button on the right side
+                        return `<div class="vm-asset-card" data-id="${a.id}" style="${alreadyAdded ? 'opacity:0.6;' : ''}">
+                            <div class="vm-asset-thumb">${thumbHTML}</div>
                             <div class="vm-asset-body">
                                 <div class="vm-asset-cat">${escHtml(a.cat||'')}</div>
                                 <div class="vm-asset-title">${escHtml(a.title||'Untitled')}</div>
-                                ${a.desc ? `<div class="vm-asset-desc">${escHtml(a.desc.substring(0, 40))}${a.desc.length > 40 ? '...' : ''}</div>` : ''}
+                                ${a.desc ? `<div class="vm-asset-desc">${escHtml(a.desc.substring(0, 60))}${a.desc.length > 60 ? '...' : ''}</div>` : ''}
                             </div>
-                            ${alreadyAdded ? '<div style="position:absolute;bottom:6px;right:8px;font-size:9px;color:rgba(212,175,55,0.5);">IN VAULT</div>' : ''}
+                            ${!alreadyAdded ? 
+                                `<div class="vm-asset-actions">
+                                    <button class="vm-asset-btn vm-asset-btn-move" onclick="event.stopPropagation(); vmMoveSingleAssetToClient('${a.id}'); return false;">MOVE HERE</button>
+                                </div>` : 
+                                `<div style="padding:16px; text-align:center; color:rgba(212,175,55,0.5); font-size:10px; letter-spacing:1px;">ALREADY IN VAULT</div>`
+                            }
                         </div>`;
                     }).join('');
-                    
-                    vmUpdateClientLibraryUI();
                 });
             });
         }
 
-        function vmToggleClientLibrarySelection(assetId) {
-            if (vmClientLibrarySelection.has(assetId)) {
-                vmClientLibrarySelection.delete(assetId);
-            } else {
-                vmClientLibrarySelection.add(assetId);
-            }
+        // New function to move a single asset to client vault
+        function vmMoveSingleAssetToClient(assetId) {
+            if (!vmCurrentClientUID) return;
             
-            // Update UI
-            const cards = document.querySelectorAll('#vmClientLibraryGrid .vm-asset-card');
-            cards.forEach(card => {
-                const id = card.dataset.id;
-                if (id === assetId) {
-                    if (vmClientLibrarySelection.has(id)) {
-                        card.classList.add('selected');
-                    } else {
-                        card.classList.remove('selected');
-                    }
+            vmRef('assets/' + assetId).once('value').then(snap => {
+                const asset = snap.val();
+                if (!asset) {
+                    showToast('Asset not found');
+                    return;
                 }
-            });
-            
-            vmUpdateClientLibraryUI();
-        }
-
-        function vmUpdateClientLibraryUI() {
-            const count = vmClientLibrarySelection.size;
-            const moveBtn = document.getElementById('vmClientMoveHereBtn');
-            if (moveBtn) {
-                moveBtn.textContent = `MOVE HERE (${count})`;
-                moveBtn.disabled = count === 0;
-            }
-        }
-
-        function vmMoveSelectedToClientFromLibrary() {
-            if (!vmCurrentClientUID || vmClientLibrarySelection.size === 0) return;
-            
-            const ids = Array.from(vmClientLibrarySelection);
-            const btn = document.getElementById('vmClientMoveHereBtn');
-            btn.textContent = 'MOVING...';
-            btn.disabled = true;
-            
-            const fetches = ids.map(id => vmRef('assets/' + id).once('value').then(s => ({ id, data: s.val() })));
-            
-            Promise.all(fetches).then(results => {
-                const updates = {};
-                results.forEach(({ id, data }) => {
-                    if (data) updates['vault/clients/' + vmCurrentClientUID + '/' + id] = data;
+                
+                vmRef('clients/' + vmCurrentClientUID + '/' + assetId).set(asset).then(() => {
+                    showToast('✓ Asset added to client vault');
+                    // Refresh both library panel and client vault
+                    vmLoadClientLibraryAssets();
+                    vmLoadPOVGrid(vmCurrentClientUID);
+                }).catch(err => {
+                    showToast('Error moving asset: ' + err.message);
                 });
-                return adminFbDB.ref().update(updates);
-            }).then(() => {
-                showToast('✦ ' + ids.length + ' asset' + (ids.length !== 1 ? 's' : '') + ' added to client vault');
-                vmClientLibrarySelection.clear();
-                vmLoadClientLibraryAssets(); // Refresh library view
-                vmLoadPOVGrid(vmCurrentClientUID); // Refresh client vault
-                vmUpdateClientLibraryUI();
-            }).catch(() => {
-                showToast('Error moving assets');
-                btn.disabled = false;
-                vmUpdateClientLibraryUI();
             });
         }
 
@@ -4301,16 +4305,50 @@
             vmCurrentClientUID = uid;
             vmCurrentClientName = name;
             vmCurrentProjectId = null;
-            vmClientLibrarySelection.clear(); // Clear any previous selections
             const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
             document.getElementById('vmPOVAv').textContent = initials;
             document.getElementById('vmPOVName').textContent = name;
             
-            // Hide library panel by default when opening
+            // Hide library panel by default
             document.getElementById('vmClientLibraryPanel').style.display = 'none';
             
             vmShowView('pov');
             vmLoadPOVGrid(uid);
+            vmLoadClientProjects(uid); // Load progress tracker projects for client
+        }
+
+        function vmLoadClientProjects(uid) {
+            const list = document.getElementById('vmClientProjectList');
+            adminFbDB.ref('timelines/' + uid + '/projects').limitToFirst(5).once('value').then(snap => {
+                const projects = snap.val() || {};
+                const entries = Object.entries(projects);
+                const count = entries.length;
+                
+                // Update badge
+                const badge = document.getElementById('vmProjectCountClient');
+                if (badge) badge.textContent = count;
+                
+                if (!entries.length) {
+                    list.innerHTML = '<div style="text-align:center;padding:12px;color:rgba(212,175,55,0.3);font-size:11px;">No projects yet</div>';
+                    return;
+                }
+                
+                list.innerHTML = entries.map(([id, p]) => `
+                    <div class="vm-client-project-item" onclick="vmOpenProjectFromClient('${id}', '${escHtml(p.name).replace(/'/g,"\\'")}')">
+                        <div class="vm-client-project-name">${escHtml(p.name)}</div>
+                        <div class="vm-client-project-date">${p.createdAt ? new Date(p.createdAt).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : ''}</div>
+                    </div>
+                `).join('');
+            }).catch(() => {
+                list.innerHTML = '<div style="text-align:center;padding:12px;color:rgba(212,175,55,0.3);">Error loading projects</div>';
+            });
+        }
+
+        function vmOpenProjectFromClient(id, name) {
+            vmCurrentProjectId = id;
+            document.getElementById('vmProjectDetailTitle').textContent = name;
+            vmShowView('project');
+            vmLoadWorkflows();
         }
 
         function vmLoadPOVGrid(uid) {
@@ -4356,25 +4394,13 @@
             });
         }
 
-        function vmAddToClient(assetId) {
-            if (!vmCurrentClientUID) return;
-            vmRef('assets/' + assetId).once('value').then(snap => {
-                const asset = snap.val();
-                if (!asset) return;
-                vmRef('clients/' + vmCurrentClientUID + '/' + assetId).set(asset).then(() => {
-                    showToast('Asset added to ' + vmCurrentClientName + '\'s vault');
-                    vmLoadPOVGrid(vmCurrentClientUID);
-                });
-            });
-        }
-
         const vmCatEmoji = { '3D Render':'🏛', 'Document':'📄', 'Video':'🎬', 'Moodboard':'🎨' };
 
         function vmAssetCard(a, mode) {
             const emoji = vmCatEmoji[a.cat] || '◆';
             const thumbHTML = a.thumb
-                ? `<div class="vm-asset-thumb"><img src="${escHtml(a.thumb)}" onerror="this.parentNode.innerHTML='<span style=font-size:36px>${emoji}</span>'"></div>`
-                : `<div class="vm-asset-thumb" style="font-size:36px;">${emoji}</div>`;
+                ? `<div class="vm-asset-thumb"><img src="${escHtml(a.thumb)}" onerror="this.parentNode.innerHTML='<span style=font-size:42px>${emoji}</span>'"></div>`
+                : `<div class="vm-asset-thumb" style="font-size:42px;">${emoji}</div>`;
             const defaultBadge = a.isDefault ? `<div class="vm-default-badge">Default</div>` : '';
 
             let actions = '';
