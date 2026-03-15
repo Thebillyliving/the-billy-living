@@ -1914,14 +1914,40 @@
             const isProgress = a.cat === 'Progress Tracker';
             const thumb = a.thumb ? `<img src="${a.thumb}" style="width:100%; height:100%; object-fit:cover;">` : `<span style="font-size:42px;">${isProgress ? '📊' : '📦'}</span>`;
             let actions = '';
+            
             if (mode === 'library') {
                 actions = `<div class="vm-asset-actions"><button class="vm-asset-btn vm-asset-btn-add" onclick="event.stopPropagation(); vmToggleDefault('${a.id}',${!!a.isDefault})">${a.isDefault ? '★ Remove Default' : '☆ Set Default'}</button><button class="vm-asset-btn vm-asset-btn-del" onclick="event.stopPropagation(); vmDeleteAsset('${a.id}')">Delete</button></div>`;
             } else if (mode === 'pov') {
-                actions = `<div class="vm-asset-actions"><button class="vm-asset-btn vm-asset-btn-del" onclick="event.stopPropagation(); vmRemoveFromClient('${a.id}')">Remove</button></div>`;
+                if (isProgress) {
+                    actions = `<div class="vm-asset-actions">
+                        <button class="vm-asset-btn vm-asset-btn-add" onclick="event.stopPropagation(); vmOpenProgressTracker('${a.id}')">EDIT</button>
+                        <button class="vm-asset-btn vm-asset-btn-del" onclick="event.stopPropagation(); vmRemoveFromClient('${a.id}')">REMOVE</button>
+                    </div>`;
+                } else {
+                    actions = `<div class="vm-asset-actions"><button class="vm-asset-btn vm-asset-btn-del" onclick="event.stopPropagation(); vmRemoveFromClient('${a.id}')">REMOVE</button></div>`;
+                }
             } else if (mode === 'defaults') {
                 actions = `<div class="vm-asset-actions"><button class="vm-asset-btn vm-asset-btn-del" onclick="event.stopPropagation(); vmToggleDefault('${a.id}',true)">Remove Default</button></div>`;
             }
-            return `<div class="vm-asset-card ${isProgress ? 'vm-progress-card' : ''}" onclick="vmOpenAsset('${a.id}')"><div class="vm-asset-thumb">${thumb}</div><div class="vm-asset-body"><div class="vm-asset-cat">${a.cat||'Asset'}</div><div class="vm-asset-title">${a.title||'Untitled'}</div>${a.desc ? '<div class="vm-asset-desc">' + a.desc.substring(0,60) + (a.desc.length>60?'...':'') + '</div>' : ''}</div>${actions}</div>`;
+            
+            const clickHandler = isProgress && mode === 'pov' ? `onclick="vmOpenProgressTracker('${a.id}')"` : (a.url ? `onclick="vmOpenDetail('${a.id}')"` : '');
+            
+            return `<div class="vm-asset-card ${isProgress ? 'vm-progress-card' : ''}" ${clickHandler}>
+                <div class="vm-asset-thumb">${thumb}</div>
+                <div class="vm-asset-body">
+                    <div class="vm-asset-cat">${a.cat||'Asset'}</div>
+                    <div class="vm-asset-title">${a.title||'Untitled'}</div>
+                    ${a.desc ? '<div class="vm-asset-desc">' + a.desc + '</div>' : ''}
+                </div>
+                ${actions}
+            </div>`;
+        }
+
+        function vmOpenProgressTracker(assetId) {
+            vmCurrentProgressAssetId = assetId;
+            document.getElementById('vmProjectDetailTitle').textContent = 'Progress Tracker';
+            vmShowView('project');
+            vmLoadProjects();
         }
 
         function vmOpenAsset(id) {
@@ -2165,9 +2191,9 @@
                 const clientAssets = snap.val() || {};
                 let hasProgressTracker = false;
                 
-                // Look for any asset with id containing 'progress_tracker' or special marker
-                Object.keys(clientAssets).forEach(key => {
-                    if (key.includes('progress_tracker')) hasProgressTracker = true;
+                // Look for any asset with category 'Progress Tracker'
+                Object.values(clientAssets).forEach(asset => {
+                    if (asset.cat === 'Progress Tracker') hasProgressTracker = true;
                 });
                 
                 if (hasProgressTracker) {
