@@ -1,4 +1,4 @@
-<!-- admin.html - Billy Living Admin Dashboard (COMPLETELY FIXED) -->
+<!-- admin.html - Billy Living Admin Dashboard (FULLY FIXED with Progress Tracker Move Button) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1192,6 +1192,24 @@
             padding: 4px 12px;
             border-radius: 30px;
         }
+        .progress-move-btn {
+            background: var(--vault-gold);
+            color: #0A0700;
+            border: none;
+            border-radius: 30px;
+            padding: 6px 16px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .progress-move-btn:hover {
+            background: #e8c440;
+            transform: translateY(-1px);
+        }
         .progress-create-btn {
             background: linear-gradient(135deg, #D4AF37, #8B6914);
             border: none;
@@ -1577,7 +1595,7 @@
                 <div id="vmDefaultsGrid" class="vm-asset-grid" style="overflow-y:auto;flex:1;"></div>
             </div>
 
-            <!-- Client POV (with Progress Tracker INSIDE the library panel) -->
+            <!-- Client POV (with Progress Tracker INSIDE the library panel and MOVE button) -->
             <div id="vmClientPOV" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
                 <div class="vm-pov-header">
                     <button class="vm-detail-back" onclick="event.stopPropagation(); vmShowView('main'); return false;">← All Clients</button>
@@ -1591,11 +1609,15 @@
                     <div id="vmClientLibraryPanel" class="vm-library-panel" style="display:none;">
                         <div class="vm-library-header"><div class="vm-library-title">Vault Library</div></div>
                         
-                        <!-- PROGRESS TRACKER INSIDE LIBRARY PANEL -->
+                        <!-- PROGRESS TRACKER WITH MOVE HERE BUTTON -->
                         <div class="progress-section">
                             <div class="progress-header">
-                                <div><div class="progress-title">Progress Tracker</div></div>
-                                <span id="vmClientProjectCount" class="progress-count">0</span>
+                                <div>
+                                    <div class="progress-title">Progress Tracker</div>
+                                    <span id="vmClientProjectCount" class="progress-count">0</span>
+                                </div>
+                                <!-- MOVE HERE BUTTON for Progress Tracker -->
+                                <button class="progress-move-btn" onclick="event.stopPropagation(); vmMoveProgressTrackerToClient()">MOVE HERE</button>
                             </div>
                             <button class="progress-create-btn" onclick="vmPromptNewProject()">+ CREATE PROJECT</button>
                             <div id="vmClientProjectList">
@@ -1958,7 +1980,7 @@
             adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + vmCurrentProjectId + '/workflows/' + wid + '/status').set(newStatus).then(vmLoadWorkflows);
         }
 
-        // FIXED: Project creation - NOW WORKING 100%
+        // Project creation
         function vmPromptNewProject() {
             console.log('Opening project modal');
             document.getElementById('vmPTModal').style.display = 'flex';
@@ -2129,6 +2151,50 @@
             const panel = document.getElementById('vmClientLibraryPanel');
             panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
             if (panel.style.display === 'block') vmLoadClientLibraryAssets();
+        }
+
+        // Move Progress Tracker to client's vault
+        function vmMoveProgressTrackerToClient() {
+            if (!vmCurrentClientUID) {
+                showToast('No client selected');
+                return;
+            }
+            
+            // Check if Progress Tracker already exists in client's vault
+            vmRef('clients/' + vmCurrentClientUID).once('value').then(snap => {
+                const clientAssets = snap.val() || {};
+                let hasProgressTracker = false;
+                
+                // Check if any asset is a Progress Tracker
+                Object.values(clientAssets).forEach(asset => {
+                    if (asset.cat === 'Progress Tracker') hasProgressTracker = true;
+                });
+                
+                if (hasProgressTracker) {
+                    showToast('Progress Tracker already in vault');
+                    return;
+                }
+                
+                // Find the Progress Tracker asset from main library
+                vmRef('assets').once('value').then(s => {
+                    const assets = Object.values(s.val() || {});
+                    const progressAsset = assets.find(a => a.cat === 'Progress Tracker');
+                    
+                    if (!progressAsset) {
+                        showToast('No Progress Tracker asset found. Create one first.');
+                        return;
+                    }
+                    
+                    // Move it to client's vault
+                    vmRef('clients/' + vmCurrentClientUID + '/' + progressAsset.id).set(progressAsset).then(() => {
+                        showToast('✓ Progress Tracker moved to vault');
+                        // Refresh the client's vault display
+                        vmLoadPOVGrid(vmCurrentClientUID);
+                    }).catch(err => {
+                        showToast('Error: ' + err.message);
+                    });
+                });
+            });
         }
 
         // Library assets with MOVE HERE buttons
