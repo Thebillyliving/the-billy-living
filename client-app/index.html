@@ -2917,6 +2917,58 @@ function addRefreshButton() {
 setTimeout(addRefreshButton, 2000);
 
 window.loadProjectsUniversal = loadProjectsUniversal;
+
+// ===========================================
+// FIREBASE CONNECTION TEST + DEBUG BUTTON
+// ===========================================
+
+window.testFirebaseConnection = function() {
+  console.log('🔍 TESTING FIREBASE CONNECTION...');
+  if (!currentUser) { console.log('❌ No user logged in'); alert('Please log in first'); return; }
+  const clientUID = currentUser.uid;
+  console.log('Current User UID:', clientUID);
+  console.log('Current User Email:', currentUser.email);
+  fbDb.ref('userProfiles/' + clientUID).once('value')
+    .then(snap => {
+      console.log('User Profile:', snap.val());
+      return fbDb.ref('vip').once('value');
+    })
+    .then(vipSnap => {
+      console.log('All VIP entries:', vipSnap.val());
+      const paths = [
+        'timelines/' + clientUID + '/projects',
+        'vault/clients/' + clientUID + '/projects',
+        'projects/' + clientUID
+      ];
+      console.log('Checking project paths:');
+      return Promise.all(paths.map(path =>
+        fbDb.ref(path).once('value').then(s => ({ path, exists: s.exists(), data: s.val() }))
+      ));
+    })
+    .then(results => {
+      results.forEach(r => {
+        console.log('Path: ' + r.path);
+        console.log('  Exists:', r.exists);
+        if (r.exists) console.log('  Data:', r.data);
+      });
+      alert('Check console for results (F12)');
+    })
+    .catch(err => { console.error('Test error:', err); alert('Error: ' + err.message); });
+};
+
+function addManualRefreshButton() {
+  const section = document.getElementById('progressTrackerSection');
+  if (!section || document.getElementById('ptTestBtn')) return;
+  const header = section.querySelector('div');
+  if (!header) return;
+  const testBtn = document.createElement('button');
+  testBtn.id = 'ptTestBtn';
+  testBtn.textContent = '🔍 TEST';
+  testBtn.style.cssText = 'background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);color:#D4AF37;border-radius:20px;padding:4px 12px;font-family:\'Jost\',sans-serif;font-size:10px;letter-spacing:1px;margin-left:8px;cursor:pointer;flex-shrink:0;';
+  testBtn.onclick = function(e) { e.stopPropagation(); window.testFirebaseConnection(); };
+  header.appendChild(testBtn);
+}
+setTimeout(addManualRefreshButton, 3000);
 </script>
 <div id="vaultGlint"></div>
 </body>
