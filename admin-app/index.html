@@ -2062,7 +2062,6 @@
         }
 
         function vmOpenProject(id, name) {
-            alert('Opening project: ' + name);
             console.log('Opening project:', id, name);
             
             if (!id || !name) {
@@ -2084,6 +2083,7 @@
                 createBtn.onclick = function() { 
                     console.log('Create workflow clicked');
                     vmPromptNewWorkflow(); 
+                    return false;
                 };
             }
             
