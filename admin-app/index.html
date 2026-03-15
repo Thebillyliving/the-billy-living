@@ -2022,7 +2022,15 @@
                 const projectEntries = Object.entries(projects);
                 
                 list.innerHTML = projectEntries.map(([id, p], index) => `
-                    <div class="progress-item" onclick="vmOpenProject('${id}', '${p.name.replace(/'/g, "\\'")}')">
+                    <div class="progress-item" 
+                         onclick="vmOpenProject('${id}', '${p.name.replace(/'/g, "\\'")}')"
+                         oncontextmenu="event.preventDefault(); return false;"
+                         ontouchstart="startLongPress(event, 'project', '${id}', '${p.name.replace(/'/g, "\\'")}')"
+                         ontouchend="cancelLongPress()"
+                         ontouchmove="cancelLongPress()"
+                         onmousedown="startLongPressMouse(event, 'project', '${id}', '${p.name.replace(/'/g, "\\'")}')"
+                         onmouseup="cancelLongPress()"
+                         onmouseleave="cancelLongPress()">
                         <div class="progress-item-left">
                             <div class="progress-number">${index + 1}</div>
                             <div>
@@ -2075,7 +2083,14 @@
                 list.innerHTML = workflowEntries.map(([id, w], index) => {
                     const isProgressed = w.status === 'progressed';
                     return `
-                        <div class="workflow-item">
+                        <div class="workflow-item"
+                             oncontextmenu="event.preventDefault(); return false;"
+                             ontouchstart="startLongPress(event, 'workflow', '${id}', '${w.name.replace(/'/g, "\\'")}')"
+                             ontouchend="cancelLongPress()"
+                             ontouchmove="cancelLongPress()"
+                             onmousedown="startLongPressMouse(event, 'workflow', '${id}', '${w.name.replace(/'/g, "\\'")}')"
+                             onmouseup="cancelLongPress()"
+                             onmouseleave="cancelLongPress()">
                             <div class="workflow-item-left">
                                 <div class="workflow-number">${index + 1}</div>
                                 <div class="workflow-name">${w.name}</div>
@@ -2474,6 +2489,106 @@
         function _saveMixLabel() {}
         function saveMixtureLabel() {}
         function blockNextClick() {}
+
+        // Long press variables
+        let longPressTimer = null;
+        let longPressType = null;
+        let longPressId = null;
+        let longPressName = null;
+        const LONG_PRESS_DURATION = 600;
+
+        function startLongPress(event, type, id, name) {
+            event.preventDefault();
+            cancelLongPress();
+            
+            longPressType = type;
+            longPressId = id;
+            longPressName = name;
+            
+            const target = event.currentTarget;
+            target.style.backgroundColor = 'rgba(212,175,55,0.15)';
+            
+            longPressTimer = setTimeout(() => {
+                target.style.backgroundColor = '';
+                showDeleteConfirmation(type, id, name);
+            }, LONG_PRESS_DURATION);
+        }
+
+        function startLongPressMouse(event, type, id, name) {
+            if (event.button !== 0) return;
+            startLongPress(event, type, id, name);
+        }
+
+        function cancelLongPress() {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+            document.querySelectorAll('.progress-item, .workflow-item').forEach(el => {
+                el.style.backgroundColor = '';
+            });
+        }
+
+        function showDeleteConfirmation(type, id, name) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 20000;
+                padding: 20px;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background:#0E0B06; border:1px solid #D4AF37; border-radius:20px; width:min(400px,94vw); padding:28px 24px;">
+                    <div style="font-family:'Cormorant Garamond',serif; font-size:22px; color:#E8D9B5; margin-bottom:16px;">
+                        Delete ${type === 'project' ? 'Project' : 'Workflow'}?
+                    </div>
+                    <div style="font-size:14px; color:rgba(232,217,181,0.7); margin-bottom:24px;">
+                        Are you sure you want to delete "<strong>${name}</strong>"? This cannot be undone.
+                    </div>
+                    <div style="display:flex; gap:12px;">
+                        <button id="cancelDeleteBtn" style="flex:1; padding:14px; background:none; border:1px solid rgba(212,175,55,0.3); border-radius:10px; color:rgba(212,175,55,0.6); font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; cursor:pointer;">CANCEL</button>
+                        <button id="confirmDeleteBtn" style="flex:1; padding:14px; background:#8B0000; border:none; border-radius:10px; color:white; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; cursor:pointer;">DELETE</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            document.getElementById('cancelDeleteBtn').onclick = () => document.body.removeChild(modal);
+            document.getElementById('confirmDeleteBtn').onclick = () => {
+                if (type === 'project') {
+                    deleteProject(longPressId);
+                } else {
+                    deleteWorkflow(longPressId);
+                }
+                document.body.removeChild(modal);
+            };
+        }
+
+        function deleteProject(projectId) {
+            if (!vmCurrentClientUID || !projectId) return;
+            adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + projectId).remove()
+                .then(() => {
+                    showToast('✓ Project deleted');
+                    vmLoadProjectsList();
+                })
+                .catch(err => showToast('Error: ' + err.message));
+        }
+
+        function deleteWorkflow(workflowId) {
+            if (!vmCurrentClientUID || !vmCurrentProjectId || !workflowId) return;
+            adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + vmCurrentProjectId + '/workflows/' + workflowId).remove()
+                .then(() => {
+                    showToast('✓ Workflow deleted');
+                    vmLoadWorkflowsForProject();
+                })
+                .catch(err => showToast('Error: ' + err.message));
+        }
 
         // Initialization
         document.addEventListener('DOMContentLoaded', () => {
