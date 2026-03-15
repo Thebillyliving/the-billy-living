@@ -665,22 +665,34 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     </div>
   </div>
   <div id="vaultGallery" style="display:none;min-height:100vh;background:#0A0804">
+    <!-- Header -->
     <div style="padding:32px 20px 20px;border-bottom:1px solid rgba(212,175,55,.12);position:sticky;top:0;background:rgba(10,8,4,.97);z-index:10;backdrop-filter:blur(12px)">
       <div style="font-family:'Jost',sans-serif;font-size:8px;letter-spacing:6px;color:rgba(212,175,55,.5);text-transform:uppercase;margin-bottom:8px;font-weight:400">Your Private Collection</div>
       <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:#E8D5A3;margin-bottom:8px">Design Vault</div>
       <div style="font-family:'Jost',sans-serif;font-size:9px;font-weight:400;color:rgba(212,175,55,.55);letter-spacing:4px;text-transform:uppercase" id="vaultGalleryMeta">Loading your collection…</div>
     </div>
-    <div id="vaultProgressSection" style="padding:20px 20px 10px;border-bottom:1px solid rgba(212,175,55,.1);background:rgba(212,175,55,.02);">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-family:'Cormorant Garamond',serif;font-size:16px;color:#E8D5A3;">Progress Tracker</div>
-        <span id="projectCount" style="background:rgba(212,175,55,.15);color:#D4AF37;font-size:10px;padding:4px 12px;border-radius:30px;">0</span>
+    <!-- PROGRESS TRACKER SECTION -->
+    <div id="progressTrackerSection" style="padding:16px 20px 20px;border-bottom:1px solid rgba(212,175,55,.1);background:rgba(212,175,55,.02);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:20px;">📊</span>
+          <span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:#E8D5A3;">Progress Tracker</span>
+        </div>
+        <span id="projectCountBadge" style="background:rgba(212,175,55,.15);color:#D4AF37;font-size:11px;padding:4px 12px;border-radius:30px;">0</span>
       </div>
-      <div id="clientProjectsList" style="display:flex;flex-direction:column;gap:8px;">
-        <div style="text-align:center;padding:16px;color:rgba(212,175,55,.4);">Loading projects...</div>
+      <div id="projectsContainer" style="display:flex;flex-direction:column;gap:10px;min-height:60px;">
+        <div style="text-align:center;padding:20px;color:rgba(212,175,55,.4);">Loading projects...</div>
       </div>
     </div>
-    <div id="vaultGalleryGrid" style="padding:20px;display:grid;grid-template-columns:repeat(2,1fr);gap:14px"></div>
-    <div style="padding:20px;text-align:center"><button onclick="handleVaultLogout()" style="background:none;border:1px solid rgba(201,168,76,.15);color:rgba(201,168,76,.4);border-radius:8px;padding:12px 28px;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer">Exit Vault</button></div>
+    <!-- VAULT ASSETS GRID -->
+    <div style="padding:20px 20px 10px;">
+      <div style="font-size:10px;letter-spacing:3px;color:rgba(212,175,55,.4);text-transform:uppercase;margin-bottom:12px;">Your Collection</div>
+    </div>
+    <div id="vaultGalleryGrid" style="padding:0 20px 20px;display:grid;grid-template-columns:repeat(2,1fr);gap:14px;"></div>
+    <!-- Exit Button -->
+    <div style="padding:20px;text-align:center">
+      <button onclick="handleVaultLogout()" style="background:none;border:1px solid rgba(201,168,76,.15);color:rgba(201,168,76,.4);border-radius:8px;padding:12px 28px;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer">Exit Vault</button>
+    </div>
   </div>
 </div>
 
@@ -1987,255 +1999,13 @@ function _renderVaultGrid(assets) {
   }).join('');
 }
 
-// ─── VAULT PROGRESS TRACKER ───────────────────────────────────────────────────
-function loadClientProjects() {
-  if (!currentUser) { console.log('No user logged in'); return; }
-  const projectsList = document.getElementById('clientProjectsList');
-  const projectCountEl = document.getElementById('projectCount');
-  if (!projectsList) { console.log('Projects list element not found'); return; }
-  console.log('Loading projects for client:', currentUser.uid);
-  projectsList.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(212,175,55,.4);font-family:\'Jost\',sans-serif;font-size:11px;">Loading progress tracker...</div>';
-  fbDb.ref('timelines/' + currentUser.uid + '/projects').once('value')
-    .then(snapshot => {
-      console.log('Raw Firebase response:', snapshot.val());
-      const projects = snapshot.val() || {};
-      const count = Object.keys(projects).length;
-      console.log('Found projects:', count, projects);
-      if (projectCountEl) projectCountEl.textContent = count;
-      if (count === 0) {
-        projectsList.innerHTML = `
-          <div style="text-align:center;padding:24px;">
-            <div style="font-size:24px;margin-bottom:8px;opacity:.4;">📊</div>
-            <div style="font-family:'Cormorant Garamond',serif;font-size:15px;color:rgba(212,175,55,.4);">No projects in progress</div>
-            <div style="font-family:'Jost',sans-serif;font-size:11px;color:rgba(212,175,55,.2);margin-top:8px;line-height:1.5;">Projects will appear here once created by your designer</div>
-          </div>`;
-        return;
-      }
-      let html = '';
-      let index = 1;
-      Object.entries(projects).forEach(([projectId, project]) => {
-        html += `
-          <div class="project-item" onclick="openClientProject('${projectId}','${(project.name||'').replace(/'/g,"\\'")}'')"
-               style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(212,175,55,.04);border:1px solid rgba(212,175,55,.12);border-radius:12px;cursor:pointer;margin-bottom:6px;">
-            <div style="display:flex;align-items:center;gap:12px;">
-              <div style="width:32px;height:32px;border-radius:50%;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:14px;color:#D4AF37;flex-shrink:0;">${index}</div>
-              <div>
-                <div style="font-family:'Cormorant Garamond',serif;font-size:15px;color:#E8D5A3;">${project.name||'Project'}</div>
-                <div style="font-family:'Jost',sans-serif;font-size:9px;color:rgba(212,175,55,.35);margin-top:2px;">${project.createdAt ? new Date(project.createdAt).toLocaleDateString() : 'Just started'}</div>
-              </div>
-            </div>
-            <span style="color:rgba(212,175,55,.3);font-size:16px;">›</span>
-          </div>`;
-        index++;
-      });
-      projectsList.innerHTML = html;
-    })
-    .catch(err => {
-      console.error('Error loading projects:', err);
-      projectsList.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(239,68,68,.7);font-family:\'Jost\',sans-serif;font-size:11px;">Error loading progress tracker</div>';
-    });
-}
-
-function debugFirebasePaths() {
-  if (!currentUser) { console.log('❌ No user logged in'); return; }
-  const clientUID = currentUser.uid;
-  console.log('🔍 CURRENT USER:', { uid: clientUID, email: currentUser.email, isAnonymous: currentUser.isAnonymous });
-  const pathsToCheck = [
-    'timelines/' + clientUID + '/projects',
-    'vault/clients/' + clientUID + '/projects',
-    'userProfiles/' + clientUID + '/projects',
-    'projects/' + clientUID
-  ];
-  console.log('📁 Checking these Firebase paths:');
-  pathsToCheck.forEach(path => {
-    fbDb.ref(path).once('value')
-      .then(snapshot => {
-        console.log('Path:', path);
-        console.log('  Exists:', snapshot.exists());
-        if (snapshot.exists()) { console.log('  Data:', snapshot.val()); }
-        else { console.log('  No data at this path'); }
-      })
-      .catch(err => console.log('  Error checking ' + path + ':', err.message));
-  });
-  fbDb.ref('vip').once('value').then(snap => {
-    console.log('📞 All VIP entries:', snap.val());
-    const vips = snap.val() || {};
-    Object.entries(vips).forEach(([phone, vip]) => {
-      if (vip.id === clientUID || vip.email === currentUser.email) {
-        console.log('✅ Found matching VIP:', { phone, vip });
-      }
-    });
-  });
-}
-
-function openClientProject(projectId, projectName) {
-  if (!currentUser) return;
-  const modal = document.createElement('div');
-  modal.className = 'project-detail-modal';
-  modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.95);z-index:20000;display:flex;flex-direction:column;padding:20px;overflow-y:auto;backdrop-filter:blur(8px);';
-  modal.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
-      <button onclick="this.closest('.project-detail-modal').remove()" style="background:none;border:1px solid rgba(212,175,55,.3);color:rgba(212,175,55,.6);border-radius:8px;padding:8px 16px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:2px;cursor:pointer;">← BACK</button>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:#E8D5A3;letter-spacing:.5px;">${projectName}</div>
-      <div style="width:72px;"></div>
-    </div>
-    <div style="font-family:'Jost',sans-serif;font-size:9px;letter-spacing:4px;color:rgba(212,175,55,.4);text-transform:uppercase;margin-bottom:16px;">Workflow Progress</div>
-    <div id="workflowList" style="display:flex;flex-direction:column;gap:12px;"></div>`;
-  document.body.appendChild(modal);
-  const workflowList = modal.querySelector('#workflowList');
-  workflowList.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.4);font-family:\'Jost\',sans-serif;font-size:11px;">Loading workflows…</div>';
-  fbDb.ref('timelines/' + currentUser.uid + '/projects/' + projectId + '/workflows').once('value')
-    .then(snapshot => {
-      const workflows = snapshot.val() || {};
-      const entries = Object.entries(workflows);
-      if (!entries.length) {
-        workflowList.innerHTML = `
-          <div style="text-align:center;padding:60px 20px;">
-            <div style="font-size:40px;margin-bottom:16px;opacity:.25;">📋</div>
-            <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:rgba(212,175,55,.4);">No workflows yet</div>
-          </div>`;
-        return;
-      }
-      workflowList.innerHTML = entries.map(([id, w], i) => {
-        const done = w.status === 'progressed';
-        return `
-          <div style="background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,${done?'.35':'.2'});border-radius:16px;padding:16px 20px;">
-            <div style="display:flex;align-items:center;gap:16px;">
-              <div style="width:32px;height:32px;border-radius:50%;background:${done?'rgba(80,200,120,.15)':'rgba(212,175,55,.1)'};border:1px solid ${done?'rgba(80,200,120,.3)':'rgba(212,175,55,.3)'};display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:14px;color:${done?'#50C878':'#D4AF37'};flex-shrink:0;">${i+1}</div>
-              <div style="flex:1;">
-                <div style="font-family:'Cormorant Garamond',serif;font-size:16px;color:#E8D9B5;margin-bottom:4px;">${w.name||'Step '+(i+1)}</div>
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <div style="width:8px;height:8px;border-radius:50%;background:${done?'#50C878':'rgba(212,175,55,.2)'};${done?'box-shadow:0 0 6px rgba(80,200,120,.5);':''}"></div>
-                  <span style="font-family:'Jost',sans-serif;font-size:9px;letter-spacing:2px;color:${done?'#50C878':'rgba(212,175,55,.5)'};text-transform:uppercase;">${done?'COMPLETED':'IN PROGRESS'}</span>
-                </div>
-              </div>
-            </div>
-          </div>`;
-      }).join('');
-    })
-    .catch(err => {
-      console.error('Error loading workflows:', err);
-      workflowList.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(239,68,68,.7);font-family:\'Jost\',sans-serif;font-size:11px;">Error loading workflows</div>';
-    });
-}
-
-// legacy stub — kept for safety, real work now done by loadClientProjects
-function loadClientProgressTracker() {
-  if (!currentUser) return;
-  const progressContainer = document.getElementById('clientProgressTracker');
-  if (!progressContainer) return;
-  progressContainer.innerHTML = `
-    <div style="text-align:center;padding:20px;">
-      <div class="loading-spinner" style="width:24px;height:24px;margin:0 auto 12px;"></div>
-      <div style="font-family:'Jost',sans-serif;font-size:11px;letter-spacing:2px;color:rgba(212,175,55,.5);">Loading projects…</div>
-    </div>`;
-  fbDb.ref('timelines/' + currentUser.uid + '/projects').once('value')
-    .then(snapshot => {
-      const projects = snapshot.val() || {};
-      const projectCount = Object.keys(projects).length;
-      if (projectCount === 0) {
-        progressContainer.innerHTML = `
-          <div style="text-align:center;padding:24px 20px;color:rgba(212,175,55,.3);">
-            <div style="font-size:24px;margin-bottom:8px;">📋</div>
-            <div style="font-family:'Jost',sans-serif;font-size:11px;letter-spacing:2px;">No active projects</div>
-          </div>`;
-        return;
-      }
-      let projectsHTML = '';
-      Object.entries(projects).forEach(([projectId, project], index) => {
-        projectsHTML += `
-          <div onclick="openProjectDetails('${projectId}','${(project.name||'').replace(/'/g,"\\'")}'')"
-               style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid rgba(212,175,55,.07);cursor:pointer;">
-            <div style="display:flex;align-items:center;gap:14px;">
-              <div style="width:26px;height:26px;border-radius:50%;background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.25);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:13px;color:#D4AF37;flex-shrink:0;">${index + 1}</div>
-              <div>
-                <div style="font-family:'Cormorant Garamond',serif;font-size:16px;color:#E8D5A3;letter-spacing:.5px;">${project.name || 'Project'}</div>
-                <div style="font-family:'Jost',sans-serif;font-size:9px;color:rgba(212,175,55,.4);letter-spacing:2px;margin-top:2px;">${project.createdAt ? new Date(project.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : ''}</div>
-              </div>
-            </div>
-            <span style="color:rgba(212,175,55,.35);font-size:18px;line-height:1;">›</span>
-          </div>`;
-      });
-      progressContainer.innerHTML = `
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;">
-          <div style="font-family:'Jost',sans-serif;font-size:8px;letter-spacing:4px;color:rgba(212,175,55,.5);text-transform:uppercase;">Active Projects</div>
-          <span style="font-family:'Cormorant Garamond',serif;font-size:13px;color:#D4AF37;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.2);border-radius:20px;padding:2px 10px;">${projectCount}</span>
-        </div>
-        ${projectsHTML}`;
-    })
-    .catch(err => {
-      console.error('Error loading projects:', err);
-      progressContainer.innerHTML = `<div style="text-align:center;padding:20px;color:rgba(239,68,68,.7);font-family:'Jost',sans-serif;font-size:11px;">Error loading projects</div>`;
-    });
-}
-
-function openProjectDetails(projectId, projectName) {
-  if (!currentUser) return;
-  const modal = document.createElement('div');
-  modal.className = 'project-detail-modal';
-  modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,8,4,.98);z-index:20000;display:flex;flex-direction:column;padding:20px;overflow-y:auto;';
-  modal.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;padding-top:8px;">
-      <button onclick="this.closest('.project-detail-modal').remove()" style="background:none;border:1px solid rgba(212,175,55,.25);color:rgba(212,175,55,.6);border-radius:8px;padding:8px 16px;cursor:pointer;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:2px;">← BACK</button>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:#E8D5A3;letter-spacing:.5px;">${projectName}</div>
-      <div style="width:72px;"></div>
-    </div>
-    <div id="workflowList" style="display:flex;flex-direction:column;gap:12px;"></div>`;
-  document.body.appendChild(modal);
-  const workflowList = modal.querySelector('#workflowList');
-  workflowList.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(212,175,55,.4);font-family:\'Jost\',sans-serif;font-size:11px;">Loading workflows…</div>';
-  fbDb.ref('timelines/' + currentUser.uid + '/projects/' + projectId + '/workflows').once('value')
-    .then(snapshot => {
-      const workflows = snapshot.val() || {};
-      const entries = Object.entries(workflows);
-      if (!entries.length) {
-        workflowList.innerHTML = `
-          <div style="text-align:center;padding:60px 20px;">
-            <div style="font-size:40px;margin-bottom:16px;opacity:.25;">📋</div>
-            <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:rgba(212,175,55,.4);">No workflows yet</div>
-          </div>`;
-        return;
-      }
-      workflowList.innerHTML = entries.map(([id, w], i) => {
-        const done = w.status === 'progressed';
-        return `
-          <div style="background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,${done?'.35':'.15'});border-radius:12px;padding:16px;">
-            <div style="display:flex;align-items:center;gap:14px;">
-              <div style="width:32px;height:32px;border-radius:50%;background:${done?'linear-gradient(135deg,#C9A84C,#8B6914)':'rgba(212,175,55,.08)'};border:1px solid rgba(212,175,55,${done?'.5':'.25'});display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:14px;color:${done?'#0A1628':'#D4AF37'};flex-shrink:0;">${done?'✓':i+1}</div>
-              <div style="flex:1;">
-                <div style="font-family:'Cormorant Garamond',serif;font-size:16px;color:#E8D5A3;letter-spacing:.5px;">${w.name||'Step '+(i+1)}</div>
-                <div style="font-family:'Jost',sans-serif;font-size:9px;color:${done?'#50C878':'rgba(212,175,55,.4)'};letter-spacing:2px;margin-top:4px;text-transform:uppercase;">${done?'Completed':'In Progress'}</div>
-              </div>
-              <div style="width:10px;height:10px;border-radius:50%;background:${done?'#50C878':'rgba(212,175,55,.2)'};${done?'box-shadow:0 0 8px rgba(80,200,120,.5);':''}"></div>
-            </div>
-          </div>`;
-      }).join('');
-    })
-    .catch(err => {
-      console.error('Error loading workflows:', err);
-      workflowList.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(239,68,68,.7);font-family:\'Jost\',sans-serif;font-size:11px;">Error loading workflows</div>';
-    });
-}
-
-function updateVaultWithProgressTracker() {
-  const container = document.getElementById('vaultProgressContainer');
-  if (!container) return;
-  if (document.getElementById('clientProgressTracker')) {
-    loadClientProgressTracker(); // refresh data if already mounted
-    return;
-  }
-  container.innerHTML = `<div id="clientProgressTracker" style="border-bottom:1px solid rgba(212,175,55,.1);"></div>`;
-  loadClientProgressTracker();
-}
 
 async function enterBespokeVault() {
   if (!vaultSession) return;
   document.getElementById('vaultLogin').style.display = 'none';
   document.getElementById('vaultGallery').style.display = 'block';
   // Load progress tracker
-  const _ptList = document.getElementById('clientProjectsList');
-  if (_ptList) _ptList.innerHTML = '<div style="text-align:center;padding:20px;"><div class="loading-spinner" style="width:24px;height:24px;margin:0 auto 12px;"></div><div style="font-family:\'Jost\',sans-serif;font-size:11px;letter-spacing:2px;color:rgba(212,175,55,.5);">Loading progress tracker...</div></div>';
-  setTimeout(() => { loadClientProjects(); debugFirebasePaths(); }, 1000);
+
   // Gold shimmer glint
   const glint = document.getElementById('vaultGlint');
   if (glint) { glint.style.display = 'block'; setTimeout(() => { glint.style.display = 'none'; }, 1200); }
@@ -2807,6 +2577,154 @@ function dismissBanner() {
   // Hard fallback: always dismiss after 2.8s max (matches CSS animation)
   setTimeout(dismissSplash, 2800);
 })();
+</script>
+
+<script>
+// ===========================================
+// PROGRESS TRACKER FOR CLIENT APP - COMPLETE
+// ===========================================
+
+function forceLoadClientProjects() {
+  console.log('🔍 FORCE LOADING PROJECTS...');
+  if (!currentUser) {
+    console.log('❌ No user logged in');
+    updateProjectsDisplay('error', 'Please log in to view projects');
+    return;
+  }
+  const clientUID = currentUser.uid;
+  console.log('👤 Client UID:', clientUID);
+  console.log('👤 Client Email:', currentUser.email);
+  updateProjectsDisplay('loading', null);
+  const projectsPath = 'timelines/' + clientUID + '/projects';
+  console.log('📁 Checking path:', projectsPath);
+  fbDb.ref(projectsPath).once('value')
+    .then(snapshot => {
+      console.log('📦 Raw Firebase response:', snapshot.val());
+      const projects = snapshot.val();
+      if (!projects || Object.keys(projects).length === 0) {
+        console.log('❌ No projects found at:', projectsPath);
+        const altPath = 'vault/clients/' + clientUID + '/projects';
+        console.log('🔄 Trying alternate path:', altPath);
+        return fbDb.ref(altPath).once('value').then(altSnapshot => {
+          const altProjects = altSnapshot.val();
+          if (altProjects && Object.keys(altProjects).length > 0) {
+            console.log('✅ Found projects at alternate path!');
+            displayProjects(altProjects);
+          } else {
+            console.log('❌ No projects found anywhere');
+            updateProjectsDisplay('empty', null);
+          }
+        });
+      } else {
+        console.log('✅ Found projects at primary path!');
+        displayProjects(projects);
+      }
+    })
+    .catch(err => {
+      console.error('❌ Error loading projects:', err);
+      updateProjectsDisplay('error', err.message);
+    });
+}
+
+function updateProjectsDisplay(state, data) {
+  const container = document.getElementById('projectsContainer');
+  if (!container) { console.log('❌ projectsContainer not found'); return; }
+  const badge = document.getElementById('projectCountBadge');
+  if (state === 'loading') {
+    container.innerHTML = '<div style="text-align:center;padding:24px;"><div class="loading-spinner" style="width:24px;height:24px;margin:0 auto 12px;border:2px solid rgba(212,175,55,.1);border-top-color:#D4AF37;border-radius:50%;animation:spin 1s linear infinite;"></div><div style="color:rgba(212,175,55,.5);font-size:13px;">Loading progress tracker...</div></div>';
+    if (badge) badge.textContent = '0';
+  } else if (state === 'empty') {
+    container.innerHTML = '<div style="text-align:center;padding:32px 20px;"><div style="font-size:36px;margin-bottom:12px;opacity:.3;">📋</div><div style="color:rgba(212,175,55,.5);font-size:15px;margin-bottom:8px;">No projects in progress</div><div style="color:rgba(212,175,55,.25);font-size:12px;">Projects will appear here once created by your designer</div></div>';
+    if (badge) badge.textContent = '0';
+  } else if (state === 'error') {
+    container.innerHTML = '<div style="text-align:center;padding:24px;color:#ef4444;font-size:13px;">Error loading projects: ' + data + '</div>';
+    if (badge) badge.textContent = '0';
+  }
+}
+
+function displayProjects(projects) {
+  const container = document.getElementById('projectsContainer');
+  const badge = document.getElementById('projectCountBadge');
+  if (!container) return;
+  const projectCount = Object.keys(projects).length;
+  console.log('📊 Displaying ' + projectCount + ' projects');
+  if (badge) badge.textContent = projectCount;
+  if (projectCount === 0) { updateProjectsDisplay('empty', null); return; }
+  const sorted = Object.entries(projects).sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0));
+  if (!document.getElementById('ptStyles')) {
+    const style = document.createElement('style');
+    style.id = 'ptStyles';
+    style.textContent = '.project-card:hover{transform:translateY(-2px);border-color:rgba(212,175,55,.3);box-shadow:0 8px 24px rgba(0,0,0,.3);}@keyframes spin{to{transform:rotate(360deg);}}';
+    document.head.appendChild(style);
+  }
+  let html = '';
+  sorted.forEach(([projectId, project], i) => {
+    const date = project.createdAt ? new Date(project.createdAt).toLocaleDateString() : 'Recent';
+    html += '<div class="project-card" onclick="openProjectWorkflows(\'' + projectId + '\',\'' + (project.name||'').replace(/\'/g,"\\'") + '\')" style="background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,.15);border-radius:14px;padding:16px;cursor:pointer;transition:all .2s;margin-bottom:2px;">'
+      + '<div style="display:flex;align-items:center;gap:14px;">'
+      + '<div style="width:40px;height:40px;border-radius:12px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.25);display:flex;align-items:center;justify-content:center;font-family:\'Cormorant Garamond\',serif;font-size:18px;color:#D4AF37;flex-shrink:0;">' + (i+1) + '</div>'
+      + '<div style="flex:1;"><div style="font-family:\'Cormorant Garamond\',serif;font-size:17px;color:#E8D5A3;margin-bottom:4px;">' + (project.name||'Project') + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:10px;color:rgba(212,175,55,.4);">Started ' + date + '</span><span style="width:4px;height:4px;border-radius:50%;background:rgba(212,175,55,.2);"></span><span style="font-size:10px;color:#50C878;">● Active</span></div></div>'
+      + '<span style="color:rgba(212,175,55,.3);font-size:18px;">›</span></div></div>';
+  });
+  container.innerHTML = html;
+}
+
+function openProjectWorkflows(projectId, projectName) {
+  if (!currentUser) return;
+  console.log('📂 Opening project:', projectId, projectName);
+  const modal = document.createElement('div');
+  modal.className = 'workflow-modal';
+  modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.98);z-index:30000;display:flex;flex-direction:column;padding:24px 20px;overflow-y:auto;backdrop-filter:blur(8px);';
+  modal.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">'
+    + '<button onclick="this.closest(\'.workflow-modal\').remove()" style="background:none;border:1px solid rgba(212,175,55,.3);color:rgba(212,175,55,.6);border-radius:8px;padding:8px 16px;font-family:\'Jost\',sans-serif;font-size:10px;letter-spacing:2px;cursor:pointer;">← BACK</button>'
+    + '<div style="font-family:\'Cormorant Garamond\',serif;font-size:20px;color:#E8D5A3;letter-spacing:.5px;">' + projectName + '</div>'
+    + '<div style="width:72px;"></div></div>'
+    + '<div style="font-family:\'Jost\',sans-serif;font-size:9px;letter-spacing:4px;color:rgba(212,175,55,.4);text-transform:uppercase;margin-bottom:16px;">Workflow Progress</div>'
+    + '<div id="workflowsContainer" style="display:flex;flex-direction:column;gap:12px;min-height:200px;">'
+    + '<div style="text-align:center;padding:40px;"><div class="loading-spinner" style="width:24px;height:24px;margin:0 auto 12px;border:2px solid rgba(212,175,55,.1);border-top-color:#D4AF37;border-radius:50%;animation:spin 1s linear infinite;"></div><div style="color:rgba(212,175,55,.5);">Loading workflows...</div></div></div>';
+  document.body.appendChild(modal);
+  const wPath = 'timelines/' + currentUser.uid + '/projects/' + projectId + '/workflows';
+  console.log('🔍 Loading workflows from:', wPath);
+  fbDb.ref(wPath).once('value')
+    .then(snapshot => {
+      console.log('📦 Workflows data:', snapshot.val());
+      const workflows = snapshot.val() || {};
+      const wc = modal.querySelector('#workflowsContainer');
+      if (!wc) return;
+      const entries = Object.entries(workflows);
+      if (!entries.length) {
+        wc.innerHTML = '<div style="text-align:center;padding:60px;"><div style="font-size:48px;margin-bottom:16px;opacity:.3;">📋</div><div style="font-size:16px;color:rgba(212,175,55,.5);">No workflows yet</div></div>';
+        return;
+      }
+      wc.innerHTML = entries.map(([id, w], i) => {
+        const done = w.status === 'progressed';
+        return '<div style="background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,' + (done?'.35':'.15') + ');border-radius:16px;padding:16px 20px;">'
+          + '<div style="display:flex;align-items:center;gap:16px;">'
+          + '<div style="width:36px;height:36px;border-radius:50%;background:' + (done?'rgba(80,200,120,.1)':'rgba(212,175,55,.1)') + ';border:1px solid ' + (done?'rgba(80,200,120,.3)':'rgba(212,175,55,.2)') + ';display:flex;align-items:center;justify-content:center;font-family:\'Cormorant Garamond\',serif;font-size:16px;color:' + (done?'#50C878':'#D4AF37') + ';flex-shrink:0;">' + (i+1) + '</div>'
+          + '<div style="flex:1;"><div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;color:#E8D9B5;margin-bottom:6px;">' + (w.name||'Step '+(i+1)) + '</div>'
+          + '<div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:' + (done?'#50C878':'rgba(212,175,55,.2)') + ';' + (done?'box-shadow:0 0 6px rgba(80,200,120,.5);':'') + '"></div>'
+          + '<span style="font-family:\'Jost\',sans-serif;font-size:9px;letter-spacing:2px;color:' + (done?'#50C878':'rgba(212,175,55,.5)') + ';text-transform:uppercase;">' + (done?'COMPLETED':'IN PROGRESS') + '</span></div></div></div></div>';
+      }).join('');
+    })
+    .catch(err => {
+      console.error('❌ Error loading workflows:', err);
+      const wc = modal.querySelector('#workflowsContainer');
+      if (wc) wc.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(239,68,68,.7);">Error loading workflows</div>';
+    });
+}
+
+// Override enterBespokeVault to fire progress tracker
+const _origVaultFunc = window.enterBespokeVault;
+window.enterBespokeVault = function() {
+  console.log('🚀 Opening vault...');
+  if (typeof _origVaultFunc === 'function') _origVaultFunc();
+  setTimeout(() => { console.log('⏰ Loading projects (attempt 1)...'); forceLoadClientProjects(); }, 1000);
+  setTimeout(() => { console.log('⏰ Loading projects (attempt 2)...'); forceLoadClientProjects(); }, 3000);
+};
+
+// Manual refresh for testing in console
+window.refreshProgressTracker = function() { forceLoadClientProjects(); };
 </script>
 <div id="vaultGlint"></div>
 </body>
