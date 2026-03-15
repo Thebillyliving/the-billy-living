@@ -672,7 +672,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     </div>
     <div id="vaultProgressSection" style="padding:20px 20px 10px;border-bottom:1px solid rgba(212,175,55,.1);background:rgba(212,175,55,.02);">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-family:'Cormorant Garamond',serif;font-size:16px;color:#E8D5A3;">Active Projects</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:16px;color:#E8D5A3;">Progress Tracker</div>
         <span id="projectCount" style="background:rgba(212,175,55,.15);color:#D4AF37;font-size:10px;padding:4px 12px;border-radius:30px;">0</span>
       </div>
       <div id="clientProjectsList" style="display:flex;flex-direction:column;gap:8px;">
@@ -1994,31 +1994,37 @@ function loadClientProjects() {
   const projectCountEl = document.getElementById('projectCount');
   if (!projectsList) { console.log('Projects list element not found'); return; }
   console.log('Loading projects for client:', currentUser.uid);
-  projectsList.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(212,175,55,.4);font-family:\'Jost\',sans-serif;font-size:11px;">Loading projects...</div>';
+  projectsList.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(212,175,55,.4);font-family:\'Jost\',sans-serif;font-size:11px;">Loading progress tracker...</div>';
   fbDb.ref('timelines/' + currentUser.uid + '/projects').once('value')
     .then(snapshot => {
+      console.log('Raw Firebase response:', snapshot.val());
       const projects = snapshot.val() || {};
       const count = Object.keys(projects).length;
       console.log('Found projects:', count, projects);
       if (projectCountEl) projectCountEl.textContent = count;
       if (count === 0) {
-        projectsList.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(212,175,55,.4);font-family:\'Jost\',sans-serif;font-size:11px;">No active projects</div>';
+        projectsList.innerHTML = `
+          <div style="text-align:center;padding:24px;">
+            <div style="font-size:24px;margin-bottom:8px;opacity:.4;">📊</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:15px;color:rgba(212,175,55,.4);">No projects in progress</div>
+            <div style="font-family:'Jost',sans-serif;font-size:11px;color:rgba(212,175,55,.2);margin-top:8px;line-height:1.5;">Projects will appear here once created by your designer</div>
+          </div>`;
         return;
       }
       let html = '';
       let index = 1;
       Object.entries(projects).forEach(([projectId, project]) => {
         html += `
-          <div onclick="openClientProject('${projectId}','${(project.name||'').replace(/'/g,"\\'")}'')"
-               style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(212,175,55,.04);border:1px solid rgba(212,175,55,.12);border-radius:12px;cursor:pointer;">
+          <div class="project-item" onclick="openClientProject('${projectId}','${(project.name||'').replace(/'/g,"\\'")}'')"
+               style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(212,175,55,.04);border:1px solid rgba(212,175,55,.12);border-radius:12px;cursor:pointer;margin-bottom:6px;">
             <div style="display:flex;align-items:center;gap:12px;">
-              <div style="width:28px;height:28px;border-radius:50%;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:14px;color:#D4AF37;flex-shrink:0;">${index}</div>
+              <div style="width:32px;height:32px;border-radius:50%;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:14px;color:#D4AF37;flex-shrink:0;">${index}</div>
               <div>
                 <div style="font-family:'Cormorant Garamond',serif;font-size:15px;color:#E8D5A3;">${project.name||'Project'}</div>
-                <div style="font-family:'Jost',sans-serif;font-size:9px;color:rgba(212,175,55,.35);margin-top:2px;">${project.createdAt ? new Date(project.createdAt).toLocaleDateString() : ''}</div>
+                <div style="font-family:'Jost',sans-serif;font-size:9px;color:rgba(212,175,55,.35);margin-top:2px;">${project.createdAt ? new Date(project.createdAt).toLocaleDateString() : 'Just started'}</div>
               </div>
             </div>
-            <span style="color:rgba(212,175,55,.3);font-size:18px;line-height:1;">›</span>
+            <span style="color:rgba(212,175,55,.3);font-size:16px;">›</span>
           </div>`;
         index++;
       });
@@ -2026,8 +2032,28 @@ function loadClientProjects() {
     })
     .catch(err => {
       console.error('Error loading projects:', err);
-      projectsList.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(239,68,68,.7);font-family:\'Jost\',sans-serif;font-size:11px;">Error loading projects</div>';
+      projectsList.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(239,68,68,.7);font-family:\'Jost\',sans-serif;font-size:11px;">Error loading progress tracker</div>';
     });
+}
+
+function debugClientProjects() {
+  if (!currentUser) { console.log('No user logged in'); return; }
+  const clientUID = currentUser.uid;
+  console.log('Checking projects for client UID:', clientUID);
+  fbDb.ref('timelines/' + clientUID + '/projects').once('value')
+    .then(snapshot => {
+      console.log('Projects data from Firebase:', snapshot.val());
+      console.log('Projects exist:', snapshot.exists());
+      if (snapshot.exists()) {
+        const projects = snapshot.val();
+        console.log('Number of projects:', Object.keys(projects).length);
+        Object.entries(projects).forEach(([id, project]) => { console.log('Project:', id, project); });
+      } else {
+        console.log('No projects found at path: timelines/' + clientUID + '/projects');
+        fbDb.ref('vip').once('value').then(vipSnap => { console.log('All VIPs:', vipSnap.val()); });
+      }
+    })
+    .catch(err => console.error('Debug error:', err));
 }
 
 function openClientProject(projectId, projectName) {
@@ -2196,6 +2222,7 @@ async function enterBespokeVault() {
   document.getElementById('vaultGallery').style.display = 'block';
   // Load progress tracker
   loadClientProjects();
+  debugClientProjects();
   // Gold shimmer glint
   const glint = document.getElementById('vaultGlint');
   if (glint) { glint.style.display = 'block'; setTimeout(() => { glint.style.display = 'none'; }, 1200); }
