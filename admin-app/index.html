@@ -2165,9 +2165,9 @@
                 const clientAssets = snap.val() || {};
                 let hasProgressTracker = false;
                 
-                // Check if any asset is a Progress Tracker
-                Object.values(clientAssets).forEach(asset => {
-                    if (asset.cat === 'Progress Tracker') hasProgressTracker = true;
+                // Look for any asset with id containing 'progress_tracker' or special marker
+                Object.keys(clientAssets).forEach(key => {
+                    if (key.includes('progress_tracker')) hasProgressTracker = true;
                 });
                 
                 if (hasProgressTracker) {
@@ -2175,24 +2175,24 @@
                     return;
                 }
                 
-                // Find the Progress Tracker asset from main library
-                vmRef('assets').once('value').then(s => {
-                    const assets = Object.values(s.val() || {});
-                    const progressAsset = assets.find(a => a.cat === 'Progress Tracker');
-                    
-                    if (!progressAsset) {
-                        showToast('No Progress Tracker asset found. Create one first.');
-                        return;
-                    }
-                    
-                    // Move it to client's vault
-                    vmRef('clients/' + vmCurrentClientUID + '/' + progressAsset.id).set(progressAsset).then(() => {
-                        showToast('✓ Progress Tracker moved to vault');
-                        // Refresh the client's vault display
-                        vmLoadPOVGrid(vmCurrentClientUID);
-                    }).catch(err => {
-                        showToast('Error: ' + err.message);
-                    });
+                // Create a Progress Tracker asset on-the-fly (no need to exist in main library)
+                const progressTrackerId = 'progress_tracker_' + Date.now();
+                const progressTrackerData = {
+                    id: progressTrackerId,
+                    title: 'Progress Tracker',
+                    cat: 'Progress Tracker',
+                    desc: 'Track project milestones and workflows',
+                    createdAt: Date.now(),
+                    isDefault: false
+                };
+                
+                // Move it directly to client's vault
+                vmRef('clients/' + vmCurrentClientUID + '/' + progressTrackerId).set(progressTrackerData).then(() => {
+                    showToast('✓ Progress Tracker moved to vault');
+                    // Refresh the client's vault display
+                    vmLoadPOVGrid(vmCurrentClientUID);
+                }).catch(err => {
+                    showToast('Error: ' + err.message);
                 });
             });
         }
