@@ -1956,56 +1956,10 @@ function _renderVaultGrid(assets) {
   const meta = document.getElementById('vaultGalleryMeta');
   if (meta) meta.textContent = `${assets.length} Exclusive Item${assets.length!==1?'s':''} · VIP Access`;
   if (!assets.length) {
-    grid.innerHTML = `<div style="grid-column:1/-1;padding:32px 20px 40px">
-      <div style="text-align:center;margin-bottom:32px">
-        <div style="font-family:'Jost',sans-serif;font-size:8px;letter-spacing:5px;color:rgba(212,175,55,.45);text-transform:uppercase;margin-bottom:8px">Status Update</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:#E8D5A3;letter-spacing:1px">Curation in Progress</div>
-        <div style="width:28px;height:1px;background:rgba(212,175,55,.35);margin:12px auto 0"></div>
-      </div>
-      <div style="position:relative;padding-left:36px">
-        <!-- Vertical line -->
-        <div style="position:absolute;left:11px;top:12px;bottom:12px;width:1px;background:linear-gradient(to bottom,rgba(212,175,55,.6),rgba(212,175,55,.08))"></div>
-
-        <!-- Step 1: Selection — ACTIVE -->
-        <div style="position:relative;margin-bottom:32px">
-          <div style="position:absolute;left:-36px;top:2px;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#C9A84C,#8B6914);box-shadow:0 0 14px rgba(201,168,76,.55),0 0 28px rgba(201,168,76,.2);display:flex;align-items:center;justify-content:center">
-            <svg viewBox="0 0 24 24" width="11" height="11" fill="none"><polyline points="20 6 9 17 4 12" stroke="#0A1628" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <div style="font-family:'Jost',sans-serif;font-size:8px;letter-spacing:3px;color:#C9A84C;text-transform:uppercase;margin-bottom:4px">Active</div>
-          <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:#F5F0E8;letter-spacing:.5px;margin-bottom:4px">Selection</div>
-          <div style="font-family:'Jost',sans-serif;font-size:11px;color:rgba(168,155,140,.7);line-height:1.6;font-weight:300">Curation in progress. Choosing marbles and HDF finishes.</div>
-        </div>
-
-        <!-- Step 2: Sourcing — PENDING -->
-        <div style="position:relative;margin-bottom:32px;opacity:.45">
-          <div style="position:absolute;left:-36px;top:2px;width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(212,175,55,.35);background:transparent;display:flex;align-items:center;justify-content:center">
-            <div style="width:6px;height:6px;border-radius:50%;background:rgba(212,175,55,.3)"></div>
-          </div>
-          <div style="font-family:'Jost',sans-serif;font-size:8px;letter-spacing:3px;color:rgba(212,175,55,.4);text-transform:uppercase;margin-bottom:4px">Pending</div>
-          <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:#F5F0E8;letter-spacing:.5px;margin-bottom:4px">Sourcing</div>
-          <div style="font-family:'Jost',sans-serif;font-size:11px;color:rgba(168,155,140,.6);line-height:1.6;font-weight:300">Materials secured from global partners.</div>
-        </div>
-
-        <!-- Step 3: Transit — PENDING -->
-        <div style="position:relative;margin-bottom:32px;opacity:.35">
-          <div style="position:absolute;left:-36px;top:2px;width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(212,175,55,.25);background:transparent;display:flex;align-items:center;justify-content:center">
-            <div style="width:6px;height:6px;border-radius:50%;background:rgba(212,175,55,.2)"></div>
-          </div>
-          <div style="font-family:'Jost',sans-serif;font-size:8px;letter-spacing:3px;color:rgba(212,175,55,.3);text-transform:uppercase;margin-bottom:4px">Pending</div>
-          <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:#F5F0E8;letter-spacing:.5px;margin-bottom:4px">Transit</div>
-          <div style="font-family:'Jost',sans-serif;font-size:11px;color:rgba(168,155,140,.5);line-height:1.6;font-weight:300">Luxury selections are en route to the site.</div>
-        </div>
-
-        <!-- Step 4: Installation — PENDING -->
-        <div style="position:relative;opacity:.25">
-          <div style="position:absolute;left:-36px;top:2px;width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(212,175,55,.18);background:transparent;display:flex;align-items:center;justify-content:center">
-            <div style="width:6px;height:6px;border-radius:50%;background:rgba(212,175,55,.15)"></div>
-          </div>
-          <div style="font-family:'Jost',sans-serif;font-size:8px;letter-spacing:3px;color:rgba(212,175,55,.25);text-transform:uppercase;margin-bottom:4px">Pending</div>
-          <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:#F5F0E8;letter-spacing:.5px;margin-bottom:4px">Installation</div>
-          <div style="font-family:'Jost',sans-serif;font-size:11px;color:rgba(168,155,140,.4);line-height:1.6;font-weight:300">On-site artisans bringing the vision to life.</div>
-        </div>
-      </div>
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:60px 20px;text-align:center;">
+      <div style="font-size:48px;margin-bottom:16px;opacity:0.4">🔐</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#E8D5A3;margin-bottom:8px">Your Vault is Empty</div>
+      <div style="font-family:'Jost',sans-serif;font-size:13px;color:rgba(168,155,140,.7);max-width:280px;margin:0 auto;line-height:1.6">Save designs from the catalog and trending section to build your private collection.</div>
     </div>`;
     return;
   }
