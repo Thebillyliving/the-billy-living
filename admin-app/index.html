@@ -2582,13 +2582,15 @@
             touchTarget = e.currentTarget;
             touchTarget.style.backgroundColor = 'rgba(212,175,55,0.15)';
             
+            const clientUID = vmCurrentClientUID;
+            const projectId = touchTarget.dataset.projectId;
+            const projectName = touchTarget.dataset.projectName;
+            
             touchTimer = setTimeout(() => {
                 if (touchTarget) {
                     touchTarget.style.backgroundColor = '';
-                    const id = touchTarget.dataset.projectId;
-                    const name = touchTarget.dataset.projectName;
                     touchTarget = null;
-                    showDeleteConfirmation('project', id, name);
+                    showDeleteConfirmation('project', projectId, projectName, clientUID);
                 }
             }, TOUCH_DURATION);
         }
@@ -2614,13 +2616,16 @@
             touchTarget = e.currentTarget;
             touchTarget.style.backgroundColor = 'rgba(212,175,55,0.15)';
             
+            const clientUID = vmCurrentClientUID;
+            const projectId = vmCurrentProjectId;
+            const workflowId = touchTarget.dataset.workflowId;
+            const workflowName = touchTarget.dataset.workflowName;
+            
             touchTimer = setTimeout(() => {
                 if (touchTarget) {
                     touchTarget.style.backgroundColor = '';
-                    const id = touchTarget.dataset.workflowId;
-                    const name = touchTarget.dataset.workflowName;
                     touchTarget = null;
-                    showDeleteConfirmation('workflow', id, name);
+                    showDeleteConfirmation('workflow', workflowId, workflowName, clientUID, projectId);
                 }
             }, TOUCH_DURATION);
         }
@@ -2674,7 +2679,7 @@
             });
         }
 
-        function showDeleteConfirmation(type, id, name) {
+        function showDeleteConfirmation(type, id, name, clientUID, projectId) {
             const modal = document.createElement('div');
             modal.style.cssText = `
                 position: fixed;
@@ -2707,9 +2712,9 @@
             document.getElementById('cancelDeleteBtn').onclick = () => document.body.removeChild(modal);
             document.getElementById('confirmDeleteBtn').onclick = () => {
                 if (type === 'project') {
-                    deleteProject(longPressId, vmCurrentClientUID);
+                    deleteProject(id, clientUID);
                 } else {
-                    deleteWorkflow(longPressId, vmCurrentProjectId, vmCurrentClientUID);
+                    deleteWorkflow(id, projectId, clientUID);
                 }
                 document.body.removeChild(modal);
             };
