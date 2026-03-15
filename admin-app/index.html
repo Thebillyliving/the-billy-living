@@ -1,4 +1,4 @@
-<!-- admin.html - Billy Living Admin Dashboard (FULLY FIXED with Progress Tracker Move Button) -->
+<!-- admin.html - Billy Living Admin Dashboard (FULLY FIXED) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1276,17 +1276,6 @@
         }
 
         /* Project Detail View (full screen) */
-        .project-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.95);
-            z-index: 10000;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-        .project-overlay.active { display: flex; }
-
         .project-header {
             display: flex;
             align-items: center;
@@ -1635,15 +1624,12 @@
                 </div>
             </div>
 
-            <!-- Project Detail View (for projects list and workflows) -->
+            <!-- Project Detail View (for projects and workflows) -->
             <div id="vmProjectDetailView" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
-                <div class="vm-pov-header">
-                    <button class="vm-detail-back" onclick="event.stopPropagation(); vmBackFromProject(); return false;">← Back</button>
-                    <div>
-                        <div class="vm-eyebrow">Progress Tracker</div>
-                        <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--vault-text);" id="vmProjectDetailTitle">Projects</div>
-                    </div>
-                    <button onclick="vmPromptNewProject()" class="progress-create-btn" style="display:block;">+ CREATE PROJECT</button>
+                <div class="project-header">
+                    <button class="project-back" onclick="vmBackFromProject(); return false;">← Back</button>
+                    <div class="project-title" id="vmProjectDetailTitle">Projects</div>
+                    <button class="project-create-btn" onclick="vmPromptNewProject()" id="vmProjectCreateBtn">+ CREATE PROJECT</button>
                 </div>
                 <div style="overflow-y:auto;flex:1;padding:16px 20px 60px;">
                     <div id="vmWorkflowList" class="workflow-list" style="padding:0;"></div>
@@ -1912,7 +1898,7 @@
             });
         }
 
-        // Asset card
+        // Asset card - UPDATED with EDIT button for Progress Tracker in client's vault
         function vmAssetCard(a, mode) {
             const isProgress = a.cat === 'Progress Tracker';
             const thumb = a.thumb ? `<img src="${a.thumb}" style="width:100%; height:100%; object-fit:cover;">` : `<span style="font-size:42px;">${isProgress ? '📊' : '📦'}</span>`;
@@ -1922,17 +1908,20 @@
                 actions = `<div class="vm-asset-actions"><button class="vm-asset-btn vm-asset-btn-add" onclick="event.stopPropagation(); vmToggleDefault('${a.id}',${!!a.isDefault})">${a.isDefault ? '★ Remove Default' : '☆ Set Default'}</button><button class="vm-asset-btn vm-asset-btn-del" onclick="event.stopPropagation(); vmDeleteAsset('${a.id}')">Delete</button></div>`;
             } else if (mode === 'pov') {
                 if (isProgress) {
+                    // Progress Tracker in client's vault gets EDIT and REMOVE buttons
                     actions = `<div class="vm-asset-actions">
                         <button class="vm-asset-btn vm-asset-btn-add" onclick="event.stopPropagation(); vmOpenProgressTracker('${a.id}')">EDIT</button>
                         <button class="vm-asset-btn vm-asset-btn-del" onclick="event.stopPropagation(); vmRemoveFromClient('${a.id}')">REMOVE</button>
                     </div>`;
                 } else {
+                    // Regular assets just get REMOVE
                     actions = `<div class="vm-asset-actions"><button class="vm-asset-btn vm-asset-btn-del" onclick="event.stopPropagation(); vmRemoveFromClient('${a.id}')">REMOVE</button></div>`;
                 }
             } else if (mode === 'defaults') {
                 actions = `<div class="vm-asset-actions"><button class="vm-asset-btn vm-asset-btn-del" onclick="event.stopPropagation(); vmToggleDefault('${a.id}',true)">Remove Default</button></div>`;
             }
             
+            // For Progress Tracker in client's vault, make it clickable to open
             const clickHandler = isProgress && mode === 'pov' ? `onclick="vmOpenProgressTracker('${a.id}')"` : (a.url ? `onclick="vmOpenDetail('${a.id}')"` : '');
             
             return `<div class="vm-asset-card ${isProgress ? 'vm-progress-card' : ''}" ${clickHandler}>
@@ -1946,20 +1935,12 @@
             </div>`;
         }
 
-        function vmOpenProgressTracker(assetId) {
-            vmCurrentProgressAssetId = assetId;
-            vmCurrentProjectId = null;
-            document.getElementById('vmProjectDetailTitle').textContent = 'Projects';
-            vmShowView('project');
-            vmLoadProjectsList();
-        }
-
         function vmOpenAsset(id) {
             vmRef('assets/' + id).once('value').then(s => {
                 const a = s.val();
                 if (a.cat === 'Progress Tracker') {
                     vmCurrentProgressAssetId = id;
-                    document.getElementById('vmProjectDetailTitle').textContent = a.title || 'Progress Tracker';
+                    document.getElementById('vmProjectDetailTitle').textContent = 'Projects';
                     vmShowView('project');
                     vmLoadProjectsList();
                 } else {
@@ -1969,12 +1950,31 @@
                 }
             });
         }
+        
         function vmCloseDetail() { document.getElementById('vmDetailOverlay').classList.remove('active'); }
 
-        // Projects & Workflows
+        // Open Progress Tracker from client's vault
+        function vmOpenProgressTracker(assetId) {
+            vmCurrentProgressAssetId = assetId;
+            vmCurrentProjectId = null; // Reset any selected project
+            document.getElementById('vmProjectDetailTitle').textContent = 'Projects';
+            
+            // Change the create button to create projects (not workflows)
+            const createBtn = document.querySelector('.project-create-btn');
+            if (createBtn) {
+                createBtn.textContent = '+ CREATE PROJECT';
+                createBtn.onclick = function() { vmPromptNewProject(); };
+            }
+            
+            vmShowView('project');
+            vmLoadProjectsList();
+        }
+
+        // Load just the projects list (no workflows)
         function vmLoadProjectsList() {
             if (!vmCurrentClientUID) {
-                vmCurrentClientUID = 'temp';
+                showToast('No client selected');
+                return;
             }
             
             const list = document.getElementById('vmWorkflowList');
@@ -1985,6 +1985,7 @@
                 const projectEntries = Object.entries(projects);
                 
                 if (projectEntries.length === 0) {
+                    // Show empty state with CREATE PROJECT button
                     list.innerHTML = `
                         <div style="text-align:center; padding:40px;">
                             <div style="font-size:48px; margin-bottom:16px; opacity:0.3;">📋</div>
@@ -1995,6 +1996,7 @@
                     return;
                 }
                 
+                // Show list of projects
                 list.innerHTML = projectEntries.map(([id, p], index) => `
                     <div class="progress-item" onclick="vmOpenProject('${id}', '${p.name.replace(/'/g, "\\'")}')">
                         <div class="progress-item-left">
@@ -2015,12 +2017,22 @@
             });
         }
 
+        // Open a specific project to show its workflows
         function vmOpenProject(id, name) {
             vmCurrentProjectId = id;
             document.getElementById('vmProjectDetailTitle').textContent = name;
+            
+            // Change the create button to create workflows
+            const createBtn = document.querySelector('.project-create-btn');
+            if (createBtn) {
+                createBtn.textContent = '+ CREATE WORKFLOW';
+                createBtn.onclick = function() { vmPromptNewWorkflow(); };
+            }
+            
             vmLoadWorkflowsForProject();
         }
 
+        // Load workflows for the selected project
         function vmLoadWorkflowsForProject() {
             if (!vmCurrentClientUID || !vmCurrentProjectId) return;
             
@@ -2068,7 +2080,7 @@
             adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + vmCurrentProjectId + '/workflows/' + wid + '/status').set(newStatus).then(vmLoadWorkflowsForProject);
         }
 
-        // Project creation
+        // Project creation - FIXED to work
         function vmPromptNewProject() {
             console.log('Opening project modal');
             document.getElementById('vmPTModal').style.display = 'flex';
@@ -2114,8 +2126,8 @@
                 showToast('✓ Project created');
                 vmClosePTModal();
                 
-                // Refresh the projects list in the client library
-                vmLoadClientProjects(vmCurrentClientUID);
+                // Refresh the projects list
+                vmLoadProjectsList();
                 
                 // Reset button
                 createBtn.textContent = originalText;
@@ -2128,6 +2140,7 @@
             });
         }
 
+        // Workflow creation
         function vmPromptNewWorkflow() {
             if (!vmCurrentProjectId) {
                 showToast('Please select a project first');
@@ -2176,16 +2189,9 @@
             });
         }
 
-        function vmBackFromProject() {
-            if (vmCurrentProjectId) {
-                // We're in workflows view — go back to project list
-                vmCurrentProjectId = null;
-                document.getElementById('vmProjectDetailTitle').textContent = 'Projects';
-                vmLoadProjectsList();
-            } else {
-                // We're in project list — go back to client POV
-                vmShowView('pov');
-            }
+        function vmBackFromProject() { 
+            vmCurrentProjectId = null; 
+            vmShowView('library'); 
         }
 
         // Client POV
@@ -2242,8 +2248,16 @@
         function vmOpenProjectFromClient(id, name) {
             vmCurrentProjectId = id;
             document.getElementById('vmProjectDetailTitle').textContent = name;
+            
+            // Change the create button to create workflows
+            const createBtn = document.querySelector('.project-create-btn');
+            if (createBtn) {
+                createBtn.textContent = '+ CREATE WORKFLOW';
+                createBtn.onclick = function() { vmPromptNewWorkflow(); };
+            }
+            
             vmShowView('project');
-            vmLoadWorkflows();
+            vmLoadWorkflowsForProject();
         }
 
         function vmToggleClientLibrary() {
@@ -2252,7 +2266,7 @@
             if (panel.style.display === 'block') vmLoadClientLibraryAssets();
         }
 
-        // Move Progress Tracker to client's vault
+        // Move Progress Tracker to client's vault (creates it on-the-fly)
         function vmMoveProgressTrackerToClient() {
             if (!vmCurrentClientUID) {
                 showToast('No client selected');
@@ -2274,7 +2288,7 @@
                     return;
                 }
                 
-                // Create a Progress Tracker asset on-the-fly (no need to exist in main library)
+                // Create a Progress Tracker asset on-the-fly
                 const progressTrackerId = 'progress_tracker_' + Date.now();
                 const progressTrackerData = {
                     id: progressTrackerId,
