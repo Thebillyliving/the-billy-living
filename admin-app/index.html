@@ -2524,7 +2524,35 @@
         function loadPortfolioUsers() { document.getElementById('portfolioUsersList').innerHTML = '<div class="empty-state">No portfolios</div>'; }
         function backToPortfolioUsers() { document.getElementById('portfolioClientView').style.display = 'none'; document.getElementById('portfolioUsersView').style.display = 'block'; }
         function openClientPortfolio() {}
-        function addVIP() { showToast('Add VIP function'); }
+        function addVIP() {
+            const phone = document.getElementById('vipPhone').value.trim();
+            const code = document.getElementById('vipCode').value.trim();
+            const name = document.getElementById('vipName').value.trim();
+
+            if (!phone || !code || !name) {
+                showToast('Please fill all fields');
+                return;
+            }
+
+            const vipData = {
+                name: name,
+                phone: phone,
+                password: code,
+                status: 'active',
+                createdAt: Date.now(),
+                id: null // Will be populated with Firebase UID on first client login
+            };
+
+            adminFbDB.ref('vip/' + phone).set(vipData)
+                .then(() => {
+                    showToast('✓ VIP added successfully');
+                    document.getElementById('vipPhone').value = '';
+                    document.getElementById('vipCode').value = '';
+                    document.getElementById('vipName').value = '';
+                    renderVIPList();
+                })
+                .catch(err => showToast('Error: ' + err.message));
+        }
         function approveVIP() {}
         function rejectVIP() {}
         function resetVIPPassword() {}
