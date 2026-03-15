@@ -2064,77 +2064,92 @@
         function vmOpenProject(id, name) {
             vmCurrentProjectId = id;
             document.getElementById('vmProjectDetailTitle').textContent = name;
+            
+            const createBtn = document.querySelector('.project-create-btn');
+            if (createBtn) {
+                createBtn.textContent = '+ CREATE WORKFLOW';
+                createBtn.onclick = function() { vmPromptNewWorkflow(); };
+            }
+            
             vmLoadWorkflowsForProject();
         }
 
         function vmLoadWorkflowsForProject() {
-            if (!vmCurrentClientUID || !vmCurrentProjectId) return;
+            if (!vmCurrentClientUID || !vmCurrentProjectId) {
+                console.log('Cannot load workflows - missing client or project');
+                return;
+            }
+            
+            console.log('Loading workflows for project:', vmCurrentProjectId);
             
             const list = document.getElementById('vmWorkflowList');
             list.innerHTML = '<div style="text-align:center; padding:20px;">Loading workflows...</div>';
             
-            adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + vmCurrentProjectId + '/workflows').once('value').then(s => {
-                const workflows = s.val() || {};
-                const workflowEntries = Object.entries(workflows);
-                
-                if (workflowEntries.length === 0) {
-                    list.innerHTML = `
-                        <div style="text-align:center; padding:40px;">
-                            <div style="font-size:48px; margin-bottom:16px; opacity:0.3;">📋</div>
-                            <div style="font-size:16px; color:rgba(212,175,55,0.5); margin-bottom:20px;">No workflows yet</div>
-                            <button class="progress-create-btn" onclick="vmPromptNewWorkflow()" style="width:auto; padding:10px 24px;">+ CREATE WORKFLOW</button>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                list.innerHTML = workflowEntries.map(([id, w], index) => {
-                    const isProgressed = w.status === 'progressed';
-                    return `
-                        <div class="workflow-item"
-                             data-workflow-id="${id}"
-                             data-workflow-name="${w.name.replace(/'/g, "\\'")}"
-                             data-workflow-status="${w.status || 'inprogress'}">
-                            <div class="workflow-item-left">
-                                <div class="workflow-number">${index + 1}</div>
-                                <div class="workflow-name">${w.name}</div>
+            adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + vmCurrentProjectId + '/workflows').once('value')
+                .then(snapshot => {
+                    console.log('Workflows data:', snapshot.val());
+                    
+                    const workflows = snapshot.val() || {};
+                    const workflowEntries = Object.entries(workflows);
+                    
+                    if (workflowEntries.length === 0) {
+                        list.innerHTML = `
+                            <div style="text-align:center; padding:40px;">
+                                <div style="font-size:48px; margin-bottom:16px; opacity:0.3;">📋</div>
+                                <div style="font-size:16px; color:rgba(212,175,55,0.5); margin-bottom:20px;">No workflows yet</div>
+                                <button class="progress-create-btn" onclick="vmPromptNewWorkflow()" style="width:auto; padding:10px 24px;">+ CREATE WORKFLOW</button>
                             </div>
-                            <div class="workflow-status-btn ${isProgressed ? 'progressed' : ''}" 
-                                 data-status-btn="true">
-                                ${isProgressed ? 'PROGRESSED ✓' : 'PROGRESSING'}
+                        `;
+                        return;
+                    }
+                    
+                    list.innerHTML = workflowEntries.map(([id, w], index) => {
+                        const isProgressed = w.status === 'progressed';
+                        return `
+                            <div class="workflow-item"
+                                 data-workflow-id="${id}"
+                                 data-workflow-name="${w.name.replace(/'/g, "\\'")}"
+                                 data-workflow-status="${w.status || 'inprogress'}">
+                                <div class="workflow-item-left">
+                                    <div class="workflow-number">${index + 1}</div>
+                                    <div class="workflow-name">${w.name}</div>
+                                </div>
+                                <div class="workflow-status-btn ${isProgressed ? 'progressed' : ''}" 
+                                     data-status-btn="true">
+                                    ${isProgressed ? 'PROGRESSED ✓' : 'PROGRESSING'}
+                                </div>
                             </div>
-                        </div>
-                    `;
-                }).join('');
+                        `;
+                    }).join('');
 
-                setTimeout(() => {
-                    document.querySelectorAll('.workflow-item').forEach(el => {
-                        el.removeEventListener('click', handleWorkflowClick);
-                        el.removeEventListener('touchstart', handleWorkflowTouchStart);
-                        el.removeEventListener('touchend', handleWorkflowTouchEnd);
-                        el.removeEventListener('touchmove', handleWorkflowTouchMove);
-                        
-                        el.addEventListener('click', handleWorkflowClick);
-                        el.addEventListener('touchstart', handleWorkflowTouchStart);
-                        el.addEventListener('touchend', handleWorkflowTouchEnd);
-                        el.addEventListener('touchmove', handleWorkflowTouchMove);
-                    });
-
-                    // Status button clicks — wired via delegation
-                    document.querySelectorAll('.workflow-status-btn').forEach(btn => {
-                        btn.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            const item = btn.closest('.workflow-item');
-                            const wid = item.dataset.workflowId;
-                            const status = item.dataset.workflowStatus;
-                            vmToggleWorkflowStatus(wid, status);
+                    setTimeout(() => {
+                        document.querySelectorAll('.workflow-item').forEach(el => {
+                            el.removeEventListener('click', handleWorkflowClick);
+                            el.removeEventListener('touchstart', handleWorkflowTouchStart);
+                            el.removeEventListener('touchend', handleWorkflowTouchEnd);
+                            el.removeEventListener('touchmove', handleWorkflowTouchMove);
+                            
+                            el.addEventListener('click', handleWorkflowClick);
+                            el.addEventListener('touchstart', handleWorkflowTouchStart);
+                            el.addEventListener('touchend', handleWorkflowTouchEnd);
+                            el.addEventListener('touchmove', handleWorkflowTouchMove);
                         });
-                    });
-                }, 100);
-            }).catch(err => {
-                console.error('Error loading workflows:', err);
-                list.innerHTML = '<div style="text-align:center; padding:40px; color:#ef4444;">Error loading workflows</div>';
-            });
+
+                        document.querySelectorAll('.workflow-status-btn').forEach(btn => {
+                            btn.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                const item = btn.closest('.workflow-item');
+                                const wid = item.dataset.workflowId;
+                                const status = item.dataset.workflowStatus;
+                                vmToggleWorkflowStatus(wid, status);
+                            });
+                        });
+                    }, 100);
+                })
+                .catch(err => {
+                    console.error('Error loading workflows:', err);
+                    list.innerHTML = '<div style="text-align:center; padding:40px; color:#ef4444;">Error loading workflows</div>';
+                });
         }
 
         function vmToggleWorkflowStatus(wid, current) {
@@ -2252,12 +2267,17 @@
 
         function vmBackFromProject() {
             if (vmCurrentProjectId) {
-                // We're in workflows view — go back to project list
                 vmCurrentProjectId = null;
                 document.getElementById('vmProjectDetailTitle').textContent = 'Projects';
+                
+                const createBtn = document.querySelector('.project-create-btn');
+                if (createBtn) {
+                    createBtn.textContent = '+ CREATE PROJECT';
+                    createBtn.onclick = function() { vmPromptNewProject(); };
+                }
+                
                 vmLoadProjectsList();
             } else {
-                // We're in project list — go back to client POV
                 vmShowView('pov');
             }
         }
@@ -2678,12 +2698,20 @@
 
         function deleteWorkflow(workflowId) {
             if (!vmCurrentClientUID || !vmCurrentProjectId || !workflowId) return;
+            
+            console.log('Deleting workflow:', workflowId);
+            showToast('Deleting...');
+            
             adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + vmCurrentProjectId + '/workflows/' + workflowId).remove()
                 .then(() => {
+                    console.log('Workflow deleted successfully');
                     showToast('✓ Workflow deleted');
-                    vmLoadWorkflowsForProject();
+                    setTimeout(() => vmLoadWorkflowsForProject(), 300);
                 })
-                .catch(err => showToast('Error: ' + err.message));
+                .catch(err => {
+                    console.error('Error deleting workflow:', err);
+                    showToast('Error: ' + err.message);
+                });
         }
 
         // Initialization
