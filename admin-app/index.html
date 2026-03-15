@@ -2724,10 +2724,29 @@
             console.log('Deleting project:', projectId);
             showToast('Deleting project...');
             
+            const wasCurrentProject = (vmCurrentProjectId === projectId);
+            
             adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + projectId).remove()
                 .then(() => {
                     console.log('Project deleted successfully');
                     showToast('✓ Project deleted');
+                    
+                    if (wasCurrentProject) {
+                        vmCurrentProjectId = null;
+                        document.getElementById('vmProjectDetailTitle').textContent = 'Projects';
+                        
+                        const header = document.querySelector('#vmProjectDetailView .project-header');
+                        if (header) {
+                            const oldBtn = header.querySelector('.project-context-btn');
+                            if (oldBtn) oldBtn.remove();
+                            
+                            const newBtn = document.createElement('button');
+                            newBtn.className = 'progress-create-btn project-context-btn';
+                            newBtn.textContent = '+ CREATE PROJECT';
+                            newBtn.onclick = function() { vmPromptNewProject(); };
+                            header.appendChild(newBtn);
+                        }
+                    }
                     
                     setTimeout(() => {
                         vmLoadProjectsList();
@@ -2749,7 +2768,9 @@
                 .then(() => {
                     console.log('Workflow deleted successfully');
                     showToast('✓ Workflow deleted');
-                    setTimeout(() => vmLoadWorkflowsForProject(), 300);
+                    setTimeout(() => {
+                        vmLoadWorkflowsForProject();
+                    }, 500);
                 })
                 .catch(err => {
                     console.error('Error deleting workflow:', err);
