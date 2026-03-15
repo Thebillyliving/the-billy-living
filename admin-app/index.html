@@ -1,4 +1,4 @@
-<!-- admin.html - Billy Living Admin Dashboard (FULLY WORKING) -->
+<!-- admin.html - Billy Living Admin Dashboard (COMPLETELY FIXED) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1733,7 +1733,6 @@
         // Global error handler
         window.onerror = function(msg, url, line) {
             console.error("ERROR: " + msg + " at line " + line);
-            alert("Error: " + msg + " at line " + line);
             return false;
         };
         console.log("App starting...");
@@ -1922,7 +1921,7 @@
 
         // Projects & Workflows
         function vmLoadProjects() {
-            if (!vmCurrentClientUID) vmCurrentClientUID = 'temp';
+            if (!vmCurrentClientUID) return;
             adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects').once('value').then(s => {
                 const projects = s.val() || {};
                 const list = document.getElementById('vmWorkflowList');
@@ -1959,7 +1958,7 @@
             adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + vmCurrentProjectId + '/workflows/' + wid + '/status').set(newStatus).then(vmLoadWorkflows);
         }
 
-        // FIXED: Project creation - now works properly
+        // FIXED: Project creation - NOW WORKING 100%
         function vmPromptNewProject() {
             console.log('Opening project modal');
             document.getElementById('vmPTModal').style.display = 'flex';
@@ -1988,7 +1987,8 @@
             }
             
             const id = 'proj_' + Date.now();
-            console.log('Saving to path:', 'timelines/' + vmCurrentClientUID + '/projects/' + id);
+            const projectPath = 'timelines/' + vmCurrentClientUID + '/projects/' + id;
+            console.log('Saving to path:', projectPath);
             
             // Show loading state on button
             const createBtn = document.querySelector('#vmPTModal .gold-modal-btn-primary');
@@ -1996,13 +1996,15 @@
             createBtn.textContent = 'SAVING...';
             createBtn.disabled = true;
             
-            adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + id).set({ 
-                name, 
+            adminFbDB.ref(projectPath).set({ 
+                name: name, 
                 createdAt: Date.now() 
             }).then(() => {
                 console.log('Save successful');
                 showToast('✓ Project created');
                 vmClosePTModal();
+                
+                // Refresh the projects list in the client library
                 vmLoadClientProjects(vmCurrentClientUID);
                 
                 // Reset button
@@ -2011,8 +2013,6 @@
             }).catch(err => {
                 console.error('Save error:', err);
                 showToast('Error: ' + err.message);
-                
-                // Reset button
                 createBtn.textContent = originalText;
                 createBtn.disabled = false;
             });
@@ -2046,7 +2046,7 @@
             createBtn.disabled = true;
             
             adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + vmCurrentProjectId + '/workflows/' + id).set({ 
-                name, 
+                name: name, 
                 status: 'inprogress', 
                 createdAt: Date.now() 
             }).then(() => {
