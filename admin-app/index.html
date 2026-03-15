@@ -1637,13 +1637,10 @@
 
             <!-- Project Detail View (for projects list and workflows) -->
             <div id="vmProjectDetailView" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
-                <div class="vm-pov-header">
-                    <button class="vm-detail-back" onclick="event.stopPropagation(); vmBackFromProject(); return false;">← Back</button>
-                    <div>
-                        <div class="vm-eyebrow">Progress Tracker</div>
-                        <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--vault-text);" id="vmProjectDetailTitle">Projects</div>
-                    </div>
-                    <button onclick="vmPromptNewProject()" class="progress-create-btn" style="display:block;">+ CREATE PROJECT</button>
+                <div class="project-header">
+                    <button class="project-back" onclick="event.stopPropagation(); vmBackFromProject(); return false;">← Back</button>
+                    <div class="project-title" id="vmProjectDetailTitle">Projects</div>
+                    <!-- Button added dynamically by JavaScript -->
                 </div>
                 <div style="overflow-y:auto;flex:1;padding:16px 20px 60px;">
                     <div id="vmWorkflowList" class="workflow-list" style="padding:0;"></div>
@@ -1958,10 +1955,16 @@
             vmCurrentProjectId = null;
             document.getElementById('vmProjectDetailTitle').textContent = 'Projects';
             
-            const createBtn = document.querySelector('.project-create-btn');
-            if (createBtn) {
-                createBtn.textContent = '+ CREATE PROJECT';
-                createBtn.onclick = function() { vmPromptNewProject(); };
+            const header = document.querySelector('#vmProjectDetailView .project-header');
+            if (header) {
+                const oldBtn = header.querySelector('.project-context-btn');
+                if (oldBtn) oldBtn.remove();
+                
+                const newBtn = document.createElement('button');
+                newBtn.className = 'progress-create-btn project-context-btn';
+                newBtn.textContent = '+ CREATE PROJECT';
+                newBtn.onclick = function() { vmPromptNewProject(); };
+                header.appendChild(newBtn);
             }
             
             vmShowView('project');
@@ -2076,15 +2079,19 @@
                 titleEl.textContent = name;
             }
             
-            const createBtn = document.querySelector('.project-create-btn');
-            if (createBtn) {
-                createBtn.textContent = '+ CREATE WORKFLOW';
-                createBtn.onclick = null;
-                createBtn.onclick = function() { 
+            const header = document.querySelector('#vmProjectDetailView .project-header');
+            if (header) {
+                const oldBtn = header.querySelector('.project-context-btn');
+                if (oldBtn) oldBtn.remove();
+                
+                const newBtn = document.createElement('button');
+                newBtn.className = 'progress-create-btn project-context-btn';
+                newBtn.textContent = '+ CREATE WORKFLOW';
+                newBtn.onclick = function() { 
                     console.log('Create workflow clicked');
                     vmPromptNewWorkflow(); 
-                    return false;
                 };
+                header.appendChild(newBtn);
             }
             
             vmLoadWorkflowsForProject();
@@ -2286,10 +2293,16 @@
                 vmCurrentProjectId = null;
                 document.getElementById('vmProjectDetailTitle').textContent = 'Projects';
                 
-                const createBtn = document.querySelector('.project-create-btn');
-                if (createBtn) {
-                    createBtn.textContent = '+ CREATE PROJECT';
-                    createBtn.onclick = function() { vmPromptNewProject(); };
+                const header = document.querySelector('#vmProjectDetailView .project-header');
+                if (header) {
+                    const oldBtn = header.querySelector('.project-context-btn');
+                    if (oldBtn) oldBtn.remove();
+                    
+                    const newBtn = document.createElement('button');
+                    newBtn.className = 'progress-create-btn project-context-btn';
+                    newBtn.textContent = '+ CREATE PROJECT';
+                    newBtn.onclick = function() { vmPromptNewProject(); };
+                    header.appendChild(newBtn);
                 }
                 
                 vmLoadProjectsList();
