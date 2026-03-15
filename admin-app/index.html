@@ -2062,13 +2062,29 @@
         }
 
         function vmOpenProject(id, name) {
+            alert('Opening project: ' + name);
+            console.log('Opening project:', id, name);
+            
+            if (!id || !name) {
+                console.error('Invalid project data');
+                return;
+            }
+            
             vmCurrentProjectId = id;
-            document.getElementById('vmProjectDetailTitle').textContent = name;
+            
+            const titleEl = document.getElementById('vmProjectDetailTitle');
+            if (titleEl) {
+                titleEl.textContent = name;
+            }
             
             const createBtn = document.querySelector('.project-create-btn');
             if (createBtn) {
                 createBtn.textContent = '+ CREATE WORKFLOW';
-                createBtn.onclick = function() { vmPromptNewWorkflow(); };
+                createBtn.onclick = null;
+                createBtn.onclick = function() { 
+                    console.log('Create workflow clicked');
+                    vmPromptNewWorkflow(); 
+                };
             }
             
             vmLoadWorkflowsForProject();
