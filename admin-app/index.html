@@ -2023,14 +2023,8 @@
                 
                 list.innerHTML = projectEntries.map(([id, p], index) => `
                     <div class="progress-item" 
-                         onclick="vmOpenProject('${id}', '${p.name.replace(/'/g, "\\'")}')"
-                         oncontextmenu="event.preventDefault(); return false;"
-                         ontouchstart="startLongPress(event, 'project', '${id}', '${p.name.replace(/'/g, "\\'")}')"
-                         ontouchend="cancelLongPress()"
-                         ontouchmove="cancelLongPress()"
-                         onmousedown="startLongPressMouse(event, 'project', '${id}', '${p.name.replace(/'/g, "\\'")}')"
-                         onmouseup="cancelLongPress()"
-                         onmouseleave="cancelLongPress()">
+                         data-project-id="${id}"
+                         data-project-name="${p.name.replace(/'/g, "\\'")}">
                         <div class="progress-item-left">
                             <div class="progress-number">${index + 1}</div>
                             <div>
@@ -2043,6 +2037,20 @@
                         </div>
                     </div>
                 `).join('');
+
+                setTimeout(() => {
+                    document.querySelectorAll('.progress-item').forEach(el => {
+                        el.removeEventListener('click', handleProjectClick);
+                        el.removeEventListener('touchstart', handleProjectTouchStart);
+                        el.removeEventListener('touchend', handleProjectTouchEnd);
+                        el.removeEventListener('touchmove', handleProjectTouchMove);
+                        
+                        el.addEventListener('click', handleProjectClick);
+                        el.addEventListener('touchstart', handleProjectTouchStart);
+                        el.addEventListener('touchend', handleProjectTouchEnd);
+                        el.addEventListener('touchmove', handleProjectTouchMove);
+                    });
+                }, 100);
             }).catch(err => {
                 console.error('Error loading projects:', err);
                 list.innerHTML = `
@@ -2084,24 +2092,45 @@
                     const isProgressed = w.status === 'progressed';
                     return `
                         <div class="workflow-item"
-                             oncontextmenu="event.preventDefault(); return false;"
-                             ontouchstart="startLongPress(event, 'workflow', '${id}', '${w.name.replace(/'/g, "\\'")}')"
-                             ontouchend="cancelLongPress()"
-                             ontouchmove="cancelLongPress()"
-                             onmousedown="startLongPressMouse(event, 'workflow', '${id}', '${w.name.replace(/'/g, "\\'")}')"
-                             onmouseup="cancelLongPress()"
-                             onmouseleave="cancelLongPress()">
+                             data-workflow-id="${id}"
+                             data-workflow-name="${w.name.replace(/'/g, "\\'")}"
+                             data-workflow-status="${w.status || 'inprogress'}">
                             <div class="workflow-item-left">
                                 <div class="workflow-number">${index + 1}</div>
                                 <div class="workflow-name">${w.name}</div>
                             </div>
                             <div class="workflow-status-btn ${isProgressed ? 'progressed' : ''}" 
-                                 onclick="event.stopPropagation(); vmToggleWorkflowStatus('${id}','${w.status||'inprogress'}')">
+                                 data-status-btn="true">
                                 ${isProgressed ? 'PROGRESSED ✓' : 'PROGRESSING'}
                             </div>
                         </div>
                     `;
                 }).join('');
+
+                setTimeout(() => {
+                    document.querySelectorAll('.workflow-item').forEach(el => {
+                        el.removeEventListener('click', handleWorkflowClick);
+                        el.removeEventListener('touchstart', handleWorkflowTouchStart);
+                        el.removeEventListener('touchend', handleWorkflowTouchEnd);
+                        el.removeEventListener('touchmove', handleWorkflowTouchMove);
+                        
+                        el.addEventListener('click', handleWorkflowClick);
+                        el.addEventListener('touchstart', handleWorkflowTouchStart);
+                        el.addEventListener('touchend', handleWorkflowTouchEnd);
+                        el.addEventListener('touchmove', handleWorkflowTouchMove);
+                    });
+
+                    // Status button clicks — wired via delegation
+                    document.querySelectorAll('.workflow-status-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const item = btn.closest('.workflow-item');
+                            const wid = item.dataset.workflowId;
+                            const status = item.dataset.workflowStatus;
+                            vmToggleWorkflowStatus(wid, status);
+                        });
+                    });
+                }, 100);
             }).catch(err => {
                 console.error('Error loading workflows:', err);
                 list.innerHTML = '<div style="text-align:center; padding:40px; color:#ef4444;">Error loading workflows</div>';
@@ -2489,6 +2518,73 @@
         function _saveMixLabel() {}
         function saveMixtureLabel() {}
         function blockNextClick() {}
+
+        // Project & Workflow event handlers
+        let touchTimer = null;
+        let touchTarget = null;
+        const TOUCH_DURATION = 600;
+
+        function handleProjectClick(e) {
+            const item = e.currentTarget;
+            vmOpenProject(item.dataset.projectId, item.dataset.projectName);
+        }
+
+        function handleProjectTouchStart(e) {
+            touchTarget = e.currentTarget;
+            touchTarget.style.backgroundColor = 'rgba(212,175,55,0.15)';
+            
+            touchTimer = setTimeout(() => {
+                if (touchTarget) {
+                    touchTarget.style.backgroundColor = '';
+                    const id = touchTarget.dataset.projectId;
+                    const name = touchTarget.dataset.projectName;
+                    touchTarget = null;
+                    showDeleteConfirmation('project', id, name);
+                }
+            }, TOUCH_DURATION);
+        }
+
+        function handleProjectTouchEnd(e) {
+            if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
+            if (touchTarget) { touchTarget.style.backgroundColor = ''; touchTarget = null; }
+        }
+
+        function handleProjectTouchMove(e) {
+            if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
+            if (touchTarget) { touchTarget.style.backgroundColor = ''; touchTarget = null; }
+        }
+
+        function handleWorkflowClick(e) {
+            if (e.target.closest('[data-status-btn="true"]')) return;
+            // Workflow rows don't navigate anywhere — status button handles interaction
+        }
+
+        function handleWorkflowTouchStart(e) {
+            if (e.target.closest('[data-status-btn="true"]')) return;
+            
+            touchTarget = e.currentTarget;
+            touchTarget.style.backgroundColor = 'rgba(212,175,55,0.15)';
+            
+            touchTimer = setTimeout(() => {
+                if (touchTarget) {
+                    touchTarget.style.backgroundColor = '';
+                    const id = touchTarget.dataset.workflowId;
+                    const name = touchTarget.dataset.workflowName;
+                    touchTarget = null;
+                    showDeleteConfirmation('workflow', id, name);
+                }
+            }, TOUCH_DURATION);
+        }
+
+        function handleWorkflowTouchEnd(e) {
+            if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
+            if (touchTarget) { touchTarget.style.backgroundColor = ''; touchTarget = null; }
+        }
+
+        function handleWorkflowTouchMove(e) {
+            if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
+            if (touchTarget) { touchTarget.style.backgroundColor = ''; touchTarget = null; }
+        }
 
         // Long press variables
         let longPressTimer = null;
