@@ -2707,26 +2707,27 @@
             document.getElementById('cancelDeleteBtn').onclick = () => document.body.removeChild(modal);
             document.getElementById('confirmDeleteBtn').onclick = () => {
                 if (type === 'project') {
-                    deleteProject(longPressId);
+                    deleteProject(longPressId, vmCurrentClientUID);
                 } else {
-                    deleteWorkflow(longPressId);
+                    deleteWorkflow(longPressId, vmCurrentProjectId, vmCurrentClientUID);
                 }
                 document.body.removeChild(modal);
             };
         }
 
-        function deleteProject(projectId) {
-            if (!vmCurrentClientUID || !projectId) {
+        function deleteProject(projectId, clientUID) {
+            if (!clientUID || !projectId) {
                 showToast('Cannot delete: missing information');
+                console.error('Missing clientUID or projectId', { clientUID, projectId });
                 return;
             }
             
-            console.log('Deleting project:', projectId);
+            console.log('Deleting project:', projectId, 'for client:', clientUID);
             showToast('Deleting project...');
             
             const wasCurrentProject = (vmCurrentProjectId === projectId);
             
-            adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + projectId).remove()
+            adminFbDB.ref('timelines/' + clientUID + '/projects/' + projectId).remove()
                 .then(() => {
                     console.log('Project deleted successfully');
                     showToast('✓ Project deleted');
@@ -2758,13 +2759,17 @@
                 });
         }
 
-        function deleteWorkflow(workflowId) {
-            if (!vmCurrentClientUID || !vmCurrentProjectId || !workflowId) return;
+        function deleteWorkflow(workflowId, projectId, clientUID) {
+            if (!clientUID || !projectId || !workflowId) {
+                showToast('Cannot delete: missing information');
+                console.error('Missing data', { clientUID, projectId, workflowId });
+                return;
+            }
             
             console.log('Deleting workflow:', workflowId);
             showToast('Deleting...');
             
-            adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + vmCurrentProjectId + '/workflows/' + workflowId).remove()
+            adminFbDB.ref('timelines/' + clientUID + '/projects/' + projectId + '/workflows/' + workflowId).remove()
                 .then(() => {
                     console.log('Workflow deleted successfully');
                     showToast('✓ Workflow deleted');
