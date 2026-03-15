@@ -2927,33 +2927,19 @@ window.testFirebaseConnection = function() {
   if (!currentUser) { console.log('❌ No user logged in'); alert('Please log in first'); return; }
   const clientUID = currentUser.uid;
   console.log('Current User UID:', clientUID);
-  console.log('Current User Email:', currentUser.email);
-  fbDb.ref('userProfiles/' + clientUID).once('value')
-    .then(snap => {
-      console.log('User Profile:', snap.val());
-      return fbDb.ref('vip').once('value');
+  fbDb.ref('timelines/' + clientUID + '/projects').once('value')
+    .then(snapshot => {
+      console.log('Projects at timelines/' + clientUID + '/projects:', snapshot.val());
+      if (snapshot.exists()) {
+        const projects = snapshot.val();
+        const count = Object.keys(projects).length;
+        alert('✅ Found ' + count + ' project(s) at timelines/' + clientUID + '/projects');
+        displayProjectsUniversal(projects);
+      } else {
+        alert('❌ No projects found at timelines/' + clientUID + '/projects');
+      }
     })
-    .then(vipSnap => {
-      console.log('All VIP entries:', vipSnap.val());
-      const paths = [
-        'timelines/' + clientUID + '/projects',
-        'vault/clients/' + clientUID + '/projects',
-        'projects/' + clientUID
-      ];
-      console.log('Checking project paths:');
-      return Promise.all(paths.map(path =>
-        fbDb.ref(path).once('value').then(s => ({ path, exists: s.exists(), data: s.val() }))
-      ));
-    })
-    .then(results => {
-      results.forEach(r => {
-        console.log('Path: ' + r.path);
-        console.log('  Exists:', r.exists);
-        if (r.exists) console.log('  Data:', r.data);
-      });
-      alert('Check console for results (F12)');
-    })
-    .catch(err => { console.error('Test error:', err); alert('Error: ' + err.message); });
+    .catch(err => { console.error('Error:', err); alert('Error: ' + err.message); });
 };
 
 function addManualRefreshButton() {
