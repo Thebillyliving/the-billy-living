@@ -864,6 +864,13 @@ fbAuth.onAuthStateChanged(user => {
     loadHomeFeed();   // immediate — user sees this first
     loadCatalog();    // immediate — cache-first, near-instant
     // Trending, portfolio, concierge deferred — loaded on first navigation to each
+    // Sync UID into VIP record so admin-created projects resolve correctly
+    fbDb.ref('userProfiles/' + user.uid + '/mobile').once('value')
+      .then(phoneSnap => {
+        const phone = phoneSnap.val();
+        if (phone) fbDb.ref('vip/' + phone + '/id').set(user.uid);
+      })
+      .catch(() => {}); // silently ignore if profile not yet created
   } else {
     currentUser = null;
     document.getElementById('gatekeeper').classList.remove('hidden');
