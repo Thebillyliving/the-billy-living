@@ -2725,6 +2725,198 @@ window.enterBespokeVault = function() {
 
 // Manual refresh for testing in console
 window.refreshProgressTracker = function() { forceLoadClientProjects(); };
+
+// ===========================================
+// UNIVERSAL PROGRESS TRACKER - MULTI-PATH FALLBACK
+// ===========================================
+
+function loadProjectsUniversal() {
+  console.log('🔍 UNIVERSAL PROJECT LOADER STARTED');
+  if (!currentUser) {
+    console.log('❌ No user logged in');
+    showProjectsEmpty('Please log in to view projects');
+    return;
+  }
+  const clientUID = currentUser.uid;
+  const clientEmail = currentUser.email;
+  console.log('👤 Current user:', { uid: clientUID, email: clientEmail });
+  const container = document.getElementById('projectsContainer');
+  if (container) container.innerHTML = '<div style="text-align:center;padding:24px;"><div class="loading-spinner" style="width:24px;height:24px;margin:0 auto 12px;border:2px solid rgba(212,175,55,.1);border-top-color:#D4AF37;border-radius:50%;animation:spin 1s linear infinite;"></div><div style="color:rgba(212,175,55,.5);font-size:13px;">Syncing with designer...</div></div>';
+  fbDb.ref('userProfiles/' + clientUID + '/mobile').once('value')
+    .then(phoneSnap => {
+      const phone = phoneSnap.val();
+      console.log('📱 Client phone from profile:', phone);
+      return fbDb.ref('vip').once('value').then(vipSnap => {
+        const vips = vipSnap.val() || {};
+        let matchedVIP = null, matchedVIPPhone = null;
+        Object.entries(vips).forEach(([vipPhone, vipData]) => {
+          if (vipPhone === phone || vipData.id === clientUID || vipData.email === clientEmail) {
+            matchedVIP = vipData;
+            matchedVIPPhone = vipPhone;
+            console.log('✅ Found matching VIP:', { vipPhone, vipData });
+          }
+        });
+        const pathsToTry = ['timelines/' + clientUID + '/projects'];
+        if (matchedVIPPhone) {
+          pathsToTry.push('timelines/' + matchedVIPPhone + '/projects');
+          pathsToTry.push('timelines/phone_' + matchedVIPPhone + '/projects');
+        }
+        if (matchedVIP && matchedVIP.id) pathsToTry.push('timelines/' + matchedVIP.id + '/projects');
+        pathsToTry.push('vault/clients/' + clientUID + '/projects');
+        if (matchedVIPPhone) pathsToTry.push('vault/clients/' + matchedVIPPhone + '/projects');
+        console.log('📁 Will check these paths:', pathsToTry);
+        return tryProjectPaths(pathsToTry, 0);
+      });
+    })
+    .catch(err => {
+      console.error('Error in universal loader:', err);
+      showProjectsEmpty('Unable to load projects');
+    });
+}
+
+function tryProjectPaths(paths, index) {
+  if (index >= paths.length) {
+    console.log('❌ No projects found in any path');
+    showProjectsEmpty('No projects yet');
+    return Promise.resolve();
+  }
+  const path = paths[index];
+  console.log('🔍 Trying path ' + (index+1) + '/' + paths.length + ':', path);
+  return fbDb.ref(path).once('value').then(snapshot => {
+    const data = snapshot.val();
+    console.log('📦 Data at ' + path + ':', data);
+    if (data && Object.keys(data).length > 0) {
+      console.log('✅ FOUND PROJECTS at ' + path + '!');
+      displayProjectsUniversal(data);
+      return Promise.resolve();
+    }
+    console.log('⏭️ No projects at ' + path + ', trying next...');
+    return tryProjectPaths(paths, index + 1);
+  }).catch(err => {
+    console.log('❌ Error checking ' + path + ':', err.message);
+    return tryProjectPaths(paths, index + 1);
+  });
+}
+
+function displayProjectsUniversal(projects) {
+  const container = document.getElementById('projectsContainer');
+  const badge = document.getElementById('projectCountBadge');
+  if (!container) return;
+  const projectCount = Object.keys(projects).length;
+  console.log('📊 Displaying ' + projectCount + ' projects');
+  if (badge) badge.textContent = projectCount;
+  if (projectCount === 0) { showProjectsEmpty('No projects in progress'); return; }
+  const sorted = Object.entries(projects).sort((a, b) => (b[1].createdAt||0) - (a[1].createdAt||0));
+  let html = '';
+  sorted.forEach(([projectId, project], i) => {
+    const date = project.createdAt ? new Date(project.createdAt).toLocaleDateString() : 'Just started';
+    html += '<div class="project-card" onclick="openProjectWorkflowsUniversal(\'' + projectId + '\',\'' + (project.name||'').replace(/\'/g,"\\'") + '\')" style="background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,.15);border-radius:14px;padding:16px;cursor:pointer;margin-bottom:8px;transition:all .2s;">'
+      + '<div style="display:flex;align-items:center;gap:14px;">'
+      + '<div style="width:40px;height:40px;border-radius:12px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.25);display:flex;align-items:center;justify-content:center;font-family:\'Cormorant Garamond\',serif;font-size:18px;color:#D4AF37;flex-shrink:0;">' + (i+1) + '</div>'
+      + '<div style="flex:1;"><div style="font-family:\'Cormorant Garamond\',serif;font-size:17px;color:#E8D5A3;margin-bottom:4px;">' + (project.name||'Project') + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:10px;color:rgba(212,175,55,.4);">' + date + '</span><span style="width:4px;height:4px;border-radius:50%;background:rgba(212,175,55,.2);"></span><span style="font-size:10px;color:#50C878;">● Active</span></div></div>'
+      + '<span style="color:rgba(212,175,55,.3);font-size:18px;">›</span></div></div>';
+  });
+  container.innerHTML = html;
+}
+
+function showProjectsEmpty(message) {
+  const container = document.getElementById('projectsContainer');
+  const badge = document.getElementById('projectCountBadge');
+  if (badge) badge.textContent = '0';
+  if (container) container.innerHTML = '<div style="text-align:center;padding:32px 20px;"><div style="font-size:36px;margin-bottom:12px;opacity:.3;">📋</div><div style="color:rgba(212,175,55,.5);font-size:15px;margin-bottom:8px;">' + message + '</div><div style="color:rgba(212,175,55,.25);font-size:12px;">Projects will appear here once created by your designer</div></div>';
+}
+
+function openProjectWorkflowsUniversal(projectId, projectName) {
+  if (!currentUser) return;
+  const clientUID = currentUser.uid;
+  console.log('📂 Opening project:', projectId, projectName);
+  const modal = document.createElement('div');
+  modal.className = 'workflow-modal';
+  modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.98);z-index:30000;display:flex;flex-direction:column;padding:24px 20px;overflow-y:auto;backdrop-filter:blur(8px);';
+  modal.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">'
+    + '<button onclick="this.closest(\'.workflow-modal\').remove()" style="background:none;border:1px solid rgba(212,175,55,.3);color:rgba(212,175,55,.6);border-radius:8px;padding:8px 16px;font-family:\'Jost\',sans-serif;font-size:10px;letter-spacing:2px;cursor:pointer;">← BACK</button>'
+    + '<div style="font-family:\'Cormorant Garamond\',serif;font-size:20px;color:#E8D5A3;letter-spacing:.5px;">' + projectName + '</div>'
+    + '<div style="width:72px;"></div></div>'
+    + '<div style="font-family:\'Jost\',sans-serif;font-size:9px;letter-spacing:4px;color:rgba(212,175,55,.4);text-transform:uppercase;margin-bottom:16px;">Workflow Progress</div>'
+    + '<div id="workflowsUniversalContainer" style="display:flex;flex-direction:column;gap:12px;"><div style="text-align:center;padding:40px;"><div class="loading-spinner" style="width:24px;height:24px;margin:0 auto 12px;border:2px solid rgba(212,175,55,.1);border-top-color:#D4AF37;border-radius:50%;animation:spin 1s linear infinite;"></div><div style="color:rgba(212,175,55,.5);">Loading workflows...</div></div></div>';
+  document.body.appendChild(modal);
+  const workflowPaths = [
+    'timelines/' + clientUID + '/projects/' + projectId + '/workflows',
+    'vault/clients/' + clientUID + '/projects/' + projectId + '/workflows'
+  ];
+  fbDb.ref('userProfiles/' + clientUID + '/mobile').once('value').then(phoneSnap => {
+    const phone = phoneSnap.val();
+    if (phone) workflowPaths.push('timelines/' + phone + '/projects/' + projectId + '/workflows');
+    return tryWorkflowPaths(workflowPaths, 0, modal);
+  }).catch(() => tryWorkflowPaths(workflowPaths, 0, modal));
+}
+
+function tryWorkflowPaths(paths, index, modal) {
+  if (index >= paths.length) {
+    const wc = modal.querySelector('#workflowsUniversalContainer');
+    if (wc) wc.innerHTML = '<div style="text-align:center;padding:60px;"><div style="font-size:48px;margin-bottom:16px;opacity:.3;">📋</div><div style="font-size:16px;color:rgba(212,175,55,.5);">No workflows yet</div></div>';
+    return Promise.resolve();
+  }
+  const path = paths[index];
+  console.log('🔍 Checking workflow path:', path);
+  return fbDb.ref(path).once('value').then(snapshot => {
+    const workflows = snapshot.val();
+    if (workflows && Object.keys(workflows).length > 0) {
+      displayWorkflowsUniversal(workflows, modal);
+      return Promise.resolve();
+    }
+    return tryWorkflowPaths(paths, index + 1, modal);
+  }).catch(() => tryWorkflowPaths(paths, index + 1, modal));
+}
+
+function displayWorkflowsUniversal(workflows, modal) {
+  const container = modal.querySelector('#workflowsUniversalContainer');
+  if (!container) return;
+  const entries = Object.entries(workflows);
+  if (!entries.length) {
+    container.innerHTML = '<div style="text-align:center;padding:60px;"><div style="font-size:48px;margin-bottom:16px;opacity:.3;">📋</div><div style="font-size:16px;color:rgba(212,175,55,.5);">No workflows yet</div></div>';
+    return;
+  }
+  container.innerHTML = entries.map(([id, w], i) => {
+    const done = w.status === 'progressed';
+    return '<div style="background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,' + (done?'.35':'.15') + ');border-radius:16px;padding:16px 20px;">'
+      + '<div style="display:flex;align-items:center;gap:16px;">'
+      + '<div style="width:36px;height:36px;border-radius:50%;background:' + (done?'rgba(80,200,120,.1)':'rgba(212,175,55,.1)') + ';border:1px solid ' + (done?'rgba(80,200,120,.3)':'rgba(212,175,55,.2)') + ';display:flex;align-items:center;justify-content:center;font-family:\'Cormorant Garamond\',serif;font-size:16px;color:' + (done?'#50C878':'#D4AF37') + ';flex-shrink:0;">' + (i+1) + '</div>'
+      + '<div style="flex:1;"><div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;color:#E8D9B5;margin-bottom:6px;">' + (w.name||'Step '+(i+1)) + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:' + (done?'#50C878':'rgba(212,175,55,.3)') + ';"></div>'
+      + '<span style="font-family:\'Jost\',sans-serif;font-size:9px;letter-spacing:2px;color:' + (done?'#50C878':'rgba(212,175,55,.5)') + ';text-transform:uppercase;">' + (done?'COMPLETED':'IN PROGRESS') + '</span></div></div></div></div>';
+  }).join('');
+}
+
+// Override vault entry with universal loader
+const _origVaultEnter = window.enterBespokeVault;
+window.enterBespokeVault = function() {
+  console.log('🚀 Opening vault with universal loader...');
+  if (typeof _origVaultEnter === 'function') _origVaultEnter();
+  if (window._projectLoadTimeout) clearTimeout(window._projectLoadTimeout);
+  window._projectLoadTimeout = setTimeout(() => {
+    console.log('⏰ Running universal project loader...');
+    loadProjectsUniversal();
+  }, 1500);
+};
+
+// Refresh button
+function addRefreshButton() {
+  const section = document.getElementById('progressTrackerSection');
+  if (!section || document.getElementById('ptRefreshBtn')) return;
+  const header = section.querySelector('div');
+  if (!header) return;
+  const btn = document.createElement('button');
+  btn.id = 'ptRefreshBtn';
+  btn.innerHTML = '↻';
+  btn.style.cssText = 'background:none;border:1px solid rgba(212,175,55,.3);color:rgba(212,175,55,.6);border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer;margin-left:8px;flex-shrink:0;';
+  btn.onclick = function(e) { e.stopPropagation(); loadProjectsUniversal(); };
+  header.appendChild(btn);
+}
+setTimeout(addRefreshButton, 2000);
+
+window.loadProjectsUniversal = loadProjectsUniversal;
 </script>
 <div id="vaultGlint"></div>
 </body>
