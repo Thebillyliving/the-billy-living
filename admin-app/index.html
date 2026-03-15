@@ -2716,13 +2716,27 @@
         }
 
         function deleteProject(projectId) {
-            if (!vmCurrentClientUID || !projectId) return;
+            if (!vmCurrentClientUID || !projectId) {
+                showToast('Cannot delete: missing information');
+                return;
+            }
+            
+            console.log('Deleting project:', projectId);
+            showToast('Deleting project...');
+            
             adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + projectId).remove()
                 .then(() => {
+                    console.log('Project deleted successfully');
                     showToast('✓ Project deleted');
-                    vmLoadProjectsList();
+                    
+                    setTimeout(() => {
+                        vmLoadProjectsList();
+                    }, 500);
                 })
-                .catch(err => showToast('Error: ' + err.message));
+                .catch(err => {
+                    console.error('Error deleting project:', err);
+                    showToast('Error: ' + err.message);
+                });
         }
 
         function deleteWorkflow(workflowId) {
