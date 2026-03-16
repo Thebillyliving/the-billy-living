@@ -1,4 +1,4 @@
-<!-- admin.html - Billy Living Admin Dashboard (FIXED with UID handling) -->
+<!-- admin.html - Billy Living Admin Dashboard (CACHE-FIRST, NEVER STICKS) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +10,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
-        /* Keep your existing CSS - it's the same */
         * {
             margin: 0;
             padding: 0;
@@ -43,7 +42,6 @@
             display: flex;
         }
 
-        /* Sidebar */
         .sidebar {
             width: 280px;
             background: var(--bg-card);
@@ -162,7 +160,6 @@
             stroke: none;
         }
 
-        /* Main Content */
         .main-content {
             margin-left: 280px;
             flex: 1;
@@ -226,7 +223,6 @@
             color: white;
         }
 
-        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -254,7 +250,6 @@
             font-size: 14px;
         }
 
-        /* Quick Actions */
         .quick-actions {
             display: flex;
             gap: 12px;
@@ -262,7 +257,6 @@
             flex-wrap: wrap;
         }
 
-        /* Content Panels */
         .panel {
             display: none;
             position: relative;
@@ -287,20 +281,8 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Loading Spinner */
         @keyframes spin {
             to { transform: rotate(360deg); }
-        }
-        
-        .panel-loading {
-            position: absolute;
-            inset: 0;
-            background: rgba(18,13,6,0.95);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(4px);
         }
         
         .loading-spinner {
@@ -310,7 +292,7 @@
             border-top-color: var(--gold);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
-            margin-bottom: 16px;
+            margin: 20px auto;
         }
         
         .loading-text {
@@ -319,9 +301,9 @@
             letter-spacing: 3px;
             text-transform: uppercase;
             font-weight: 500;
+            text-align: center;
         }
 
-        /* Lists */
         .list-container {
             background: var(--bg-card);
             border: 1px solid rgba(201, 169, 98, 0.1);
@@ -409,7 +391,6 @@
             left: 24px;
         }
 
-        /* Forms */
         .form-modal {
             display: none;
             position: fixed;
@@ -504,7 +485,6 @@
             margin-top: 12px;
         }
 
-        /* VIP Manager */
         .vip-form {
             background: var(--bg-card);
             padding: 24px;
@@ -583,7 +563,6 @@
             color: var(--bg-primary);
         }
 
-        /* Catalog Image Manager */
         .image-manager {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -642,7 +621,6 @@
             color: var(--gold);
         }
 
-        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 60px;
@@ -655,7 +633,6 @@
             opacity: 0.5;
         }
 
-        /* Toast */
         .toast {
             position: fixed;
             bottom: 32px;
@@ -677,7 +654,6 @@
             transform: translateY(0);
         }
 
-        /* Elite Catalog Grid (matches client app) */
         .elite-catalog-header {
             padding: 24px 0 0;
             text-align: center;
@@ -724,7 +700,6 @@
         .elite-collection-cell-admin:hover { background: rgba(201, 168, 76, 0.04); }
         .elite-collection-cell-admin.pressing { background: rgba(201,168,76,0.08); }
 
-        /* Long-press context menu */
         .cell-context-menu {
             display: none;
             position: fixed;
@@ -801,7 +776,6 @@
         .context-menu-icon.gold { background: rgba(201,168,76,0.12); }
         .context-menu-icon.red  { background: rgba(255,85,85,0.12); }
 
-        /* Backdrop to dismiss menu */
         .context-backdrop {
             display: none;
             position: fixed;
@@ -811,7 +785,6 @@
 
         .context-backdrop.active { display: block; }
 
-        /* Long-press highlight for room slots and mixture cards */
         .room-single-slot.pressing,
         .color-mixture-card.pressing {
             outline: 2px solid rgba(201,168,76,0.6);
@@ -912,7 +885,6 @@
             font-size: 14px;
         }
 
-        /* Elite Catalog Inner Pages (overlay) */
         .catalog-overlay {
             display: none;
             position: fixed;
@@ -990,7 +962,6 @@
         .elite-slot-icon svg { width: 14px; height: 14px; opacity: 0.3; }
         .elite-slot-num { font-size: 9px; color: rgba(201,168,76,0.2); letter-spacing: 1px; }
 
-        /* Responsive */
         @media (max-width: 1200px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -1014,7 +985,6 @@
             }
         }
 
-        /* ── Messages Panel ──────────────────────────────────────────────── */
         .msg-conversations { display:flex; flex-direction:column; gap:8px; }
         .msg-conv-item { display:flex; align-items:center; gap:14px; padding:16px; border-radius:12px; cursor:pointer; border:1px solid transparent; transition:all 0.25s; }
         .msg-conv-item:hover { background:rgba(201,168,76,0.06); border-color:rgba(201,168,76,0.15); }
@@ -1029,7 +999,6 @@
         .msg-unread-badge { display:inline-flex; align-items:center; justify-content:center; background:#C9A84C; color:#0A0804; font-size:10px; font-weight:700; border-radius:10px; padding:2px 7px; min-width:18px; }
         #panel-messages .panel-sub { font-size:11px; letter-spacing:3px; color:rgba(201,168,76,0.4); text-transform:uppercase; margin-bottom:6px; }
 
-        /* Admin Chat View */
         .admin-chat-panel { display:flex; flex-direction:column; height:100%; }
         .admin-chat-hdr { display:flex; align-items:center; gap:14px; padding:18px 20px; border-bottom:1px solid rgba(201,168,76,0.12); }
         .admin-chat-hdr .back-link { background:none; border:1px solid rgba(201,168,76,0.2); color:rgba(201,168,76,0.6); border-radius:8px; padding:8px 12px; font-size:13px; cursor:pointer; transition:all 0.2s; }
@@ -1051,7 +1020,6 @@
         .admin-chat-send svg { width:16px; height:16px; stroke:#0A0804; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
         .admin-msgs-badge { background:#C9A84C; color:#0A0804; font-size:10px; font-weight:700; border-radius:10px; padding:2px 7px; display:none; }
 
-        /* Portfolio User Cards */
         .port-user-card { display:flex; align-items:center; gap:14px; padding:18px 20px; border-radius:12px; cursor:pointer; border:1px solid rgba(201,168,76,0.1); background:rgba(255,255,255,0.02); transition:all 0.25s; margin-bottom:2px; }
         .port-user-card:hover { background:rgba(201,168,76,0.06); border-color:rgba(201,168,76,0.25); transform:translateX(4px); }
         .port-user-av { width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,#C9A84C,#7A5C10); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0A0804; font-family:'Cormorant Garamond',serif; font-size:17px; flex-shrink:0; }
@@ -1062,14 +1030,12 @@
         .port-user-badge { display:inline-flex; align-items:center; justify-content:center; background:rgba(201,168,76,0.15); border:1px solid rgba(201,168,76,0.3); color:#C9A84C; font-size:13px; font-weight:700; border-radius:20px; padding:4px 12px; font-family:'Cormorant Garamond',serif; }
         .port-user-arrow { font-size:18px; color:rgba(201,168,76,0.3); margin-left:8px; }
 
-        /* Portfolio client grid items */
         .port-grid-item { position:relative; aspect-ratio:1; border-radius:8px; overflow:hidden; border:1px solid rgba(201,168,76,0.1); background:#0C0804; cursor:pointer; transition:all 0.2s; }
         .port-grid-item:hover { border-color:rgba(201,168,76,0.4); transform:scale(1.02); }
         .port-grid-item img { width:100%; height:100%; object-fit:cover; }
         .port-grid-item-label { position:absolute; bottom:0; left:0; right:0; padding:6px 8px; background:linear-gradient(transparent,rgba(0,0,0,0.8)); font-size:10px; color:rgba(255,255,255,0.8); font-family:'Cormorant Garamond',serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .port-empty { text-align:center; padding:60px 20px; color:rgba(168,155,140,0.4); }
 
-        /* Vault Manager - Asset Cards */
         .vm-header { padding: 28px 24px 20px; border-bottom: 1px solid var(--vault-gold-border); }
         .vm-eyebrow { font-size: 9px; letter-spacing: 5px; color: rgba(212,175,55,0.4); text-transform: uppercase; margin-bottom: 6px; }
         .vm-title { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 600; color: var(--vault-text); margin-bottom: 20px; }
@@ -1108,7 +1074,6 @@
         .vm-asset-btn-move:hover { background: #e8c440; transform: scale(1.02); }
         .vm-default-badge { position: absolute; top: 12px; left: 12px; background: var(--vault-gold); color: #0A0700; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; font-weight: 700; z-index: 10; }
 
-        /* Client POV */
         .vm-pov-header { display: flex; align-items: center; gap: 14px; padding: 20px 24px; border-bottom: 1px solid var(--vault-gold-border); flex-shrink: 0; flex-wrap: wrap; }
         .vm-pov-sync { padding: 10px 20px; background: var(--vault-gold); color: #0A0700; border: none; border-radius: 30px; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; cursor: pointer; transition: all 0.2s; pointer-events: auto !important; position: relative; z-index: 30; white-space: nowrap; }
         .vm-pov-sync:hover { background: #e8c440; transform: translateY(-1px); }
@@ -1167,7 +1132,6 @@
             letter-spacing: 1px;
         }
 
-        /* Progress Tracker (inside client library) */
         .progress-section {
             background: linear-gradient(145deg, #0E0B06, #151008);
             border-radius: 16px;
@@ -1276,7 +1240,6 @@
             margin-top: 2px;
         }
 
-        /* Project Detail View (full screen) */
         .project-overlay {
             display: none;
             position: fixed;
@@ -1388,7 +1351,6 @@
             color: #50C878;
         }
 
-        /* Modal */
         .gold-modal {
             display: none;
             position: fixed;
@@ -1452,7 +1414,6 @@
             color: rgba(212,175,55,0.6);
         }
 
-        /* Form modal override for vault */
         .vm-form { display: flex; flex-direction: column; gap: 16px; padding: 24px; }
         .vm-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
         .vm-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(212,175,55,0.5); margin-bottom: 6px; }
@@ -1460,20 +1421,17 @@
         .vm-input:focus { border-color: var(--vault-gold); }
         .vm-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23D4AF37' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; }
 
-        /* Empty state */
         .vm-empty { text-align: center; padding: 60px 32px; }
         .vm-empty-ornament { font-size: 48px; margin-bottom: 20px; opacity: 0.3; }
         .vm-empty-title { font-family: 'Cormorant Garamond',serif; font-size: 22px; color: rgba(232,217,181,0.5); margin-bottom: 10px; font-style: italic; }
         .vm-empty-sub { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(212,175,55,0.25); }
 
-        /* Asset detail overlay */
         .vm-detail-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; flex-direction: column; }
         .vm-detail-overlay.active { display: flex; }
         .vm-detail-header { display: flex; align-items: center; gap: 14px; padding: 20px 24px; border-bottom: 1px solid var(--vault-gold-border); flex-shrink: 0; }
         .vm-detail-back { background: none; border: 1px solid var(--vault-gold-border); color: rgba(212,175,55,0.6); border-radius: 8px; padding: 8px 14px; font-size: 12px; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; pointer-events: auto !important; position: relative; z-index: 30; }
         .vm-detail-body { flex: 1; overflow-y: auto; padding: 32px 24px; display: flex; flex-direction: column; align-items: center; }
 
-        /* Tm Section (removed from main library) */
         .tm-section { display: none; }
     </style>
 </head>
@@ -1797,14 +1755,68 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('panel-' + name).classList.add('active');
             if (el) el.classList.add('active');
-            if (name === 'vaultmgr') vmInit();
+            if (name === 'vaultmgr') {
+                // Load from cache first, then from Firebase
+                vmInit();
+            }
+        }
+
+        // Cache helpers
+        function saveToCache(key, data) {
+            try {
+                localStorage.setItem('admin_' + key, JSON.stringify(data));
+            } catch(e) {}
+        }
+        
+        function loadFromCache(key) {
+            try {
+                return JSON.parse(localStorage.getItem('admin_' + key));
+            } catch(e) {
+                return null;
+            }
         }
 
         // Vault Manager Init
         function vmInit() {
             console.log('vmInit');
             vmShowView('main');
+            
+            // Try to load from cache immediately
+            const cached = loadFromCache('clientList');
+            if (cached) {
+                renderClientList(cached);
+            } else {
+                // Show loading immediately
+                document.getElementById('vmClientList').innerHTML = '<div class="vm-empty"><div class="loading-spinner" style="width:32px;height:32px;margin:0 auto 12px;"></div><div class="vm-empty-title">Loading clients...</div></div>';
+            }
+            
+            // Then fetch from Firebase (with timeout)
             vmLoadClientList();
+        }
+
+        function renderClientList(vips) {
+            const list = document.getElementById('vmClientList');
+            if (!vips || Object.keys(vips).length === 0) {
+                list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">No VIP clients yet</div><div class="vm-empty-sub">Add clients in VIP Manager</div></div>';
+                return;
+            }
+            
+            // Convert to array and filter
+            const vipList = Object.entries(vips).map(([key, v]) => {
+                return { ...v, key };
+            }).filter(v => v.status === 'active');
+            
+            if (vipList.length === 0) {
+                list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">No active VIP clients</div><div class="vm-empty-sub">Activate clients in VIP Manager</div></div>';
+                return;
+            }
+            
+            list.innerHTML = vipList.map(v => {
+                const name = v.name || 'Client';
+                const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+                const uid = v.id || v.key;
+                return `<div class="vm-client-item" onclick="vmOpenClientPOV('${uid}','${name}','${v.phone}')"><div class="vm-client-av">${initials}</div><div class="vm-client-info"><div class="vm-client-name">${name}</div><div class="vm-client-sub">+234 ${v.phone} · VIP</div></div><span class="vm-client-chevron">›</span></div>`;
+            }).join('');
         }
 
         function vmShowView(view) {
@@ -1823,34 +1835,28 @@
 
         // Client list
         function vmLoadClientList() {
-            const list = document.getElementById('vmClientList');
-            list.innerHTML = '<div class="vm-empty"><div class="loading-spinner" style="width:32px;height:32px;margin:0 auto 12px;"></div><div class="vm-empty-title">Loading clients…</div></div>';
+            // Set a timeout to prevent infinite loading
+            const timeout = setTimeout(() => {
+                const list = document.getElementById('vmClientList');
+                if (list.innerHTML.includes('Loading')) {
+                    list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">⚠️</div><div class="vm-empty-title">Connection timeout</div><div class="vm-empty-sub">Tap to retry</div></div>';
+                    list.onclick = () => vmLoadClientList();
+                }
+            }, 5000);
+
             adminFbDB.ref('vip').limitToFirst(20).once('value').then(snap => {
-                const vips = snap.val();
-                if (!vips || Object.keys(vips).length === 0) {
-                    list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">No VIP clients registered yet</div><div class="vm-empty-sub">Add clients in VIP Manager first</div></div>';
-                    return;
-                }
-                
-                // Convert to array and filter
-                const vipList = Object.entries(vips).map(([key, v]) => {
-                    return { ...v, key };
-                }).filter(v => v.status === 'active');
-                
-                if (vipList.length === 0) {
-                    list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">No active VIP clients</div><div class="vm-empty-sub">Activate clients in VIP Manager</div></div>';
-                    return;
-                }
-                
-                list.innerHTML = vipList.map(v => {
-                    const name = v.name || 'Client';
-                    const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-                    const uid = v.id || v.key;
-                    return `<div class="vm-client-item" onclick="vmOpenClientPOV('${uid}','${name}','${v.phone}')"><div class="vm-client-av">${initials}</div><div class="vm-client-info"><div class="vm-client-name">${name}</div><div class="vm-client-sub">+234 ${v.phone} · VIP</div></div><span class="vm-client-chevron">›</span></div>`;
-                }).join('');
+                clearTimeout(timeout);
+                const vips = snap.val() || {};
+                saveToCache('clientList', vips);
+                renderClientList(vips);
             }).catch(err => {
+                clearTimeout(timeout);
                 console.error('Error loading VIPs:', err);
-                list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">⚠️</div><div class="vm-empty-title">Error loading clients</div><div class="vm-empty-sub">' + err.message + '</div></div>';
+                const list = document.getElementById('vmClientList');
+                if (!list.innerHTML.includes('No VIP')) {
+                    list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">⚠️</div><div class="vm-empty-title">Error loading</div><div class="vm-empty-sub">Tap to retry</div></div>';
+                    list.onclick = () => vmLoadClientList();
+                }
             });
         }
 
@@ -1902,27 +1908,53 @@
         function vmRenderLibrary() {
             const grid = document.getElementById('vmLibraryGrid');
             grid.innerHTML = '<div class="vm-empty"><div class="loading-spinner" style="width:32px;height:32px;margin:0 auto 12px;"></div><div class="vm-empty-title">Loading…</div></div>';
+            
+            // Try cache first
+            const cached = loadFromCache('library');
+            if (cached) {
+                renderLibraryGrid(cached);
+            }
+            
             vmRef('assets').limitToFirst(20).once('value').then(s => {
                 const assets = Object.values(s.val() || {});
-                if (!assets.length) {
-                    grid.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">🖼</div><div class="vm-empty-title">No assets yet</div><div class="vm-empty-sub">Create your first vault asset above</div></div>';
-                    return;
-                }
-                grid.innerHTML = assets.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).map(a => vmAssetCard(a, 'library')).join('');
-            });
+                saveToCache('library', assets);
+                renderLibraryGrid(assets);
+            }).catch(() => {});
+        }
+
+        function renderLibraryGrid(assets) {
+            const grid = document.getElementById('vmLibraryGrid');
+            if (!assets.length) {
+                grid.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">🖼</div><div class="vm-empty-title">No assets yet</div><div class="vm-empty-sub">Create your first vault asset above</div></div>';
+                return;
+            }
+            grid.innerHTML = assets.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).map(a => vmAssetCard(a, 'library')).join('');
         }
 
         function vmRenderDefaults() {
             const grid = document.getElementById('vmDefaultsGrid');
             grid.innerHTML = '<div class="vm-empty"><div class="loading-spinner" style="width:32px;height:32px;margin:0 auto 12px;"></div><div class="vm-empty-title">Loading…</div></div>';
+            
+            // Try cache first
+            const cached = loadFromCache('defaults');
+            if (cached) {
+                renderDefaultsGrid(cached);
+            }
+            
             vmRef('defaults').limitToFirst(20).once('value').then(s => {
                 const assets = Object.values(s.val() || {});
-                if (!assets.length) {
-                    grid.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◇</div><div class="vm-empty-title">No defaults set</div><div class="vm-empty-sub">Mark assets as "Global Default" when creating them</div></div>';
-                    return;
-                }
-                grid.innerHTML = assets.map(a => vmAssetCard(a, 'defaults')).join('');
-            });
+                saveToCache('defaults', assets);
+                renderDefaultsGrid(assets);
+            }).catch(() => {});
+        }
+
+        function renderDefaultsGrid(assets) {
+            const grid = document.getElementById('vmDefaultsGrid');
+            if (!assets.length) {
+                grid.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◇</div><div class="vm-empty-title">No defaults set</div><div class="vm-empty-sub">Mark assets as "Global Default" when creating them</div></div>';
+                return;
+            }
+            grid.innerHTML = assets.map(a => vmAssetCard(a, 'defaults')).join('');
         }
 
         // Asset card
@@ -2342,15 +2374,28 @@
         function vmLoadPOVGrid(uid) {
             const grid = document.getElementById('vmPOVGrid');
             grid.innerHTML = '<div class="vm-empty"><div class="loading-spinner" style="width:32px;height:32px;margin:0 auto 12px;"></div><div class="vm-empty-title">Loading…</div></div>';
+            
+            // Try cache first
+            const cached = loadFromCache('pov_' + uid);
+            if (cached) {
+                renderPOVGrid(uid, cached);
+            }
+            
             vmRef('clients/' + uid).limitToFirst(20).once('value').then(s => {
                 const assets = Object.values(s.val() || {});
-                document.getElementById('vmPOVSub').textContent = assets.length + ' vault item' + (assets.length!==1?'s':'');
-                if (!assets.length) {
-                    grid.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◇</div><div class="vm-empty-title">This client\'s vault is empty</div><div class="vm-empty-sub">Use Vault Library to add assets</div></div>';
-                    return;
-                }
-                grid.innerHTML = assets.map(a => vmAssetCard(a, 'pov')).join('');
-            });
+                saveToCache('pov_' + uid, assets);
+                renderPOVGrid(uid, assets);
+            }).catch(() => {});
+        }
+
+        function renderPOVGrid(uid, assets) {
+            const grid = document.getElementById('vmPOVGrid');
+            document.getElementById('vmPOVSub').textContent = assets.length + ' vault item' + (assets.length!==1?'s':'');
+            if (!assets.length) {
+                grid.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◇</div><div class="vm-empty-title">This client\'s vault is empty</div><div class="vm-empty-sub">Use Vault Library to add assets</div></div>';
+                return;
+            }
+            grid.innerHTML = assets.map(a => vmAssetCard(a, 'pov')).join('');
         }
 
         function vmLoadClientProjects(uid) {
