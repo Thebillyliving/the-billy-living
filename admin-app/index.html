@@ -1,4 +1,4 @@
-<!-- admin.html - Billy Living Admin Dashboard (FULLY FIXED with Progress Tracker Move Button) -->
+<!-- admin.html - Billy Living Admin Dashboard (FIXED with UID handling) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,6 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
+        /* Keep your existing CSS - it's the same */
         * {
             margin: 0;
             padding: 0;
@@ -1823,18 +1824,33 @@
         // Client list
         function vmLoadClientList() {
             const list = document.getElementById('vmClientList');
-            list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">Loading clients…</div></div>';
+            list.innerHTML = '<div class="vm-empty"><div class="loading-spinner" style="width:32px;height:32px;margin:0 auto 12px;"></div><div class="vm-empty-title">Loading clients…</div></div>';
             adminFbDB.ref('vip').limitToFirst(20).once('value').then(snap => {
-                const vips = Object.values(snap.val() || {});
-                if (!vips.length) {
+                const vips = snap.val();
+                if (!vips || Object.keys(vips).length === 0) {
                     list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">No VIP clients registered yet</div><div class="vm-empty-sub">Add clients in VIP Manager first</div></div>';
                     return;
                 }
-                list.innerHTML = vips.map(v => {
+                
+                // Convert to array and filter
+                const vipList = Object.entries(vips).map(([key, v]) => {
+                    return { ...v, key };
+                }).filter(v => v.status === 'active');
+                
+                if (vipList.length === 0) {
+                    list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">No active VIP clients</div><div class="vm-empty-sub">Activate clients in VIP Manager</div></div>';
+                    return;
+                }
+                
+                list.innerHTML = vipList.map(v => {
                     const name = v.name || 'Client';
                     const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-                    return `<div class="vm-client-item" onclick="vmOpenClientPOV('${v.id||v.phone}','${name}','${v.phone}')"><div class="vm-client-av">${initials}</div><div class="vm-client-info"><div class="vm-client-name">${name}</div><div class="vm-client-sub">+234 ${v.phone} · VIP</div></div><span class="vm-client-chevron">›</span></div>`;
+                    const uid = v.id || v.key;
+                    return `<div class="vm-client-item" onclick="vmOpenClientPOV('${uid}','${name}','${v.phone}')"><div class="vm-client-av">${initials}</div><div class="vm-client-info"><div class="vm-client-name">${name}</div><div class="vm-client-sub">+234 ${v.phone} · VIP</div></div><span class="vm-client-chevron">›</span></div>`;
                 }).join('');
+            }).catch(err => {
+                console.error('Error loading VIPs:', err);
+                list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">⚠️</div><div class="vm-empty-title">Error loading clients</div><div class="vm-empty-sub">' + err.message + '</div></div>';
             });
         }
 
@@ -1885,7 +1901,7 @@
         // Render library (main vault - NO PROGRESS TRACKER)
         function vmRenderLibrary() {
             const grid = document.getElementById('vmLibraryGrid');
-            grid.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">Loading…</div></div>';
+            grid.innerHTML = '<div class="vm-empty"><div class="loading-spinner" style="width:32px;height:32px;margin:0 auto 12px;"></div><div class="vm-empty-title">Loading…</div></div>';
             vmRef('assets').limitToFirst(20).once('value').then(s => {
                 const assets = Object.values(s.val() || {});
                 if (!assets.length) {
@@ -1898,7 +1914,7 @@
 
         function vmRenderDefaults() {
             const grid = document.getElementById('vmDefaultsGrid');
-            grid.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">Loading…</div></div>';
+            grid.innerHTML = '<div class="vm-empty"><div class="loading-spinner" style="width:32px;height:32px;margin:0 auto 12px;"></div><div class="vm-empty-title">Loading…</div></div>';
             vmRef('defaults').limitToFirst(20).once('value').then(s => {
                 const assets = Object.values(s.val() || {});
                 if (!assets.length) {
@@ -2003,7 +2019,7 @@
             }
             
             const list = document.getElementById('vmWorkflowList');
-            list.innerHTML = '<div style="text-align:center; padding:20px;">Loading projects...</div>';
+            list.innerHTML = '<div style="text-align:center; padding:20px;"><div class="loading-spinner" style="width:24px;height:24px;margin:0 auto 12px;"></div><div style="color:rgba(212,175,55,0.5);">Loading projects...</div></div>';
             
             const projectsRef = adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects');
             
@@ -2106,7 +2122,7 @@
             console.log('Loading workflows for project:', vmCurrentProjectId);
             
             const list = document.getElementById('vmWorkflowList');
-            list.innerHTML = '<div style="text-align:center; padding:20px;">Loading workflows...</div>';
+            list.innerHTML = '<div style="text-align:center; padding:20px;"><div class="loading-spinner" style="width:24px;height:24px;margin:0 auto 12px;"></div><div style="color:rgba(212,175,55,0.5);">Loading workflows...</div></div>';
             
             adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + vmCurrentProjectId + '/workflows').once('value')
                 .then(snapshot => {
@@ -2325,7 +2341,7 @@
 
         function vmLoadPOVGrid(uid) {
             const grid = document.getElementById('vmPOVGrid');
-            grid.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">Loading…</div></div>';
+            grid.innerHTML = '<div class="vm-empty"><div class="loading-spinner" style="width:32px;height:32px;margin:0 auto 12px;"></div><div class="vm-empty-title">Loading…</div></div>';
             vmRef('clients/' + uid).limitToFirst(20).once('value').then(s => {
                 const assets = Object.values(s.val() || {});
                 document.getElementById('vmPOVSub').textContent = assets.length + ' vault item' + (assets.length!==1?'s':'');
@@ -2366,7 +2382,7 @@
             vmCurrentProjectId = id;
             document.getElementById('vmProjectDetailTitle').textContent = name;
             vmShowView('project');
-            vmLoadWorkflows();
+            vmLoadWorkflowsForProject();
         }
 
         function vmToggleClientLibrary() {
@@ -2520,10 +2536,31 @@
         function renderCatalogList() { document.getElementById('catalogList').innerHTML = '<div class="empty-state">No catalog</div>'; }
         function renderTrendingList() { document.getElementById('trendingList').innerHTML = '<div class="empty-state">No trending</div>'; }
         function renderDesignersList() { document.getElementById('designersList').innerHTML = '<div class="empty-state">No designers</div>'; }
-        function renderVIPList() { document.getElementById('vipGrid').innerHTML = '<div class="empty-state">No VIPs</div>'; }
+        function renderVIPList() { 
+            adminFbDB.ref('vip').once('value').then(snap => {
+                const vips = snap.val() || {};
+                const grid = document.getElementById('vipGrid');
+                const vipArray = Object.entries(vips).map(([key, v]) => ({ ...v, key }));
+                grid.innerHTML = vipArray.map(v => `
+                    <div class="vip-card status-${v.status || 'active'}">
+                        <div class="vip-name">${v.name || 'Unknown'}</div>
+                        <div class="vip-phone">+234 ${v.phone}</div>
+                        <div class="vip-actions">
+                            <button class="vip-btn btn-success" onclick="approveVIP('${v.key}')">✓</button>
+                            <button class="vip-btn btn-danger" onclick="rejectVIP('${v.key}')">✗</button>
+                            <button class="vip-btn btn-secondary" onclick="resetVIPPassword('${v.key}')">↻</button>
+                            <button class="vip-btn btn-danger" onclick="deleteVIP('${v.key}')">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
+                document.getElementById('vipCount').textContent = `(${vipArray.length})`;
+            });
+        }
         function loadPortfolioUsers() { document.getElementById('portfolioUsersList').innerHTML = '<div class="empty-state">No portfolios</div>'; }
         function backToPortfolioUsers() { document.getElementById('portfolioClientView').style.display = 'none'; document.getElementById('portfolioUsersView').style.display = 'block'; }
         function openClientPortfolio() {}
+        
+        // FIXED: Updated addVIP function with automatic UID lookup
         function addVIP() {
             const phone = document.getElementById('vipPhone').value.trim();
             const code = document.getElementById('vipCode').value.trim();
@@ -2534,29 +2571,78 @@
                 return;
             }
 
-            const vipData = {
-                name: name,
-                phone: phone,
-                password: code,
-                status: 'active',
-                createdAt: Date.now(),
-                id: null // Will be populated with Firebase UID on first client login
-            };
+            // Show loading state
+            const btn = document.querySelector('#panel-vip .btn-primary');
+            const originalText = btn.textContent;
+            btn.textContent = 'ADDING...';
+            btn.disabled = true;
 
-            adminFbDB.ref('vip/' + phone).set(vipData)
+            // Try to find the user by phone number in userProfiles
+            adminFbDB.ref('userProfiles').orderByChild('mobile').equalTo(phone).once('value')
+                .then(snapshot => {
+                    let userId = null;
+                    
+                    // Check if we found a user with this phone number
+                    if (snapshot.exists()) {
+                        // Get the first matching user's UID
+                        const users = snapshot.val();
+                        userId = Object.keys(users)[0];
+                        console.log('✅ Found user with UID:', userId);
+                    }
+
+                    const vipData = {
+                        name: name,
+                        phone: phone,
+                        password: code,
+                        status: 'active',
+                        createdAt: Date.now(),
+                        id: userId
+                    };
+
+                    return adminFbDB.ref('vip/' + phone).set(vipData);
+                })
                 .then(() => {
                     showToast('✓ VIP added successfully');
                     document.getElementById('vipPhone').value = '';
                     document.getElementById('vipCode').value = '';
                     document.getElementById('vipName').value = '';
                     renderVIPList();
+                    vmLoadClientList(); // Refresh vault client list
                 })
-                .catch(err => showToast('Error: ' + err.message));
+                .catch(err => {
+                    console.error('Error adding VIP:', err);
+                    showToast('Error: ' + err.message);
+                })
+                .finally(() => {
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                });
         }
-        function approveVIP() {}
-        function rejectVIP() {}
-        function resetVIPPassword() {}
-        function deleteVIP() {}
+        
+        function approveVIP(phone) {
+            adminFbDB.ref('vip/' + phone + '/status').set('active').then(() => renderVIPList());
+        }
+        
+        function rejectVIP(phone) {
+            adminFbDB.ref('vip/' + phone + '/status').set('rejected').then(() => renderVIPList());
+        }
+        
+        function resetVIPPassword(phone) {
+            const newCode = prompt('Enter new 4-digit code for this VIP:');
+            if (newCode && newCode.length === 4) {
+                adminFbDB.ref('vip/' + phone + '/password').set(newCode).then(() => {
+                    showToast('Password reset');
+                    renderVIPList();
+                });
+            }
+        }
+        
+        function deleteVIP(phone) {
+            if (confirm('Delete this VIP permanently?')) {
+                adminFbDB.ref('vip/' + phone).remove().then(() => renderVIPList());
+            }
+        }
+        
         function openForm(t) { document.getElementById('formModal').classList.add('active'); document.getElementById('formTitle').textContent = 'Add ' + t; }
         function closeForm() { document.getElementById('formModal').classList.remove('active'); }
         function submitForm() { closeForm(); showToast('Saved'); }
@@ -2820,6 +2906,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             adminFbAuth.signInAnonymously().catch(() => {});
             showPanel('dashboard', document.querySelector('.nav-item.active'));
+            renderVIPList();
         });
     </script>
 </body>
