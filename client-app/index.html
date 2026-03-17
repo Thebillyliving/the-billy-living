@@ -1078,12 +1078,15 @@ function handleAuthState(user) {
   }
 }
 
+// FIXED: SINGLE hideGatekeeper FUNCTION (removed duplicate)
 function hideGatekeeper() {
   const gatekeeper = document.getElementById('gatekeeper');
   if (gatekeeper) {
     gatekeeper.classList.add('hidden');
     setSafeTimeout(() => { 
-      gatekeeper.style.display = 'none'; 
+      if (gatekeeper) {
+        gatekeeper.style.display = 'none'; 
+      }
     }, 600);
   }
 }
@@ -1092,15 +1095,6 @@ function hideGatekeeper() {
 initializeApp();
 
 // ─── GATEKEEPER ──────────────────────────────────────────────────────────────
-function hideGatekeeper() {
-  document.getElementById('gatekeeper').classList.add('hidden');
-  setSafeTimeout(() => { 
-    if (document.getElementById('gatekeeper')) {
-      document.getElementById('gatekeeper').style.display = 'none'; 
-    }
-  }, 600);
-}
-
 function switchGateTab(tab, el) {
   document.querySelectorAll('.gate-tab').forEach(t => t.classList.remove('active'));
   if(el) el.classList.add("active");
@@ -1108,6 +1102,7 @@ function switchGateTab(tab, el) {
   document.getElementById('gateSignup').style.display = tab === 'signup' ? 'block' : 'none';
 }
 
+// FIXED: Complete gateAuthError with all error codes
 function gateAuthError(code, context) {
   const map = {
     'auth/user-not-found':        'No account found with this email. Please create an account.',
@@ -1122,14 +1117,21 @@ function gateAuthError(code, context) {
     'auth/operation-not-allowed': 'Sign-in is currently unavailable. Please try again later.',
     'auth/requires-recent-login': 'Session expired. Please sign in again.',
     'auth/popup-closed-by-user':  'Sign-in was cancelled. Please try again.',
-    'auth/cancelled-popup-request': 'Sign-in was cancelled. Please try again.',
-    'auth/internal-error':        'Something went wrong on our end. Please try again.',
-    'auth/timeout':               'The request timed out. Please check your connection and try again.',
-    'auth/app-not-authorized':    'This app is not authorised. Please contact support.',
+    'auth/internal-error':        'Something went wrong. Please try again.',
+    'auth/timeout':               'Request timed out. Please check your connection.',
+    'auth/missing-password':      'Please enter your password.',
+    'auth/missing-email':         'Please enter your email address.',
+    'auth/invalid-password':      'Invalid password format.',
+    'auth/user-token-expired':    'Your session expired. Please sign in again.',
+    'auth/web-storage-unsupported': 'Your browser blocks required storage. Enable cookies.',
+    'auth/invalid-api-key':       'Configuration error. Please contact support.',
+    'auth/app-not-authorized':    'This app is not authorized.',
+    'unknown':                    'An unexpected error occurred. Please try again.',
+    '':                           'Authentication failed. Please check your details and try again.'
   };
-  return map[code] || (context === 'login'
-    ? `Sign in failed (${code || 'unknown error'}). Please check your details and try again.`
-    : `Account creation failed (${code || 'unknown error'}). Please check your details and try again.`);
+  
+  // Return mapped error or generic fallback
+  return map[code] || map['unknown'];
 }
 
 function showGateError(id, msg) {
@@ -1147,7 +1149,14 @@ function clearGateError(id) {
 
 // ─── FIXED: ROBUST LOGIN HANDLER ─────────────────────────────────────────────
 async function handleLogin() {
+  console.log('handleLogin called');
+  
   const btn = document.getElementById('loginBtn');
+  if (!btn) {
+    console.error('loginBtn not found!');
+    return;
+  }
+  
   const email = document.getElementById('loginEmail').value.trim();
   const pw = document.getElementById('loginPassword').value;
   
@@ -1187,11 +1196,22 @@ async function handleLogin() {
   }
 }
 
+// FIXED: Enhanced handleSignup with better debugging
 async function handleSignup() {
+  console.log('handleSignup called');
+  
   const btn = document.getElementById('signupBtn');
-  const name  = document.getElementById('signupName').value.trim();
-  const email = document.getElementById('signupEmail').value.trim();
-  const pw    = document.getElementById('signupPassword').value;
+  if (!btn) {
+    console.error('signupBtn not found!');
+    return;
+  }
+  
+  const name  = document.getElementById('signupName')?.value.trim() || '';
+  const email = document.getElementById('signupEmail')?.value.trim() || '';
+  const pw    = document.getElementById('signupPassword')?.value || '';
+  
+  console.log('Signup values:', { name, email, hasPassword: !!pw });
+  
   clearGateError('signupError');
   
   // Validate email format immediately
@@ -1205,16 +1225,27 @@ async function handleSignup() {
   if (!pw)           { showGateError('signupError', 'Please enter a password.'); return; }
   if (pw.length < 6) { showGateError('signupError', 'Password must be at least 6 characters.'); return; }
   
-  btn.disabled = true; btn.textContent = 'Creating…';
+  // UI State
+  const originalText = btn.textContent;
+  btn.disabled = true; 
+  btn.textContent = 'Creating…';
+  
   try {
-    pendingSignupName = name; pendingSignupEmail = email; pendingSignupPw = pw;
+    pendingSignupName = name; 
+    pendingSignupEmail = email; 
+    pendingSignupPw = pw;
+    
     document.getElementById('gateStep1').style.display = 'none';
     document.getElementById('gateStep2').style.display = 'block';
     document.getElementById('gateNameReveal').textContent = name.split(' ')[0];
-    btn.disabled = false; btn.textContent = 'Continue →';
+    
+    btn.disabled = false; 
+    btn.textContent = originalText;
   } catch(e) {
+    console.error('Signup error:', e);
     showGateError('signupError', gateAuthError(e.code || '', 'signup'));
-    btn.disabled = false; btn.textContent = 'Continue →';
+    btn.disabled = false; 
+    btn.textContent = originalText;
   }
 }
 
@@ -1234,42 +1265,82 @@ async function handleFinishSignup() {
   }
 }
 
-// ─── FIXED: ENTER KEY EVENT LISTENERS ────────────────────────────────────────
+// FIXED: ENTER KEY EVENT LISTENERS - comprehensive and only called after DOM ready
 function initLoginListeners() {
+  console.log('Initializing login listeners...');
+  
   const loginPassword = document.getElementById('loginPassword');
   const loginEmail = document.getElementById('loginEmail');
   const signupPassword = document.getElementById('signupPassword');
+  const signupEmail = document.getElementById('signupEmail');
+  const signupName = document.getElementById('signupName');
   
+  // Log what we found for debugging
+  console.log('Elements found:', {
+    loginPassword: !!loginPassword,
+    loginEmail: !!loginEmail,
+    signupPassword: !!signupPassword,
+    signupEmail: !!signupEmail,
+    signupName: !!signupName
+  });
+  
+  // Login form - Enter key on password field
   if (loginPassword) {
     loginPassword.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
+        console.log('Enter pressed on login password');
         handleLogin();
       }
     });
   }
   
+  // Login form - Enter key on email field
   if (loginEmail) {
     loginEmail.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
+        console.log('Enter pressed on login email');
         handleLogin();
       }
     });
   }
   
+  // Signup form - Enter key on password field
   if (signupPassword) {
     signupPassword.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
+        console.log('Enter pressed on signup password');
+        handleSignup();
+      }
+    });
+  }
+  
+  // Add Enter key on signup email field too
+  if (signupEmail) {
+    signupEmail.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        console.log('Enter pressed on signup email');
+        handleSignup();
+      }
+    });
+  }
+  
+  // Add Enter key on signup name field too
+  if (signupName) {
+    signupName.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        console.log('Enter pressed on signup name');
         handleSignup();
       }
     });
   }
 }
 
-// Call immediately AND on DOMContentLoaded
-initLoginListeners();
+// FIXED: Only call initLoginListeners after DOM is ready
 document.addEventListener('DOMContentLoaded', initLoginListeners);
 
 // Clean up on page unload
@@ -2570,6 +2641,8 @@ function openVaultAsset(asset) {
   descEl.style.cssText = 'font-size:14px;color:rgba(255,255,255,.5);line-height:1.7';
   descEl.textContent = safeDesc;
   content.appendChild(descEl);
+  
+  detail.appendChild(content);
 }
 
 function closeVaultAsset() { document.getElementById('vaultAssetDetail').style.display = 'none'; }
@@ -3262,7 +3335,7 @@ function displayWorkflowsUniversal(workflows, modal) {
   container.innerHTML = html;
 }
 
-// Make loadProjectsUniversal available globally
+// Make loadProjectsUniversal globally available
 window.loadProjectsUniversal = loadProjectsUniversal;
 
 // Add refresh button
