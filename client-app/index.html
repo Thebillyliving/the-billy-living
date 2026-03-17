@@ -29,7 +29,6 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 @keyframes gateShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-@keyframes splashAutoDismiss{0%{opacity:1;visibility:visible;pointer-events:auto}100%{opacity:0;visibility:hidden;pointer-events:none}}
 @keyframes splashPop{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
 @keyframes splashFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes vaultGlow{from{filter:drop-shadow(0 0 12px rgba(201,168,76,.25))}to{filter:drop-shadow(0 0 28px rgba(201,168,76,.6))}}
@@ -398,11 +397,48 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .dl-banner-close{background:none;border:none;color:rgba(168,155,140,.5);font-size:20px;cursor:pointer;padding:4px;flex-shrink:0;line-height:1}
 
 /* Splash Screen */
-#splashScreen{position:fixed;inset:0;background:#120D06;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .6s ease,visibility .6s ease;animation:splashAutoDismiss .7s ease 2.8s forwards}
-#splashScreen.hidden{opacity:0;visibility:hidden;pointer-events:none}
-.splash-logo{width:140px;height:140px;border-radius:28px;animation:splashPop .7s cubic-bezier(.22,1,.36,1) both}
-.splash-name{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;letter-spacing:7px;color:#C9A84C;text-transform:uppercase;text-align:center;animation:splashFadeUp .6s .3s ease both}
-.splash-tagline{font-family:'Jost',sans-serif;font-size:9px;letter-spacing:4px;color:rgba(201,168,76,.45);text-transform:uppercase;animation:splashFadeUp .6s .45s ease both}
+#splashScreen{
+  position:fixed;
+  inset:0;
+  background:#120D06;
+  z-index:99999;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:28px;
+  transition:opacity .6s ease,visibility .6s ease;
+  /* REMOVED: animation:splashAutoDismiss .7s ease 2.8s forwards */
+}
+#splashScreen.hidden{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+}
+.splash-logo{
+  width:140px;
+  height:140px;
+  border-radius:28px;
+  animation:splashPop .7s cubic-bezier(.22,1,.36,1) both
+}
+.splash-name{
+  font-family:'Cormorant Garamond',serif;
+  font-size:15px;
+  font-weight:600;
+  letter-spacing:7px;
+  color:#C9A84C;
+  text-transform:uppercase;
+  text-align:center;
+  animation:splashFadeUp .6s .3s ease both
+}
+.splash-tagline{
+  font-family:'Jost',sans-serif;
+  font-size:9px;
+  letter-spacing:4px;
+  color:rgba(201,168,76,.45);
+  text-transform:uppercase;
+  animation:splashFadeUp .6s .45s ease both
+}
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -862,6 +898,12 @@ let currentShareItem = null;
 let pendingSignupName = '', pendingSignupEmail = '', pendingSignupPw = '';
 let portfolioSelectionMode = false;
 
+// Splash screen state management
+let _authCheckPending = false;
+let _splashDismissed = false;
+let _initialAuthCheck = true;
+let _authRestored = false;
+
 // Timer management
 const _timeouts = [];
 function setSafeTimeout(fn, delay) {
@@ -937,6 +979,118 @@ function isValidImageSrc(src) {
 // Rate limiting for vault attempts (now with server-side validation backup)
 const _vaultAttempts = new Map(); // phone -> {count, timestamp} - client-side only as UI feedback
 
+// ─── FIXED: SET PERSISTENCE IMMEDIATELY ──────────────────────────────────────
+// This ensures auth state persists across sessions
+fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+  .then(() => {
+    console.log('Firebase persistence set to LOCAL');
+  })
+  .catch((error) => {
+    console.error('Failed to set persistence:', error);
+  });
+
+// ─── FIXED: SPLASH SCREEN & GATEKEEPER INITIALIZATION ────────────────────────
+function initializeApp() {
+  // Step 1: Ensure splash is visible
+  const splash = document.getElementById('splashScreen');
+  const gatekeeper = document.getElementById('gatekeeper');
+  
+  // Force splash visible, gatekeeper hidden initially
+  if (splash) {
+    splash.classList.remove('hidden');
+    splash.style.display = 'flex';
+  }
+  if (gatekeeper) {
+    gatekeeper.classList.add('hidden');
+    gatekeeper.style.display = 'none'; // Hide until splash completes
+  }
+  
+  // Step 2: Wait for splash animation to complete (3.5s total)
+  setSafeTimeout(() => {
+    _splashDismissed = true;
+    dismissSplashScreen();
+    checkAuthAndShowGatekeeper();
+  }, 3500); // Wait for splash animations to finish
+  
+  // Step 3: Set up auth listener but don't act on it yet
+  fbAuth.onAuthStateChanged(user => {
+    if (_splashDismissed) {
+      // Splash done, handle auth immediately
+      handleAuthState(user);
+    } else {
+      // Splash still showing, queue the auth state
+      _authCheckPending = user;
+    }
+  });
+}
+
+function dismissSplashScreen() {
+  const splash = document.getElementById('splashScreen');
+  if (splash) {
+    splash.classList.add('hidden');
+    setSafeTimeout(() => {
+      if (splash && splash.parentNode) splash.remove();
+    }, 700);
+  }
+}
+
+function checkAuthAndShowGatekeeper() {
+  const gatekeeper = document.getElementById('gatekeeper');
+  
+  // If we have a pending auth check from during splash
+  if (_authCheckPending !== false) {
+    handleAuthState(_authCheckPending);
+    _authCheckPending = false;
+  } else if (!currentUser) {
+    // No auth state yet, show gatekeeper
+    if (gatekeeper) {
+      gatekeeper.style.display = 'flex';
+      gatekeeper.classList.remove('hidden');
+    }
+  }
+}
+
+function handleAuthState(user) {
+  const gatekeeper = document.getElementById('gatekeeper');
+  
+  if (user) {
+    // User is logged in
+    currentUser = user;
+    hideGatekeeper();
+    loadUserProfile(user.uid);
+    loadHomeFeed();
+    loadCatalog();
+    
+    // Sync VIP status
+    fbDb.ref('userProfiles/' + user.uid + '/mobile').once('value')
+      .then(phoneSnap => {
+        const phone = phoneSnap.val();
+        if (phone) fbDb.ref('vip/' + phone + '/id').set(user.uid);
+      })
+      .catch(() => {});
+  } else {
+    // No user, show login
+    currentUser = null;
+    if (gatekeeper) {
+      gatekeeper.style.display = 'flex';
+      gatekeeper.classList.remove('hidden');
+    }
+  }
+}
+
+function hideGatekeeper() {
+  const gatekeeper = document.getElementById('gatekeeper');
+  if (gatekeeper) {
+    gatekeeper.classList.add('hidden');
+    setSafeTimeout(() => { 
+      gatekeeper.style.display = 'none'; 
+    }, 600);
+  }
+}
+
+// Start the app
+initializeApp();
+
 // ─── GATEKEEPER ──────────────────────────────────────────────────────────────
 function hideGatekeeper() {
   document.getElementById('gatekeeper').classList.add('hidden');
@@ -946,34 +1100,6 @@ function hideGatekeeper() {
     }
   }, 600);
 }
-
-const gatekeeperTimeout = setSafeTimeout(hideGatekeeper, 5000);
-
-fbAuth.onAuthStateChanged(user => {
-  clearAllTimeouts(); // Clear gatekeeper timeout
-  if (user) {
-    currentUser = user;
-    hideGatekeeper();
-    loadUserProfile(user.uid);
-    loadHomeFeed();
-    loadCatalog();
-    
-    // Use secure session storage instead of localStorage for sensitive data
-    // Sync UID into VIP record so admin-created projects resolve correctly
-    fbDb.ref('userProfiles/' + user.uid + '/mobile').once('value')
-      .then(phoneSnap => {
-        const phone = phoneSnap.val();
-        if (phone) fbDb.ref('vip/' + phone + '/id').set(user.uid);
-      })
-      .catch(() => {});
-  } else {
-    currentUser = null;
-    document.getElementById('gatekeeper').classList.remove('hidden');
-    document.getElementById('gatekeeper').style.display = 'flex';
-    // Clear any session storage
-    sessionStorage.removeItem('vaultSession');
-  }
-});
 
 function switchGateTab(tab, el) {
   document.querySelectorAll('.gate-tab').forEach(t => t.classList.remove('active'));
@@ -1019,21 +1145,45 @@ function clearGateError(id) {
   el.classList.remove('visible');
 }
 
+// ─── FIXED: ROBUST LOGIN HANDLER ─────────────────────────────────────────────
 async function handleLogin() {
   const btn = document.getElementById('loginBtn');
   const email = document.getElementById('loginEmail').value.trim();
-  const pw    = document.getElementById('loginPassword').value;
+  const pw = document.getElementById('loginPassword').value;
+  
   clearGateError('loginError');
-  if (!email && !pw) { showGateError('loginError', 'Please enter your email and password.'); return; }
-  if (!email)        { showGateError('loginError', 'Please enter your email address.'); return; }
-  if (!pw)           { showGateError('loginError', 'Please enter your password.'); return; }
-  btn.disabled = true; btn.textContent = 'Signing in…';
+  
+  // Validation
+  if (!email && !pw) { 
+    showGateError('loginError', 'Please enter your email and password.'); 
+    return; 
+  }
+  if (!email) { 
+    showGateError('loginError', 'Please enter your email address.'); 
+    return; 
+  }
+  if (!pw) { 
+    showGateError('loginError', 'Please enter your password.'); 
+    return; 
+  }
+  
+  // UI State - Disable button
+  const originalText = btn.textContent;
+  btn.disabled = true; 
+  btn.textContent = 'Signing in…';
+  
   try {
+    // Set persistence FIRST before any auth operation
     await fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-    await fbAuth.signInWithEmailAndPassword(email, pw);
+    const userCredential = await fbAuth.signInWithEmailAndPassword(email, pw);
+    // Success - onAuthStateChanged will handle UI transition
+    console.log('Login successful:', userCredential.user.uid);
   } catch(e) {
+    console.error('Login error:', e.code, e.message);
     showGateError('loginError', gateAuthError(e.code || '', 'login'));
-    btn.disabled = false; btn.textContent = 'Enter';
+    // ALWAYS re-enable button on error
+    btn.disabled = false; 
+    btn.textContent = originalText;
   }
 }
 
@@ -1043,17 +1193,25 @@ async function handleSignup() {
   const email = document.getElementById('signupEmail').value.trim();
   const pw    = document.getElementById('signupPassword').value;
   clearGateError('signupError');
+  
+  // Validate email format immediately
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { 
+    showGateError('signupError', 'Please enter a valid email address.'); 
+    return; 
+  }
+  
   if (!name)         { showGateError('signupError', 'Please enter your full name.'); return; }
   if (!email)        { showGateError('signupError', 'Please enter your email address.'); return; }
   if (!pw)           { showGateError('signupError', 'Please enter a password.'); return; }
   if (pw.length < 6) { showGateError('signupError', 'Password must be at least 6 characters.'); return; }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showGateError('signupError', 'Please enter a valid email address.'); return; }
+  
   btn.disabled = true; btn.textContent = 'Creating…';
   try {
     pendingSignupName = name; pendingSignupEmail = email; pendingSignupPw = pw;
     document.getElementById('gateStep1').style.display = 'none';
     document.getElementById('gateStep2').style.display = 'block';
     document.getElementById('gateNameReveal').textContent = name.split(' ')[0];
+    btn.disabled = false; btn.textContent = 'Continue →';
   } catch(e) {
     showGateError('signupError', gateAuthError(e.code || '', 'signup'));
     btn.disabled = false; btn.textContent = 'Continue →';
@@ -1076,22 +1234,43 @@ async function handleFinishSignup() {
   }
 }
 
-// Enter key triggers login/signup
-document.addEventListener('DOMContentLoaded', function() {
+// ─── FIXED: ENTER KEY EVENT LISTENERS ────────────────────────────────────────
+function initLoginListeners() {
   const loginPassword = document.getElementById('loginPassword');
   const loginEmail = document.getElementById('loginEmail');
   const signupPassword = document.getElementById('signupPassword');
   
-  if (loginPassword) loginPassword.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') handleLogin();
-  });
-  if (loginEmail) loginEmail.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') handleLogin();
-  });
-  if (signupPassword) signupPassword.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') handleSignup();
-  });
-});
+  if (loginPassword) {
+    loginPassword.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleLogin();
+      }
+    });
+  }
+  
+  if (loginEmail) {
+    loginEmail.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleLogin();
+      }
+    });
+  }
+  
+  if (signupPassword) {
+    signupPassword.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleSignup();
+      }
+    });
+  }
+}
+
+// Call immediately AND on DOMContentLoaded
+initLoginListeners();
+document.addEventListener('DOMContentLoaded', initLoginListeners);
 
 // Clean up on page unload
 window.addEventListener('beforeunload', function() {
@@ -2926,18 +3105,7 @@ function dismissBanner() {
 })();
 
 // ─── SPLASH DISMISS ──────────────────────────────────────────────────────────
-(function() {
-  let dismissed = false;
-  function dismissSplash() {
-    if (dismissed) return;
-    dismissed = true;
-    const s = document.getElementById('splashScreen');
-    if (s) s.classList.add('hidden');
-    setSafeTimeout(() => { if (s && s.parentNode) s.remove(); }, 700);
-  }
-  window.addEventListener('load', () => setSafeTimeout(dismissSplash, 1800));
-  setSafeTimeout(dismissSplash, 2800);
-})();
+// (Replaced by initializeApp function above)
 
 // ===========================================
 // PROGRESS TRACKER - STANDARDIZED PATH
