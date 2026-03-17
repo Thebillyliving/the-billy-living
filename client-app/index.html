@@ -16,7 +16,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="theme-color" content="#C9A84C" />
-<!-- Service worker will be registered only if file exists and with integrity check -->
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 :root{--bg-primary:#120D06;--bg-card:#1E160C;--bg-secondary:#2A1F14;--bg-navy:#060D18;--text-primary:#F5F0E8;--text-secondary:#A89B8C;--gold:#C9A84C;--gold-light:#E8D5A3;--gold-dark:#8B6914;--nav-height:80px}
@@ -32,6 +31,31 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 @keyframes splashPop{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
 @keyframes splashFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes vaultGlow{from{filter:drop-shadow(0 0 12px rgba(201,168,76,.25))}to{filter:drop-shadow(0 0 28px rgba(201,168,76,.6))}}
+
+/* FIX: Ensure gatekeeper is clickable */
+#gateStep1 {
+  position: relative;
+  z-index: 10000;
+}
+
+.gate-btn {
+  position: relative;
+  z-index: 10001;
+  pointer-events: auto !important;
+}
+
+#gatekeeper.hidden {
+  pointer-events: none;
+}
+
+#gatekeeper:not(.hidden) {
+  pointer-events: auto;
+}
+
+#splashScreen {
+  pointer-events: none; /* Prevent splash from blocking clicks */
+}
+
 .loading-spinner{width:24px;height:24px;border:2px solid rgba(201,168,76,.1);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite}
 #vaultGlint{pointer-events:none;position:fixed;inset:0;z-index:99999;overflow:hidden;display:none}
 #vaultGlint::after{content:'';position:absolute;top:0;left:0;width:40%;height:100%;background:linear-gradient(105deg,transparent 20%,rgba(201,168,76,.18) 50%,rgba(255,235,160,.12) 60%,transparent 80%);animation:vaultShimmer 1.1s ease forwards}
@@ -408,7 +432,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
   justify-content:center;
   gap:28px;
   transition:opacity .6s ease,visibility .6s ease;
-  /* REMOVED: animation:splashAutoDismiss .7s ease 2.8s forwards */
+  pointer-events:none; /* FIX: Prevent splash from blocking clicks */
 }
 #splashScreen.hidden{
   opacity:0;
@@ -473,14 +497,14 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     <div id="gateLogin">
       <div class="gate-input-group"><label class="gate-input-label">Email Address</label><input id="loginEmail" class="gate-input" type="email" placeholder="your@email.com" autocomplete="email" aria-label="Email address" maxlength="100" /></div>
       <div class="gate-input-group"><label class="gate-input-label">Password</label><input id="loginPassword" class="gate-input" type="password" placeholder="••••••••" autocomplete="current-password" aria-label="Password" maxlength="100" /></div>
-      <button class="gate-btn" id="loginBtn" onclick="handleLogin()">Enter</button>
+      <button type="button" class="gate-btn" id="loginBtn" onclick="handleLogin()">Enter</button>
       <div class="gate-error" id="loginError"></div>
     </div>
     <div id="gateSignup" style="display:none">
       <div class="gate-input-group"><label class="gate-input-label">Full Name</label><input id="signupName" class="gate-input" type="text" placeholder="Your full name" autocomplete="name" aria-label="Full name" maxlength="50" /></div>
       <div class="gate-input-group"><label class="gate-input-label">Email Address</label><input id="signupEmail" class="gate-input" type="email" placeholder="your@email.com" autocomplete="email" aria-label="Email address" maxlength="100" /></div>
       <div class="gate-input-group"><label class="gate-input-label">Password</label><input id="signupPassword" class="gate-input" type="password" placeholder="Min. 6 characters" autocomplete="new-password" aria-label="Password" maxlength="100" /></div>
-      <button class="gate-btn" id="signupBtn" onclick="handleSignup()">Continue →</button>
+      <button type="button" class="gate-btn" id="signupBtn" onclick="handleSignup()">Continue →</button>
       <div class="gate-error" id="signupError"></div>
     </div>
   </div>
@@ -999,10 +1023,12 @@ function initializeApp() {
   if (splash) {
     splash.classList.remove('hidden');
     splash.style.display = 'flex';
+    splash.style.pointerEvents = 'none'; // FIX: Make splash non-clickable
   }
   if (gatekeeper) {
     gatekeeper.classList.add('hidden');
     gatekeeper.style.display = 'none'; // Hide until splash completes
+    gatekeeper.style.pointerEvents = 'none';
   }
   
   // Step 2: Wait for splash animation to complete (3.5s total)
@@ -1010,6 +1036,15 @@ function initializeApp() {
     _splashDismissed = true;
     dismissSplashScreen();
     checkAuthAndShowGatekeeper();
+    
+    // FIX: Ensure gatekeeper is clickable after splash
+    setSafeTimeout(() => {
+      if (gatekeeper) {
+        gatekeeper.style.pointerEvents = 'auto';
+      }
+      // Re-attach listeners one more time
+      initLoginListeners();
+    }, 100);
   }, 3500); // Wait for splash animations to finish
   
   // Step 3: Set up auth listener but don't act on it yet
@@ -1028,6 +1063,7 @@ function dismissSplashScreen() {
   const splash = document.getElementById('splashScreen');
   if (splash) {
     splash.classList.add('hidden');
+    splash.style.pointerEvents = 'none'; // FIX: Prevent splash from blocking clicks
     setSafeTimeout(() => {
       if (splash && splash.parentNode) splash.remove();
     }, 700);
@@ -1046,6 +1082,7 @@ function checkAuthAndShowGatekeeper() {
     if (gatekeeper) {
       gatekeeper.style.display = 'flex';
       gatekeeper.classList.remove('hidden');
+      gatekeeper.style.pointerEvents = 'auto'; // FIX: Ensure clickable
     }
   }
 }
@@ -1074,6 +1111,7 @@ function handleAuthState(user) {
     if (gatekeeper) {
       gatekeeper.style.display = 'flex';
       gatekeeper.classList.remove('hidden');
+      gatekeeper.style.pointerEvents = 'auto'; // FIX: Ensure clickable
     }
   }
 }
@@ -1086,6 +1124,7 @@ function hideGatekeeper() {
     setSafeTimeout(() => { 
       if (gatekeeper) {
         gatekeeper.style.display = 'none'; 
+        gatekeeper.style.pointerEvents = 'none';
       }
     }, 600);
   }
@@ -1152,15 +1191,28 @@ async function handleLogin() {
   console.log('handleLogin called');
   
   const btn = document.getElementById('loginBtn');
+  const emailInput = document.getElementById('loginEmail');
+  const passwordInput = document.getElementById('loginPassword');
+  
   if (!btn) {
     console.error('loginBtn not found!');
     return;
   }
+  if (!emailInput || !passwordInput) {
+    console.error('Form inputs not found!');
+    showToast('Page not ready, please wait...');
+    return;
+  }
   
-  const email = document.getElementById('loginEmail').value.trim();
-  const pw = document.getElementById('loginPassword').value;
+  const email = emailInput.value.trim();
+  const pw = passwordInput.value;
   
-  clearGateError('loginError');
+  // Clear previous errors
+  const errorEl = document.getElementById('loginError');
+  if (errorEl) {
+    errorEl.textContent = '';
+    errorEl.classList.remove('visible');
+  }
   
   // Validation
   if (!email && !pw) { 
@@ -1265,79 +1317,97 @@ async function handleFinishSignup() {
   }
 }
 
-// FIXED: ENTER KEY EVENT LISTENERS - comprehensive and only called after DOM ready
+// FIXED: COMPLETELY REWRITTEN initLoginListeners WITH EVENT DELEGATION
 function initLoginListeners() {
   console.log('Initializing login listeners...');
   
-  const loginPassword = document.getElementById('loginPassword');
-  const loginEmail = document.getElementById('loginEmail');
-  const signupPassword = document.getElementById('signupPassword');
-  const signupEmail = document.getElementById('signupEmail');
-  const signupName = document.getElementById('signupName');
-  
-  // Log what we found for debugging
-  console.log('Elements found:', {
-    loginPassword: !!loginPassword,
-    loginEmail: !!loginEmail,
-    signupPassword: !!signupPassword,
-    signupEmail: !!signupEmail,
-    signupName: !!signupName
+  // Use event delegation on the document for dynamically available elements
+  document.addEventListener('click', function(e) {
+    const loginBtn = e.target.closest('#loginBtn');
+    if (loginBtn && !loginBtn.disabled) {
+      e.preventDefault();
+      console.log('Login button clicked via delegation');
+      handleLogin();
+    }
+    
+    const signupBtn = e.target.closest('#signupBtn');
+    if (signupBtn && !signupBtn.disabled) {
+      e.preventDefault();
+      console.log('Signup button clicked via delegation');
+      handleSignup();
+    }
   });
   
-  // Login form - Enter key on password field
-  if (loginPassword) {
-    loginPassword.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        console.log('Enter pressed on login password');
-        handleLogin();
-      }
+  // Also attach directly when elements are available
+  const attachListeners = () => {
+    const loginPassword = document.getElementById('loginPassword');
+    const loginEmail = document.getElementById('loginEmail');
+    const signupPassword = document.getElementById('signupPassword');
+    const signupEmail = document.getElementById('signupEmail');
+    const signupName = document.getElementById('signupName');
+    
+    console.log('Attaching listeners, found:', {
+      loginPassword: !!loginPassword,
+      loginEmail: !!loginEmail,
+      signupPassword: !!signupPassword,
+      signupEmail: !!signupEmail,
+      signupName: !!signupName
     });
-  }
+    
+    // Login form - Enter key handlers
+    if (loginPassword) {
+      loginPassword.onkeydown = function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleLogin();
+        }
+      };
+    }
+    
+    if (loginEmail) {
+      loginEmail.onkeydown = function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleLogin();
+        }
+      };
+    }
+    
+    // Signup form - Enter key handlers  
+    if (signupPassword) {
+      signupPassword.onkeydown = function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleSignup();
+        }
+      };
+    }
+    
+    if (signupEmail) {
+      signupEmail.onkeydown = function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleSignup();
+        }
+      };
+    }
+    
+    if (signupName) {
+      signupName.onkeydown = function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleSignup();
+        }
+      };
+    }
+  };
   
-  // Login form - Enter key on email field
-  if (loginEmail) {
-    loginEmail.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        console.log('Enter pressed on login email');
-        handleLogin();
-      }
-    });
-  }
+  // Try immediately
+  attachListeners();
   
-  // Signup form - Enter key on password field
-  if (signupPassword) {
-    signupPassword.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        console.log('Enter pressed on signup password');
-        handleSignup();
-      }
-    });
-  }
-  
-  // Add Enter key on signup email field too
-  if (signupEmail) {
-    signupEmail.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        console.log('Enter pressed on signup email');
-        handleSignup();
-      }
-    });
-  }
-  
-  // Add Enter key on signup name field too
-  if (signupName) {
-    signupName.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        console.log('Enter pressed on signup name');
-        handleSignup();
-      }
-    });
-  }
+  // Also try after splash screen dismisses
+  setTimeout(attachListeners, 3600);
+  setTimeout(attachListeners, 5000); // Double-check
 }
 
 // FIXED: Only call initLoginListeners after DOM is ready
@@ -1352,6 +1422,13 @@ window.addEventListener('beforeunload', function() {
     fbDb.ref(`chats/${currentUser.uid}/messages`).off('value', _conciergeListener);
   }
 });
+
+// Debug function to test button availability
+window.testLoginButton = function() {
+  console.log('Login button exists:', !!document.getElementById('loginBtn'));
+  console.log('Gatekeeper visible:', document.getElementById('gatekeeper').classList.contains('hidden') ? 'hidden' : 'visible');
+  console.log('Splash visible:', document.getElementById('splashScreen').classList.contains('hidden') ? 'hidden' : 'visible');
+};
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
 function showPage(pageId) {
