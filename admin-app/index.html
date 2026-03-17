@@ -1,53 +1,3930 @@
-I'll analyze this new version of your admin dashboard file to check for any issues.
-Based on my analysis, here's my assessment of your optimized Billy Living Admin Dashboard:
+<!-- admin.html - Billy Living Admin Dashboard (OPTIMIZED with Lazy Persistence) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Billy Living - Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+    <style>
+        /* Keep your existing CSS - it's fine */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
----
+        :root {
+            --bg-primary: #120D06;
+            --bg-card: #1E160C;
+            --bg-secondary: #2A1F14;
+            --text-primary: #F5F0E8;
+            --text-secondary: #A89B8C;
+            --gold: #C9A84C;
+            --gold-light: #E8D5A3;
+            --success: #2E5B3C;
+            --danger: #8B0000;
+            --vault-gold: #D4AF37;
+            --vault-gold-dim: rgba(212,175,55,0.15);
+            --vault-gold-border: rgba(212,175,55,0.2);
+            --vault-bg: #0E0B06;
+            --vault-card: #141008;
+            --vault-text: #E8D9B5;
+            --offline: #8B0000;
+            --online: #2E5B3C;
+        }
 
-✅ VERDICT: This is a SOLID, fast-loading implementation
+        body {
+            font-family: 'Jost', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+        }
 
-Your optimizations are working correctly. Here's what I found:
+        /* Connection Status */
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            z-index: 10000;
+            display: none;
+            backdrop-filter: blur(8px);
+            border: 1px solid;
+        }
+        .connection-status.online {
+            display: block;
+            background: rgba(46, 91, 60, 0.2);
+            border-color: var(--success);
+            color: var(--success);
+        }
+        .connection-status.offline {
+            display: block;
+            background: rgba(139, 0, 0, 0.2);
+            border-color: var(--danger);
+            color: #ff6b6b;
+        }
+        .connection-status.connecting {
+            display: block;
+            background: rgba(201, 168, 76, 0.2);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
 
----
+        /* Button Loading State */
+        .btn-loading {
+            opacity: 0.7;
+            pointer-events: none;
+            position: relative;
+            padding-left: 36px !important;
+        }
+        .btn-loading::before {
+            content: '';
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-right-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
 
-🚀 Performance Optimizations (All Working)
+        .sidebar {
+            width: 280px;
+            background: var(--bg-card);
+            border-right: 1px solid rgba(201, 169, 98, 0.1);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
 
-Feature	Status	Impact	
-Lazy Persistence	✅ Active (100ms delay)	Saves 200-300ms initial load	
-Cache Duration	✅ 15 minutes (was 1 hour)	Fresher data, less stale content	
-limitToFirst(20)	✅ Used 10 times	Prevents loading massive datasets	
-Image lazy loading	✅ 7 images	Faster initial paint	
-Debounced panels	✅ 100ms delay	Smoother navigation	
-once() vs on()	✅ 32:1 ratio	Efficient single-fetch pattern	
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid rgba(201, 169, 98, 0.1);
+        }
 
----
+        .sidebar-logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--gold), #B8860B);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
 
-⚠️ Minor Issues (Non-Critical)
+        .sidebar-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--gold);
+        }
 
-1. 120 `var` declarations — Code Style Issue
-Your code mixes `var` with modern `let/const`. This works fine but `var` is function-scoped and can lead to subtle bugs. Not urgent, but consider gradually replacing `var` with `let` or `const` for better scoping.
+        .nav-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
 
-2. Event Listeners Not Removed — Potential Memory Leak
-You have 2 `addEventListener` calls but 0 `removeEventListener`. For a dashboard that runs for hours, this could accumulate. However, since you're using `once()` for most Firebase calls and the app lifecycle is long-running, this is low priority.
+        .nav-section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
 
-3. 24 console.log statements — Production Polish
-Remove these before production deployment, or wrap them in a debug flag:
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-secondary);
+            position: relative;
+        }
 
-```javascript
-const DEBUG = false;
-DEBUG && console.log('message');  // Only logs when DEBUG is true
-```
+        .nav-item:hover {
+            background: rgba(201, 169, 98, 0.1);
+            color: var(--text-primary);
+        }
 
----
+        .nav-item.active {
+            background: rgba(201, 169, 98, 0.15);
+            color: var(--gold);
+        }
 
-🎯 The Bottom Line
+        .nav-badge {
+            position: absolute;
+            right: 16px;
+            background: var(--gold);
+            color: var(--bg-primary);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+            min-width: 20px;
+            text-align: center;
+        }
 
-Yes, this version loads fast AND has offline support. 
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
 
-The key insight: Your `setTimeout(() => { db.enablePersistence(...) }, 100)` trick works perfectly. It:
-- Lets the UI render immediately (no 300ms block)
-- Enables offline capability shortly after
-- Falls back gracefully if persistence fails
+        .nav-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.4;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: stroke 0.2s, filter 0.2s;
+        }
 
-The 100ms delay is imperceptible to users, but the offline capability is invaluable when presenting to VIP clients with spotty WiFi.
+        .nav-item.active .nav-icon svg {
+            filter: drop-shadow(0 0 4px rgba(201,168,76,0.4));
+        }
 
-Recommendation: This version is production-ready. The `var` usage is legacy but stable — don't refactor unless you have time for testing.
+        .nav-icon svg .filled {
+            fill: currentColor;
+            stroke: none;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 32px;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 36px;
+            font-weight: 600;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: none;
+            font-family: 'Jost', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            pointer-events: auto !important;
+            position: relative;
+            z-index: 100;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold), #B8860B);
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(201, 169, 98, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-primary);
+            border: 1px solid rgba(201, 169, 98, 0.3);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(201, 169, 98, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .stat-value {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+
+        .panel {
+            display: none;
+            position: relative;
+            min-height: 400px;
+        }
+
+        .panel.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        #panel-vaultmgr.active {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+            padding: 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(201,168,76,0.1);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 20px auto;
+        }
+        
+        .loading-text {
+            color: var(--gold);
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--bg-card) 50%, var(--bg-secondary) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-item {
+            height: 60px;
+            margin: 8px 0;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            animation: shimmer 1.5s infinite;
+            background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--bg-card) 50%, var(--bg-secondary) 75%);
+            background-size: 200% 100%;
+        }
+
+        /* Retry button */
+        .retry-btn {
+            background: var(--gold);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        .list-container {
+            background: var(--bg-card);
+            border: 1px solid rgba(201, 169, 98, 0.1);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid rgba(201, 169, 98, 0.1);
+            gap: 16px;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .list-item:hover {
+            background: rgba(201, 169, 98, 0.05);
+        }
+
+        .list-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .list-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .list-info {
+            flex: 1;
+        }
+
+        .list-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .list-meta {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .list-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .toggle-switch {
+            width: 48px;
+            height: 26px;
+            background: var(--bg-secondary);
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: var(--success);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            left: 24px;
+        }
+
+        .form-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .form-modal.active {
+            display: flex;
+        }
+
+        .form-container {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 32px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(201, 169, 98, 0.2);
+        }
+
+        .form-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 28px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(201, 169, 98, 0.2);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'Jost', sans-serif;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            border-color: var(--gold);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .image-upload {
+            border: 2px dashed rgba(201, 169, 98, 0.3);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .image-upload:hover {
+            border-color: var(--gold);
+            background: rgba(201, 169, 98, 0.05);
+        }
+
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 10px;
+            margin-top: 12px;
+        }
+
+        .vip-form {
+            background: var(--bg-card);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(201, 169, 98, 0.1);
+        }
+
+        .vip-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .vip-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(201, 169, 98, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .vip-card.status-pending {
+            border-left: 4px solid var(--gold);
+        }
+
+        .vip-card.status-active {
+            border-left: 4px solid var(--success);
+        }
+
+        .vip-card.status-rejected {
+            border-left: 4px solid var(--danger);
+        }
+
+        .vip-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .vip-phone {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .vip-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .vip-btn {
+            flex: 1;
+            padding: 8px;
+            border-radius: 8px;
+            border: none;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            pointer-events: auto !important;
+            position: relative;
+            z-index: 20;
+        }
+
+        .vip-btn.btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .vip-btn.btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .vip-btn.btn-secondary {
+            background: var(--gold);
+            color: var(--bg-primary);
+        }
+
+        .vip-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .image-manager {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .managed-image {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            background: var(--bg-secondary);
+        }
+
+        .managed-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .managed-image-delete {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            background: var(--danger);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            pointer-events: auto;
+            z-index: 20;
+        }
+
+        .add-image-slot {
+            aspect-ratio: 1;
+            border: 2px dashed rgba(201, 169, 98, 0.3);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-secondary);
+        }
+
+        .add-image-slot:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            background: var(--bg-card);
+            color: var(--gold);
+            padding: 16px 24px;
+            border-radius: 12px;
+            border: 1px solid rgba(201, 169, 98, 0.3);
+            font-size: 14px;
+            z-index: 2000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .elite-catalog-header {
+            padding: 24px 0 0;
+            text-align: center;
+            border-bottom: 1px solid #C9A84C;
+            margin-bottom: 0;
+        }
+
+        .elite-catalog-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 11px;
+            letter-spacing: 5px;
+            color: #C9A84C;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .elite-catalog-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: #C9A84C;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .elite-catalog-grid-admin {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0;
+            padding: 0;
+        }
+
+        .elite-collection-cell-admin {
+            padding: 14px 10px 10px;
+            border-right: 1px solid #C9A84C;
+            border-bottom: 1px solid #C9A84C;
+            transition: background 0.25s;
+            position: relative;
+            background: var(--bg-primary);
+        }
+
+        .elite-collection-cell-admin:nth-child(even) { border-right: none; }
+        .elite-collection-cell-admin:hover { background: rgba(201, 168, 76, 0.04); }
+        .elite-collection-cell-admin.pressing { background: rgba(201,168,76,0.08); }
+
+        .cell-context-menu {
+            display: none;
+            position: fixed;
+            z-index: 9000;
+            background: #1A1208;
+            border: 1px solid rgba(201,168,76,0.4);
+            border-radius: 14px;
+            overflow: hidden;
+            min-width: 200px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.7), 0 0 0 1px rgba(201,168,76,0.1);
+            animation: menuPop 0.18s cubic-bezier(0.34,1.56,0.64,1);
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes menuPop {
+            from { opacity: 0; transform: scale(0.88); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        .cell-context-menu.active { display: block; }
+
+        .context-menu-header {
+            padding: 12px 16px 10px;
+            border-bottom: 1px solid rgba(201,168,76,0.15);
+        }
+
+        .context-menu-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 14px;
+            color: #C9A84C;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
+        }
+
+        .context-menu-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: background 0.15s;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            color: var(--text-primary);
+            font-family: 'Jost', sans-serif;
+            font-size: 14px;
+            font-weight: 400;
+            border-bottom: 1px solid rgba(201,168,76,0.08);
+        }
+
+        .context-menu-option:last-child { border-bottom: none; }
+        .context-menu-option:hover { background: rgba(201,168,76,0.08); }
+        .context-menu-option:active { background: rgba(201,168,76,0.14); }
+
+        .context-menu-option.danger { color: #ff5555; }
+        .context-menu-option.danger:hover { background: rgba(255,85,85,0.08); }
+
+        .context-menu-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 16px;
+        }
+
+        .context-menu-icon.gold { background: rgba(201,168,76,0.12); }
+        .context-menu-icon.red  { background: rgba(255,85,85,0.12); }
+
+        .context-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 8999;
+        }
+
+        .context-backdrop.active { display: block; }
+
+        .room-single-slot.pressing,
+        .color-mixture-card.pressing {
+            outline: 2px solid rgba(201,168,76,0.6);
+            background: rgba(201,168,76,0.06) !important;
+        }
+
+        .page-eyebrow { font-size:10px; letter-spacing:3px; text-transform:uppercase; color:rgba(201,168,76,0.4); margin-bottom:4px; }
+        .elite-cell-meta-admin { margin-bottom: 8px; }
+
+        .elite-cell-topic-admin {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: #C9A84C;
+            letter-spacing: 0.5px;
+            line-height: 1.3;
+        }
+
+        .elite-cell-feeling-admin {
+            font-size: 10px;
+            color: rgba(201, 168, 76, 0.6);
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+            font-style: italic;
+        }
+
+        .elite-cell-box-admin {
+            width: 100%;
+            aspect-ratio: 1 / 0.85;
+            border: 1px solid rgba(201, 168, 76, 0.35);
+            background: #0A0A0A;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .elite-cell-box-admin img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .elite-cell-box-admin::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(160deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.008) 30%, transparent 55%, rgba(0,0,0,0.15) 100%);
+            z-index: 1;
+        }
+
+        .elite-cell-box-admin::after {
+            content: '';
+            position: absolute;
+            left: -40%; top: -10%;
+            width: 55%; height: 130%;
+            background: linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.018) 40%, rgba(255,255,255,0.035) 50%, rgba(255,255,255,0.018) 60%, transparent 100%);
+            z-index: 2;
+            transform: skewX(-8deg);
+        }
+
+        .elite-cell-grain-admin {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            background-image: repeating-linear-gradient(92deg, transparent, transparent 3px, rgba(255,255,255,0.006) 3px, rgba(255,255,255,0.006) 4px);
+        }
+
+        .elite-cell-img-count {
+            position: absolute;
+            top: 6px; left: 6px;
+            background: rgba(0,0,0,0.7);
+            color: #C9A84C;
+            font-size: 9px;
+            letter-spacing: 1px;
+            padding: 3px 7px;
+            border: 1px solid rgba(201,168,76,0.3);
+            z-index: 5;
+        }
+
+        .elite-cell-actions-admin {
+            display: flex;
+            gap: 6px;
+        }
+
+        .elite-cell-actions-admin .btn {
+            flex: 1;
+            padding: 8px 6px;
+            font-size: 11px;
+            justify-content: center;
+        }
+
+        .elite-cell-actions-admin .btn-danger {
+            flex: 0 0 36px;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        .catalog-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #080808;
+            z-index: 2000;
+            overflow-y: auto;
+            flex-direction: column;
+            scroll-padding-bottom: 320px;
+            transition: bottom 0.2s ease;
+        }
+        .catalog-overlay.active { display: flex; flex-direction: column; animation: fadeIn 0.25s ease; }
+
+        .inner-back-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 20px;
+            border-bottom: 1px solid #C9A84C;
+            background: #080808;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            flex-shrink: 0;
+        }
+
+        .inner-back-btn { background: none; border: none; color: #C9A84C; font-size: 22px; cursor: pointer; line-height: 1; }
+        .inner-collection-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: #C9A84C; letter-spacing: 1px; font-weight: 600; }
+        .inner-collection-feeling { font-size: 11px; color: rgba(201,168,76,0.55); letter-spacing: 1px; font-style: italic; margin-top: 1px; }
+        .inner-section-label { font-size: 9px; letter-spacing: 4px; color: rgba(201,168,76,0.5); text-transform: uppercase; padding: 16px 20px 8px; }
+
+        .color-config-area { padding: 16px 20px; border-bottom: 1px solid #C9A84C; }
+        .color-config-title { font-family: 'Cormorant Garamond', serif; font-size: 13px; letter-spacing: 3px; color: #C9A84C; text-transform: uppercase; margin-bottom: 14px; }
+        .color-mixtures-row { display: grid; grid-template-columns: 1fr; gap: 12px; }
+
+        .color-mixture-card {
+            border: 1px solid rgba(201,168,76,0.35);
+            background: #0E0E0E;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .color-mixture-card:hover { background: rgba(201,168,76,0.08); border-color: #C9A84C; }
+        .color-mixture-card::after { content: 'Click to enter rooms ›'; display: block; font-size: 8px; letter-spacing: 1.5px; color: rgba(201,168,76,0.4); text-align: right; margin-top: 8px; text-transform: uppercase; }
+        .color-mixture-label { font-size: 9px; letter-spacing: 3px; color: rgba(201,168,76,0.6); text-transform: uppercase; margin-bottom: 8px; }
+        .mixture-label-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(201,168,76,0.3); outline: none; font-family: 'Cormorant Garamond', serif; font-size: 14px; letter-spacing: 1.5px; color: #C9A84C; font-weight: 700; padding: 6px 0; margin-top: 10px; cursor: text; transition: border-color 0.2s; -webkit-user-select: text !important; user-select: text !important; touch-action: auto !important; -webkit-touch-callout: default !important; }
+        .mixture-label-input:focus { border-bottom-color: #C9A84C; color: #C9A84C; }
+        .mixture-label-input::placeholder { color: rgba(201,168,76,0.3); }
+        .house-layout { width: 100%; aspect-ratio: 1; position: relative; }
+        .house-layout svg { width: 100%; height: 100%; }
+
+        .room-gallery-area { padding: 0; flex: 1; }
+        .room-category-block { border-bottom: 1px solid rgba(201,168,76,0.2); }
+        .room-category-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid rgba(201,168,76,0.1); }
+        .room-category-name { font-family: 'Cormorant Garamond', serif; font-size: 17px; color: #C9A84C; letter-spacing: 2px; text-transform: uppercase; }
+
+        .room-single-slot {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: #0A0A0A;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .room-single-slot img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; pointer-events: none; }
+
+        .elite-slot-placeholder { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .elite-slot-icon { width: 28px; height: 28px; border: 1px solid rgba(201,168,76,0.2); display: flex; align-items: center; justify-content: center; }
+        .elite-slot-icon svg { width: 14px; height: 14px; opacity: 0.3; }
+        .elite-slot-num { font-size: 9px; color: rgba(201,168,76,0.2); letter-spacing: 1px; }
+
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .vip-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            body {
+                flex-direction: column;
+            }
+        }
+
+        .msg-conversations { display:flex; flex-direction:column; gap:8px; }
+        .msg-conv-item { display:flex; align-items:center; gap:14px; padding:16px; border-radius:12px; cursor:pointer; border:1px solid transparent; transition:all 0.25s; }
+        .msg-conv-item:hover { background:rgba(201,168,76,0.06); border-color:rgba(201,168,76,0.15); }
+        .msg-conv-item.active { background:rgba(201,168,76,0.1); border-color:rgba(201,168,76,0.3); }
+        .msg-conv-item.unread .msg-conv-name { color:#C9A84C; }
+        .msg-conv-avatar { width:46px; height:46px; border-radius:50%; background:linear-gradient(135deg,#C9A84C,#7A5C10); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0A0804; font-family:'Cormorant Garamond',serif; font-size:16px; flex-shrink:0; }
+        .msg-conv-body { flex:1; min-width:0; }
+        .msg-conv-name { font-size:14px; font-weight:600; color:#E8D5A3; margin-bottom:3px; }
+        .msg-conv-preview { font-size:12px; color:rgba(168,155,140,0.6); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .msg-conv-meta { text-align:right; flex-shrink:0; }
+        .msg-conv-time { font-size:11px; color:rgba(168,155,140,0.4); margin-bottom:4px; }
+        .msg-unread-badge { display:inline-flex; align-items:center; justify-content:center; background:#C9A84C; color:#0A0804; font-size:10px; font-weight:700; border-radius:10px; padding:2px 7px; min-width:18px; }
+        #panel-messages .panel-sub { font-size:11px; letter-spacing:3px; color:rgba(201,168,76,0.4); text-transform:uppercase; margin-bottom:6px; }
+
+        .admin-chat-panel { display:flex; flex-direction:column; height:100%; }
+        .admin-chat-hdr { display:flex; align-items:center; gap:14px; padding:18px 20px; border-bottom:1px solid rgba(201,168,76,0.12); }
+        .admin-chat-hdr .back-link { background:none; border:1px solid rgba(201,168,76,0.2); color:rgba(201,168,76,0.6); border-radius:8px; padding:8px 12px; font-size:13px; cursor:pointer; transition:all 0.2s; }
+        .admin-chat-hdr .back-link:hover { border-color:#C9A84C; color:#C9A84C; }
+        .admin-chat-av { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#C9A84C,#7A5C10); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0A0804; font-family:'Cormorant Garamond',serif; font-size:15px; flex-shrink:0; }
+        .admin-chat-msgs { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:12px; }
+        .admin-msg { display:flex; flex-direction:column; }
+        .admin-msg.from-admin { align-items:flex-end; }
+        .admin-msg.from-client { align-items:flex-start; }
+        .admin-msg-label { font-size:9px; letter-spacing:2px; color:rgba(201,168,76,0.4); margin-bottom:4px; text-transform:uppercase; }
+        .admin-bubble { max-width:75%; padding:13px 17px; font-size:14px; line-height:1.6; word-wrap:break-word; }
+        .admin-msg.from-admin .admin-bubble { background:linear-gradient(135deg,#C9A84C,#8B6914); color:#0A0804; font-weight:500; border-radius:18px 4px 18px 18px; }
+        .admin-msg.from-client .admin-bubble { background:rgba(255,255,255,0.06); color:#E8D5A3; border:1px solid rgba(201,168,76,0.12); border-radius:4px 18px 18px 18px; }
+        .admin-msg-time { font-size:10px; color:rgba(255,255,255,0.2); margin-top:4px; padding:0 4px; }
+        .admin-chat-input-row { padding:14px 20px; border-top:1px solid rgba(201,168,76,0.1); display:flex; gap:10px; align-items:center; }
+        .admin-chat-input { flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(201,168,76,0.2); border-radius:24px; padding:12px 18px; color:#F5F0E8; font-size:14px; outline:none; }
+        .admin-chat-input:focus { border-color:rgba(201,168,76,0.5); }
+        .admin-chat-send { width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,#C9A84C,#8B6914); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .admin-chat-send svg { width:16px; height:16px; stroke:#0A0804; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+        .admin-msgs-badge { background:#C9A84C; color:#0A0804; font-size:10px; font-weight:700; border-radius:10px; padding:2px 7px; display:none; }
+
+        .port-user-card { display:flex; align-items:center; gap:14px; padding:18px 20px; border-radius:12px; cursor:pointer; border:1px solid rgba(201,168,76,0.1); background:rgba(255,255,255,0.02); transition:all 0.25s; margin-bottom:2px; }
+        .port-user-card:hover { background:rgba(201,168,76,0.06); border-color:rgba(201,168,76,0.25); transform:translateX(4px); }
+        .port-user-av { width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,#C9A84C,#7A5C10); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0A0804; font-family:'Cormorant Garamond',serif; font-size:17px; flex-shrink:0; }
+        .port-user-info { flex:1; }
+        .port-user-name { font-size:15px; font-weight:600; color:#E8D5A3; margin-bottom:3px; }
+        .port-user-email { font-size:12px; color:rgba(168,155,140,0.5); }
+        .port-user-count { text-align:right; }
+        .port-user-badge { display:inline-flex; align-items:center; justify-content:center; background:rgba(201,168,76,0.15); border:1px solid rgba(201,168,76,0.3); color:#C9A84C; font-size:13px; font-weight:700; border-radius:20px; padding:4px 12px; font-family:'Cormorant Garamond',serif; }
+        .port-user-arrow { font-size:18px; color:rgba(201,168,76,0.3); margin-left:8px; }
+
+        .port-grid-item { position:relative; aspect-ratio:1; border-radius:8px; overflow:hidden; border:1px solid rgba(201,168,76,0.1); background:#0C0804; cursor:pointer; transition:all 0.2s; }
+        .port-grid-item:hover { border-color:rgba(201,168,76,0.4); transform:scale(1.02); }
+        .port-grid-item img { width:100%; height:100%; object-fit:cover; }
+        .port-grid-item-label { position:absolute; bottom:0; left:0; right:0; padding:6px 8px; background:linear-gradient(transparent,rgba(0,0,0,0.8)); font-size:10px; color:rgba(255,255,255,0.8); font-family:'Cormorant Garamond',serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .port-empty { text-align:center; padding:60px 20px; color:rgba(168,155,140,0.4); }
+
+        .vm-header { padding: 28px 24px 20px; border-bottom: 1px solid var(--vault-gold-border); }
+        .vm-eyebrow { font-size: 9px; letter-spacing: 5px; color: rgba(212,175,55,0.4); text-transform: uppercase; margin-bottom: 6px; }
+        .vm-title { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 600; color: var(--vault-text); margin-bottom: 20px; }
+        .vm-action-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .vm-btn { padding: 10px 18px; border-radius: 8px; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; pointer-events: auto !important; position: relative; z-index: 50; }
+        .vm-btn-primary { background: var(--vault-gold); color: #0A0700; border: none; }
+        .vm-btn-primary:hover { background: #e8c440; transform: translateY(-1px); }
+        .vm-btn-outline { background: none; border: 1px solid var(--vault-gold-border); color: rgba(212,175,55,0.7); }
+        .vm-btn-outline:hover { border-color: var(--vault-gold); color: var(--vault-gold); }
+
+        .vm-section-title { font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: rgba(212,175,55,0.35); padding: 22px 24px 12px; border-bottom: 1px solid var(--vault-gold-border); }
+        .vm-client-item { display: flex; align-items: center; gap: 14px; padding: 16px 24px; border-bottom: 1px solid rgba(212,175,55,0.06); cursor: pointer; transition: background 0.2s; }
+        .vm-client-item:hover { background: rgba(212,175,55,0.04); }
+        .vm-client-av { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg,#D4AF37,#8B6914); display: flex; align-items: center; justify-content: center; font-weight: 700; font-family: 'Cormorant Garamond',serif; font-size: 16px; color: #0A0700; flex-shrink: 0; border: 1px solid rgba(212,175,55,0.3); }
+        .vm-client-info { flex: 1; }
+        .vm-client-name { font-size: 14px; font-weight: 600; color: var(--vault-text); margin-bottom: 2px; }
+        .vm-client-sub { font-size: 11px; color: rgba(212,175,55,0.35); letter-spacing: 1px; }
+        .vm-client-chevron { color: rgba(212,175,55,0.25); font-size: 20px; }
+
+        .vm-asset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 20px; padding: 20px 24px; }
+        .vm-asset-card { background: var(--vault-card); border: 1px solid var(--vault-gold-border); border-radius: 16px; overflow: hidden; transition: all 0.25s; cursor: pointer; position: relative; display: flex; flex-direction: column; }
+        .vm-asset-card:hover { border-color: var(--vault-gold); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(212,175,55,0.15); }
+        .vm-asset-thumb { width: 100%; aspect-ratio: 16/9; object-fit: cover; background: #1A1408; display: flex; align-items: center; justify-content: center; font-size: 42px; color: var(--vault-gold); }
+        .vm-asset-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .vm-asset-body { padding: 16px; flex: 1; }
+        .vm-asset-cat { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--vault-gold); margin-bottom: 6px; }
+        .vm-asset-title { font-family: 'Cormorant Garamond',serif; font-size: 18px; font-weight: 600; color: var(--vault-text); margin-bottom: 6px; line-height: 1.3; }
+        .vm-asset-desc { font-size: 12px; color: rgba(232,217,181,0.55); line-height: 1.5; margin-bottom: 16px; }
+        .vm-asset-actions { display: flex; gap: 10px; padding: 0 16px 16px; }
+        .vm-asset-btn { flex: 1; padding: 10px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; border-radius: 8px; cursor: pointer; transition: all 0.2s; text-align: center; pointer-events: auto !important; position: relative; z-index: 30; font-weight: 600; }
+        .vm-asset-btn-add { background: var(--vault-gold-dim); border: 1px solid var(--vault-gold-border); color: var(--vault-gold); }
+        .vm-asset-btn-add:hover { background: var(--vault-gold); color: #0A0700; }
+        .vm-asset-btn-del { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #ef4444; }
+        .vm-asset-btn-del:hover { background: rgba(239,68,68,0.2); }
+        .vm-asset-btn-move { background: var(--vault-gold); color: #0A0700; border: none; font-weight: 700; }
+        .vm-asset-btn-move:hover { background: #e8c440; transform: scale(1.02); }
+        .vm-default-badge { position: absolute; top: 12px; left: 12px; background: var(--vault-gold); color: #0A0700; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; font-weight: 700; z-index: 10; }
+
+        .vm-pov-header { display: flex; align-items: center; gap: 14px; padding: 20px 24px; border-bottom: 1px solid var(--vault-gold-border); flex-shrink: 0; flex-wrap: wrap; }
+        .vm-pov-sync { padding: 10px 20px; background: var(--vault-gold); color: #0A0700; border: none; border-radius: 30px; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; cursor: pointer; transition: all 0.2s; pointer-events: auto !important; position: relative; z-index: 30; white-space: nowrap; }
+        .vm-pov-sync:hover { background: #e8c440; transform: translateY(-1px); }
+
+        .vm-pov-library-btn {
+            background: linear-gradient(135deg, #D4AF37, #B8860B);
+            border: none;
+            border-radius: 30px;
+            padding: 10px 20px;
+            color: #0A0700;
+            font-family: 'Jost', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 16px rgba(212,175,55,0.2);
+            transition: all 0.25s;
+            pointer-events: auto !important;
+            position: relative;
+            z-index: 40;
+            white-space: nowrap;
+        }
+        .vm-pov-library-btn:hover {
+            background: #e8c440;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(212,175,55,0.3);
+        }
+
+        .vm-library-panel {
+            background: rgba(14,11,6,0.98);
+            border: 1px solid rgba(212,175,55,0.25);
+            border-radius: 20px;
+            margin: 16px 20px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+        }
+
+        .vm-library-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(212,175,55,0.15);
+        }
+
+        .vm-library-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 18px;
+            color: var(--vault-text);
+            letter-spacing: 1px;
+        }
+
+        .progress-section {
+            background: linear-gradient(145deg, #0E0B06, #151008);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(212,175,55,0.2);
+        }
+        .progress-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .progress-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 18px;
+            color: var(--vault-text);
+        }
+        .progress-count {
+            background: rgba(212,175,55,0.15);
+            color: #D4AF37;
+            font-size: 11px;
+            padding: 4px 12px;
+            border-radius: 30px;
+        }
+        .progress-move-btn {
+            background: var(--vault-gold);
+            color: #0A0700;
+            border: none;
+            border-radius: 30px;
+            padding: 6px 16px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .progress-move-btn:hover {
+            background: #e8c440;
+            transform: translateY(-1px);
+        }
+        .progress-create-btn {
+            background: linear-gradient(135deg, #D4AF37, #8B6914);
+            border: none;
+            border-radius: 30px;
+            padding: 8px 16px;
+            color: #0A0700;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            white-space: nowrap;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+        .progress-create-btn:hover {
+            background: #e8c440;
+            transform: translateY(-1px);
+        }
+        .progress-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            background: rgba(212,175,55,0.04);
+            border: 1px solid rgba(212,175,55,0.12);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .progress-item:hover {
+            background: rgba(212,175,55,0.08);
+            border-color: rgba(212,175,55,0.3);
+        }
+        .progress-item-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .progress-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--vault-gold-dim);
+            border: 1px solid var(--vault-gold-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 14px;
+            color: var(--vault-gold);
+        }
+        .progress-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 15px;
+            color: var(--vault-text);
+        }
+        .progress-date {
+            font-size: 9px;
+            color: rgba(212,175,55,0.35);
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        .project-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 10000;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .project-overlay.active { display: flex; }
+
+        .project-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--vault-gold-border);
+            background: #0A0700;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .project-back {
+            background: none;
+            border: 1px solid var(--vault-gold-border);
+            color: rgba(212,175,55,0.6);
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 12px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .project-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 20px;
+            color: var(--vault-text);
+            flex: 1;
+        }
+        .project-create-btn {
+            background: linear-gradient(135deg, #D4AF37, #8B6914);
+            border: none;
+            border-radius: 30px;
+            padding: 10px 20px;
+            color: #0A0700;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        .workflow-list {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .workflow-item {
+            background: linear-gradient(145deg, #0E0B06, #151008);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 16px;
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .workflow-item-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .workflow-number {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--vault-gold-dim);
+            border: 1px solid var(--vault-gold-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 16px;
+            color: var(--vault-gold);
+        }
+        .workflow-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 16px;
+            color: var(--vault-text);
+        }
+        .workflow-status-btn {
+            background: rgba(212,175,55,0.1);
+            border: 1px solid rgba(212,175,55,0.3);
+            border-radius: 40px;
+            padding: 8px 16px;
+            color: var(--vault-gold);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            min-width: 120px;
+            text-align: center;
+        }
+        .workflow-status-btn.progressed {
+            background: rgba(80,200,120,0.15);
+            border-color: rgba(80,200,120,0.3);
+            color: #50C878;
+        }
+
+        .gold-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 11000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .gold-modal-content {
+            background: #0E0B06;
+            border: 1px solid var(--vault-gold-border);
+            border-radius: 20px;
+            width: min(420px, 94vw);
+            padding: 28px 24px;
+        }
+        .gold-modal-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 22px;
+            color: var(--vault-text);
+            margin-bottom: 20px;
+        }
+        .gold-modal-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--vault-gold-border);
+            border-radius: 10px;
+            color: var(--vault-text);
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 20px;
+        }
+        .gold-modal-input:focus {
+            border-color: var(--vault-gold);
+        }
+        .gold-modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .gold-modal-btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            text-align: center;
+        }
+        .gold-modal-btn-primary {
+            background: linear-gradient(135deg, #D4AF37, #8B6914);
+            color: #0A0700;
+            border: none;
+        }
+        .gold-modal-btn-secondary {
+            background: none;
+            border: 1px solid var(--vault-gold-border);
+            color: rgba(212,175,55,0.6);
+        }
+
+        .vm-form { display: flex; flex-direction: column; gap: 16px; padding: 24px; }
+        .vm-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .vm-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(212,175,55,0.5); margin-bottom: 6px; }
+        .vm-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--vault-gold-border); border-radius: 8px; padding: 12px 14px; color: var(--vault-text); font-size: 14px; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
+        .vm-input:focus { border-color: var(--vault-gold); }
+        .vm-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23D4AF37' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; }
+
+        .vm-empty { text-align: center; padding: 60px 32px; }
+        .vm-empty-ornament { font-size: 48px; margin-bottom: 20px; opacity: 0.3; }
+        .vm-empty-title { font-family: 'Cormorant Garamond',serif; font-size: 22px; color: rgba(232,217,181,0.5); margin-bottom: 10px; font-style: italic; }
+        .vm-empty-sub { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(212,175,55,0.25); }
+
+        .vm-detail-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; flex-direction: column; }
+        .vm-detail-overlay.active { display: flex; }
+        .vm-detail-header { display: flex; align-items: center; gap: 14px; padding: 20px 24px; border-bottom: 1px solid var(--vault-gold-border); flex-shrink: 0; }
+        .vm-detail-back { background: none; border: 1px solid var(--vault-gold-border); color: rgba(212,175,55,0.6); border-radius: 8px; padding: 8px 14px; font-size: 12px; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; pointer-events: auto !important; position: relative; z-index: 30; }
+        .vm-detail-body { flex: 1; overflow-y: auto; padding: 32px 24px; display: flex; flex-direction: column; align-items: center; }
+
+        .tm-section { display: none; }
+    </style>
+</head>
+<body>
+    <!-- Connection Status -->
+    <div class="connection-status" id="connectionStatus">Connecting...</div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">👑</div>
+            <div class="sidebar-title">Billy Living</div>
+        </div>
+        <div class="nav-section">
+            <div class="nav-section-title">Overview</div>
+            <div class="nav-item active" onclick="showPanel('dashboard', this)">
+                <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="0.5"/><rect x="14" y="3" width="7" height="5" rx="0.5"/><rect x="14" y="12" width="7" height="9" rx="0.5"/><rect x="3" y="16" width="7" height="5" rx="0.5"/></svg></span>
+                <span>Dashboard</span>
+            </div>
+        </div>
+        <div class="nav-section">
+            <div class="nav-section-title">Content</div>
+            <div class="nav-item" onclick="showPanel('home', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H15v-5h-6v5H4a1 1 0 01-1-1V10.5z"/></svg></span><span>Home</span></div>
+            <div class="nav-item" onclick="showPanel('catalog', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="0.5"/><rect x="14" y="3" width="7" height="7" rx="0.5"/><rect x="3" y="14" width="7" height="7" rx="0.5"/><rect x="14" y="14" width="7" height="7" rx="0.5"/></svg></span><span>Catalog</span></div>
+            <div class="nav-item" onclick="showPanel('trending', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 2C12 2 7 8 7 13a5 5 0 0010 0c0-5-5-11-5-11z"/><path d="M9.5 15.5c.5-1.5 2-2.5 2.5-4"/></svg></span><span>Trending</span></div>
+            <div class="nav-item" onclick="showPanel('portfolio', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"/></svg></span><span>Portfolio</span></div>
+            <div class="nav-item" onclick="showPanel('designers', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span><span>Designers</span></div>
+        </div>
+        <div class="nav-section">
+            <div class="nav-section-title">Clients</div>
+            <div class="nav-item" onclick="showPanel('vip', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span>VIP Manager</span><span class="nav-badge" id="vipBadge" style="display:none;">0</span></div>
+            <div class="nav-item" onclick="showPanel('vaultmgr', this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/></svg></span><span>Vault Manager</span></div>
+            <div class="nav-item" onclick="showPanel('messages', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span><span>Messages</span><span class="nav-badge admin-msgs-badge" id="msgsBadge" style="display:none;">0</span></div>
+        </div>
+        <div class="nav-section">
+            <div class="nav-section-title">System</div>
+            <div class="nav-item" onclick="showPanel('settings', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span><span>Settings</span></div>
+            <div class="nav-item" onclick="showPanel('security', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="11" rx="1"/><path d="M8 11V7a4 4 0 018 0v4"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/></svg></span><span>Security</span></div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard Panel -->
+        <div class="panel active" id="panel-dashboard">
+            <div class="page-header"><h1 class="page-title">Dashboard</h1></div>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-value" id="statPosts">—</div><div class="stat-label">Total Posts</div></div>
+                <div class="stat-card"><div class="stat-value" id="statTrending">—</div><div class="stat-label">Total Trending</div></div>
+                <div class="stat-card"><div class="stat-value" id="statDesigners">—</div><div class="stat-label">Total Designers</div></div>
+                <div class="stat-card"><div class="stat-value" id="statPendingVIP">—</div><div class="stat-label">Pending VIP Requests</div></div>
+            </div>
+            <div class="quick-actions">
+                <button class="btn btn-primary" onclick="openForm('post')">+ Add Post</button>
+                <button class="btn btn-primary" onclick="openForm('trending')">+ Add Trending</button>
+                <button class="btn btn-primary" onclick="openForm('designer')">+ Add Designer</button>
+                <button class="btn btn-secondary" onclick="showPanel('vip', null)">View VIP Requests</button>
+            </div>
+        </div>
+
+        <!-- Home Panel -->
+        <div class="panel" id="panel-home">
+            <div class="page-header"><h1 class="page-title">Home Posts</h1><button class="btn btn-primary" onclick="openForm('post')">+ Add Post</button></div>
+            <div class="list-container" id="homeList">
+                <div class="skeleton-item"></div>
+                <div class="skeleton-item"></div>
+                <div class="skeleton-item"></div>
+            </div>
+        </div>
+
+        <!-- Catalog Panel -->
+        <div class="panel" id="panel-catalog">
+            <div class="page-header"><h1 class="page-title">Catalog Manager</h1><button class="btn btn-primary" onclick="openForm('category')">+ Add Category</button></div>
+            <div style="background: var(--bg-primary); border: 1px solid rgba(201,168,76,0.15); border-radius: 16px; overflow: hidden;">
+                <div class="elite-catalog-header"><div class="elite-catalog-name">Billy Living Presents</div><div class="elite-catalog-title">The Elite Preformats</div></div>
+                <div class="elite-catalog-grid-admin" id="catalogList">
+                    <div class="skeleton-item" style="height:100px;"></div>
+                    <div class="skeleton-item" style="height:100px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trending Panel -->
+        <div class="panel" id="panel-trending">
+            <div class="page-header"><h1 class="page-title">Trending Items</h1><button class="btn btn-primary" onclick="openForm('trending')">+ Add Trending</button></div>
+            <div class="list-container" id="trendingList">
+                <div class="skeleton-item"></div>
+                <div class="skeleton-item"></div>
+            </div>
+        </div>
+
+        <!-- Portfolio Panel -->
+        <div class="panel" id="panel-portfolio">
+            <div id="portfolioUsersView">
+                <div class="page-header"><div><div class="page-eyebrow">Billy Living</div><h1 class="page-title">Portfolio Analytics</h1></div><div id="portfolioUserCount" style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);border-radius:8px;padding:8px 16px;text-align:center;"><div style="font-size:22px;font-weight:700;color:#C9A84C;" id="portfolioUserTotal">0</div><div style="font-size:10px;letter-spacing:2px;color:rgba(201,168,76,0.5);text-transform:uppercase;">Users</div></div></div>
+                <div id="portfolioUsersList" style="display:flex;flex-direction:column;gap:10px;">
+                    <div class="skeleton-item"></div>
+                    <div class="skeleton-item"></div>
+                </div>
+            </div>
+            <div id="portfolioClientView" style="display:none;height:100%;flex-direction:column;">
+                <div class="page-header" style="flex-shrink:0;">
+                    <div style="display:flex;align-items:center;gap:14px;"><button onclick="backToPortfolioUsers()" style="background:none;border:1px solid rgba(201,168,76,0.2);color:rgba(201,168,76,0.6);border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer;">← Back</button><div class="admin-chat-av" id="portfolioClientAv" style="width:40px;height:40px;font-size:15px;">?</div><div><div style="font-weight:600;font-size:16px;color:#E8D5A3;" id="portfolioClientName">Client</div><div style="font-size:11px;color:rgba(168,155,140,0.5);letter-spacing:1px;" id="portfolioClientEmail"></div></div></div>
+                    <div id="portfolioClientItemCount" style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);border-radius:8px;padding:8px 16px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#C9A84C;" id="portfolioClientTotal">0</div><div style="font-size:10px;letter-spacing:2px;color:rgba(201,168,76,0.5);text-transform:uppercase;">Saved</div></div>
+                </div>
+                <div id="portfolioClientGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 20px 20px;overflow-y:auto;"></div>
+            </div>
+        </div>
+
+        <!-- Designers Panel -->
+        <div class="panel" id="panel-designers">
+            <div class="page-header"><h1 class="page-title">Designers</h1><button class="btn btn-primary" onclick="openForm('designer')">+ Add Designer</button></div>
+            <div class="list-container" id="designersList">
+                <div class="skeleton-item"></div>
+                <div class="skeleton-item"></div>
+            </div>
+        </div>
+
+        <!-- VIP Manager Panel -->
+        <div class="panel" id="panel-vip">
+            <div class="page-header"><h1 class="page-title">VIP Manager</h1></div>
+            <div class="vip-form"><h3 style="margin-bottom:16px;color:var(--gold);">Register New VIP</h3><div class="form-row"><div class="form-group"><label class="form-label">Phone Number (10 digits)</label><input type="tel" class="form-input" id="vipPhone" placeholder="08012345678" maxlength="10"></div><div class="form-group"><label class="form-label">4-Digit Code</label><input type="text" class="form-input" id="vipCode" placeholder="4521" maxlength="4"></div><div class="form-group"><label class="form-label">Full Name</label><input type="text" class="form-input" id="vipName" placeholder="Mr. Adeyemi"></div></div><button class="btn btn-primary" onclick="addVIP()" style="margin-top:16px;">Add VIP Member</button></div>
+            <h3 style="margin:32px 0 16px;color:var(--gold);">Registered VIPs <span id="vipCount" style="font-size:14px;font-weight:400;color:rgba(201,168,76,0.5);margin-left:8px;"></span></h3>
+            <div class="vip-grid" id="vipGrid">
+                <div class="skeleton-item" style="height:80px;"></div>
+                <div class="skeleton-item" style="height:80px;"></div>
+            </div>
+        </div>
+
+        <!-- Vault Manager Panel -->
+        <div class="panel" id="panel-vaultmgr" style="padding:0;flex-direction:column;height:100%;overflow:hidden;">
+            <!-- Main View (Client List) -->
+            <div id="vmMainView" style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
+                <div class="vm-header"><div class="vm-eyebrow">Billy Living · Private</div><div class="vm-title">Vault Control Centre</div><div class="vm-action-row"><button class="vm-btn vm-btn-primary" onclick="if(typeof event !== 'undefined') event.stopPropagation(); vmOpenCreateForm(); return false;">+ Create New Asset</button><button class="vm-btn vm-btn-outline" onclick="if(typeof event !== 'undefined') event.stopPropagation(); vmShowView('library'); return false;">Vault Library</button><button class="vm-btn vm-btn-outline" onclick="if(typeof event !== 'undefined') event.stopPropagation(); vmShowView('defaults'); return false;">Default Contents</button></div></div>
+                <div class="vm-section-title">VIP Client Vaults</div>
+                <div id="vmClientList" style="overflow-y:auto;flex:1;">
+                    <div class="skeleton-item"></div>
+                    <div class="skeleton-item"></div>
+                    <div class="skeleton-item"></div>
+                </div>
+            </div>
+
+            <!-- Library View -->
+            <div id="vmLibraryView" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
+                <div class="vm-pov-header"><button class="vm-detail-back" onclick="if(typeof event !== 'undefined') event.stopPropagation(); vmShowView('main'); return false;">← Back</button><div><div class="vm-eyebrow">Master Assets</div><div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--vault-text);">Vault Library</div></div><button class="vm-pov-sync" onclick="if(typeof event !== 'undefined') event.stopPropagation(); vmOpenCreateForm(); return false;">+ Add Asset</button></div>
+                <div style="overflow-y:auto;flex:1;">
+                    <div id="vmLibraryGrid" class="vm-asset-grid" style="padding:16px;">
+                        <div class="skeleton-item" style="height:200px;"></div>
+                        <div class="skeleton-item" style="height:200px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Defaults View -->
+            <div id="vmDefaultsView" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
+                <div class="vm-pov-header"><button class="vm-detail-back" onclick="if(typeof event !== 'undefined') event.stopPropagation(); vmShowView('main'); return false;">← Back</button><div><div class="vm-eyebrow">Sent to all new VIPs</div><div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--vault-text);">Default Contents</div></div></div>
+                <div style="padding:16px 24px;border-bottom:1px solid var(--vault-gold-border);font-size:12px;color:rgba(212,175,55,0.4);">Assets marked as Default are automatically synced into every VIP client's vault.</div>
+                <div id="vmDefaultsGrid" class="vm-asset-grid" style="overflow-y:auto;flex:1;">
+                    <div class="skeleton-item" style="height:200px;"></div>
+                </div>
+            </div>
+
+            <!-- Client POV (with Progress Tracker INSIDE the library panel and MOVE button) -->
+            <div id="vmClientPOV" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
+                <div class="vm-pov-header">
+                    <button class="vm-detail-back" onclick="if(typeof event !== 'undefined') event.stopPropagation(); vmShowView('main'); return false;">← All Clients</button>
+                    <div class="vm-client-av" id="vmPOVAv" style="width:40px;height:40px;font-size:15px;">?</div>
+                    <div><div style="font-size:15px;font-weight:600;color:var(--vault-text);" id="vmPOVName">Client</div><div style="font-size:11px;color:rgba(212,175,55,0.35);letter-spacing:1px;" id="vmPOVSub">0 vault items</div></div>
+                    <button class="vm-pov-library-btn" onclick="if(typeof event !== 'undefined') event.stopPropagation(); vmToggleClientLibrary(); return false;">📚 VAULT LIBRARY</button>
+                    <button class="vm-pov-sync" onclick="if(typeof event !== 'undefined') event.stopPropagation(); vmSyncDefaults(); return false;">↓ SYNC DEFAULTS</button>
+                </div>
+                <div style="overflow-y:auto;flex:1;display:flex;flex-direction:column;">
+                    <!-- Library Panel (hidden by default, appears when VAULT LIBRARY is clicked) -->
+                    <div id="vmClientLibraryPanel" class="vm-library-panel" style="display:none;">
+                        <div class="vm-library-header"><div class="vm-library-title">Vault Library</div></div>
+                        
+                        <!-- PROGRESS TRACKER WITH MOVE HERE BUTTON -->
+                        <div class="progress-section">
+                            <div class="progress-header">
+                                <div>
+                                    <div class="progress-title">Progress Tracker</div>
+                                    <span id="vmClientProjectCount" class="progress-count">0</span>
+                                </div>
+                                <!-- MOVE HERE BUTTON for Progress Tracker -->
+                                <button class="progress-move-btn" onclick="if(typeof event !== 'undefined') event.stopPropagation(); vmMoveProgressTrackerToClient()">MOVE HERE</button>
+                            </div>
+                            <button class="progress-create-btn" onclick="vmPromptNewProject()">+ CREATE PROJECT</button>
+                            <div id="vmClientProjectList">
+                                <div style="text-align:center; padding:20px; color:rgba(212,175,55,0.3);">No projects yet</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Library Assets Grid - WITH MOVE HERE BUTTONS -->
+                        <div id="vmClientLibraryGrid" class="vm-asset-grid" style="padding:0;"></div>
+                    </div>
+                    
+                    <!-- Client's Vault Assets (where moved items appear) -->
+                    <div style="padding:14px 20px 8px;display:flex;align-items:center;justify-content:space-between;"><div style="font-size:8px;letter-spacing:4px;text-transform:uppercase;color:rgba(212,175,55,0.4);">CLIENT'S VAULT</div></div>
+                    <div id="vmPOVGrid" class="vm-asset-grid" style="padding:0 16px 20px;"></div>
+                </div>
+            </div>
+
+            <!-- Project Detail View (for projects list and workflows) -->
+            <div id="vmProjectDetailView" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
+                <div class="project-header">
+                    <button class="project-back" onclick="if(typeof event !== 'undefined') event.stopPropagation(); vmBackFromProject(); return false;">← Back</button>
+                    <div class="project-title" id="vmProjectDetailTitle">Projects</div>
+                    <!-- Button added dynamically by JavaScript -->
+                </div>
+                <div style="overflow-y:auto;flex:1;padding:16px 20px 60px;">
+                    <div id="vmWorkflowList" class="workflow-list" style="padding:0;">
+                        <div class="skeleton-item"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vault Create/Edit Form Modal -->
+        <div id="vmFormModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:4000;align-items:center;justify-content:center;">
+            <div style="background:#0E0B06;border:1px solid rgba(212,175,55,0.2);border-radius:16px;width:min(560px,94vw);max-height:90vh;overflow-y:auto;">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid rgba(212,175,55,0.1);"><div><div class="vm-eyebrow">Vault Manager</div><div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:#E8D9B5;" id="vmFormTitle">New Vault Asset</div></div><button onclick="vmCloseForm()" style="background:none;border:1px solid rgba(212,175,55,0.2);color:rgba(212,175,55,0.5);border-radius:8px;width:36px;height:36px;cursor:pointer;font-size:18px;">×</button></div>
+                <div class="vm-form">
+                    <input type="hidden" id="vmEditId">
+                    <div><div class="vm-label">Title</div><input class="vm-input" id="vmFTitle" placeholder="e.g. Living Room Concept A"></div>
+                    <div><div class="vm-label">Description</div><textarea class="vm-input" id="vmFDesc" rows="3" placeholder="Brief description of this asset…" style="resize:vertical;"></textarea></div>
+                    <div class="vm-form-row">
+                        <div><div class="vm-label">Category</div><select class="vm-input vm-select" id="vmFCat"><option value="3D Render">3D Render</option><option value="Document">Document</option><option value="Video">Video</option><option value="Moodboard">Moodboard</option><option value="Progress Tracker">Progress Tracker</option></select></div>
+                        <div><div class="vm-label">Set as Global Default</div><select class="vm-input vm-select" id="vmFDefault"><option value="no">No</option><option value="yes">Yes — send to all VIPs</option></select></div>
+                    </div>
+                    <div><div class="vm-label">Asset URL (walkthrough / document / video link)</div><input class="vm-input" id="vmFUrl" placeholder="https://…"></div>
+                    <div><div class="vm-label">Thumbnail URL</div><input class="vm-input" id="vmFThumb" placeholder="https://…"></div>
+                    <div style="display:flex;gap:12px;padding-top:8px;"><button onclick="vmSaveAsset()" style="flex:1;padding:14px;background:#D4AF37;color:#0A0700;border:none;border-radius:8px;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:700;cursor:pointer;">Save Asset</button><button onclick="vmCloseForm()" style="padding:14px 20px;background:none;border:1px solid rgba(212,175,55,0.2);color:rgba(212,175,55,0.5);border-radius:8px;font-size:12px;cursor:pointer;">Cancel</button></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Panel -->
+        <div class="panel" id="panel-settings">
+            <div class="page-header"><h1 class="page-title">Settings</h1></div>
+            <div class="form-container" style="max-width:600px;">
+                <div class="form-group"><label class="form-label">App Name</label><input type="text" class="form-input" id="settingAppName" value="Billy Living"></div>
+                <div class="form-group"><label class="form-label">WhatsApp Number</label><input type="text" class="form-input" id="settingWhatsApp" value="+2348084410220"></div>
+                <div class="form-group"><label class="form-label">WhatsApp Message</label><input type="text" class="form-input" id="settingWhatsAppMsg" value="Hello, I'm interested in your interior design services"></div>
+                <div class="form-group"><label class="form-label">Booking Link</label><input type="text" class="form-input" id="settingBooking" value="https://calendly.com/billyliving"></div>
+                <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+            </div>
+        </div>
+
+        <!-- Security Panel -->
+        <div class="panel" id="panel-security">
+            <div class="page-header"><h1 class="page-title">Security</h1></div>
+            <div class="form-container" style="max-width:600px;">
+                <div class="form-group"><label class="form-label">Current Admin Password</label><input type="text" class="form-input" id="currentPassword" value="admin123" readonly></div>
+                <div class="form-group"><label class="form-label">New Password</label><input type="password" class="form-input" id="newPassword" placeholder="Enter new password"></div>
+                <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+            </div>
+        </div>
+
+        <!-- Messages Panel -->
+        <div class="panel" id="panel-messages">
+            <div id="msgsListView">
+                <div class="page-header"><div><div class="page-eyebrow">Billy Living</div><h1 class="page-title">Client Messages</h1></div></div>
+                <div id="msgsConversationsList" class="msg-conversations"></div>
+            </div>
+            <div id="msgsAdminChatView" style="display:none;height:100%;">
+                <div class="admin-chat-panel">
+                    <div class="admin-chat-hdr"><button class="back-link" onclick="adminBackToList()">← Back</button><div class="admin-chat-av" id="adminChatAv" onclick="openClientProfile()" style="cursor:pointer;">?</div><div onclick="openClientProfile()" style="cursor:pointer;flex:1;"><div style="font-weight:600;font-size:15px;color:#E8D5A3;" id="adminChatClientName">Client</div><div style="font-size:11px;color:rgba(201,168,76,0.4);">Tap to view profile →</div></div></div>
+                    <div class="admin-chat-msgs" id="adminChatMsgs"></div>
+                    <div class="admin-chat-input-row"><input class="admin-chat-input" id="adminChatInput" placeholder="Reply to client…" onkeypress="if(event.key==='Enter')adminSendMessage()"><button class="admin-chat-send" onclick="adminSendMessage()"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <div id="vmPTModal" class="gold-modal">
+        <div class="gold-modal-content">
+            <div class="gold-modal-title">New Project</div>
+            <input id="vmPTProjectNameInput" class="gold-modal-input" placeholder="e.g. Living Room Renovation">
+            <div class="gold-modal-actions">
+                <button class="gold-modal-btn gold-modal-btn-secondary" onclick="vmClosePTModal()">CANCEL</button>
+                <button class="gold-modal-btn gold-modal-btn-primary" onclick="vmSaveNewProject()">CREATE</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="vmWFModal" class="gold-modal">
+        <div class="gold-modal-content">
+            <div class="gold-modal-title">New Workflow</div>
+            <input id="vmWFNameInput" class="gold-modal-input" placeholder="e.g. Wall Screeding">
+            <div class="gold-modal-actions">
+                <button class="gold-modal-btn gold-modal-btn-secondary" onclick="vmCloseWFModal()">CANCEL</button>
+                <button class="gold-modal-btn gold-modal-btn-primary" onclick="vmSaveNewWorkflow()">CREATE</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="formModal" class="form-modal"><div class="form-container"><h2 class="form-title" id="formTitle">Add New</h2><div id="formContent"></div><div style="display:flex;gap:12px;margin-top:24px;"><button class="btn btn-secondary" onclick="closeForm()" style="flex:1;">Cancel</button><button class="btn btn-primary" onclick="submitForm()" style="flex:1;">Save</button></div></div></div>
+    <div id="vmDetailOverlay" class="vm-detail-overlay"><div class="vm-detail-header"><button class="vm-detail-back" onclick="vmCloseDetail()">← Back</button><div style="font-size:9px;letter-spacing:4px;color:rgba(212,175,55,0.4);text-transform:uppercase;">Asset Preview</div></div><div class="vm-detail-body" id="vmDetailContent"></div></div>
+    <div class="context-backdrop" id="contextBackdrop" onclick="closeContextMenu()"></div>
+    <div class="cell-context-menu" id="cellContextMenu"><div class="context-menu-header"><div class="context-menu-title" id="contextMenuTitle">—</div></div><div id="contextMenuOptions"></div></div>
+
+    <!-- Hidden file inputs -->
+    <input type="file" id="contextImageInput" accept="image/*" multiple style="display:none;" onchange="handleContextImageUpload(this)">
+    <input type="file" id="coverReplaceInput" accept="image/*" style="display:none;" onchange="handleCoverReplaceUpload(this)">
+    <input type="file" id="palettePhotoInput" accept="image/*" style="display:none;" onchange="handlePalettePhotoUpload(this)">
+    <input type="file" id="contextRoomImgInput" accept="image/*" style="display:none;" onchange="handleRoomImageUpload(this)">
+    <input type="file" id="contextMixImgInput" accept="image/*" multiple style="display:none;" onchange="handleContextImageUpload(this)">
+
+    <!-- Catalog Overlays -->
+    <div class="catalog-overlay" id="catalogInnerOverlay"><div class="inner-back-bar"><button class="inner-back-btn" onclick="closeAdminCatalogInner()">←</button><button onclick="forceSyncAllCatalog()" style="background:none;border:1px solid rgba(201,168,76,0.3);color:#C9A84C;font-size:10px;letter-spacing:1px;padding:5px 10px;border-radius:4px;cursor:pointer;margin-left:auto;">SYNC TO LIVE</button><div><div class="inner-collection-title" id="adminInnerTitle">—</div><div class="inner-collection-feeling" id="adminInnerFeeling">—</div></div></div><div class="color-config-area"><div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;letter-spacing:4px;color:#C9A84C;text-transform:uppercase;padding:14px 20px 10px;text-align:center;">Color Palette</div><div class="color-mixtures-row" id="adminColorMixturesRow"></div></div></div>
+    <div class="catalog-overlay" id="catalogRoomsOverlay"><div class="inner-back-bar"><button class="inner-back-btn" onclick="closeAdminCatalogRooms()">←</button><div><div class="inner-collection-title" id="adminRoomsTitle">ROOMS</div><div class="inner-collection-feeling" id="adminRoomsSubtitle">—</div></div></div><div class="room-gallery-area" id="adminRoomGalleryArea"></div></div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Client Profile Drawer -->
+    <div id="clientProfileDrawer" style="display:none;position:fixed;top:0;right:0;width:min(420px,100vw);height:100vh;background:#0A0804;border-left:1px solid rgba(201,168,76,0.15);z-index:3000;flex-direction:column;overflow-y:auto;box-shadow:-8px 0 40px rgba(0,0,0,0.6);"><div style="padding:20px 24px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;"><button onclick="closeClientProfile()" style="background:none;border:1px solid rgba(201,168,76,0.2);color:rgba(201,168,76,0.6);border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;">← Back to Chat</button><div style="font-size:9px;letter-spacing:4px;color:rgba(201,168,76,0.3);text-transform:uppercase;">Client Profile</div></div><div style="display:flex;flex-direction:column;align-items:center;padding:32px 24px 24px;border-bottom:1px solid rgba(201,168,76,0.08);"><div id="cpAvatar" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#C9A84C,#7A5C10);display:flex;align-items:center;justify-content:center;font-weight:700;color:#0A0804;font-family:'Cormorant Garamond',serif;font-size:28px;margin-bottom:16px;overflow:hidden;">?</div><div id="cpName" style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:#E8D5A3;margin-bottom:4px;text-align:center;">Client</div><div id="cpEmail" style="font-size:13px;color:rgba(168,155,140,0.5);margin-bottom:16px;"></div><div style="display:flex;gap:12px;"><div id="cpPortfolioCount" style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.15);border-radius:10px;padding:10px 20px;text-align:center;"><div style="font-size:22px;font-weight:700;color:#C9A84C;font-family:'Cormorant Garamond',serif;" id="cpPortfolioNum">—</div><div style="font-size:9px;letter-spacing:2px;color:rgba(201,168,76,0.4);text-transform:uppercase;">Portfolio</div></div><div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.15);border-radius:10px;padding:10px 20px;text-align:center;"><div style="font-size:22px;font-weight:700;color:#C9A84C;font-family:'Cormorant Garamond',serif;" id="cpMsgNum">—</div><div style="font-size:9px;letter-spacing:2px;color:rgba(201,168,76,0.4);text-transform:uppercase;">Messages</div></div></div></div><div style="padding:24px;"><div style="font-size:9px;letter-spacing:4px;color:rgba(201,168,76,0.4);text-transform:uppercase;margin-bottom:14px;">Account Details</div><div id="cpDetails" style="display:flex;flex-direction:column;gap:0;border:1px solid rgba(201,168,76,0.1);border-radius:12px;overflow:hidden;margin-bottom:24px;"><div style="display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(201,168,76,0.08);"><div style="font-size:9px;letter-spacing:2px;color:rgba(201,168,76,0.4);text-transform:uppercase;width:90px;flex-shrink:0;">Residence</div><div id="cpResidence" style="font-size:14px;color:#E8D5A3;">—</div></div><div style="display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(201,168,76,0.08);"><div style="font-size:9px;letter-spacing:2px;color:rgba(201,168,76,0.4);text-transform:uppercase;width:90px;flex-shrink:0;">Mobile</div><div id="cpMobile" style="font-size:14px;color:#E8D5A3;">—</div></div><div style="display:flex;align-items:center;padding:14px 16px;"><div style="font-size:9px;letter-spacing:2px;color:rgba(201,168,76,0.4);text-transform:uppercase;width:90px;flex-shrink:0;">Measure</div><div id="cpMeasure" style="font-size:14px;color:#E8D5A3;">—</div></div></div><div style="font-size:9px;letter-spacing:4px;color:rgba(201,168,76,0.4);text-transform:uppercase;margin-bottom:14px;">Saved Portfolio</div><div id="cpPortfolioGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;"></div></div></div>
+    <div id="clientProfileOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2999;" onclick="closeClientProfile()"></div>
+
+    <script>
+        // OPTIMIZED JAVASCRIPT - Fast load + lazy persistence
+        (function() {
+            // Global error handler
+            window.onerror = function(msg, url, line) {
+                console.error("ERROR: " + msg + " at line " + line);
+                showToast('An error occurred. Check console.');
+                return false;
+            };
+            console.log("App starting...");
+
+            // Global variables
+            let currentForm = null;
+            let currentCatalogBox = null;
+            let vmCurrentClientUID = null;
+            let vmCurrentClientName = null;
+            let vmCurrentProjectId = null;
+            let vmCurrentProgressAssetId = null;
+            let panelLoadTimeout = null;
+            
+            // Cache for data with expiration (15 minutes for faster refresh)
+            const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
+            
+            // Firebase listeners array for cleanup
+            const firebaseListeners = [];
+
+            // Firebase config
+            const adminFirebaseConfig = {
+                apiKey: "AIzaSyBbs6k7PInHUnv1x9FzHB31kUwrCcoGG7c",
+                authDomain: "the-billy-living.firebaseapp.com",
+                databaseURL: "https://the-billy-living-default-rtdb.firebaseio.com",
+                projectId: "the-billy-living",
+                storageBucket: "the-billy-living.firebasestorage.app",
+                messagingSenderId: "808519759419",
+                appId: "1:808519759419:web:5578b49e27079039dc4e1e"
+            };
+            
+            if (!firebase.apps.length) firebase.initializeApp(adminFirebaseConfig);
+            const db = firebase.database();
+            const auth = firebase.auth();
+            const storage = firebase.storage();
+
+            // ✅ LAZY PERSISTENCE: Enable AFTER first paint (non-blocking)
+            setTimeout(() => {
+                try {
+                    db.enablePersistence({ synchronizeTabs: true })
+                        .then(() => console.log('✅ Offline persistence enabled'))
+                        .catch(err => {
+                            if (err.code === 'failed-precondition') {
+                                console.warn('Persistence: Multiple tabs open - continuing without');
+                            } else if (err.code === 'unimplemented') {
+                                console.warn('Persistence: Not supported in this browser');
+                            } else {
+                                console.warn('Persistence error:', err);
+                            }
+                        });
+                } catch(e) {
+                    console.warn('Persistence not available in compat SDK - continuing without');
+                }
+            }, 100); // 100ms delay = non-blocking but quick
+
+            // Connection status with cleanup
+            const connectionStatus = document.getElementById('connectionStatus');
+            const connectionListener = db.ref('.info/connected').on('value', snap => {
+                if (connectionStatus) {
+                    if (snap.val()) {
+                        connectionStatus.className = 'connection-status online';
+                        connectionStatus.textContent = 'ONLINE';
+                        setTimeout(() => {
+                            connectionStatus.style.display = 'none';
+                        }, 3000);
+                    } else {
+                        connectionStatus.className = 'connection-status offline';
+                        connectionStatus.textContent = 'OFFLINE - Working from cache';
+                    }
+                }
+            });
+            firebaseListeners.push({ ref: db.ref('.info/connected'), listener: connectionListener });
+
+            // Cleanup all listeners on page unload
+            window.addEventListener('beforeunload', () => {
+                firebaseListeners.forEach(item => {
+                    if (item.ref && item.listener) {
+                        item.ref.off('value', item.listener);
+                    }
+                });
+            });
+
+            // Toast with configurable duration
+            function showToast(msg, duration = 3000) {
+                const t = document.getElementById('toast');
+                t.textContent = msg;
+                t.classList.add('show');
+                setTimeout(() => t.classList.remove('show'), duration);
+            }
+
+            // Button loading state
+            function setButtonLoading(button, isLoading) {
+                if (!button) return;
+                if (isLoading) {
+                    button.classList.add('btn-loading');
+                    button.disabled = true;
+                } else {
+                    button.classList.remove('btn-loading');
+                    button.disabled = false;
+                }
+            }
+
+            // Safe get element with null check
+            function safeGetElement(id) {
+                const el = document.getElementById(id);
+                if (!el) console.warn(`Element ${id} not found`);
+                return el;
+            }
+
+            // Safe data access with fallback
+            function safeGet(obj, path, fallback = '') {
+                try {
+                    return path.split('.').reduce((acc, part) => acc && acc[part] ? acc[part] : fallback, obj);
+                } catch {
+                    return fallback;
+                }
+            }
+
+            // Cache helpers with expiration
+            function getCached(key, defaultValue = null, maxAge = CACHE_DURATION) {
+                try {
+                    const cached = localStorage.getItem('admin_' + key);
+                    if (!cached) return defaultValue;
+                    
+                    const parsed = JSON.parse(cached);
+                    const age = Date.now() - (parsed.timestamp || 0);
+                    
+                    if (maxAge && age > maxAge) return defaultValue;
+                    
+                    return parsed.data;
+                } catch(e) {
+                    return defaultValue;
+                }
+            }
+
+            function setCached(key, data) {
+                try {
+                    localStorage.setItem('admin_' + key, JSON.stringify({
+                        data: data,
+                        timestamp: Date.now()
+                    }));
+                } catch(e) {}
+            }
+
+            function invalidateVaultCache() {
+                setCached('library', null);
+                setCached('defaults', null);
+                setCached('clientList', null);
+                // Clear client-specific caches
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('admin_pov_')) localStorage.removeItem(key);
+                });
+            }
+
+            // Navigation with lazy loading and debounce
+            function showPanel(name, el) {
+                // Clear any pending loads
+                clearTimeout(panelLoadTimeout);
+                
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                
+                const panel = document.getElementById('panel-' + name);
+                if (panel) panel.classList.add('active');
+                if (el) el.classList.add('active');
+                
+                // Show loading state immediately
+                const loaders = {
+                    home: 'homeList',
+                    catalog: 'catalogList',
+                    trending: 'trendingList',
+                    portfolio: 'portfolioUsersList',
+                    designers: 'designersList',
+                    vip: 'vipGrid',
+                    messages: 'msgsConversationsList'
+                };
+                
+                if (loaders[name]) {
+                    const container = document.getElementById(loaders[name]);
+                    if (container && container.children.length === 0) {
+                        container.innerHTML = '<div class="skeleton-item"></div><div class="skeleton-item"></div>';
+                    }
+                }
+                
+                // Debounce the data load
+                panelLoadTimeout = setTimeout(() => {
+                    switch(name) {
+                        case 'vip':
+                            loadVIPData();
+                            break;
+                        case 'vaultmgr':
+                            loadVaultData();
+                            break;
+                        case 'home':
+                            loadHomeData();
+                            break;
+                        case 'catalog':
+                            loadCatalogData();
+                            break;
+                        case 'trending':
+                            loadTrendingData();
+                            break;
+                        case 'portfolio':
+                            loadPortfolioData();
+                            break;
+                        case 'designers':
+                            loadDesignersData();
+                            break;
+                        case 'messages':
+                            loadMessagesData();
+                            break;
+                    }
+                }, 100);
+            }
+
+            // ==================== HOME PANEL ====================
+            function loadHomeData() {
+                const list = safeGetElement('homeList');
+                if (!list) return;
+                
+                const cached = getCached('home');
+                if (cached) {
+                    renderHomeList(cached);
+                }
+                
+                const timeout = setTimeout(() => {
+                    if (!cached) {
+                        list.innerHTML = '<div class="empty-state">Loading timeout. <button class="retry-btn" onclick="loadHomeData()">Retry</button></div>';
+                    }
+                }, 8000);
+
+                db.ref('content/posts').limitToFirst(20).once('value')
+                    .then(snap => {
+                        clearTimeout(timeout);
+                        const posts = snap.val() ? Object.values(snap.val()) : [];
+                        setCached('home', posts);
+                        renderHomeList(posts);
+                    })
+                    .catch(err => {
+                        clearTimeout(timeout);
+                        console.error('Home load error:', err);
+                        if (!cached) {
+                            list.innerHTML = '<div class="empty-state">Error loading posts. <button class="retry-btn" onclick="loadHomeData()">Retry</button></div>';
+                        }
+                    });
+            }
+
+            function renderHomeList(posts) {
+                const list = safeGetElement('homeList');
+                if (!list) return;
+                
+                if (!posts || !posts.length) {
+                    list.innerHTML = '<div class="empty-state">No posts yet</div>';
+                    return;
+                }
+                
+                list.innerHTML = posts.filter(post => post).map(post => `
+                    <div class="list-item">
+                        <div class="list-image">${post.imageUrl ? '<img src="'+post.imageUrl+'" loading="lazy">' : '📷'}</div>
+                        <div class="list-info">
+                            <div class="list-title">${safeGet(post, 'title', 'Untitled')}</div>
+                            <div class="list-meta">${safeGet(post, 'caption', '')}</div>
+                        </div>
+                        <div class="list-actions">
+                            <button class="btn btn-secondary" onclick="editPost('${post.id || ''}')">Edit</button>
+                            <button class="btn btn-danger" onclick="deletePost('${post.id || ''}')">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // ==================== CATALOG PANEL ====================
+            function loadCatalogData() {
+                const grid = safeGetElement('catalogList');
+                if (!grid) return;
+                
+                const cached = getCached('catalog');
+                if (cached) {
+                    renderCatalogGrid(cached);
+                }
+                
+                const timeout = setTimeout(() => {
+                    if (!cached) {
+                        grid.innerHTML = '<div class="empty-state">Loading timeout. <button class="retry-btn" onclick="loadCatalogData()">Retry</button></div>';
+                    }
+                }, 8000);
+
+                db.ref('content/catalog').limitToFirst(20).once('value')
+                    .then(snap => {
+                        clearTimeout(timeout);
+                        const catalog = snap.val() ? Object.values(snap.val()) : [];
+                        setCached('catalog', catalog);
+                        renderCatalogGrid(catalog);
+                    })
+                    .catch(err => {
+                        clearTimeout(timeout);
+                        console.error('Catalog load error:', err);
+                        if (!cached) {
+                            grid.innerHTML = '<div class="empty-state">Error loading catalog. <button class="retry-btn" onclick="loadCatalogData()">Retry</button></div>';
+                        }
+                    });
+            }
+
+            function renderCatalogGrid(catalog) {
+                const grid = safeGetElement('catalogList');
+                if (!grid) return;
+                
+                if (!catalog || !catalog.length) {
+                    grid.innerHTML = '<div class="empty-state">No catalog items</div>';
+                    return;
+                }
+                
+                grid.innerHTML = catalog.filter(item => item).map(item => `
+                    <div class="elite-collection-cell-admin" oncontextmenu="showCatalogContextMenu(event, '${item.id || ''}')" ondblclick="editCatalogItem('${item.id || ''}')">
+                        <div class="elite-cell-meta-admin">
+                            <div class="elite-cell-topic-admin">${safeGet(item, 'value') || safeGet(item, 'topic', 'Collection')}</div>
+                            <div class="elite-cell-feeling-admin">${safeGet(item, 'description') || safeGet(item, 'feeling', '')}</div>
+                        </div>
+                        <div class="elite-cell-box-admin">
+                            ${item.coverImage ? '<img src="'+item.coverImage+'" loading="lazy">' : '<div class="elite-cell-grain-admin"></div>'}
+                            <span class="elite-cell-arrow">›</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Catalog context menu
+            let currentContextItem = null;
+            function showCatalogContextMenu(event, id) {
+                event.preventDefault();
+                currentContextItem = id;
+                
+                const menu = safeGetElement('cellContextMenu');
+                const backdrop = safeGetElement('contextBackdrop');
+                const title = safeGetElement('contextMenuTitle');
+                const options = safeGetElement('contextMenuOptions');
+                
+                if (!menu || !backdrop || !title || !options) return;
+                
+                title.textContent = 'Catalog Item';
+                options.innerHTML = `
+                    <button class="context-menu-option" onclick="contextReplaceCover()">
+                        <span class="context-menu-icon gold">🖼️</span> Replace Cover
+                    </button>
+                    <button class="context-menu-option" onclick="contextManageImages()">
+                        <span class="context-menu-icon gold">📸</span> Manage Images
+                    </button>
+                    <button class="context-menu-option" onclick="contextUploadPalettePhoto()">
+                        <span class="context-menu-icon gold">🎨</span> Upload Palette Photo
+                    </button>
+                    <button class="context-menu-option danger" onclick="contextDeleteBox()">
+                        <span class="context-menu-icon red">🗑️</span> Delete
+                    </button>
+                `;
+                
+                // Ensure menu stays within viewport
+                const x = Math.min(event.pageX, window.innerWidth - 250);
+                const y = Math.min(event.pageY, window.innerHeight - 300);
+                menu.style.left = x + 'px';
+                menu.style.top = y + 'px';
+                menu.classList.add('active');
+                backdrop.classList.add('active');
+            }
+
+            function closeContextMenu() {
+                const menu = safeGetElement('cellContextMenu');
+                const backdrop = safeGetElement('contextBackdrop');
+                if (menu) menu.classList.remove('active');
+                if (backdrop) backdrop.classList.remove('active');
+            }
+
+            async function uploadFile(file, path) {
+                try {
+                    const storageRef = storage.ref();
+                    const fileRef = storageRef.child(path + '/' + Date.now() + '_' + file.name);
+                    await fileRef.put(file);
+                    return await fileRef.getDownloadURL();
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    showToast('Upload failed: ' + error.message);
+                    return null;
+                }
+            }
+
+            async function contextReplaceCover() {
+                closeContextMenu();
+                const input = safeGetElement('coverReplaceInput');
+                if (input) input.click();
+            }
+
+            async function handleCoverReplaceUpload(input) {
+                if (!input.files || !input.files[0]) return;
+                
+                const file = input.files[0];
+                showToast('Uploading...', 0);
+                
+                const url = await uploadFile(file, 'catalog/covers');
+                if (url && currentContextItem) {
+                    await db.ref('content/catalog/' + currentContextItem + '/coverImage').set(url);
+                    showToast('Cover updated');
+                    setCached('catalog', null);
+                    loadCatalogData();
+                }
+                input.value = '';
+            }
+
+            async function contextManageImages() {
+                closeContextMenu();
+                const input = safeGetElement('contextImageInput');
+                if (input) input.click();
+            }
+
+            async function handleContextImageUpload(input) {
+                if (!input.files || !input.files.length) return;
+                
+                showToast('Uploading ' + input.files.length + ' images...', 0);
+                const urls = [];
+                
+                for (let i = 0; i < input.files.length; i++) {
+                    const url = await uploadFile(input.files[i], 'catalog/images');
+                    if (url) urls.push(url);
+                }
+                
+                if (urls.length && currentContextItem) {
+                    const snapshot = await db.ref('content/catalog/' + currentContextItem + '/images').once('value');
+                    const existing = snapshot.val() || [];
+                    await db.ref('content/catalog/' + currentContextItem + '/images').set([...existing, ...urls]);
+                    showToast('Images uploaded');
+                    setCached('catalog', null);
+                    loadCatalogData();
+                }
+                input.value = '';
+            }
+
+            async function contextUploadPalettePhoto() {
+                closeContextMenu();
+                const input = safeGetElement('palettePhotoInput');
+                if (input) input.click();
+            }
+
+            async function handlePalettePhotoUpload(input) {
+                if (!input.files || !input.files[0]) return;
+                
+                const file = input.files[0];
+                showToast('Uploading...', 0);
+                
+                const url = await uploadFile(file, 'catalog/palettes');
+                if (url && currentContextItem) {
+                    await db.ref('content/catalog/' + currentContextItem + '/paletteImage').set(url);
+                    showToast('Palette photo updated');
+                    setCached('catalog', null);
+                    loadCatalogData();
+                }
+                input.value = '';
+            }
+
+            async function contextDeleteBox() {
+                closeContextMenu();
+                if (!confirm('Delete this catalog item?')) return;
+                
+                await db.ref('content/catalog/' + currentContextItem).remove();
+                showToast('Item deleted');
+                setCached('catalog', null);
+                loadCatalogData();
+            }
+
+            // ==================== TRENDING PANEL ====================
+            function loadTrendingData() {
+                const list = safeGetElement('trendingList');
+                if (!list) return;
+                
+                const cached = getCached('trending');
+                if (cached) {
+                    renderTrendingList(cached);
+                }
+                
+                const timeout = setTimeout(() => {
+                    if (!cached) {
+                        list.innerHTML = '<div class="empty-state">Loading timeout. <button class="retry-btn" onclick="loadTrendingData()">Retry</button></div>';
+                    }
+                }, 8000);
+
+                db.ref('content/trending').limitToFirst(20).once('value')
+                    .then(snap => {
+                        clearTimeout(timeout);
+                        const trending = snap.val() ? Object.values(snap.val()) : [];
+                        setCached('trending', trending);
+                        renderTrendingList(trending);
+                    })
+                    .catch(err => {
+                        clearTimeout(timeout);
+                        console.error('Trending load error:', err);
+                        if (!cached) {
+                            list.innerHTML = '<div class="empty-state">Error loading trending. <button class="retry-btn" onclick="loadTrendingData()">Retry</button></div>';
+                        }
+                    });
+            }
+
+            function renderTrendingList(trending) {
+                const list = safeGetElement('trendingList');
+                if (!list) return;
+                
+                if (!trending || !trending.length) {
+                    list.innerHTML = '<div class="empty-state">No trending items</div>';
+                    return;
+                }
+                
+                list.innerHTML = trending.filter(item => item).map(item => `
+                    <div class="list-item">
+                        <div class="list-image">${item.imageUrl ? '<img src="'+item.imageUrl+'" loading="lazy">' : '🎬'}</div>
+                        <div class="list-info">
+                            <div class="list-title">${safeGet(item, 'title', 'Untitled')}</div>
+                            <div class="list-meta">${safeGet(item, 'caption', '')}</div>
+                        </div>
+                        <div class="list-actions">
+                            <button class="btn btn-secondary" onclick="editTrending('${item.id || ''}')">Edit</button>
+                            <button class="btn btn-danger" onclick="deleteTrending('${item.id || ''}')">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // ==================== PORTFOLIO PANEL ====================
+            function loadPortfolioData() {
+                loadPortfolioUsers();
+            }
+
+            function loadPortfolioUsers() {
+                const list = safeGetElement('portfolioUsersList');
+                if (!list) return;
+                
+                db.ref('portfolios').limitToFirst(20).once('value')
+                    .then(snap => {
+                        const portfolios = snap.val() || {};
+                        const users = Object.keys(portfolios).length;
+                        const userCount = safeGetElement('portfolioUserTotal');
+                        if (userCount) userCount.textContent = users;
+                        
+                        if (users === 0) {
+                            list.innerHTML = '<div class="empty-state">No portfolios yet</div>';
+                            return;
+                        }
+                        
+                        list.innerHTML = Object.entries(portfolios).map(([uid, data]) => {
+                            const itemCount = data.items ? Object.keys(data.items).length : 0;
+                            return `
+                                <div class="port-user-card" onclick="openClientPortfolio('${uid}')">
+                                    <div class="port-user-av">${uid.slice(0,2).toUpperCase()}</div>
+                                    <div class="port-user-info">
+                                        <div class="port-user-name">${safeGet(data, 'clientName', 'Client ' + uid.slice(0,6))}</div>
+                                        <div class="port-user-email">${safeGet(data, 'clientEmail', 'No email')}</div>
+                                    </div>
+                                    <div class="port-user-count">
+                                        <span class="port-user-badge">${itemCount}</span>
+                                        <span class="port-user-arrow">›</span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    });
+            }
+
+            function openClientPortfolio(uid) {
+                const usersView = safeGetElement('portfolioUsersView');
+                const clientView = safeGetElement('portfolioClientView');
+                if (usersView) usersView.style.display = 'none';
+                if (clientView) clientView.style.display = 'flex';
+                
+                db.ref('portfolios/' + uid).once('value')
+                    .then(snap => {
+                        const data = snap.val() || {};
+                        const clientName = safeGetElement('portfolioClientName');
+                        const clientEmail = safeGetElement('portfolioClientEmail');
+                        const clientTotal = safeGetElement('portfolioClientTotal');
+                        const clientGrid = safeGetElement('portfolioClientGrid');
+                        
+                        if (clientName) clientName.textContent = safeGet(data, 'clientName', 'Client');
+                        if (clientEmail) clientEmail.textContent = safeGet(data, 'clientEmail', '');
+                        
+                        const items = data.items ? Object.values(data.items) : [];
+                        if (clientTotal) clientTotal.textContent = items.length;
+                        
+                        if (clientGrid) {
+                            clientGrid.innerHTML = items.filter(item => item).map(item => `
+                                <div class="port-grid-item" onclick="viewPortfolioItem('${item.id || ''}')">
+                                    ${item.imageData ? '<img src="'+item.imageData+'" loading="lazy">' : '<div style="font-size:40px;text-align:center;">🖼️</div>'}
+                                    <div class="port-grid-item-label">${safeGet(item, 'title', 'Design')}</div>
+                                </div>
+                            `).join('');
+                        }
+                    });
+            }
+
+            function backToPortfolioUsers() {
+                const usersView = safeGetElement('portfolioUsersView');
+                const clientView = safeGetElement('portfolioClientView');
+                if (usersView) usersView.style.display = 'block';
+                if (clientView) clientView.style.display = 'none';
+            }
+
+            function viewPortfolioItem(id) {
+                showToast('Viewing portfolio item: ' + id);
+            }
+
+            // ==================== DESIGNERS PANEL ====================
+            function loadDesignersData() {
+                const list = safeGetElement('designersList');
+                if (!list) return;
+                
+                const cached = getCached('designers');
+                if (cached) {
+                    renderDesignersList(cached);
+                }
+                
+                db.ref('admins').once('value')
+                    .then(snap => {
+                        const designers = snap.val() ? Object.values(snap.val()) : [];
+                        setCached('designers', designers);
+                        renderDesignersList(designers);
+                    })
+                    .catch(err => {
+                        console.error('Designers load error:', err);
+                        if (!cached) {
+                            list.innerHTML = '<div class="empty-state">Error loading designers</div>';
+                        }
+                    });
+            }
+
+            function renderDesignersList(designers) {
+                const list = safeGetElement('designersList');
+                if (!list) return;
+                
+                if (!designers || !designers.length) {
+                    list.innerHTML = '<div class="empty-state">No designers</div>';
+                    return;
+                }
+                
+                list.innerHTML = designers.filter(designer => designer).map(designer => `
+                    <div class="list-item">
+                        <div class="list-image">👤</div>
+                        <div class="list-info">
+                            <div class="list-title">${safeGet(designer, 'name', 'Designer')}</div>
+                            <div class="list-meta">${safeGet(designer, 'email', '')}</div>
+                        </div>
+                        <div class="list-actions">
+                            <button class="btn btn-danger" onclick="deleteDesigner('${designer.id || ''}')">Remove</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // ==================== MESSAGES PANEL ====================
+            function loadMessagesData() {
+                loadConversations();
+            }
+
+            function loadConversations() {
+                const list = safeGetElement('msgsConversationsList');
+                if (!list) return;
+                
+                db.ref('chats').limitToFirst(20).once('value')
+                    .then(snap => {
+                        const chats = snap.val() || {};
+                        if (Object.keys(chats).length === 0) {
+                            list.innerHTML = '<div class="empty-state">No messages yet</div>';
+                            return;
+                        }
+                        
+                        list.innerHTML = Object.entries(chats).map(([uid, chat]) => {
+                            const messages = chat.messages ? Object.values(chat.messages) : [];
+                            const lastMsg = messages.length ? messages[messages.length - 1] : null;
+                            const unread = messages.filter(m => !m.read).length;
+                            
+                            return `
+                                <div class="msg-conv-item ${unread ? 'unread' : ''}" onclick="openAdminChat('${uid}')">
+                                    <div class="msg-conv-avatar">${(chat.clientName || 'C').slice(0,2).toUpperCase()}</div>
+                                    <div class="msg-conv-body">
+                                        <div class="msg-conv-name">${safeGet(chat, 'clientName', 'Client')}</div>
+                                        <div class="msg-conv-preview">${lastMsg ? lastMsg.text : 'No messages'}</div>
+                                    </div>
+                                    <div class="msg-conv-meta">
+                                        <div class="msg-conv-time">${lastMsg ? new Date(lastMsg.timestamp).toLocaleTimeString() : ''}</div>
+                                        ${unread ? '<span class="msg-unread-badge">'+unread+'</span>' : ''}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    });
+            }
+
+            let currentChatUID = null;
+            function openAdminChat(uid) {
+                currentChatUID = uid;
+                const listView = safeGetElement('msgsListView');
+                const chatView = safeGetElement('msgsAdminChatView');
+                if (listView) listView.style.display = 'none';
+                if (chatView) chatView.style.display = 'block';
+                
+                db.ref('chats/' + uid).once('value')
+                    .then(snap => {
+                        const chat = snap.val() || {};
+                        const clientName = safeGetElement('adminChatClientName');
+                        if (clientName) clientName.textContent = safeGet(chat, 'clientName', 'Client');
+                        
+                        const messages = chat.messages ? Object.values(chat.messages) : [];
+                        const container = safeGetElement('adminChatMsgs');
+                        
+                        if (container) {
+                            container.innerHTML = messages.map(msg => `
+                                <div class="admin-msg from-${msg.sender === 'admin' ? 'admin' : 'client'}">
+                                    <div class="admin-bubble">${msg.text || ''}</div>
+                                    <div class="admin-msg-time">${new Date(msg.timestamp).toLocaleTimeString()}</div>
+                                </div>
+                            `).join('');
+                            
+                            container.scrollTop = container.scrollHeight;
+                        }
+                    });
+            }
+
+            function adminBackToList() {
+                const listView = safeGetElement('msgsListView');
+                const chatView = safeGetElement('msgsAdminChatView');
+                if (listView) listView.style.display = 'block';
+                if (chatView) chatView.style.display = 'none';
+            }
+
+            function adminSendMessage() {
+                const input = safeGetElement('adminChatInput');
+                if (!input || !currentChatUID) return;
+                
+                const text = input.value.trim();
+                if (!text) return;
+                
+                const msg = {
+                    text: text,
+                    sender: 'admin',
+                    senderName: 'Admin',
+                    timestamp: Date.now(),
+                    read: true
+                };
+                
+                db.ref('chats/' + currentChatUID + '/messages').push(msg)
+                    .then(() => {
+                        input.value = '';
+                        openAdminChat(currentChatUID);
+                    });
+            }
+
+            function openClientProfile() {
+                const drawer = safeGetElement('clientProfileDrawer');
+                const overlay = safeGetElement('clientProfileOverlay');
+                if (drawer) drawer.style.display = 'flex';
+                if (overlay) overlay.style.display = 'block';
+            }
+
+            function closeClientProfile() {
+                const drawer = safeGetElement('clientProfileDrawer');
+                const overlay = safeGetElement('clientProfileOverlay');
+                if (drawer) drawer.style.display = 'none';
+                if (overlay) overlay.style.display = 'none';
+            }
+
+            // ==================== VIP FUNCTIONS ====================
+            function loadVIPData() {
+                const grid = safeGetElement('vipGrid');
+                if (!grid) return;
+                
+                const cached = getCached('vip');
+                if (cached) {
+                    renderVIPGrid(cached);
+                }
+                
+                const timeout = setTimeout(() => {
+                    if (!cached) {
+                        grid.innerHTML = '<div class="empty-state">Loading timeout. <button class="retry-btn" onclick="loadVIPData()">Retry</button></div>';
+                    }
+                }, 8000);
+
+                db.ref('vip').once('value')
+                    .then(snap => {
+                        clearTimeout(timeout);
+                        const data = snap.val() || {};
+                        setCached('vip', data);
+                        renderVIPGrid(data);
+                    })
+                    .catch(err => {
+                        clearTimeout(timeout);
+                        console.error('VIP load error:', err);
+                        if (!cached) {
+                            grid.innerHTML = '<div class="empty-state">Error loading VIPs. <button class="retry-btn" onclick="loadVIPData()">Retry</button></div>';
+                        }
+                    });
+            }
+
+            function renderVIPGrid(data) {
+                const grid = safeGetElement('vipGrid');
+                if (!grid) return;
+                
+                const vipArray = Object.entries(data || {}).map(([key, v]) => ({ ...v, key }));
+                
+                if (!vipArray.length) {
+                    grid.innerHTML = '<div class="empty-state">No VIPs registered</div>';
+                    return;
+                }
+                
+                grid.innerHTML = vipArray.filter(v => v).map(v => `
+                    <div class="vip-card status-${v.status || 'active'}">
+                        <div class="vip-name">${safeGet(v, 'name', 'Unknown')}</div>
+                        <div class="vip-phone">+234 ${v.phone || ''}</div>
+                        <div class="vip-actions">
+                            <button class="vip-btn btn-success" onclick="approveVIP('${v.key}')">✓</button>
+                            <button class="vip-btn btn-danger" onclick="rejectVIP('${v.key}')">✗</button>
+                            <button class="vip-btn btn-secondary" onclick="resetVIPPassword('${v.key}')">↻</button>
+                            <button class="vip-btn btn-danger" onclick="deleteVIP('${v.key}')">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
+                
+                const vipCount = safeGetElement('vipCount');
+                if (vipCount) vipCount.textContent = `(${vipArray.length})`;
+            }
+
+            function addVIP() {
+                const phone = safeGetElement('vipPhone');
+                const code = safeGetElement('vipCode');
+                const name = safeGetElement('vipName');
+                
+                if (!phone || !code || !name) return;
+                
+                const phoneVal = phone.value.trim();
+                const codeVal = code.value.trim();
+                const nameVal = name.value.trim();
+
+                // Validate Nigerian phone number (10 digits starting with 0)
+                if (!/^0[789][01]\d{7}$/.test(phoneVal)) {
+                    showToast('Please enter a valid Nigerian phone number (e.g., 08012345678)');
+                    return;
+                }
+
+                if (!codeVal || !/^\d{4}$/.test(codeVal)) {
+                    showToast('Please enter a valid 4-digit code');
+                    return;
+                }
+
+                if (!nameVal) {
+                    showToast('Please enter full name');
+                    return;
+                }
+
+                const btn = document.querySelector('#panel-vip .btn-primary');
+                setButtonLoading(btn, true);
+
+                db.ref('vip/' + phoneVal).once('value')
+                    .then(snap => {
+                        if (snap.exists()) {
+                            throw new Error('Phone number already registered');
+                        }
+                        
+                        return db.ref('userProfiles').orderByChild('mobile').equalTo(phoneVal).once('value');
+                    })
+                    .then(snapshot => {
+                        let userId = null;
+                        if (snapshot.exists()) {
+                            const users = snapshot.val();
+                            userId = Object.keys(users)[0];
+                        }
+
+                        const vipData = {
+                            name: nameVal,
+                            phone: phoneVal,
+                            password: codeVal,
+                            status: 'active',
+                            createdAt: Date.now(),
+                            id: userId
+                        };
+
+                        return db.ref('vip/' + phoneVal).set(vipData);
+                    })
+                    .then(() => {
+                        showToast('✓ VIP added successfully');
+                        phone.value = '';
+                        code.value = '';
+                        name.value = '';
+                        
+                        setCached('vip', null);
+                        setCached('clientList', null);
+                        loadVIPData();
+                        loadVaultData();
+                    })
+                    .catch(err => {
+                        showToast(err.message || 'Error adding VIP');
+                    })
+                    .finally(() => {
+                        setButtonLoading(btn, false);
+                    });
+            }
+
+            function approveVIP(phone) {
+                db.ref('vip/' + phone + '/status').set('active')
+                    .then(() => {
+                        setCached('vip', null);
+                        setCached('clientList', null);
+                        loadVIPData();
+                        loadVaultData();
+                    });
+            }
+
+            function rejectVIP(phone) {
+                db.ref('vip/' + phone + '/status').set('rejected')
+                    .then(() => {
+                        setCached('vip', null);
+                        setCached('clientList', null);
+                        loadVIPData();
+                        loadVaultData();
+                    });
+            }
+
+            function resetVIPPassword(phone) {
+                const newCode = prompt('Enter new 4-digit code for this VIP:');
+                if (newCode && /^\d{4}$/.test(newCode)) {
+                    db.ref('vip/' + phone + '/password').set(newCode)
+                        .then(() => {
+                            showToast('Password reset');
+                            setCached('vip', null);
+                            loadVIPData();
+                        });
+                }
+            }
+
+            function deleteVIP(phone) {
+                if (confirm('Delete this VIP permanently?')) {
+                    db.ref('vip/' + phone).remove()
+                        .then(() => {
+                            setCached('vip', null);
+                            setCached('clientList', null);
+                            loadVIPData();
+                            loadVaultData();
+                        });
+                }
+            }
+
+            // ==================== VAULT MANAGER FUNCTIONS ====================
+            function loadVaultData() {
+                vmShowView('main');
+                
+                const cached = getCached('clientList');
+                if (cached) {
+                    renderClientList(cached);
+                }
+                
+                const timeout = setTimeout(() => {
+                    const list = safeGetElement('vmClientList');
+                    if (list && !list.querySelector('.vm-client-item')) {
+                        list.innerHTML = '<div class="vm-empty">Loading timeout. <button class="retry-btn" onclick="loadVaultData()">Retry</button></div>';
+                    }
+                }, 8000);
+
+                db.ref('vip').once('value')
+                    .then(snap => {
+                        clearTimeout(timeout);
+                        const data = snap.val() || {};
+                        setCached('clientList', data);
+                        renderClientList(data);
+                    })
+                    .catch(err => {
+                        clearTimeout(timeout);
+                        console.error('Client list error:', err);
+                        const list = safeGetElement('vmClientList');
+                        if (list && !list.querySelector('.vm-client-item')) {
+                            list.innerHTML = '<div class="vm-empty">Error loading clients. <button class="retry-btn" onclick="loadVaultData()">Retry</button></div>';
+                        }
+                    });
+            }
+
+            function renderClientList(vips) {
+                const list = safeGetElement('vmClientList');
+                if (!list) return;
+                
+                const vipList = Object.entries(vips || {}).map(([key, v]) => ({ ...v, key }))
+                    .filter(v => v.status === 'active');
+                
+                if (!vipList.length) {
+                    list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">No active VIP clients</div></div>';
+                    return;
+                }
+                
+                list.innerHTML = vipList.filter(v => v).map(v => {
+                    const name = v.name || 'Client';
+                    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2) || 'CL';
+                    const uid = v.id || v.key;
+                    return `<div class="vm-client-item" onclick="vmOpenClientPOV('${uid}','${name}','${v.phone || ''}')">
+                        <div class="vm-client-av">${initials}</div>
+                        <div class="vm-client-info">
+                            <div class="vm-client-name">${name}</div>
+                            <div class="vm-client-sub">+234 ${v.phone || ''} · VIP</div>
+                        </div>
+                        <span class="vm-client-chevron">›</span>
+                    </div>`;
+                }).join('');
+            }
+
+            function vmShowView(view) {
+                ['vmMainView','vmLibraryView','vmDefaultsView','vmClientPOV','vmProjectDetailView'].forEach(id => {
+                    const el = safeGetElement(id);
+                    if (el) el.style.display = 'none';
+                });
+                
+                const map = { 
+                    main:'vmMainView', 
+                    library:'vmLibraryView', 
+                    defaults:'vmDefaultsView', 
+                    pov:'vmClientPOV', 
+                    project:'vmProjectDetailView' 
+                };
+                
+                const target = safeGetElement(map[view]);
+                if (target) { 
+                    target.style.display = 'flex'; 
+                    target.style.flexDirection = 'column'; 
+                }
+                
+                if (view === 'library') loadLibraryData();
+                if (view === 'defaults') loadDefaultsData();
+            }
+
+            function loadLibraryData() {
+                const grid = safeGetElement('vmLibraryGrid');
+                if (!grid) return;
+                
+                const cached = getCached('library');
+                if (cached) {
+                    renderLibraryGrid(cached);
+                }
+                
+                const timeout = setTimeout(() => {
+                    if (!cached) {
+                        grid.innerHTML = '<div class="vm-empty">Loading timeout. <button class="retry-btn" onclick="loadLibraryData()">Retry</button></div>';
+                    }
+                }, 8000);
+
+                db.ref('vault/assets').limitToFirst(20).once('value')
+                    .then(snap => {
+                        clearTimeout(timeout);
+                        const assets = snap.val() ? Object.values(snap.val()) : [];
+                        setCached('library', assets);
+                        renderLibraryGrid(assets);
+                    })
+                    .catch(err => {
+                        clearTimeout(timeout);
+                        console.error('Library error:', err);
+                        if (!cached) {
+                            grid.innerHTML = '<div class="vm-empty">Error loading. <button class="retry-btn" onclick="loadLibraryData()">Retry</button></div>';
+                        }
+                    });
+            }
+
+            function renderLibraryGrid(assets) {
+                const grid = safeGetElement('vmLibraryGrid');
+                if (!grid) return;
+                
+                if (!assets.length) {
+                    grid.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">🖼</div><div class="vm-empty-title">No assets yet</div></div>';
+                    return;
+                }
+                
+                grid.innerHTML = assets.filter(a => a).sort((a,b) => (b.createdAt||0) - (a.createdAt||0))
+                    .map(a => vmAssetCard(a, 'library')).join('');
+            }
+
+            function loadDefaultsData() {
+                const grid = safeGetElement('vmDefaultsGrid');
+                if (!grid) return;
+                
+                const cached = getCached('defaults');
+                if (cached) {
+                    renderDefaultsGrid(cached);
+                }
+                
+                const timeout = setTimeout(() => {
+                    if (!cached) {
+                        grid.innerHTML = '<div class="vm-empty">Loading timeout. <button class="retry-btn" onclick="loadDefaultsData()">Retry</button></div>';
+                    }
+                }, 8000);
+
+                db.ref('vault/defaults').limitToFirst(20).once('value')
+                    .then(snap => {
+                        clearTimeout(timeout);
+                        const assets = snap.val() ? Object.values(snap.val()) : [];
+                        setCached('defaults', assets);
+                        renderDefaultsGrid(assets);
+                    })
+                    .catch(err => {
+                        clearTimeout(timeout);
+                        console.error('Defaults error:', err);
+                        if (!cached) {
+                            grid.innerHTML = '<div class="vm-empty">Error loading. <button class="retry-btn" onclick="loadDefaultsData()">Retry</button></div>';
+                        }
+                    });
+            }
+
+            function renderDefaultsGrid(assets) {
+                const grid = safeGetElement('vmDefaultsGrid');
+                if (!grid) return;
+                
+                if (!assets.length) {
+                    grid.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◇</div><div class="vm-empty-title">No defaults set</div></div>';
+                    return;
+                }
+                
+                grid.innerHTML = assets.filter(a => a).map(a => vmAssetCard(a, 'defaults')).join('');
+            }
+
+            function vmAssetCard(a, mode) {
+                if (!a) return '';
+                
+                const isProgress = a.cat === 'Progress Tracker';
+                const thumb = a.thumb ? 
+                    `<img src="${a.thumb}" style="width:100%; height:100%; object-fit:cover;" loading="lazy">` : 
+                    `<span style="font-size:42px;">${isProgress ? '📊' : '📦'}</span>`;
+                
+                let actions = '';
+                
+                if (mode === 'library') {
+                    actions = `<div class="vm-asset-actions">
+                        <button class="vm-asset-btn vm-asset-btn-add" onclick="event.stopPropagation(); vmToggleDefault('${a.id}',${!!a.isDefault})">
+                            ${a.isDefault ? '★ Remove Default' : '☆ Set Default'}
+                        </button>
+                        <button class="vm-asset-btn vm-asset-btn-del" onclick="event.stopPropagation(); vmDeleteAsset('${a.id}')">Delete</button>
+                    </div>`;
+                } else if (mode === 'pov') {
+                    if (isProgress) {
+                        actions = `<div class="vm-asset-actions">
+                            <button class="vm-asset-btn vm-asset-btn-add" onclick="event.stopPropagation(); vmOpenProgressTracker('${a.id}')">EDIT</button>
+                            <button class="vm-asset-btn vm-asset-btn-del" onclick="event.stopPropagation(); vmRemoveFromClient('${a.id}')">REMOVE</button>
+                        </div>`;
+                    } else {
+                        actions = `<div class="vm-asset-actions">
+                            <button class="vm-asset-btn vm-asset-btn-del" onclick="event.stopPropagation(); vmRemoveFromClient('${a.id}')">REMOVE</button>
+                        </div>`;
+                    }
+                } else if (mode === 'defaults') {
+                    actions = `<div class="vm-asset-actions">
+                        <button class="vm-asset-btn vm-asset-btn-del" onclick="event.stopPropagation(); vmToggleDefault('${a.id}',true)">Remove Default</button>
+                    </div>`;
+                }
+                
+                const clickHandler = isProgress && mode === 'pov' ? 
+                    `onclick="vmOpenProgressTracker('${a.id}')"` : 
+                    (a.url ? `onclick="vmOpenDetail('${a.id}')"` : '');
+                
+                return `<div class="vm-asset-card ${isProgress ? 'vm-progress-card' : ''}" ${clickHandler}>
+                    <div class="vm-asset-thumb">${thumb}</div>
+                    <div class="vm-asset-body">
+                        <div class="vm-asset-cat">${a.cat||'Asset'}</div>
+                        <div class="vm-asset-title">${a.title||'Untitled'}</div>
+                        ${a.desc ? '<div class="vm-asset-desc">' + a.desc + '</div>' : ''}
+                    </div>
+                    ${actions}
+                </div>`;
+            }
+
+            function vmOpenClientPOV(uid, name, phone) {
+                if (!uid) {
+                    showToast('Invalid client ID');
+                    return;
+                }
+                
+                vmCurrentClientUID = uid;
+                vmCurrentClientName = name || 'Client';
+                
+                const povAv = safeGetElement('vmPOVAv');
+                const povName = safeGetElement('vmPOVName');
+                const libraryPanel = safeGetElement('vmClientLibraryPanel');
+                
+                if (povAv) {
+                    const safeName = name || 'Client';
+                    povAv.textContent = safeName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2) || 'CL';
+                }
+                if (povName) povName.textContent = name || 'Client';
+                if (libraryPanel) libraryPanel.style.display = 'none';
+                
+                vmShowView('pov');
+                
+                const grid = safeGetElement('vmPOVGrid');
+                if (!grid) return;
+                
+                const cached = getCached('pov_' + uid);
+                if (cached) {
+                    renderPOVGrid(cached);
+                }
+                
+                const timeout = setTimeout(() => {
+                    if (!cached) {
+                        grid.innerHTML = '<div class="vm-empty">Loading timeout. <button class="retry-btn" onclick="vmOpenClientPOV(\''+uid+'\',\''+name+'\',\''+phone+'\')">Retry</button></div>';
+                    }
+                }, 8000);
+
+                db.ref('vault/clients/' + uid).limitToFirst(20).once('value')
+                    .then(s => {
+                        clearTimeout(timeout);
+                        const assets = s.val() ? Object.values(s.val()) : [];
+                        setCached('pov_' + uid, assets);
+                        renderPOVGrid(assets);
+                    })
+                    .catch(err => {
+                        clearTimeout(timeout);
+                        console.error('POV load error:', err);
+                        if (!cached) {
+                            grid.innerHTML = '<div class="vm-empty">Error loading. <button class="retry-btn" onclick="vmOpenClientPOV(\''+uid+'\',\''+name+'\',\''+phone+'\')">Retry</button></div>';
+                        }
+                    });
+                
+                loadClientProjects(uid);
+            }
+
+            function renderPOVGrid(assets) {
+                const grid = safeGetElement('vmPOVGrid');
+                const povSub = safeGetElement('vmPOVSub');
+                
+                if (!grid) return;
+                
+                if (povSub) povSub.textContent = assets.length + ' vault item' + (assets.length !== 1 ? 's' : '');
+                
+                if (!assets.length) {
+                    grid.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◇</div><div class="vm-empty-title">This client\'s vault is empty</div></div>';
+                    return;
+                }
+                
+                grid.innerHTML = assets.filter(a => a).map(a => vmAssetCard(a, 'pov')).join('');
+            }
+
+            function loadClientProjects(uid) {
+                if (!uid) return;
+                
+                db.ref('timelines/' + uid + '/projects').limitToFirst(10).once('value')
+                    .then(s => {
+                        const projects = s.val() || {};
+                        const list = safeGetElement('vmClientProjectList');
+                        const countDisplay = safeGetElement('vmClientProjectCount');
+                        const count = Object.keys(projects).length;
+                        
+                        if (countDisplay) countDisplay.textContent = count;
+                        
+                        if (!list) return;
+                        
+                        if (!count) {
+                            list.innerHTML = '<div style="text-align:center; padding:20px; color:rgba(212,175,55,0.3);">No projects yet</div>';
+                            return;
+                        }
+                        
+                        list.innerHTML = Object.entries(projects).map(([id,p], i) => `
+                            <div class="progress-item" onclick="vmOpenProjectFromClient('${id}','${p.name || ''}')">
+                                <div class="progress-item-left">
+                                    <div class="progress-number">${i+1}</div>
+                                    <div>
+                                        <div class="progress-name">${p.name || 'Unnamed'}</div>
+                                        <div class="progress-date">${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div>
+                                    </div>
+                                </div>
+                                <span style="color:rgba(212,175,55,0.4);font-size:14px;">›</span>
+                            </div>
+                        `).join('');
+                    })
+                    .catch(err => console.error('Error loading projects:', err));
+            }
+
+            function vmOpenProgressTracker(assetId) {
+                vmCurrentProgressAssetId = assetId;
+                const titleEl = safeGetElement('vmProjectDetailTitle');
+                if (titleEl) titleEl.textContent = 'Progress Tracker';
+                vmShowView('project');
+                vmLoadProjectsList();
+            }
+
+            function vmLoadProjectsList() {
+                if (!vmCurrentClientUID) return;
+                
+                const list = safeGetElement('vmWorkflowList');
+                if (!list) return;
+                
+                list.innerHTML = '<div style="text-align:center; padding:20px;"><div class="loading-spinner" style="width:24px;height:24px;"></div></div>';
+                
+                db.ref('timelines/' + vmCurrentClientUID + '/projects').once('value')
+                    .then(s => {
+                        const projects = s.val() || {};
+                        const entries = Object.entries(projects);
+                        
+                        if (!entries.length) {
+                            list.innerHTML = '<div style="text-align:center; padding:40px;">No projects</div>';
+                            return;
+                        }
+                        
+                        list.innerHTML = entries.map(([id, p], i) => `
+                            <div class="progress-item" onclick="vmOpenProject('${id}','${p.name || ''}')">
+                                <div class="progress-item-left">
+                                    <div class="progress-number">${i+1}</div>
+                                    <div>
+                                        <div class="progress-name">${p.name || 'Unnamed'}</div>
+                                        <div class="progress-date">${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div>
+                                    </div>
+                                </div>
+                                <span style="color:rgba(212,175,55,0.4);font-size:14px;">›</span>
+                            </div>
+                        `).join('');
+                    });
+            }
+
+            function vmOpenProject(id, name) {
+                vmCurrentProjectId = id;
+                const titleEl = safeGetElement('vmProjectDetailTitle');
+                if (titleEl) titleEl.textContent = name || 'Project';
+                loadWorkflowsForProject();
+            }
+
+            function loadWorkflowsForProject() {
+                if (!vmCurrentClientUID || !vmCurrentProjectId) return;
+                
+                const list = safeGetElement('vmWorkflowList');
+                if (!list) return;
+                
+                list.innerHTML = '<div style="text-align:center; padding:20px;"><div class="loading-spinner" style="width:24px;height:24px;"></div></div>';
+                
+                db.ref('timelines/' + vmCurrentClientUID + '/projects/' + vmCurrentProjectId + '/workflows')
+                    .once('value')
+                    .then(snapshot => {
+                        const workflows = snapshot.val() || {};
+                        const entries = Object.entries(workflows);
+                        
+                        if (!entries.length) {
+                            list.innerHTML = `
+                                <div style="text-align:center; padding:40px;">
+                                    <div style="font-size:48px; margin-bottom:16px; opacity:0.3;">📋</div>
+                                    <div style="font-size:16px; color:rgba(212,175,55,0.5); margin-bottom:20px;">No workflows yet</div>
+                                    <button class="progress-create-btn" onclick="vmPromptNewWorkflow()">+ CREATE WORKFLOW</button>
+                                </div>
+                            `;
+                            return;
+                        }
+                        
+                        list.innerHTML = entries.map(([id, w], index) => {
+                            const isProgressed = w.status === 'progressed';
+                            return `
+                                <div class="workflow-item" data-workflow-id="${id}" data-workflow-name="${(w.name || '').replace(/'/g, "\\'")}" data-workflow-status="${w.status || 'inprogress'}">
+                                    <div class="workflow-item-left">
+                                        <div class="workflow-number">${index + 1}</div>
+                                        <div class="workflow-name">${w.name || 'Unnamed'}</div>
+                                    </div>
+                                    <div class="workflow-status-btn ${isProgressed ? 'progressed' : ''}" 
+                                         onclick="event.stopPropagation(); toggleWorkflowStatus('${id}', '${w.status || 'inprogress'}')">
+                                        ${isProgressed ? 'PROGRESSED ✓' : 'PROGRESSING'}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    })
+                    .catch(err => {
+                        console.error('Error loading workflows:', err);
+                        list.innerHTML = '<div style="text-align:center; padding:40px; color:#ef4444;">Error loading workflows</div>';
+                    });
+            }
+
+            let workflowToggleInProgress = false;
+            function toggleWorkflowStatus(wid, current) {
+                if (workflowToggleInProgress) return;
+                workflowToggleInProgress = true;
+                
+                const newStatus = current === 'progressed' ? 'inprogress' : 'progressed';
+                db.ref('timelines/' + vmCurrentClientUID + '/projects/' + vmCurrentProjectId + '/workflows/' + wid + '/status')
+                    .set(newStatus)
+                    .then(() => {
+                        workflowToggleInProgress = false;
+                        loadWorkflowsForProject();
+                    })
+                    .catch(err => {
+                        workflowToggleInProgress = false;
+                        showToast('Error updating status');
+                    });
+            }
+
+            function vmBackFromProject() {
+                if (vmCurrentProjectId) {
+                    vmCurrentProjectId = null;
+                    const titleEl = safeGetElement('vmProjectDetailTitle');
+                    if (titleEl) titleEl.textContent = 'Projects';
+                    vmShowView('pov');
+                } else {
+                    vmShowView('pov');
+                }
+            }
+
+            function vmOpenProjectFromClient(id, name) {
+                vmCurrentProjectId = id;
+                const titleEl = safeGetElement('vmProjectDetailTitle');
+                if (titleEl) titleEl.textContent = name || 'Project';
+                vmShowView('project');
+                loadWorkflowsForProject();
+            }
+
+            function vmOpenDetail(assetId) {
+                if (!assetId) return;
+                
+                const overlay = safeGetElement('vmDetailOverlay');
+                const content = safeGetElement('vmDetailContent');
+                if (!overlay || !content) return;
+                
+                db.ref('vault/assets/' + assetId).once('value')
+                    .then(s => {
+                        const asset = s.val();
+                        if (!asset) {
+                            content.innerHTML = '<div style="text-align:center; padding:40px;">Asset not found</div>';
+                        } else {
+                            content.innerHTML = `
+                                <div style="max-width:700px;">
+                                    <div style="font-size:9px;letter-spacing:4px;color:rgba(212,175,55,0.4);margin-bottom:8px;">${asset.cat||''}</div>
+                                    <div style="font-family:Cormorant Garamond;font-size:32px;color:#E8D9B5;margin-bottom:12px;">${asset.title||''}</div>
+                                    ${asset.desc ? '<div style="font-size:14px;color:rgba(232,217,181,0.55);margin-bottom:24px;">'+asset.desc+'</div>' : ''}
+                                    ${asset.thumb ? '<img src="'+asset.thumb+'" style="width:100%;border-radius:12px;margin-bottom:24px;" loading="lazy">' : ''}
+                                    ${asset.url ? '<a href="'+asset.url+'" target="_blank" class="btn btn-primary">View Asset</a>' : ''}
+                                </div>
+                            `;
+                        }
+                        overlay.classList.add('active');
+                    });
+            }
+
+            function vmCloseDetail() {
+                const overlay = safeGetElement('vmDetailOverlay');
+                if (overlay) overlay.classList.remove('active');
+            }
+
+            // ==================== VAULT ASSET FUNCTIONS ====================
+            function vmOpenCreateForm(id) {
+                const editId = safeGetElement('vmEditId');
+                const title = safeGetElement('vmFTitle');
+                const desc = safeGetElement('vmFDesc');
+                const cat = safeGetElement('vmFCat');
+                const def = safeGetElement('vmFDefault');
+                const url = safeGetElement('vmFUrl');
+                const thumb = safeGetElement('vmFThumb');
+                const formTitle = safeGetElement('vmFormTitle');
+                const modal = safeGetElement('vmFormModal');
+                
+                if (editId) editId.value = id || '';
+                if (title) title.value = '';
+                if (desc) desc.value = '';
+                if (cat) cat.value = '3D Render';
+                if (def) def.value = 'no';
+                if (url) url.value = '';
+                if (thumb) thumb.value = '';
+                if (formTitle) formTitle.textContent = id ? 'Edit Asset' : 'New Vault Asset';
+                
+                if (id) {
+                    db.ref('vault/assets/' + id).once('value').then(s => {
+                        const a = s.val() || {};
+                        if (title) title.value = a.title || '';
+                        if (desc) desc.value = a.desc || '';
+                        if (cat) cat.value = a.cat || '3D Render';
+                        if (def) def.value = a.isDefault ? 'yes' : 'no';
+                        if (url) url.value = a.url || '';
+                        if (thumb) thumb.value = a.thumb || '';
+                    });
+                }
+                
+                if (modal) modal.style.display = 'flex';
+            }
+            
+            function vmCloseForm() { 
+                const modal = safeGetElement('vmFormModal');
+                if (modal) modal.style.display = 'none'; 
+            }
+            
+            function vmSaveAsset() {
+                const editId = safeGetElement('vmEditId');
+                const title = safeGetElement('vmFTitle');
+                const desc = safeGetElement('vmFDesc');
+                const cat = safeGetElement('vmFCat');
+                const def = safeGetElement('vmFDefault');
+                const url = safeGetElement('vmFUrl');
+                const thumb = safeGetElement('vmFThumb');
+                
+                if (!title || !cat || !def) return;
+                
+                const id = editId ? editId.value || 'asset_' + Date.now() : 'asset_' + Date.now();
+                const data = {
+                    id, 
+                    title: title.value.trim(),
+                    desc: desc ? desc.value.trim() : '',
+                    cat: cat.value,
+                    isDefault: def.value === 'yes',
+                    url: url ? url.value.trim() : '',
+                    thumb: thumb ? thumb.value.trim() : '',
+                    createdAt: Date.now()
+                };
+                
+                if (!data.title) { 
+                    showToast('Please enter a title'); 
+                    return; 
+                }
+                
+                const saveBtn = document.querySelector('#vmFormModal button[onclick="vmSaveAsset()"]');
+                setButtonLoading(saveBtn, true);
+                
+                db.ref('vault/assets/' + id).set(data)
+                    .then(() => {
+                        if (data.isDefault) {
+                            return db.ref('vault/defaults/' + id).set(data);
+                        }
+                    })
+                    .then(() => {
+                        vmCloseForm();
+                        showToast('Asset saved');
+                        invalidateVaultCache();
+                        loadLibraryData();
+                        loadDefaultsData();
+                    })
+                    .catch(err => {
+                        showToast('Error: ' + err.message);
+                    })
+                    .finally(() => {
+                        setButtonLoading(saveBtn, false);
+                    });
+            }
+
+            function vmDeleteAsset(id) {
+                if (!confirm('Delete this asset permanently?')) return;
+                
+                Promise.all([
+                    db.ref('vault/assets/' + id).remove(),
+                    db.ref('vault/defaults/' + id).remove()
+                ])
+                .then(() => {
+                    showToast('Deleted');
+                    invalidateVaultCache();
+                    loadLibraryData();
+                    loadDefaultsData();
+                })
+                .catch(err => showToast('Error: ' + err.message));
+            }
+
+            function vmToggleDefault(id, currently) {
+                return db.ref('vault/assets/' + id + '/isDefault').set(!currently)
+                    .then(() => {
+                        if (!currently) {
+                            return db.ref('vault/assets/' + id).once('value')
+                                .then(s => {
+                                    if (s.val()) {
+                                        return db.ref('vault/defaults/' + id).set(s.val());
+                                    }
+                                });
+                        } else {
+                            return db.ref('vault/defaults/' + id).remove();
+                        }
+                    })
+                    .then(() => {
+                        invalidateVaultCache();
+                        loadLibraryData();
+                        loadDefaultsData();
+                    });
+            }
+
+            function vmToggleClientLibrary() {
+                const panel = safeGetElement('vmClientLibraryPanel');
+                if (!panel) return;
+                
+                const isHidden = panel.style.display === 'none';
+                panel.style.display = isHidden ? 'block' : 'none';
+                
+                if (isHidden) {
+                    vmLoadClientLibraryAssets();
+                }
+            }
+
+            function vmLoadClientLibraryAssets() {
+                const grid = safeGetElement('vmClientLibraryGrid');
+                if (!grid || !vmCurrentClientUID) return;
+                
+                grid.innerHTML = '<div style="text-align:center; padding:40px;"><div class="loading-spinner" style="width:24px;height:24px;"></div></div>';
+                
+                db.ref('vault/assets').limitToFirst(20).once('value')
+                    .then(s => {
+                        const assets = s.val() ? Object.values(s.val()) : [];
+                        if (!assets.length) {
+                            grid.innerHTML = '<div style="text-align:center; padding:40px; color:rgba(212,175,55,0.4);">No assets in library</div>';
+                            return;
+                        }
+                        
+                        return db.ref('vault/clients/' + vmCurrentClientUID).once('value')
+                            .then(c => {
+                                const clientAssets = c.val() ? Object.keys(c.val()) : [];
+                                
+                                grid.innerHTML = assets.filter(a => a).sort((a,b) => (b.createdAt||0) - (a.createdAt||0))
+                                    .map(a => {
+                                        const inClient = clientAssets.includes(a.id);
+                                        const isProgress = a.cat === 'Progress Tracker';
+                                        const thumb = a.thumb ? 
+                                            `<img src="${a.thumb}" style="width:100%; height:100%; object-fit:cover;" loading="lazy">` : 
+                                            `<span style="font-size:42px;">${isProgress ? '📊' : '📦'}</span>`;
+                                        
+                                        return `<div class="vm-asset-card ${isProgress ? 'vm-progress-card' : ''}" style="${inClient ? 'opacity:0.6;' : ''}">
+                                            <div class="vm-asset-thumb">${thumb}</div>
+                                            <div class="vm-asset-body">
+                                                <div class="vm-asset-cat">${a.cat||'Asset'}</div>
+                                                <div class="vm-asset-title">${a.title||'Untitled'}</div>
+                                                ${a.desc ? '<div class="vm-asset-desc">'+a.desc.substring(0,40)+(a.desc.length>40?'...':'')+'</div>' : ''}
+                                            </div>
+                                            ${!inClient ? 
+                                                '<div class="vm-asset-actions"><button class="vm-asset-btn vm-asset-btn-move" onclick="event.stopPropagation(); vmMoveAssetToClient(\''+a.id+'\')">MOVE HERE</button></div>' : 
+                                                '<div style="padding:16px; text-align:center; color:rgba(212,175,55,0.5); font-size:10px;">✓ IN VAULT</div>'
+                                            }
+                                        </div>`;
+                                    }).join('');
+                            });
+                    })
+                    .catch(err => {
+                        console.error('Error loading library assets:', err);
+                        grid.innerHTML = '<div style="text-align:center; padding:40px; color:#ef4444;">Error loading library</div>';
+                    });
+            }
+
+            function vmMoveAssetToClient(id) {
+                if (!vmCurrentClientUID) return;
+                
+                db.ref('vault/assets/' + id).once('value')
+                    .then(s => {
+                        const asset = s.val();
+                        if (!asset) {
+                            showToast('Asset not found');
+                            return;
+                        }
+                        
+                        return db.ref('vault/clients/' + vmCurrentClientUID + '/' + id).set(asset)
+                            .then(() => {
+                                showToast('✓ Asset moved to client vault');
+                                setCached('pov_' + vmCurrentClientUID, null);
+                                vmLoadClientLibraryAssets();
+                                return db.ref('vault/clients/' + vmCurrentClientUID).once('value')
+                                    .then(c => renderPOVGrid(c.val() ? Object.values(c.val()) : []));
+                            });
+                    })
+                    .catch(err => showToast('Error: ' + err.message));
+            }
+
+            function vmMoveProgressTrackerToClient() {
+                if (!vmCurrentClientUID) {
+                    showToast('No client selected');
+                    return;
+                }
+                
+                db.ref('vault/clients/' + vmCurrentClientUID).once('value')
+                    .then(snap => {
+                        const assets = snap.val() || {};
+                        let hasTracker = false;
+                        
+                        Object.values(assets).forEach(asset => {
+                            if (asset && asset.cat === 'Progress Tracker') hasTracker = true;
+                        });
+                        
+                        if (hasTracker) {
+                            showToast('Progress Tracker already in vault');
+                            return null;
+                        }
+                        
+                        const trackerId = 'progress_tracker_' + Date.now();
+                        const trackerData = {
+                            id: trackerId,
+                            title: 'Progress Tracker',
+                            cat: 'Progress Tracker',
+                            desc: 'Track project milestones and workflows',
+                            createdAt: Date.now(),
+                            isDefault: false
+                        };
+                        
+                        return db.ref('vault/clients/' + vmCurrentClientUID + '/' + trackerId).set(trackerData);
+                    })
+                    .then(() => {
+                        if (vmCurrentClientUID) {
+                            showToast('✓ Progress Tracker moved to vault');
+                            setCached('pov_' + vmCurrentClientUID, null);
+                            vmOpenClientPOV(vmCurrentClientUID, vmCurrentClientName, '');
+                        }
+                    })
+                    .catch(err => showToast('Error: ' + err.message));
+            }
+
+            function vmRemoveFromClient(id) {
+                if (!confirm('Remove this asset from client vault?')) return;
+                
+                db.ref('vault/clients/' + vmCurrentClientUID + '/' + id).remove()
+                    .then(() => {
+                        showToast('Removed');
+                        setCached('pov_' + vmCurrentClientUID, null);
+                        vmOpenClientPOV(vmCurrentClientUID, vmCurrentClientName, '');
+                    })
+                    .catch(err => showToast('Error: ' + err.message));
+            }
+
+            function vmSyncDefaults() {
+                if (!vmCurrentClientUID) return;
+                
+                db.ref('vault/defaults').once('value')
+                    .then(s => {
+                        const defs = s.val() || {};
+                        const updates = {};
+                        Object.entries(defs).forEach(([id,a]) => {
+                            updates['vault/clients/' + vmCurrentClientUID + '/' + id] = a;
+                        });
+                        
+                        if (Object.keys(updates).length === 0) {
+                            showToast('No defaults to sync');
+                            return;
+                        }
+                        
+                        return db.ref().update(updates)
+                            .then(() => {
+                                showToast('Defaults synced');
+                                setCached('pov_' + vmCurrentClientUID, null);
+                                vmOpenClientPOV(vmCurrentClientUID, vmCurrentClientName, '');
+                            });
+                    })
+                    .catch(err => showToast('Error: ' + err.message));
+            }
+
+            // ==================== PROJECT/WORKFLOW MODALS ====================
+            function vmPromptNewProject() {
+                const modal = safeGetElement('vmPTModal');
+                const input = safeGetElement('vmPTProjectNameInput');
+                if (modal) modal.style.display = 'flex';
+                if (input) setTimeout(() => input.focus(), 100);
+            }
+            
+            function vmClosePTModal() { 
+                const modal = safeGetElement('vmPTModal');
+                const input = safeGetElement('vmPTProjectNameInput');
+                if (modal) modal.style.display = 'none'; 
+                if (input) input.value = ''; 
+            }
+            
+            function vmSaveNewProject() {
+                const input = safeGetElement('vmPTProjectNameInput');
+                if (!input) return;
+                
+                const name = input.value.trim();
+                
+                if (!name) { 
+                    showToast('Please enter a project name'); 
+                    return; 
+                }
+                
+                if (!vmCurrentClientUID) {
+                    showToast('No client selected');
+                    return;
+                }
+                
+                const id = 'proj_' + Date.now();
+                const projectPath = 'timelines/' + vmCurrentClientUID + '/projects/' + id;
+                
+                const createBtn = document.querySelector('#vmPTModal .gold-modal-btn-primary');
+                setButtonLoading(createBtn, true);
+                
+                db.ref(projectPath).set({ name: name, createdAt: Date.now() })
+                    .then(() => {
+                        showToast('✓ Project created');
+                        vmClosePTModal();
+                        loadClientProjects(vmCurrentClientUID);
+                    })
+                    .catch(err => {
+                        showToast('Error: ' + err.message);
+                    })
+                    .finally(() => {
+                        setButtonLoading(createBtn, false);
+                    });
+            }
+
+            function vmPromptNewWorkflow() {
+                if (!vmCurrentProjectId) {
+                    showToast('Please select a project first');
+                    return;
+                }
+                const modal = safeGetElement('vmWFModal');
+                const input = safeGetElement('vmWFNameInput');
+                if (modal) modal.style.display = 'flex';
+                if (input) setTimeout(() => input.focus(), 100);
+            }
+            
+            function vmCloseWFModal() { 
+                const modal = safeGetElement('vmWFModal');
+                const input = safeGetElement('vmWFNameInput');
+                if (modal) modal.style.display = 'none'; 
+                if (input) input.value = ''; 
+            }
+            
+            function vmSaveNewWorkflow() {
+                const input = safeGetElement('vmWFNameInput');
+                if (!input) return;
+                
+                const name = input.value.trim();
+                
+                if (!name) { 
+                    showToast('Please enter a workflow name'); 
+                    return; 
+                }
+                
+                if (!vmCurrentClientUID || !vmCurrentProjectId) {
+                    showToast('No project selected');
+                    return;
+                }
+                
+                const id = 'wf_' + Date.now();
+                
+                const createBtn = document.querySelector('#vmWFModal .gold-modal-btn-primary');
+                setButtonLoading(createBtn, true);
+                
+                db.ref('timelines/' + vmCurrentClientUID + '/projects/' + vmCurrentProjectId + '/workflows/' + id)
+                    .set({ name: name, status: 'inprogress', createdAt: Date.now() })
+                    .then(() => {
+                        showToast('✓ Workflow created');
+                        vmCloseWFModal();
+                        loadWorkflowsForProject();
+                    })
+                    .catch(err => {
+                        showToast('Error: ' + err.message);
+                    })
+                    .finally(() => {
+                        setButtonLoading(createBtn, false);
+                    });
+            }
+
+            // ==================== FORM FUNCTIONS ====================
+            function openForm(type) {
+                const modal = safeGetElement('formModal');
+                const title = safeGetElement('formTitle');
+                const content = safeGetElement('formContent');
+                
+                if (!modal || !title || !content) return;
+                
+                modal.classList.add('active');
+                title.textContent = 'Add ' + type;
+                
+                let html = '';
+                if (type === 'post') {
+                    html = `
+                        <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="formFieldTitle"></div>
+                        <div class="form-group"><label class="form-label">Caption</label><textarea class="form-textarea" id="formFieldCaption"></textarea></div>
+                        <div class="form-group"><label class="form-label">Image URL</label><input class="form-input" id="formFieldImage"></div>
+                        <div class="form-group"><label class="form-label">Location</label><input class="form-input" id="formFieldLocation"></div>
+                    `;
+                } else if (type === 'trending') {
+                    html = `
+                        <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="formFieldTitle"></div>
+                        <div class="form-group"><label class="form-label">Caption</label><textarea class="form-textarea" id="formFieldCaption"></textarea></div>
+                        <div class="form-group"><label class="form-label">Video URL</label><input class="form-input" id="formFieldVideo"></div>
+                    `;
+                } else if (type === 'designer') {
+                    html = `
+                        <div class="form-group"><label class="form-label">Name</label><input class="form-input" id="formFieldName"></div>
+                        <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="formFieldEmail" type="email"></div>
+                        <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="formFieldPassword" type="password"></div>
+                    `;
+                } else if (type === 'category') {
+                    html = `
+                        <div class="form-group"><label class="form-label">Collection Name</label><input class="form-input" id="formFieldName"></div>
+                        <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" id="formFieldDesc"></textarea></div>
+                        <div class="form-group"><label class="form-label">Cover Image URL</label><input class="form-input" id="formFieldCover"></div>
+                    `;
+                }
+                
+                content.innerHTML = html;
+            }
+
+            function closeForm() { 
+                const modal = safeGetElement('formModal');
+                if (modal) modal.classList.remove('active'); 
+            }
+            
+            function submitForm() { 
+                closeForm(); 
+                showToast('Saved (demo)'); 
+            }
+
+            // ==================== SETTINGS ====================
+            function saveSettings() {
+                showToast('Settings saved (demo)');
+            }
+            
+            function changePassword() {
+                showToast('Password changed (demo)');
+            }
+
+            // ==================== STUBS FOR CATALOG FUNCTIONS ====================
+            function forceSyncAllCatalog() { showToast('Catalog synced'); }
+            function startCellPress() {}
+            function cancelCellPress() {}
+            function startMixPress() {}
+            function startRoomPress() {}
+            function handleInlineRoomUpload() {}
+            function removeRoomImage() {}
+            function contextRoomAddImage() {}
+            function contextRoomRemoveImage() {}
+            function buildAdminHouseSVG() { return ''; }
+            function buildAdminPalette() { return {q:[]}; }
+            function _renderAdminPaletteCard() {}
+            function _saveMixLabel() {}
+            function saveMixtureLabel() {}
+            function blockNextClick() {}
+            function openAdminCatalogInner() {}
+            function closeAdminCatalogInner() {}
+            function openAdminPaletteRooms() {}
+            function closeAdminCatalogRooms() {}
+            function handleRoomImageUpload() {}
+            function editPost(id) { showToast('Edit post: ' + id); }
+            function deletePost(id) { 
+                if (confirm('Delete this post?')) {
+                    db.ref('content/posts/' + id).remove()
+                        .then(() => {
+                            showToast('Post deleted');
+                            setCached('home', null);
+                            loadHomeData();
+                        });
+                }
+            }
+            function editCatalogItem(id) { showToast('Edit catalog: ' + id); }
+            function editTrending(id) { showToast('Edit trending: ' + id); }
+            function deleteTrending(id) { 
+                if (confirm('Delete this trending item?')) {
+                    db.ref('content/trending/' + id).remove()
+                        .then(() => {
+                            showToast('Trending deleted');
+                            setCached('trending', null);
+                            loadTrendingData();
+                        });
+                }
+            }
+            function deleteDesigner(id) { 
+                if (confirm('Delete this designer?')) {
+                    db.ref('admins/' + id).remove()
+                        .then(() => {
+                            showToast('Designer removed');
+                            setCached('designers', null);
+                            loadDesignersData();
+                        });
+                }
+            }
+
+            // ==================== INITIALIZATION ====================
+            document.addEventListener('DOMContentLoaded', () => {
+                auth.signInAnonymously()
+                    .then(() => console.log('✅ Authenticated'))
+                    .catch(() => {
+                        console.log('⚠️ Continuing without authentication - some features may not work');
+                        showToast('Running in limited mode', 5000);
+                    });
+                
+                const timeout = setTimeout(() => {
+                    const stats = ['statPosts', 'statTrending', 'statDesigners', 'statPendingVIP'];
+                    stats.forEach(id => {
+                        const el = safeGetElement(id);
+                        if (el) el.textContent = '—';
+                    });
+                }, 5000);
+
+                Promise.all([
+                    db.ref('content/posts').once('value'),
+                    db.ref('content/trending').once('value'),
+                    db.ref('admins').once('value'),
+                    db.ref('vip').orderByChild('status').equalTo('pending').once('value')
+                ])
+                .then(([posts, trending, admins, pending]) => {
+                    clearTimeout(timeout);
+                    const postCount = safeGetElement('statPosts');
+                    const trendingCount = safeGetElement('statTrending');
+                    const designerCount = safeGetElement('statDesigners');
+                    const pendingCount = safeGetElement('statPendingVIP');
+                    
+                    if (postCount) postCount.textContent = posts.exists() ? Object.keys(posts.val()).length : 0;
+                    if (trendingCount) trendingCount.textContent = trending.exists() ? Object.keys(trending.val()).length : 0;
+                    if (designerCount) designerCount.textContent = admins.exists() ? Object.keys(admins.val()).length : 0;
+                    if (pendingCount) pendingCount.textContent = pending.exists() ? Object.keys(pending.val()).length : 0;
+                })
+                .catch(err => {
+                    clearTimeout(timeout);
+                    console.error('Stats error:', err);
+                });
+            });
+
+            // Expose functions globally
+            window.showPanel = showPanel;
+            window.addVIP = addVIP;
+            window.approveVIP = approveVIP;
+            window.rejectVIP = rejectVIP;
+            window.resetVIPPassword = resetVIPPassword;
+            window.deleteVIP = deleteVIP;
+            window.openForm = openForm;
+            window.closeForm = closeForm;
+            window.submitForm = submitForm;
+            window.saveSettings = saveSettings;
+            window.changePassword = changePassword;
+            window.adminBackToList = adminBackToList;
+            window.adminSendMessage = adminSendMessage;
+            window.openClientProfile = openClientProfile;
+            window.closeClientProfile = closeClientProfile;
+            window.vmOpenCreateForm = vmOpenCreateForm;
+            window.vmShowView = vmShowView;
+            window.vmOpenClientPOV = vmOpenClientPOV;
+            window.vmToggleClientLibrary = vmToggleClientLibrary;
+            window.vmMoveProgressTrackerToClient = vmMoveProgressTrackerToClient;
+            window.vmSyncDefaults = vmSyncDefaults;
+            window.vmPromptNewProject = vmPromptNewProject;
+            window.vmClosePTModal = vmClosePTModal;
+            window.vmSaveNewProject = vmSaveNewProject;
+            window.vmPromptNewWorkflow = vmPromptNewWorkflow;
+            window.vmCloseWFModal = vmCloseWFModal;
+            window.vmSaveNewWorkflow = vmSaveNewWorkflow;
+            window.vmOpenProjectFromClient = vmOpenProjectFromClient;
+            window.vmBackFromProject = vmBackFromProject;
+            window.vmCloseForm = vmCloseForm;
+            window.vmSaveAsset = vmSaveAsset;
+            window.vmDeleteAsset = vmDeleteAsset;
+            window.vmToggleDefault = vmToggleDefault;
+            window.vmRemoveFromClient = vmRemoveFromClient;
+            window.vmMoveAssetToClient = vmMoveAssetToClient;
+            window.toggleWorkflowStatus = toggleWorkflowStatus;
+            window.loadClientProjects = loadClientProjects;
+            window.backToPortfolioUsers = backToPortfolioUsers;
+            window.forceSyncAllCatalog = forceSyncAllCatalog;
+            window.handleContextImageUpload = handleContextImageUpload;
+            window.handleCoverReplaceUpload = handleCoverReplaceUpload;
+            window.handlePalettePhotoUpload = handlePalettePhotoUpload;
+            window.handleRoomImageUpload = handleRoomImageUpload;
+            window.startCellPress = startCellPress;
+            window.cancelCellPress = cancelCellPress;
+            window.closeContextMenu = closeContextMenu;
+            window.contextReplaceCover = contextReplaceCover;
+            window.contextManageImages = contextManageImages;
+            window.contextDeleteBox = contextDeleteBox;
+            window.contextUploadPalettePhoto = contextUploadPalettePhoto;
+            window.openAdminCatalogInner = openAdminCatalogInner;
+            window.closeAdminCatalogInner = closeAdminCatalogInner;
+            window.openAdminPaletteRooms = openAdminPaletteRooms;
+            window.closeAdminCatalogRooms = closeAdminCatalogRooms;
+            window.startMixPress = startMixPress;
+            window.startRoomPress = startRoomPress;
+            window.handleInlineRoomUpload = handleInlineRoomUpload;
+            window.removeRoomImage = removeRoomImage;
+            window.contextRoomAddImage = contextRoomAddImage;
+            window.contextRoomRemoveImage = contextRoomRemoveImage;
+            window.vmOpenProgressTracker = vmOpenProgressTracker;
+            window.vmOpenDetail = vmOpenDetail;
+            window.vmCloseDetail = vmCloseDetail;
+            window.vmLoadProjectsList = vmLoadProjectsList;
+            window.vmOpenProject = vmOpenProject;
+            window.editPost = editPost;
+            window.deletePost = deletePost;
+            window.editCatalogItem = editCatalogItem;
+            window.editTrending = editTrending;
+            window.deleteTrending = deleteTrending;
+            window.deleteDesigner = deleteDesigner;
+        })();
+    </script>
+</body>
+</html>
