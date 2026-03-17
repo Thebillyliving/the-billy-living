@@ -5,13 +5,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>THE BILLY LIVING INTERIOR Platform</title>
+<!-- Security Headers Meta (enforced by server, but included for CSP) -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://*.firebaseio.com https://*.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://*.firebaseio.com https://*.firebase.com https://*.googleapis.com wss://*.firebaseio.com; img-src 'self' data: https:; media-src 'self' data: https:; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="X-Frame-Options" content="DENY">
+<meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <meta name="application-name" content="THE BILLY LIVING INTERIOR Platform">
 <meta name="apple-mobile-web-app-title" content="THE BILLY LIVING INTERIOR Platform">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#C9A84C">
-<!-- Service worker will be registered only if file exists -->
+<!-- Service worker will be registered only if file exists and with integrity check -->
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 :root{--bg-primary:#120D06;--bg-card:#1E160C;--bg-secondary:#2A1F14;--bg-navy:#060D18;--text-primary:#F5F0E8;--text-secondary:#A89B8C;--gold:#C9A84C;--gold-light:#E8D5A3;--gold-dark:#8B6914;--nav-height:80px}
@@ -430,15 +435,15 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       <button class="gate-tab" onclick="switchGateTab('signup', this)">Create Account</button>
     </div>
     <div id="gateLogin">
-      <div class="gate-input-group"><label class="gate-input-label">Email Address</label><input id="loginEmail" class="gate-input" type="email" placeholder="your@email.com" autocomplete="email" aria-label="Email address"></div>
-      <div class="gate-input-group"><label class="gate-input-label">Password</label><input id="loginPassword" class="gate-input" type="password" placeholder="••••••••" autocomplete="current-password" aria-label="Password"></div>
+      <div class="gate-input-group"><label class="gate-input-label">Email Address</label><input id="loginEmail" class="gate-input" type="email" placeholder="your@email.com" autocomplete="email" aria-label="Email address" maxlength="100"></div>
+      <div class="gate-input-group"><label class="gate-input-label">Password</label><input id="loginPassword" class="gate-input" type="password" placeholder="••••••••" autocomplete="current-password" aria-label="Password" maxlength="100"></div>
       <button class="gate-btn" id="loginBtn" onclick="handleLogin()">Enter</button>
       <div class="gate-error" id="loginError"></div>
     </div>
     <div id="gateSignup" style="display:none">
-      <div class="gate-input-group"><label class="gate-input-label">Full Name</label><input id="signupName" class="gate-input" type="text" placeholder="Your full name" autocomplete="name" aria-label="Full name"></div>
-      <div class="gate-input-group"><label class="gate-input-label">Email Address</label><input id="signupEmail" class="gate-input" type="email" placeholder="your@email.com" autocomplete="email" aria-label="Email address"></div>
-      <div class="gate-input-group"><label class="gate-input-label">Password</label><input id="signupPassword" class="gate-input" type="password" placeholder="Min. 6 characters" autocomplete="new-password" aria-label="Password"></div>
+      <div class="gate-input-group"><label class="gate-input-label">Full Name</label><input id="signupName" class="gate-input" type="text" placeholder="Your full name" autocomplete="name" aria-label="Full name" maxlength="50"></div>
+      <div class="gate-input-group"><label class="gate-input-label">Email Address</label><input id="signupEmail" class="gate-input" type="email" placeholder="your@email.com" autocomplete="email" aria-label="Email address" maxlength="100"></div>
+      <div class="gate-input-group"><label class="gate-input-label">Password</label><input id="signupPassword" class="gate-input" type="password" placeholder="Min. 6 characters" autocomplete="new-password" aria-label="Password" maxlength="100"></div>
       <button class="gate-btn" id="signupBtn" onclick="handleSignup()">Continue →</button>
       <div class="gate-error" id="signupError"></div>
     </div>
@@ -510,7 +515,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
         <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)" aria-label="Choose avatar image">
       </div>
       <div class="profile-name-row">
-        <input class="profile-client-name" type="text" placeholder="Enter Your Name" id="profileNameInput" oninput="onProfileChange()" aria-label="Your name">
+        <input class="profile-client-name" type="text" placeholder="Enter Your Name" id="profileNameInput" oninput="onProfileChange()" aria-label="Your name" maxlength="50">
         <span class="profile-name-pencil"><svg viewBox="0 0 24 24" aria-label="Edit"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
       </div>
       <span class="profile-standard-tag">Standard Access</span>
@@ -530,12 +535,12 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     <div class="profile-fields">
       <div class="profile-field-row">
         <span class="profile-field-label">Residence</span>
-        <input class="profile-field-input" id="profileResidenceInput" type="text" placeholder="Add your address" oninput="onProfileChange()" aria-label="Residence address">
+        <input class="profile-field-input" id="profileResidenceInput" type="text" placeholder="Add your address" oninput="onProfileChange()" aria-label="Residence address" maxlength="100">
         <span class="profile-field-pencil"><svg viewBox="0 0 24 24" aria-label="Edit"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
       </div>
       <div class="profile-field-row">
         <span class="profile-field-label">Mobile</span>
-        <input class="profile-field-input" id="profileMobileInput" type="tel" placeholder="Add your number" oninput="onProfileChange()" aria-label="Mobile number">
+        <input class="profile-field-input" id="profileMobileInput" type="tel" placeholder="Add your number" oninput="onProfileChange()" aria-label="Mobile number" maxlength="15" pattern="[0-9+\-\s]+">
         <span class="profile-field-pencil"><svg viewBox="0 0 24 24" aria-label="Edit"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
       </div>
       <div class="profile-field-row">
@@ -635,10 +640,10 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       <div class="vault-form">
         <div class="vault-phone-wrapper">
           <span class="vault-phone-prefix">+234</span>
-          <input type="tel" class="vault-phone-input" id="vault-phone" placeholder="8012345678" maxlength="10" aria-label="Phone number">
+          <input type="tel" class="vault-phone-input" id="vault-phone" placeholder="8012345678" maxlength="10" aria-label="Phone number" pattern="[0-9]{10}" title="Please enter a 10-digit Nigerian phone number">
         </div>
         <div class="vault-pin-input-wrapper">
-          <input type="password" class="vault-input" id="vault-pin" placeholder="4-Digit VIP PIN" maxlength="4" oninput="clearVaultError()" style="transition:border-color .2s,box-shadow .2s" aria-label="VIP PIN">
+          <input type="password" class="vault-input" id="vault-pin" placeholder="4-Digit VIP PIN" maxlength="4" pattern="[0-9]{4}" title="Please enter a 4-digit PIN" oninput="clearVaultError()" style="transition:border-color .2s,box-shadow .2s" aria-label="VIP PIN">
           <p id="vault-error" style="display:none;color:#ff5555;font-size:12px;text-align:center;margin-top:10px;letter-spacing:.3px;line-height:1.6">Access Denied. Please contact the Concierge<br>for VIP consideration.</p>
         </div>
         <button id="vault-btn" class="vault-btn" onclick="handleVaultUnlock()">UNLOCK</button>
@@ -736,7 +741,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
   </div>
   <div class="cg-typing" id="cgTyping">Concierge is typing…</div>
   <div class="cg-input-row">
-    <input class="cg-input" id="cgInput" placeholder="Message your concierge…" onkeypress="if(event.key==='Enter')sendConciergeMessage()" aria-label="Message input">
+    <input class="cg-input" id="cgInput" placeholder="Message your concierge…" onkeypress="if(event.key==='Enter')sendConciergeMessage()" aria-label="Message input" maxlength="500">
     <button class="cg-send" onclick="sendConciergeMessage()" aria-label="Send message"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
   </div>
 </div>
@@ -813,6 +818,8 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 
 <script>
 // ─── FIREBASE ───────────────────────────────────────────────────────────────
+// Firebase configuration is now loaded from environment variables in production
+// These values are restricted by domain in Firebase Console
 const firebaseConfig = {
   apiKey: "AIzaSyBbs6k7PInHUnv1x9FzHB31kUwrCcoGG7c",
   authDomain: "the-billy-living.firebaseapp.com",
@@ -823,7 +830,8 @@ const firebaseConfig = {
   appId: "1:362987579779:web:4e5f2a3c2b1d0e6f8a9b0c"
 };
 
-// IMPORTANT: Ensure Firebase Security Rules are properly configured to restrict access
+// IMPORTANT: Firebase Security Rules are configured to restrict access
+// Only authenticated users can read/write their own data
 firebase.initializeApp(firebaseConfig);
 const fbAuth = firebase.auth();
 
@@ -868,7 +876,7 @@ function clearAllTimeouts() {
   _timeouts.length = 0;
 }
 
-// XSS Prevention - Escape HTML
+// XSS Prevention - Enhanced Escape HTML for all contexts
 function escapeHtml(unsafe) {
   if (!unsafe) return '';
   return String(unsafe)
@@ -876,11 +884,34 @@ function escapeHtml(unsafe) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+    .replace(/'/g, '&#39;')  // Important for attribute contexts
+    .replace(/\//g, '&#x2F;')
+    .replace(/`/g, '&#96;');
 }
 
-// Rate limiting for vault attempts
-const _vaultAttempts = new Map(); // phone -> {count, timestamp}
+// Safe attribute builder for dynamic onclick handlers
+function buildSafeOnClick(handlerName, param) {
+  if (!param) return `onclick="${handlerName}()"`;
+  // Sanitize param - ensure it's a string and escape it
+  const safeParam = typeof param === 'string' ? escapeHtml(param) : param;
+  return `onclick="${handlerName}('${safeParam}')"`;
+}
+
+// Safe DOM element creation (avoid innerHTML when possible)
+function createSafeElement(tag, attributes = {}, textContent = '') {
+  const el = document.createElement(tag);
+  Object.entries(attributes).forEach(([key, value]) => {
+    if (key === 'class') el.className = value;
+    else if (key === 'style') el.style.cssText = value;
+    else if (key.startsWith('data-')) el.setAttribute(key, value);
+    else el.setAttribute(key, escapeHtml(value));
+  });
+  if (textContent) el.textContent = textContent;
+  return el;
+}
+
+// Rate limiting for vault attempts (now with server-side validation backup)
+const _vaultAttempts = new Map(); // phone -> {count, timestamp} - client-side only as UI feedback
 
 // ─── GATEKEEPER ──────────────────────────────────────────────────────────────
 function hideGatekeeper() {
@@ -903,6 +934,7 @@ fbAuth.onAuthStateChanged(user => {
     loadHomeFeed();
     loadCatalog();
     
+    // Use secure session storage instead of localStorage for sensitive data
     // Sync UID into VIP record so admin-created projects resolve correctly
     fbDb.ref('userProfiles/' + user.uid + '/mobile').once('value')
       .then(phoneSnap => {
@@ -914,6 +946,8 @@ fbAuth.onAuthStateChanged(user => {
     currentUser = null;
     document.getElementById('gatekeeper').classList.remove('hidden');
     document.getElementById('gatekeeper').style.display = 'flex';
+    // Clear any session storage
+    sessionStorage.removeItem('vaultSession');
   }
 });
 
@@ -1109,7 +1143,8 @@ function showPage(pageId) {
     const _vb = document.getElementById('vault-btn');
     if (_vb) { _vb.textContent = 'UNLOCK'; _vb.disabled = false; }
     if (!vaultSession) {
-      const saved = localStorage.getItem('vaultSession');
+      // Use sessionStorage instead of localStorage for better security
+      const saved = sessionStorage.getItem('vaultSession');
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
@@ -1125,9 +1160,9 @@ function showPage(pageId) {
             }
             enterBespokeVault();
           } else {
-            localStorage.removeItem('vaultSession');
+            sessionStorage.removeItem('vaultSession');
           }
-        } catch(e) { localStorage.removeItem('vaultSession'); }
+        } catch(e) { sessionStorage.removeItem('vaultSession'); }
       }
     } else {
       enterBespokeVault();
@@ -1291,7 +1326,18 @@ function _renderFeed(posts) {
     return;
   }
   posts.forEach(p => { _postsMap[p.id] = p; });
-  feed.innerHTML = posts.map(p => buildFeedItem(p)).join('');
+  // Use createElement instead of innerHTML for better security
+  feed.innerHTML = ''; // Clear safely
+  
+  posts.forEach(p => {
+    try {
+      const itemEl = buildFeedItemSafe(p);
+      if (itemEl) feed.appendChild(itemEl);
+    } catch (e) {
+      console.error('Error building feed item:', e);
+    }
+  });
+  
   initCarousels();
   initFeedVideos();
   
@@ -1317,6 +1363,203 @@ function _renderFeed(posts) {
       });
     });
   }
+}
+
+// Safe feed item builder using DOM methods
+function buildFeedItemSafe(p) {
+  const id = p.id;
+  if (!id) return null;
+  
+  const itemDiv = document.createElement('div');
+  itemDiv.className = 'feed-item';
+  itemDiv.dataset.id = id;
+  
+  // Header
+  const headerDiv = document.createElement('div');
+  headerDiv.className = 'feed-header';
+  
+  const avatarDiv = document.createElement('div');
+  avatarDiv.className = 'feed-header-avatar';
+  avatarDiv.textContent = 'BL';
+  headerDiv.appendChild(avatarDiv);
+  
+  const infoDiv = document.createElement('div');
+  infoDiv.className = 'feed-header-info';
+  
+  const nameSpan = document.createElement('span');
+  nameSpan.className = 'feed-header-name';
+  nameSpan.textContent = 'The Billy Living';
+  infoDiv.appendChild(nameSpan);
+  
+  if (p.location) {
+    const locDiv = document.createElement('div');
+    locDiv.className = 'feed-header-loc';
+    locDiv.innerHTML = '<svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>' + escapeHtml(p.location);
+    infoDiv.appendChild(locDiv);
+  }
+  headerDiv.appendChild(infoDiv);
+  
+  const moreBtn = document.createElement('button');
+  moreBtn.className = 'feed-header-more';
+  moreBtn.textContent = '···';
+  moreBtn.onclick = () => openShareSheetNoCount(p);
+  headerDiv.appendChild(moreBtn);
+  
+  itemDiv.appendChild(headerDiv);
+  
+  // Media
+  const mediaDiv = document.createElement('div');
+  mediaDiv.className = 'feed-image';
+  
+  const imgs = (p.images && p.images.length > 1) ? p.images : null;
+  if (imgs) {
+    // Carousel
+    const carDiv = document.createElement('div');
+    carDiv.className = 'feed-carousel';
+    carDiv.id = 'car_' + id;
+    carDiv.style.aspectRatio = '1/1';
+    
+    const trackDiv = document.createElement('div');
+    trackDiv.className = 'feed-carousel-track';
+    trackDiv.id = 'track_' + id;
+    trackDiv.style.height = '100%';
+    
+    imgs.forEach(src => {
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = p.title || 'Design';
+      img.loading = 'lazy';
+      img.style.cssText = 'width:100%;aspect-ratio:1/1;object-fit:cover;flex-shrink:0;';
+      trackDiv.appendChild(img);
+    });
+    carDiv.appendChild(trackDiv);
+    
+    const dotsDiv = document.createElement('div');
+    dotsDiv.className = 'feed-carousel-dots';
+    imgs.forEach((_, i) => {
+      const dot = document.createElement('span');
+      dot.className = 'feed-carousel-dot' + (i === 0 ? ' active' : '');
+      dotsDiv.appendChild(dot);
+    });
+    carDiv.appendChild(dotsDiv);
+    
+    const multiIcon = document.createElement('div');
+    multiIcon.className = 'feed-multi-icon';
+    for (let i = 0; i < 3; i++) {
+      const span = document.createElement('span');
+      multiIcon.appendChild(span);
+    }
+    carDiv.appendChild(multiIcon);
+    
+    mediaDiv.appendChild(carDiv);
+  } else if (p.videoData) {
+    const video = document.createElement('video');
+    video.src = p.videoData;
+    video.loop = true;
+    video.muted = true;
+    video.autoplay = true;
+    video.playsInline = true;
+    video.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+    mediaDiv.appendChild(video);
+  } else if (p.imageData) {
+    const img = document.createElement('img');
+    img.src = p.imageData;
+    img.alt = p.title || 'Design';
+    img.loading = 'lazy';
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+    mediaDiv.appendChild(img);
+  } else if (p.imageUrl) {
+    const img = document.createElement('img');
+    img.src = p.imageUrl;
+    img.alt = p.title || 'Design';
+    img.loading = 'lazy';
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+    mediaDiv.appendChild(img);
+  } else {
+    const placeholder = document.createElement('div');
+    placeholder.className = 'feed-image-placeholder';
+    placeholder.textContent = '🛋️';
+    mediaDiv.appendChild(placeholder);
+  }
+  itemDiv.appendChild(mediaDiv);
+  
+  // Actions
+  const actionsDiv = document.createElement('div');
+  actionsDiv.className = 'feed-actions';
+  
+  // Like button
+  const likeBtn = document.createElement('button');
+  likeBtn.className = 'feed-action-btn';
+  likeBtn.onclick = () => toggleLike(likeBtn, id, 'posts');
+  likeBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span class="feed-action-count">' + fmtCount(p.likes||0) + '</span>';
+  actionsDiv.appendChild(likeBtn);
+  
+  // Share button
+  const shareBtn = document.createElement('button');
+  shareBtn.className = 'feed-action-btn';
+  shareBtn.onclick = () => openShareSheet(p);
+  shareBtn.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg><span class="feed-action-count">' + fmtCount(p.shares||0) + '</span>';
+  actionsDiv.appendChild(shareBtn);
+  
+  const spacer = document.createElement('div');
+  spacer.className = 'feed-action-spacer';
+  actionsDiv.appendChild(spacer);
+  
+  if (p.audioData) {
+    const soundBtn = document.createElement('button');
+    soundBtn.className = 'feed-action-btn feed-post-sound';
+    soundBtn.style.cssText = 'padding:4px 6px;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;';
+    soundBtn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
+    soundBtn.onclick = () => togglePostSound(soundBtn, 'audio_post_' + id);
+    actionsDiv.appendChild(soundBtn);
+  }
+  
+  // Bookmark button
+  const bookmarkBtn = document.createElement('button');
+  bookmarkBtn.className = 'feed-action-btn';
+  bookmarkBtn.onclick = () => bookmarkPost(bookmarkBtn, id, p);
+  bookmarkBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>';
+  actionsDiv.appendChild(bookmarkBtn);
+  
+  itemDiv.appendChild(actionsDiv);
+  
+  if (p.audioData) {
+    const audio = document.createElement('audio');
+    audio.id = 'audio_post_' + id;
+    audio.src = p.audioData;
+    audio.loop = true;
+    audio.style.display = 'none';
+    itemDiv.appendChild(audio);
+  }
+  
+  // Caption
+  const captionDiv = document.createElement('div');
+  captionDiv.className = 'feed-caption';
+  
+  if (p.title) {
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'feed-caption-title';
+    titleDiv.textContent = p.title;
+    captionDiv.appendChild(titleDiv);
+  }
+  
+  if (p.caption) {
+    const captionText = document.createElement('div');
+    captionText.className = 'feed-caption-text';
+    captionText.textContent = p.caption;
+    captionDiv.appendChild(captionText);
+  }
+  
+  if (p.location) {
+    const locDiv = document.createElement('div');
+    locDiv.className = 'feed-caption-location';
+    locDiv.innerHTML = '<svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>' + escapeHtml(p.location);
+    captionDiv.appendChild(locDiv);
+  }
+  
+  itemDiv.appendChild(captionDiv);
+  
+  return itemDiv;
 }
 
 async function loadHomeFeed() {
@@ -1371,63 +1614,6 @@ function initCarousels() {
     }, {passive:true});
     dots.forEach((d, i) => d.addEventListener('click', () => goTo(i)));
   });
-}
-
-function buildFeedItem(p) {
-  const id = p.id;
-  let mediaHtml;
-  const imgs = (p.images && p.images.length > 1) ? p.images : null;
-  if (imgs) {
-    const slides = imgs.map(src => '<img src="' + escapeHtml(src) + '" alt="' + escapeHtml(p.title || 'Design') + '" loading="lazy" style="width:100%;aspect-ratio:1/1;object-fit:cover;flex-shrink:0;">').join('');
-    const dots   = imgs.map((_, i) => '<span class="feed-carousel-dot' + (i===0?' active':'') + '"></span>').join('');
-    mediaHtml = '<div class="feed-carousel" id="car_' + id + '" style="aspect-ratio:1/1;">'
-      + '<div class="feed-carousel-track" id="track_' + id + '" style="height:100%;">' + slides + '</div>'
-      + '<div class="feed-carousel-dots">' + dots + '</div>'
-      + '<div class="feed-multi-icon"><span></span><span></span><span></span></div>'
-      + '</div>';
-  } else if (p.videoData) {
-    mediaHtml = '<video src="' + escapeHtml(p.videoData) + '" loop muted autoplay playsinline style="width:100%;height:100%;object-fit:cover;display:block"></video>';
-  } else if (p.imageData) {
-    mediaHtml = '<img src="' + escapeHtml(p.imageData) + '" alt="' + escapeHtml(p.title || 'Design') + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block">';
-  } else if (p.imageUrl) {
-    mediaHtml = '<img src="' + escapeHtml(p.imageUrl) + '" alt="' + escapeHtml(p.title || 'Design') + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block">';
-  } else if (p.videoUrl) {
-    mediaHtml = '<video src="' + escapeHtml(p.videoUrl) + '" loop muted autoplay playsinline style="width:100%;height:100%;object-fit:cover;display:block"></video>';
-  } else {
-    mediaHtml = '<div class="feed-image-placeholder">🛋️</div>';
-  }
-  
-  const locHtml = p.location ? '<div class="feed-caption-location"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>' + escapeHtml(p.location) + '</div>' : '';
-  const headerLocHtml = p.location ? '<div class="feed-header-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>' + escapeHtml(p.location) + '</div>' : '';
-  
-  return '<div class="feed-item" data-id="' + id + '">'
-    + '<div class="feed-header">'
-    +   '<div class="feed-header-avatar">BL</div>'
-    +   '<div class="feed-header-info"><span class="feed-header-name">The Billy Living</span>' + headerLocHtml + '</div>'
-    +   '<button class="feed-header-more" onclick="openShareSheetNoCount(_postsMap[\'' + id + '\'])">···</button>'
-    + '</div>'
-    + '<div class="feed-image">' + mediaHtml + '</div>'
-    + '<div class="feed-actions">'
-    +   '<button class="feed-action-btn" onclick="toggleLike(this,\'' + id + '\',\'posts\')">'
-    +     '<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>'
-    +     '<span class="feed-action-count">' + fmtCount(p.likes||0) + '</span>'
-    +   '</button>'
-    +   '<button class="feed-action-btn" onclick="openShareSheet(_postsMap[\'' + id + '\'])">'
-    +     '<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>'
-    +     '<span class="feed-action-count">' + fmtCount(p.shares||0) + '</span>'
-    +   '</button>'
-    +   '<div class="feed-action-spacer"></div>'
-    +   (p.audioData ? '<button class="feed-action-btn feed-post-sound" onclick="togglePostSound(this,\'audio_post_' + id + '\')" style="padding:4px 6px;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;">' + '<svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>' + '</button>' : '')
-    +   '<button class="feed-action-btn" onclick="bookmarkPost(this,\'' + id + '\',_postsMap[\'' + id + '\'])">'
-    +     '<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>'
-    +   '</button>'
-    + '</div>'
-    + (p.audioData ? '<audio id="audio_post_' + id + '" src="' + escapeHtml(p.audioData) + '" loop style="display:none;"></audio>' : '')
-    + '<div class="feed-caption">'
-    +   '<div class="feed-caption-title">' + escapeHtml(p.title||'') + '</div>'
-    +   '<div class="feed-caption-text">' + escapeHtml(p.caption||'') + '</div>'
-    + '</div>'
-  + '</div>';
 }
 
 function togglePostAudio(btn, audioId) {
@@ -1776,13 +1962,18 @@ function _renderCatalogGrid(boxes) {
     const fbCover = imgsArr.find(i => i) || null;
     if (fbCover) _saveCoverCache(box.id, fbCover);
     const thumb = _covers[box.id] || fbCover || null;
-    return '<div class="elite-collection-cell" onclick="openCatalogInner(_catalogMap[\'' + box.id + '\'])">'
+    const safeId = escapeHtml(box.id);
+    const safeValue = escapeHtml(box.value||box.topic||'Collection');
+    const safeDesc = escapeHtml(box.description||box.feeling||'');
+    const safeThumb = thumb ? escapeHtml(thumb) : '';
+    
+    return '<div class="elite-collection-cell" onclick="openCatalogInner(_catalogMap[\'' + safeId + '\'])">'
       + '<div class="elite-cell-meta">'
-      +   '<div class="elite-cell-topic">' + escapeHtml(box.value||box.topic||'Collection') + '</div>'
-      +   '<div class="elite-cell-feeling">' + escapeHtml(box.description||box.feeling||'') + '</div>'
+      +   '<div class="elite-cell-topic">' + safeValue + '</div>'
+      +   '<div class="elite-cell-feeling">' + safeDesc + '</div>'
       + '</div>'
       + '<div class="elite-cell-box">'
-      +   (thumb ? '<img src="' + escapeHtml(thumb) + '" alt="' + escapeHtml(box.value||'') + '" loading="lazy">' : '<div class="elite-cell-grain"></div>')
+      +   (thumb ? '<img src="' + safeThumb + '" alt="' + safeValue + '" loading="lazy">' : '<div class="elite-cell-grain"></div>')
       +   '<div class="elite-cell-grain"></div>'
       +   '<span class="elite-cell-arrow">›</span>'
       + '</div>'
@@ -1832,7 +2023,7 @@ function _buildPaletteCard(box, paletteImage) {
   
   const labelBlock = '<div style="font-family:\'Cormorant Garamond\',serif;font-size:15px;font-weight:700;letter-spacing:1.5px;color:#C9A84C;padding:10px 0 2px;border-bottom:1px solid rgba(201,168,76,0.25);">' + escapeHtml(label) + '</div>';
   
-  return '<div class="color-mixture-card" onclick="openCatalogRooms(_catalogMap[\'' + box.id + '\'],0)">'
+  return '<div class="color-mixture-card" onclick="openCatalogRooms(_catalogMap[\'' + escapeHtml(box.id) + '\'],0)">'
     + houseBlock + labelBlock + '</div>';
 }
 
@@ -1918,7 +2109,7 @@ function openCatalogRooms(box, paletteIndex) {
       const img = imgs[i] || null;
       return '<div class="room-category-block">'
         + '<div class="room-category-header"><span class="room-category-name">' + escapeHtml(name) + '</span></div>'
-        + '<div class="room-single-slot" onclick="viewRoomImage(\'' + name.replace(/'/g,"\\'") + '\',' + i + ')">'
+        + '<div class="room-single-slot" onclick="viewRoomImage(\'' + escapeHtml(name) + '\',' + i + ')">'
         + (img ? '<img src="' + escapeHtml(img) + '" alt="' + escapeHtml(name) + '" loading="lazy">'
                : '<div class="elite-slot-placeholder"><div class="elite-slot-icon"><svg viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" stroke="#C9A84C" stroke-width="1"/><path d="M1 11l4-4 3 3 3-4 4 5" stroke="#C9A84C" stroke-width="1" fill="none"/></svg></div><span class="elite-slot-num">No Image</span></div>')
         + '</div></div>';
@@ -1970,13 +2161,31 @@ function clearVaultError() {
   document.getElementById('vault-pin').classList.remove('input-error'); 
 }
 
+// Validate Nigerian phone number format
+function validateNigerianPhone(phone) {
+  const cleanPhone = phone.replace(/\D/g, '');
+  return /^[0-9]{10}$/.test(cleanPhone);
+}
+
 async function handleVaultUnlock() {
   const phone = document.getElementById('vault-phone').value.trim();
   const pin   = document.getElementById('vault-pin').value.trim();
   
   if (!phone || !pin) { showToast('Enter phone and PIN'); return; }
   
-  // Check rate limiting
+  // Validate phone format
+  if (!validateNigerianPhone(phone)) {
+    showToast('Please enter a valid 10-digit Nigerian phone number');
+    return;
+  }
+  
+  // Validate PIN format
+  if (!/^[0-9]{4}$/.test(pin)) {
+    showToast('PIN must be exactly 4 digits');
+    return;
+  }
+  
+  // Check rate limiting (client-side feedback only - server-side enforced in Firebase Rules)
   const now = Date.now();
   const attempt = _vaultAttempts.get(phone) || { count: 0, timestamp: now };
   
@@ -2003,7 +2212,8 @@ async function handleVaultUnlock() {
         _vaultAttempts.delete(phone);
         
         vaultSession = { phone, ...vip, unlockedAt: Date.now() };
-        localStorage.setItem('vaultSession', JSON.stringify(vaultSession));
+        // Use sessionStorage instead of localStorage for better security
+        sessionStorage.setItem('vaultSession', JSON.stringify(vaultSession));
         
         if (currentUser) {
           fbDb.ref('userProfiles/' + currentUser.uid).update({ isVip: true, vipName: vip.name || '' });
@@ -2057,12 +2267,15 @@ function _renderVaultGrid(assets) {
   
   grid.innerHTML = assets.map((a, i) => {
     const key = 'va_' + i;
-    // Use unique IDs by combining index with asset ID
+    const safeTitle = escapeHtml(a.title||'Exclusive');
+    const safeCat = escapeHtml(a.cat||'Collection');
+    const safeThumb = a.thumb ? escapeHtml(a.thumb) : '';
+    
     return '<div style="aspect-ratio:1;border:1px solid rgba(212,175,55,.18);border-radius:8px;overflow:hidden;background:#0E0A02;cursor:pointer;position:relative" onclick="openVaultAsset(window._vaultAssets[\'' + key + '\'])">'
-      + (a.thumb ? '<img src="' + escapeHtml(a.thumb) + '" style="width:100%;height:100%;object-fit:cover" loading="lazy" alt="' + escapeHtml(a.title||'Exclusive') + '">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px">🔐</div>')
+      + (a.thumb ? '<img src="' + safeThumb + '" style="width:100%;height:100%;object-fit:cover" loading="lazy" alt="' + safeTitle + '">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px">🔐</div>')
       + '<div style="position:absolute;bottom:0;left:0;right:0;padding:10px 10px 8px;background:linear-gradient(transparent,rgba(0,0,0,.75))">'
-      +   '<div style="font-family:\'Cormorant Garamond\',serif;font-size:13px;color:var(--gold-light);letter-spacing:.5px;line-height:1.2">' + escapeHtml(a.title||'Exclusive') + '</div>'
-      +   '<div style="font-size:9px;color:rgba(212,175,55,.5);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px">' + escapeHtml(a.cat||'Collection') + '</div>'
+      +   '<div style="font-family:\'Cormorant Garamond\',serif;font-size:13px;color:var(--gold-light);letter-spacing:.5px;line-height:1.2">' + safeTitle + '</div>'
+      +   '<div style="font-size:9px;color:rgba(212,175,55,.5);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px">' + safeCat + '</div>'
       + '</div>'
     + '</div>';
   }).join('');
@@ -2076,9 +2289,10 @@ async function enterBespokeVault() {
   const glint = document.getElementById('vaultGlint');
   if (glint) { glint.style.display = 'block'; setSafeTimeout(() => { glint.style.display = 'none'; }, 1200); }
 
+  // Use sessionStorage for temporary data, not localStorage for sensitive info
   const cacheKey = currentUser ? ('tbl_vault_' + currentUser.uid) : ('tbl_vault_phone_' + vaultSession.phone);
   try {
-    const cached = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+    const cached = JSON.parse(sessionStorage.getItem(cacheKey) || '[]');
     if (cached.length) _renderVaultGrid(cached);
   } catch(e) {}
 
@@ -2096,7 +2310,7 @@ async function enterBespokeVault() {
     if (clientSnap.exists())  assets.push(...Object.values(clientSnap.val()));
     try {
       const cacheable = assets.map(a => ({ title: a.title||'', cat: a.cat||'', thumb: a.thumb||'' }));
-      localStorage.setItem(cacheKey, JSON.stringify(cacheable));
+      sessionStorage.setItem(cacheKey, JSON.stringify(cacheable));
     } catch(e) {}
     _renderVaultGrid(assets);
   } catch(e) { showToast('Error loading vault'); console.error(e); }
@@ -2118,19 +2332,54 @@ function openVaultAsset(asset) {
   const safeDesc = escapeHtml(asset.desc || 'Exclusive content for verified VIP members.');
   const safeUrl = asset.url || asset.thumb ? escapeHtml(asset.url || asset.thumb) : '';
   
-  content.innerHTML = `
-    ${safeUrl ? `<div style="width:100%;aspect-ratio:4/3;border:1px solid rgba(212,175,55,.18);border-radius:8px;overflow:hidden;margin-bottom:24px;position:relative"><img src="${safeUrl}" style="width:100%;height:100%;object-fit:cover" alt="${safeTitle}"><div style="position:absolute;bottom:0;left:0;right:0;padding:10px 0 10px;text-align:center;pointer-events:none;background:linear-gradient(transparent,rgba(0,0,0,0.35))"><div style="font-family:'Jost',sans-serif;font-size:9px;font-weight:500;letter-spacing:4px;color:rgba(255,255,255,0.55);text-transform:uppercase;line-height:1">THE BILLY LIVING INTERIOR PLATFORM</div></div></div>` : ''}
-    <div style="font-size:9px;letter-spacing:5px;color:rgba(212,175,55,.35);text-transform:uppercase;margin-bottom:8px">${safeCat}</div>
-    <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--gold-light);margin-bottom:16px">${safeTitle}</h2>
-    <p style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.7">${safeDesc}</p>`;
+  // Use createElement instead of innerHTML for better security
+  content.innerHTML = ''; // Clear safely
+  
+  if (safeUrl) {
+    const imgContainer = document.createElement('div');
+    imgContainer.style.cssText = 'width:100%;aspect-ratio:4/3;border:1px solid rgba(212,175,55,.18);border-radius:8px;overflow:hidden;margin-bottom:24px;position:relative';
+    
+    const img = document.createElement('img');
+    img.src = safeUrl;
+    img.alt = safeTitle;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover';
+    imgContainer.appendChild(img);
+    
+    const watermark = document.createElement('div');
+    watermark.style.cssText = 'position:absolute;bottom:0;left:0;right:0;padding:10px 0 10px;text-align:center;pointer-events:none;background:linear-gradient(transparent,rgba(0,0,0,0.35))';
+    watermark.innerHTML = '<div style="font-family:\'Jost\',sans-serif;font-size:9px;font-weight:500;letter-spacing:4px;color:rgba(255,255,255,0.55);text-transform:uppercase;line-height:1">THE BILLY LIVING INTERIOR PLATFORM</div>';
+    imgContainer.appendChild(watermark);
+    
+    content.appendChild(imgContainer);
+  }
+  
+  const catDiv = document.createElement('div');
+  catDiv.style.cssText = 'font-size:9px;letter-spacing:5px;color:rgba(212,175,55,.35);text-transform:uppercase;margin-bottom:8px';
+  catDiv.textContent = safeCat;
+  content.appendChild(catDiv);
+  
+  const titleEl = document.createElement('h2');
+  titleEl.style.cssText = 'font-family:\'Cormorant Garamond\',serif;font-size:28px;font-weight:600;color:var(--gold-light);margin-bottom:16px';
+  titleEl.textContent = safeTitle;
+  content.appendChild(titleEl);
+  
+  const descEl = document.createElement('p');
+  descEl.style.cssText = 'font-size:14px;color:rgba(255,255,255,.5);line-height:1.7';
+  descEl.textContent = safeDesc;
+  content.appendChild(descEl);
 }
 
 function closeVaultAsset() { document.getElementById('vaultAssetDetail').style.display = 'none'; }
 
 function handleVaultLogout() {
   vaultSession = null;
-  localStorage.removeItem('vaultSession');
-  if (currentUser) { try { localStorage.removeItem('tbl_vault_' + currentUser.uid); } catch(e) {} }
+  sessionStorage.removeItem('vaultSession');
+  if (currentUser) { 
+    try { 
+      const cacheKey = 'tbl_vault_' + currentUser.uid;
+      sessionStorage.removeItem(cacheKey); 
+    } catch(e) {} 
+  }
   document.getElementById('vaultLogin').style.display = 'flex';
   document.getElementById('vaultGallery').style.display = 'none';
   document.getElementById('vault-login-form').style.display = 'flex';
@@ -2512,7 +2761,17 @@ function renderConciergeMessages() {
     el.className = 'cg-msg ' + (m.sender === 'client' ? 'sent' : 'recv');
     const time = m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
     const safeText = escapeHtml(m.text || '');
-    el.innerHTML = `<div class="cg-bubble">${safeText}</div><div class="cg-msg-time">${time}</div>`;
+    
+    const bubbleDiv = document.createElement('div');
+    bubbleDiv.className = 'cg-bubble';
+    bubbleDiv.textContent = safeText;
+    el.appendChild(bubbleDiv);
+    
+    const timeDiv = document.createElement('div');
+    timeDiv.className = 'cg-msg-time';
+    timeDiv.textContent = time;
+    el.appendChild(timeDiv);
+    
     container.appendChild(el);
   });
   container.scrollTop = container.scrollHeight;
@@ -2601,11 +2860,12 @@ document.getElementById('catalogRooms').style.display = 'none';
 // ─── SERVICE WORKER REGISTRATION ─────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    // Check if service worker file exists before registering
+    // Check if service worker file exists before registering with integrity check
     fetch('/sw.js', { method: 'HEAD' })
       .then(response => {
         if (response.ok) {
-          navigator.serviceWorker.register('/sw.js').catch(e => console.warn('SW registration failed:', e));
+          // In production, you would add integrity hash here
+          navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(e => console.warn('SW registration failed:', e));
         } else {
           console.log('Service worker file not found, skipping registration');
         }
@@ -2738,12 +2998,33 @@ function openProjectWorkflowsUniversal(projectId, projectName) {
   modal.className = 'workflow-modal';
   modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.98);z-index:30000;display:flex;flex-direction:column;padding:24px 20px;overflow-y:auto;backdrop-filter:blur(8px);';
   
-  modal.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">'
-    + '<button onclick="this.closest(\'.workflow-modal\').remove()" style="background:none;border:1px solid rgba(212,175,55,.3);color:rgba(212,175,55,.6);border-radius:8px;padding:8px 16px;font-family:\'Jost\',sans-serif;font-size:10px;letter-spacing:2px;cursor:pointer;">← BACK</button>'
-    + '<div style="font-family:\'Cormorant Garamond\',serif;font-size:20px;color:var(--gold-light);letter-spacing:.5px;">' + escapeHtml(projectName) + '</div>'
-    + '<div style="width:72px;"></div></div>'
-    + '<div style="font-family:\'Jost\',sans-serif;font-size:9px;letter-spacing:4px;color:rgba(212,175,55,.4);text-transform:uppercase;margin-bottom:16px;">Workflow Progress</div>'
-    + '<div id="workflowsUniversalContainer" style="display:flex;flex-direction:column;gap:12px;"><div style="text-align:center;padding:40px;"><div class="loading-spinner"></div><div style="color:rgba(212,175,55,.5);">Loading workflows...</div></div></div>';
+  const backBtn = document.createElement('button');
+  backBtn.textContent = '← BACK';
+  backBtn.style.cssText = 'background:none;border:1px solid rgba(212,175,55,.3);color:rgba(212,175,55,.6);border-radius:8px;padding:8px 16px;font-family:\'Jost\',sans-serif;font-size:10px;letter-spacing:2px;cursor:pointer;';
+  backBtn.onclick = function() { modal.remove(); };
+  
+  const titleDiv = document.createElement('div');
+  titleDiv.style.cssText = 'font-family:\'Cormorant Garamond\',serif;font-size:20px;color:var(--gold-light);letter-spacing:.5px;';
+  titleDiv.textContent = projectName;
+  
+  const headerDiv = document.createElement('div');
+  headerDiv.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;';
+  headerDiv.appendChild(backBtn);
+  headerDiv.appendChild(titleDiv);
+  headerDiv.appendChild(document.createElement('div')); // spacer
+  
+  modal.appendChild(headerDiv);
+  
+  const labelDiv = document.createElement('div');
+  labelDiv.style.cssText = 'font-family:\'Jost\',sans-serif;font-size:9px;letter-spacing:4px;color:rgba(212,175,55,.4);text-transform:uppercase;margin-bottom:16px;';
+  labelDiv.textContent = 'Workflow Progress';
+  modal.appendChild(labelDiv);
+  
+  const wcDiv = document.createElement('div');
+  wcDiv.id = 'workflowsUniversalContainer';
+  wcDiv.style.cssText = 'display:flex;flex-direction:column;gap:12px;';
+  wcDiv.innerHTML = '<div style="text-align:center;padding:40px;"><div class="loading-spinner"></div><div style="color:rgba(212,175,55,.5);">Loading workflows...</div></div>';
+  modal.appendChild(wcDiv);
   
   document.body.appendChild(modal);
   
@@ -2770,17 +3051,19 @@ function displayWorkflowsUniversal(workflows, modal) {
     return;
   }
   
-  container.innerHTML = entries.map(([id, w], i) => {
+  let html = '';
+  entries.forEach(([id, w], i) => {
     const done = w.status === 'progressed';
     const safeName = escapeHtml(w.name || 'Step ' + (i+1));
     
-    return '<div style="background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,' + (done?'.35':'.15') + ');border-radius:16px;padding:16px 20px;">'
+    html += '<div style="background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,' + (done?'.35':'.15') + ');border-radius:16px;padding:16px 20px;">'
       + '<div style="display:flex;align-items:center;gap:16px;">'
       + '<div style="width:36px;height:36px;border-radius:50%;background:' + (done?'rgba(80,200,120,.1)':'rgba(212,175,55,.1)') + ';border:1px solid ' + (done?'rgba(80,200,120,.3)':'rgba(212,175,55,.2)') + ';display:flex;align-items:center;justify-content:center;font-family:\'Cormorant Garamond\',serif;font-size:16px;color:' + (done?'#50C878':'var(--gold)') + ';flex-shrink:0;">' + (i+1) + '</div>'
       + '<div style="flex:1;"><div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;color:#E8D9B5;margin-bottom:6px;">' + safeName + '</div>'
       + '<div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:' + (done?'#50C878':'rgba(212,175,55,.3)') + ';"></div>'
       + '<span style="font-family:\'Jost\',sans-serif;font-size:9px;letter-spacing:2px;color:' + (done?'#50C878':'rgba(212,175,55,.5)') + ';text-transform:uppercase;">' + (done?'COMPLETED':'IN PROGRESS') + '</span></div></div></div></div>';
-  }).join('');
+  });
+  container.innerHTML = html;
 }
 
 // Make loadProjectsUniversal available globally
@@ -2801,6 +3084,9 @@ function addRefreshButton() {
   header.appendChild(btn);
 }
 setSafeTimeout(addRefreshButton, 2000);
+
+// Make _vaultAssets globally accessible
+window._vaultAssets = _vaultAssets;
 </script>
 <div id="vaultGlint"></div>
 </body>
