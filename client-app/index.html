@@ -1,4 +1,4 @@
-<!-- client.html — Billy Living (FORCE FIX - All Buttons Clickable) -->
+<!-- client.html — Billy Living (ULTIMATE FIX - Enhanced & Robust) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,6 +17,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="theme-color" content="#C9A84C" />
 <style>
+/* [All your existing CSS remains exactly the same - unchanged] */
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--bg-primary:#120D06;--bg-card:#1E160C;--bg-secondary:#2A1F14;--bg-navy:#060D18;--text-primary:#F5F0E8;--text-secondary:#A89B8C;--gold:#C9A84C;--gold-light:#E8D5A3;--gold-dark:#8B6914;--nav-height:80px}
 body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow-x:hidden;min-height:100vh;padding-bottom:var(--nav-height)}
@@ -307,7 +308,8 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
   animation: splashFadeUp .6s .45s ease both
 }
 
-/* ===== ORIGINAL STYLES (Keep all your existing CSS below) ===== */
+/* ===== ORIGINAL STYLES (All your existing CSS below) ===== */
+/* [All your existing CSS styles remain exactly the same - keeping them here] */
 .loading-spinner{width:24px;height:24px;border:2px solid rgba(201,168,76,.1);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite}
 #vaultGlint{pointer-events:none;position:fixed;inset:0;z-index:99999;overflow:hidden;display:none}
 #vaultGlint::after{content:'';position:absolute;top:0;left:0;width:40%;height:100%;background:linear-gradient(105deg,transparent 20%,rgba(201,168,76,.18) 50%,rgba(255,235,160,.12) 60%,transparent 80%);animation:vaultShimmer 1.1s ease forwards}
@@ -652,6 +654,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
+<!-- [All your HTML content remains exactly the same - unchanged] -->
 <div id="downloadBanner">
   <img class="dl-banner-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Crect width='56' height='56' fill='%23C9A84C' rx='12'/%3E%3Ctext x='28' y='38' font-family='serif' font-size='24' fill='%23120D06' text-anchor='middle' font-weight='bold'%3EBL%3C/text%3E%3C/svg%3E" alt="Billy Living app icon" />
   <div class="dl-banner-text">
@@ -1092,6 +1095,7 @@ const fbDb = firebase.database();
 let currentUser = null;
 let currentProfile = null;
 let pendingSignupName = '', pendingSignupEmail = '', pendingSignupPw = '';
+let initializationComplete = false;
 
 // Timer management
 const _timeouts = [];
@@ -1105,6 +1109,12 @@ function setSafeTimeout(fn, delay) {
   return id;
 }
 
+// Clear all timeouts (useful for cleanup)
+function clearAllTimeouts() {
+  _timeouts.forEach(id => clearTimeout(id));
+  _timeouts.length = 0;
+}
+
 // ─── SET PERSISTENCE ────────────────────────────────────────────────────────
 fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(console.error);
 
@@ -1115,12 +1125,15 @@ async function handleLogin() {
   const btn = document.getElementById('loginBtn');
   const email = document.getElementById('loginEmail')?.value.trim();
   const password = document.getElementById('loginPassword')?.value;
+  const errorEl = document.getElementById('loginError');
   
   if (!email || !password) {
-    showGateError('loginError', 'Please enter email and password');
+    showGateError(errorEl, 'Please enter email and password');
     return;
   }
   
+  // Store original button state
+  const originalText = btn.textContent;
   btn.disabled = true;
   btn.textContent = 'Signing in…';
   
@@ -1129,9 +1142,9 @@ async function handleLogin() {
     // Success - auth state will handle navigation
   } catch (e) {
     console.error('Login error:', e);
-    showGateError('loginError', e.message);
+    showGateError(errorEl, getFriendlyErrorMessage(e));
     btn.disabled = false;
-    btn.textContent = 'Enter';
+    btn.textContent = originalText;
   }
 }
 
@@ -1140,14 +1153,15 @@ async function handleSignup() {
   const name = document.getElementById('signupName')?.value.trim();
   const email = document.getElementById('signupEmail')?.value.trim();
   const password = document.getElementById('signupPassword')?.value;
+  const errorEl = document.getElementById('signupError');
   
   if (!name || !email || !password) {
-    showGateError('signupError', 'Please fill all fields');
+    showGateError(errorEl, 'Please fill all fields');
     return;
   }
   
   if (password.length < 6) {
-    showGateError('signupError', 'Password must be at least 6 characters');
+    showGateError(errorEl, 'Password must be at least 6 characters');
     return;
   }
   
@@ -1162,6 +1176,9 @@ async function handleSignup() {
 
 async function handleFinishSignup() {
   const btn = document.getElementById('finishBtn');
+  const errorEl = document.getElementById('photoError');
+  const originalText = btn.textContent;
+  
   btn.disabled = true;
   btn.textContent = 'Creating account…';
   
@@ -1170,14 +1187,37 @@ async function handleFinishSignup() {
     await fbDb.ref('userProfiles/' + cred.user.uid).set({
       name: pendingSignupName,
       email: pendingSignupEmail,
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      lastLogin: Date.now()
     });
+    // Success - auth state will handle navigation
   } catch (e) {
     console.error('Signup error:', e);
-    showGateError('photoError', e.message);
+    showGateError(errorEl, getFriendlyErrorMessage(e));
     btn.disabled = false;
-    btn.textContent = 'Enter The Billy Living';
+    btn.textContent = originalText;
   }
+}
+
+// Get user-friendly error messages
+function getFriendlyErrorMessage(error) {
+  const code = error.code;
+  if (code === 'auth/user-not-found' || code === 'auth/wrong-password') {
+    return 'Invalid email or password';
+  }
+  if (code === 'auth/email-already-in-use') {
+    return 'This email is already registered. Please sign in instead.';
+  }
+  if (code === 'auth/weak-password') {
+    return 'Password should be at least 6 characters';
+  }
+  if (code === 'auth/invalid-email') {
+    return 'Please enter a valid email address';
+  }
+  if (code === 'auth/too-many-requests') {
+    return 'Too many failed attempts. Please try again later.';
+  }
+  return error.message || 'An error occurred. Please try again.';
 }
 
 function switchGateTab(tab, el) {
@@ -1187,99 +1227,298 @@ function switchGateTab(tab, el) {
   document.getElementById('gateSignup').style.display = tab === 'signup' ? 'block' : 'none';
 }
 
-function showGateError(id, msg) {
-  const el = document.getElementById(id);
-  if (el) {
-    el.textContent = msg;
-    el.classList.add('visible');
+function showGateError(element, msg) {
+  if (typeof element === 'string') {
+    element = document.getElementById(element);
+  }
+  if (element) {
+    element.textContent = msg;
+    element.classList.add('visible');
+    
+    // Auto-hide after 5 seconds
+    setSafeTimeout(() => {
+      element.classList.remove('visible');
+    }, 5000);
   }
 }
 
-// ─── ULTIMATE FIX: FORCE GATEKEEPER TO HIDE ─────────────────────────
-function forceGatekeeperToShow() {
+// ─── ENHANCED GATEKEEPER CONTROL ────────────────────────────────────────────
+function setGatekeeperVisibility(visible) {
   const gatekeeper = document.getElementById('gatekeeper');
-  if (gatekeeper) {
+  if (!gatekeeper) return;
+  
+  // Store original transition to handle animation smoothly
+  const originalTransition = gatekeeper.style.transition;
+  
+  if (visible) {
+    // Remove hidden class first
     gatekeeper.classList.remove('hidden');
+    
+    // Temporarily disable transition to prevent flicker
+    gatekeeper.style.transition = 'none';
+    
+    // Apply base styles
     gatekeeper.style.display = 'flex';
     gatekeeper.style.opacity = '1';
     gatekeeper.style.visibility = 'visible';
     gatekeeper.style.pointerEvents = 'auto';
+    gatekeeper.style.zIndex = '100001';
+    
+    // Force reflow
+    gatekeeper.offsetHeight;
+    
+    // Restore transition
+    gatekeeper.style.transition = originalTransition || 'opacity 0.3s ease, visibility 0.3s ease';
     
     // Ensure all children are clickable
-    const allChildren = gatekeeper.querySelectorAll('button, .gate-btn, .gate-tab, .gate-input');
+    const interactiveSelectors = 'button, .gate-btn, .gate-tab, .gate-input, input, a, [role="button"]';
+    const allChildren = gatekeeper.querySelectorAll(interactiveSelectors);
     allChildren.forEach(el => {
       el.style.pointerEvents = 'auto';
       el.style.cursor = 'pointer';
       el.style.opacity = '1';
       el.style.zIndex = '100002';
+      if (el.disabled !== undefined) {
+        el.disabled = false;
+      }
     });
-  }
-}
-
-function forceGatekeeperToHide() {
-  const gatekeeper = document.getElementById('gatekeeper');
-  if (gatekeeper) {
+    
+    // Focus first input for better UX
+    const firstInput = gatekeeper.querySelector('input:not([type="hidden"])');
+    if (firstInput) {
+      setSafeTimeout(() => firstInput.focus(), 100);
+    }
+  } else {
     gatekeeper.classList.add('hidden');
     gatekeeper.style.display = 'none';
     gatekeeper.style.opacity = '0';
     gatekeeper.style.visibility = 'hidden';
     gatekeeper.style.pointerEvents = 'none';
+    gatekeeper.style.zIndex = '-1';
   }
 }
 
-// ─── SPLASH SCREEN HANDLING ─────────────────────────────────────────
+// Legacy function wrappers for backward compatibility
+function forceGatekeeperToShow() {
+  setGatekeeperVisibility(true);
+}
+
+function forceGatekeeperToHide() {
+  setGatekeeperVisibility(false);
+}
+
+// ─── SPLASH SCREEN HANDLING ─────────────────────────────────────────────────
+function hideAndRemoveSplash() {
+  const splash = document.getElementById('splashScreen');
+  if (!splash || !splash.parentNode) return;
+  
+  splash.classList.add('hidden');
+  
+  // Remove from DOM after animation
+  setSafeTimeout(() => {
+    if (splash.parentNode) {
+      splash.parentNode.removeChild(splash);
+    }
+  }, 600);
+}
+
 function initializeApp() {
+  // Prevent multiple initializations
+  if (initializationComplete) return;
+  
   const splash = document.getElementById('splashScreen');
   
   // Ensure splash is visible initially
-  splash.style.display = 'flex';
-  splash.classList.remove('hidden');
+  if (splash) {
+    splash.style.display = 'flex';
+    splash.classList.remove('hidden');
+  }
   
-  // Force show gatekeeper after splash
+  // Listen for auth state changes FIRST
+  const unsubscribe = fbAuth.onAuthStateChanged(user => {
+    if (user) {
+      currentUser = user;
+      hideAndRemoveSplash();
+      setGatekeeperVisibility(false);
+      showPage('home');
+      loadUserProfile(user.uid);
+    }
+  });
+  
+  // Set timeout to handle gatekeeper after splash
   setSafeTimeout(() => {
-    splash.classList.add('hidden');
-    
-    // Force remove splash from DOM after animation
-    setSafeTimeout(() => {
-      if (splash.parentNode) splash.remove();
-    }, 600);
-    
-    // Check if user is already logged in via localStorage or session
+    // Check if user is already logged in via localStorage (backup check)
     const savedUser = localStorage.getItem('firebase:authUser:AIzaSyBbs6k7PInHUnv1x9FzHB31kUwrCcoGG7c:[DEFAULT]');
-    if (savedUser) {
+    if (savedUser && !currentUser) {
       try {
         const userData = JSON.parse(savedUser);
         if (userData && userData.uid) {
-          // User appears to be logged in, hide gatekeeper
-          forceGatekeeperToHide();
+          // User appears to be logged in, but auth state hasn't triggered yet
+          // Let Firebase handle it - don't force gatekeeper
           return;
         }
       } catch (e) {}
     }
     
-    // Otherwise show gatekeeper
-    forceGatekeeperToShow();
+    // Hide splash and show gatekeeper if no user
+    if (!currentUser) {
+      hideAndRemoveSplash();
+      setGatekeeperVisibility(true);
+      
+      // Re-attach listeners after gatekeeper is visible
+      setSafeTimeout(attachLoginListeners, 100);
+    }
   }, 3500);
   
-  // Listen for auth state changes
-  fbAuth.onAuthStateChanged(user => {
-    if (user) {
-      currentUser = user;
-      forceGatekeeperToHide();
-      showPage('home');
-      loadUserProfile(user.uid);
+  initializationComplete = true;
+}
+
+// Backup: Show gatekeeper after 3 seconds if splash still present
+function forceShowGatekeeper() {
+  setSafeTimeout(() => {
+    const splash = document.getElementById('splashScreen');
+    const gatekeeper = document.getElementById('gatekeeper');
+    
+    // If splash still exists and gatekeeper is not visible
+    if (splash && gatekeeper && gatekeeper.classList.contains('hidden') && !currentUser) {
+      hideAndRemoveSplash();
+      setGatekeeperVisibility(true);
+      attachLoginListeners();
     }
+  }, 3000);
+}
+
+// ─── ENHANCED EVENT LISTENER ATTACHMENT ─────────────────────────────────────
+function attachLoginListeners() {
+  const events = ['click', 'touchstart']; // Support both click and touch
+  
+  // Helper to attach multiple events
+  function addMultiEvents(element, handler) {
+    if (!element) return;
+    events.forEach(eventType => {
+      element.addEventListener(eventType, handler, { passive: false });
+    });
+  }
+  
+  // Login button
+  const loginBtn = document.getElementById('loginBtn');
+  if (loginBtn) {
+    // Clone to remove old listeners
+    const newLoginBtn = loginBtn.cloneNode(true);
+    loginBtn.parentNode?.replaceChild(newLoginBtn, loginBtn);
+    newLoginBtn.id = 'loginBtn';
+    addMultiEvents(newLoginBtn, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      handleLogin();
+    });
+  }
+  
+  // Login password enter key
+  const loginPassword = document.getElementById('loginPassword');
+  if (loginPassword) {
+    const newLoginPassword = loginPassword.cloneNode(true);
+    loginPassword.parentNode?.replaceChild(newLoginPassword, loginPassword);
+    newLoginPassword.id = 'loginPassword';
+    newLoginPassword.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleLogin();
+      }
+    });
+  }
+  
+  // Signup button
+  const signupBtn = document.getElementById('signupBtn');
+  if (signupBtn) {
+    const newSignupBtn = signupBtn.cloneNode(true);
+    signupBtn.parentNode?.replaceChild(newSignupBtn, signupBtn);
+    newSignupBtn.id = 'signupBtn';
+    addMultiEvents(newSignupBtn, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      handleSignup();
+    });
+  }
+  
+  // Signup password enter key
+  const signupPassword = document.getElementById('signupPassword');
+  if (signupPassword) {
+    const newSignupPassword = signupPassword.cloneNode(true);
+    signupPassword.parentNode?.replaceChild(newSignupPassword, signupPassword);
+    newSignupPassword.id = 'signupPassword';
+    newSignupPassword.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleSignup();
+      }
+    });
+  }
+  
+  // Finish button
+  const finishBtn = document.getElementById('finishBtn');
+  if (finishBtn) {
+    const newFinishBtn = finishBtn.cloneNode(true);
+    finishBtn.parentNode?.replaceChild(newFinishBtn, finishBtn);
+    newFinishBtn.id = 'finishBtn';
+    addMultiEvents(newFinishBtn, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      handleFinishSignup();
+    });
+  }
+  
+  // Gate tabs
+  const gateTabs = document.querySelectorAll('.gate-tab');
+  gateTabs.forEach(tab => {
+    const newTab = tab.cloneNode(true);
+    tab.parentNode?.replaceChild(newTab, tab);
+    addMultiEvents(newTab, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const tabText = newTab.textContent.toLowerCase();
+      const tabType = tabText.includes('sign in') ? 'login' : 'signup';
+      switchGateTab(tabType, newTab);
+    });
   });
+  
+  // Ensure all interactive elements are clickable
+  const gatekeeper = document.getElementById('gatekeeper');
+  if (gatekeeper && !gatekeeper.classList.contains('hidden')) {
+    const interactiveElements = gatekeeper.querySelectorAll('button, .gate-btn, .gate-tab, .gate-input, input');
+    interactiveElements.forEach(el => {
+      el.style.pointerEvents = 'auto';
+      el.style.cursor = 'pointer';
+    });
+  }
 }
 
 // ─── SIMPLE PAGE NAVIGATION ─────────────────────────────────────────────────
 function showPage(pageId) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(pageId).classList.add('active');
+  // Validate page exists
+  const targetPage = document.getElementById(pageId);
+  if (!targetPage) {
+    console.error(`Page "${pageId}" not found`);
+    return;
+  }
   
+  // Hide all pages
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  
+  // Show target page
+  targetPage.classList.add('active');
+  
+  // Update bottom nav
   document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
   const navBtn = document.getElementById(`nav-${pageId}`);
   if (navBtn) navBtn.classList.add('active');
+  
+  // Special handling for pages that need data
+  if (pageId === 'portfolio') {
+    loadPortfolio();
+  } else if (pageId === 'vault' && currentUser) {
+    // Check vault access if needed
+  }
 }
 
 // ─── PROFILE LOADING ────────────────────────────────────────────────────────
@@ -1292,35 +1531,110 @@ async function loadUserProfile(uid) {
     }
   } catch (e) {
     console.error('Error loading profile:', e);
+    showToast('Could not load profile data');
   }
 }
 
-// ─── DUMMY FUNCTIONS FOR EXISTING FUNCTIONALITY ─────────────────────────────
+// ─── TOAST NOTIFICATION ─────────────────────────────────────────────────────
+function showToast(msg, duration = 2000) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  
+  t.textContent = msg;
+  t.classList.add('show');
+  
+  // Clear any existing timeout
+  if (window.toastTimeout) clearTimeout(window.toastTimeout);
+  
+  window.toastTimeout = setSafeTimeout(() => {
+    t.classList.remove('show');
+  }, duration);
+}
+
+// ─── UTILITY FUNCTIONS ──────────────────────────────────────────────────────
+function dismissBanner() { 
+  document.getElementById('downloadBanner')?.classList.remove('show'); 
+}
+
+function openPlayStore() { 
+  window.open('https://play.google.com/store/apps', '_blank'); 
+}
+
+function handleLogout() { 
+  fbAuth.signOut().then(() => {
+    setGatekeeperVisibility(true);
+    showPage('home');
+  }).catch(console.error);
+}
+
+function requestConciergeSupport() { 
+  showPage('concierge'); 
+}
+
+function onProfileChange() {
+  const saveBtn = document.getElementById('saveProfileBtn');
+  if (saveBtn) saveBtn.style.display = 'block';
+}
+
+function saveProfileUpdates() {
+  if (!currentUser) return;
+  
+  const updates = {
+    name: document.getElementById('profileNameInput')?.value,
+    residence: document.getElementById('profileResidenceInput')?.value,
+    mobile: document.getElementById('profileMobileInput')?.value,
+    measurement: document.getElementById('profileMeasurementSelect')?.value,
+    updatedAt: Date.now()
+  };
+  
+  fbDb.ref('userProfiles/' + currentUser.uid).update(updates)
+    .then(() => {
+      showToast('Profile updated');
+      document.getElementById('saveProfileBtn').style.display = 'none';
+    })
+    .catch(err => {
+      console.error('Error saving profile:', err);
+      showToast('Error saving profile');
+    });
+}
+
+function handleAvatarUpload(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  
+  // Show preview (in a real app, you'd upload to Firebase Storage)
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = document.getElementById('profileAvatarImg');
+    const placeholder = document.getElementById('avatarPlaceholder');
+    if (img && placeholder) {
+      img.src = e.target.result;
+      img.style.display = 'block';
+      placeholder.style.display = 'none';
+    }
+  };
+  reader.readAsDataURL(file);
+  
+  showToast('Avatar updated (demo)');
+}
+
+// Placeholder functions for demo
 function openProfile() { showPage('profileScreen'); }
 function closeProfile() { showPage('home'); }
-function openConsultSheet() { document.getElementById('consultOverlay').classList.add('active'); }
+function openConsultSheet() { document.getElementById('consultOverlay')?.classList.add('active'); }
 function closeConsultSheet(e) { 
   if (!e || e.target === document.getElementById('consultOverlay')) {
-    document.getElementById('consultOverlay').classList.remove('active');
+    document.getElementById('consultOverlay')?.classList.remove('active');
   }
 }
 function handleConsultOption(type) {
   closeConsultSheet();
-  if (type === 'whatsapp') window.open('https://wa.me/2348084410220', '_blank');
+  if (type === 'whatsapp') {
+    window.open('https://wa.me/2348084410220', '_blank');
+  } else {
+    showToast(`Consultation option: ${type}`);
+  }
 }
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setSafeTimeout(() => t.classList.remove('show'), 2000);
-}
-function dismissBanner() { document.getElementById('downloadBanner').classList.remove('show'); }
-function openPlayStore() { window.open('https://play.google.com/store/apps', '_blank'); }
-function handleLogout() { fbAuth.signOut(); forceGatekeeperToShow(); }
-function requestConciergeSupport() { showPage('concierge'); }
-function onProfileChange() {}
-function saveProfileUpdates() {}
-function handleAvatarUpload() {}
 function clearSelection() {}
 function shareSelection() {}
 function sendPortfolioToDesigner() {}
@@ -1347,93 +1661,25 @@ function loadProjectsUniversal() {}
 function loadPortfolio() {}
 function closeVaultAsset() {}
 
-// Attach login listeners directly with retry
-function attachLoginListeners() {
-  const loginBtn = document.getElementById('loginBtn');
-  if (loginBtn) {
-    loginBtn.onclick = function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      handleLogin();
-    };
-  }
-  
-  const loginPassword = document.getElementById('loginPassword');
-  if (loginPassword) {
-    loginPassword.onkeydown = function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        handleLogin();
-      }
-    };
-  }
-  
-  const signupBtn = document.getElementById('signupBtn');
-  if (signupBtn) {
-    signupBtn.onclick = function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      handleSignup();
-    };
-  }
-  
-  const signupPassword = document.getElementById('signupPassword');
-  if (signupPassword) {
-    signupPassword.onkeydown = function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        handleSignup();
-      }
-    };
-  }
-  
-  const finishBtn = document.getElementById('finishBtn');
-  if (finishBtn) {
-    finishBtn.onclick = function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      handleFinishSignup();
-    };
-  }
-  
-  // Also attach to gate tabs to ensure they're clickable
-  const gateTabs = document.querySelectorAll('.gate-tab');
-  gateTabs.forEach(tab => {
-    tab.onclick = function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      const tabType = this.textContent.toLowerCase().includes('sign') ? 
-                      (this.textContent.toLowerCase().includes('in') ? 'login' : 'signup') : 
-                      'login';
-      switchGateTab(tabType, this);
-    };
-  });
-}
-
-// FORCE: Show gatekeeper after 3 seconds regardless of Firebase
-function forceShowGatekeeper() {
-  setSafeTimeout(() => {
-    const splash = document.getElementById('splashScreen');
-    if (splash && !splash.classList.contains('hidden')) {
-      splash.classList.add('hidden');
-      setSafeTimeout(() => {
-        if (splash.parentNode) splash.remove();
-      }, 600);
-    }
-    forceGatekeeperToShow();
-  }, 3000);
-}
-
-// Initialize app when DOM is ready
+// ─── INITIALIZATION ─────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   initializeApp();
-  attachLoginListeners();
-  forceShowGatekeeper(); // Backup: ensure gatekeeper appears
   
-  // Retry attaching listeners a few times to ensure they're set
+  // Initial listener attachment
+  setSafeTimeout(attachLoginListeners, 100);
+  
+  // Backup attempts
   setSafeTimeout(attachLoginListeners, 500);
   setSafeTimeout(attachLoginListeners, 1000);
   setSafeTimeout(attachLoginListeners, 2000);
+  
+  // Force show gatekeeper as backup
+  forceShowGatekeeper();
+  
+  // Show download banner after a delay
+  setSafeTimeout(() => {
+    document.getElementById('downloadBanner')?.classList.add('show');
+  }, 5000);
 });
 
 // Also attach when window loads
@@ -1441,11 +1687,22 @@ window.addEventListener('load', () => {
   attachLoginListeners();
   
   // Ensure any stuck elements are clickable
-  const allButtons = document.querySelectorAll('button, .gate-btn, .gate-tab, .story-item, .consult-option, .bottom-nav-item');
-  allButtons.forEach(btn => {
-    btn.style.pointerEvents = 'auto';
-    btn.style.cursor = 'pointer';
+  const allInteractive = document.querySelectorAll('button, .gate-btn, .gate-tab, .story-item, .consult-option, .bottom-nav-item, [onclick]');
+  allInteractive.forEach(el => {
+    el.style.pointerEvents = 'auto';
+    el.style.cursor = 'pointer';
   });
+  
+  // Force gatekeeper visibility check
+  const gatekeeper = document.getElementById('gatekeeper');
+  if (gatekeeper && !gatekeeper.classList.contains('hidden') && !currentUser) {
+    setGatekeeperVisibility(true);
+  }
+});
+
+// Clean up on page unload
+window.addEventListener('beforeunload', () => {
+  clearAllTimeouts();
 });
 </script>
 <div id="vaultGlint"></div>
