@@ -1191,6 +1191,13 @@ function switchGateTab(tab, el) {
   el.classList.add('active');
   document.getElementById('gateLogin').style.display = tab === 'login' ? 'block' : 'none';
   document.getElementById('gateSignup').style.display = tab === 'signup' ? 'block' : 'none';
+  
+  // Focus the first input of the shown tab
+  if (tab === 'login') {
+    document.getElementById('loginEmail')?.focus();
+  } else {
+    document.getElementById('signupName')?.focus();
+  }
 }
 
 function showGateError(id, msg) {
@@ -1203,6 +1210,81 @@ function showGateError(id, msg) {
     setSafeTimeout(() => {
       el.classList.remove('visible');
     }, 5000);
+  }
+}
+
+// ─── ENTER KEY HANDLERS (THE FIX) ─────────────────────────────────────────────
+function setupEnterKeyHandlers() {
+  // LOGIN FORM
+  const loginEmail = document.getElementById('loginEmail');
+  const loginPassword = document.getElementById('loginPassword');
+  const loginBtn = document.getElementById('loginBtn');
+  
+  if (loginEmail) {
+    loginEmail.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        // If password is empty, move to it; otherwise submit
+        if (loginPassword && !loginPassword.value) {
+          loginPassword.focus();
+        } else {
+          handleLogin();
+        }
+      }
+    });
+  }
+  
+  if (loginPassword) {
+    loginPassword.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleLogin();
+      }
+    });
+  }
+  
+  // SIGNUP FORM
+  const signupName = document.getElementById('signupName');
+  const signupEmail = document.getElementById('signupEmail');
+  const signupPassword = document.getElementById('signupPassword');
+  
+  if (signupName) {
+    signupName.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        signupEmail?.focus();
+      }
+    });
+  }
+  
+  if (signupEmail) {
+    signupEmail.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        signupPassword?.focus();
+      }
+    });
+  }
+  
+  if (signupPassword) {
+    signupPassword.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleSignup();
+      }
+    });
+  }
+  
+  // STEP 2 (FINISH SIGNUP)
+  const finishBtn = document.getElementById('finishBtn');
+  if (finishBtn) {
+    // Allow Enter to trigger finish button when focused
+    finishBtn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleFinishSignup();
+      }
+    });
   }
 }
 
@@ -1276,8 +1358,10 @@ function initializeApp() {
       } catch (e) {}
     }
     
-    // Show gatekeeper
+    // Show gatekeeper and setup enter key handlers
     forceGatekeeperToShow();
+    setupEnterKeyHandlers(); // CRITICAL: Setup Enter key handlers after gatekeeper is visible
+    
   }, 3500);
   
   // Listen for auth state changes
@@ -1304,6 +1388,7 @@ function forceShowGatekeeper() {
       }, 600);
     }
     forceGatekeeperToShow();
+    setupEnterKeyHandlers(); // Setup handlers here too as backup
   }, 3000);
 }
 
