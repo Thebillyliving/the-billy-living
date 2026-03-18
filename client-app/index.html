@@ -1191,13 +1191,6 @@ function switchGateTab(tab, el) {
   el.classList.add('active');
   document.getElementById('gateLogin').style.display = tab === 'login' ? 'block' : 'none';
   document.getElementById('gateSignup').style.display = tab === 'signup' ? 'block' : 'none';
-  
-  // Focus the first input of the shown tab
-  if (tab === 'login') {
-    document.getElementById('loginEmail')?.focus();
-  } else {
-    document.getElementById('signupName')?.focus();
-  }
 }
 
 function showGateError(id, msg) {
@@ -1213,29 +1206,14 @@ function showGateError(id, msg) {
   }
 }
 
-// ─── ENTER KEY HANDLERS (THE FIX) ─────────────────────────────────────────────
+// ─── ENTER KEY HANDLERS (SIMPLIFIED) ─────────────────────────────────────────────
 function setupEnterKeyHandlers() {
-  // LOGIN FORM
+  // LOGIN FORM: Press Enter on any field submits the form
   const loginEmail = document.getElementById('loginEmail');
   const loginPassword = document.getElementById('loginPassword');
-  const loginBtn = document.getElementById('loginBtn');
   
   if (loginEmail) {
-    loginEmail.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        // If password is empty, move to it; otherwise submit
-        if (loginPassword && !loginPassword.value) {
-          loginPassword.focus();
-        } else {
-          handleLogin();
-        }
-      }
-    });
-  }
-  
-  if (loginPassword) {
-    loginPassword.addEventListener('keydown', (e) => {
+    loginEmail.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
         handleLogin();
@@ -1243,31 +1221,22 @@ function setupEnterKeyHandlers() {
     });
   }
   
-  // SIGNUP FORM
+  if (loginPassword) {
+    loginPassword.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleLogin();
+      }
+    });
+  }
+  
+  // SIGNUP FORM: Press Enter on any field goes to next step
   const signupName = document.getElementById('signupName');
   const signupEmail = document.getElementById('signupEmail');
   const signupPassword = document.getElementById('signupPassword');
   
   if (signupName) {
-    signupName.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        signupEmail?.focus();
-      }
-    });
-  }
-  
-  if (signupEmail) {
-    signupEmail.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        signupPassword?.focus();
-      }
-    });
-  }
-  
-  if (signupPassword) {
-    signupPassword.addEventListener('keydown', (e) => {
+    signupName.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
         handleSignup();
@@ -1275,14 +1244,20 @@ function setupEnterKeyHandlers() {
     });
   }
   
-  // STEP 2 (FINISH SIGNUP)
-  const finishBtn = document.getElementById('finishBtn');
-  if (finishBtn) {
-    // Allow Enter to trigger finish button when focused
-    finishBtn.addEventListener('keydown', (e) => {
+  if (signupEmail) {
+    signupEmail.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
-        handleFinishSignup();
+        handleSignup();
+      }
+    });
+  }
+  
+  if (signupPassword) {
+    signupPassword.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleSignup();
       }
     });
   }
