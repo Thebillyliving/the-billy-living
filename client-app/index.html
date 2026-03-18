@@ -1,4 +1,4 @@
-<!-- client.html — Billy Living (Fully Fixed with Working Buttons) -->
+<!-- client.html — Billy Living (FORCE FIX - All Buttons Clickable) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -32,7 +32,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 @keyframes splashFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes vaultGlow{from{filter:drop-shadow(0 0 12px rgba(201,168,76,.25))}to{filter:drop-shadow(0 0 28px rgba(201,168,76,.6))}}
 
-/* ===== CRITICAL FIX: GATEKEEPER MUST BE INTERACTIVE WHEN VISIBLE ===== */
+/* ===== ULTIMATE FIX: GATEKEEPER MUST BE FORCEFULLY MANAGED ===== */
 #gatekeeper {
   position: fixed;
   inset: 0;
@@ -45,32 +45,36 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
   padding: 0 28px;
   font-family: 'Jost', sans-serif;
   transition: opacity 0.3s ease, visibility 0.3s ease;
+  /* CRITICAL: Default state - fully visible and interactive */
   opacity: 1;
   visibility: visible;
-  /* CRITICAL: Ensure gatekeeper itself doesn't block clicks on its children */
-  pointer-events: none;
+  pointer-events: auto;
 }
 
-/* ALL CHILDREN MUST BE CLICKABLE */
-#gatekeeper * {
-  pointer-events: auto !important;
-  cursor: pointer !important;
-}
-
-/* When hidden, completely disable everything */
+/* When hidden, completely remove from interaction */
 #gatekeeper.hidden {
   opacity: 0 !important;
   visibility: hidden !important;
   pointer-events: none !important;
+  display: none !important;
 }
 
-#gatekeeper.hidden * {
-  pointer-events: none !important;
+/* Ensure all children are clickable when gatekeeper is visible */
+#gatekeeper:not(.hidden) *,
+#gatekeeper:not(.hidden) button,
+#gatekeeper:not(.hidden) .gate-btn,
+#gatekeeper:not(.hidden) .gate-tab,
+#gatekeeper:not(.hidden) .gate-input {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  opacity: 1 !important;
+  z-index: 100002 !important;
 }
 
-/* Ensure all interactive elements have proper cursor */
+/* Force all interactive elements to be clickable */
 .gate-tab, .gate-btn, .gate-input, .gate-input-label {
   cursor: pointer;
+  -webkit-tap-highlight-color: rgba(201,169,98,0.3);
 }
 
 .gate-logo {
@@ -120,10 +124,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   -webkit-appearance: none;
-  /* Ensure clickable */
-  pointer-events: auto !important;
   position: relative;
-  z-index: 100002;
 }
 
 .gate-tab.active {
@@ -184,10 +185,6 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
   margin-top: 8px;
   -webkit-appearance: none;
   transition: opacity 0.2s;
-  /* Ensure clickable */
-  pointer-events: auto !important;
-  position: relative;
-  z-index: 100002;
 }
 
 .gate-btn:hover {
@@ -280,6 +277,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
   opacity: 0 !important;
   visibility: hidden !important;
   pointer-events: none !important;
+  display: none !important;
 }
 
 .splash-logo {
@@ -1197,44 +1195,81 @@ function showGateError(id, msg) {
   }
 }
 
-// ─── SPLASH SCREEN AND GATEKEEPER HANDLING - FIXED ─────────────────────────
+// ─── ULTIMATE FIX: FORCE GATEKEEPER TO HIDE ─────────────────────────
+function forceGatekeeperToShow() {
+  const gatekeeper = document.getElementById('gatekeeper');
+  if (gatekeeper) {
+    gatekeeper.classList.remove('hidden');
+    gatekeeper.style.display = 'flex';
+    gatekeeper.style.opacity = '1';
+    gatekeeper.style.visibility = 'visible';
+    gatekeeper.style.pointerEvents = 'auto';
+    
+    // Ensure all children are clickable
+    const allChildren = gatekeeper.querySelectorAll('button, .gate-btn, .gate-tab, .gate-input');
+    allChildren.forEach(el => {
+      el.style.pointerEvents = 'auto';
+      el.style.cursor = 'pointer';
+      el.style.opacity = '1';
+      el.style.zIndex = '100002';
+    });
+  }
+}
+
+function forceGatekeeperToHide() {
+  const gatekeeper = document.getElementById('gatekeeper');
+  if (gatekeeper) {
+    gatekeeper.classList.add('hidden');
+    gatekeeper.style.display = 'none';
+    gatekeeper.style.opacity = '0';
+    gatekeeper.style.visibility = 'hidden';
+    gatekeeper.style.pointerEvents = 'none';
+  }
+}
+
+// ─── SPLASH SCREEN HANDLING ─────────────────────────────────────────
 function initializeApp() {
   const splash = document.getElementById('splashScreen');
-  const gatekeeper = document.getElementById('gatekeeper');
   
   // Ensure splash is visible initially
   splash.style.display = 'flex';
   splash.classList.remove('hidden');
   
-  // Ensure gatekeeper is hidden initially but ready
-  gatekeeper.classList.add('hidden');
-  
-  // Listen for auth state changes immediately
-  fbAuth.onAuthStateChanged(user => {
-    currentUser = user;
-    
-    if (user) {
-      // User is logged in - hide gatekeeper completely
-      gatekeeper.classList.add('hidden');
-      showPage('home');
-      loadUserProfile(user.uid);
-    } else {
-      // No user - show gatekeeper after splash
-      setSafeTimeout(() => {
-        gatekeeper.classList.remove('hidden');
-      }, 3800); // Slightly after splash hides
-    }
-  });
-  
-  // Hide splash after delay
+  // Force show gatekeeper after splash
   setSafeTimeout(() => {
     splash.classList.add('hidden');
     
-    // Remove splash from DOM after animation
+    // Force remove splash from DOM after animation
     setSafeTimeout(() => {
       if (splash.parentNode) splash.remove();
     }, 600);
+    
+    // Check if user is already logged in via localStorage or session
+    const savedUser = localStorage.getItem('firebase:authUser:AIzaSyBbs6k7PInHUnv1x9FzHB31kUwrCcoGG7c:[DEFAULT]');
+    if (savedUser) {
+      try {
+        const userData = JSON.parse(savedUser);
+        if (userData && userData.uid) {
+          // User appears to be logged in, hide gatekeeper
+          forceGatekeeperToHide();
+          return;
+        }
+      } catch (e) {}
+    }
+    
+    // Otherwise show gatekeeper
+    forceGatekeeperToShow();
   }, 3500);
+  
+  // Listen for auth state changes
+  fbAuth.onAuthStateChanged(user => {
+    if (user) {
+      currentUser = user;
+      forceGatekeeperToHide();
+      showPage('home');
+      loadUserProfile(user.uid);
+    }
+  });
 }
 
 // ─── SIMPLE PAGE NAVIGATION ─────────────────────────────────────────────────
@@ -1281,7 +1316,7 @@ function showToast(msg) {
 }
 function dismissBanner() { document.getElementById('downloadBanner').classList.remove('show'); }
 function openPlayStore() { window.open('https://play.google.com/store/apps', '_blank'); }
-function handleLogout() { fbAuth.signOut(); }
+function handleLogout() { fbAuth.signOut(); forceGatekeeperToShow(); }
 function requestConciergeSupport() { showPage('concierge'); }
 function onProfileChange() {}
 function saveProfileUpdates() {}
@@ -1375,21 +1410,30 @@ function attachLoginListeners() {
   });
 }
 
+// FORCE: Show gatekeeper after 3 seconds regardless of Firebase
+function forceShowGatekeeper() {
+  setSafeTimeout(() => {
+    const splash = document.getElementById('splashScreen');
+    if (splash && !splash.classList.contains('hidden')) {
+      splash.classList.add('hidden');
+      setSafeTimeout(() => {
+        if (splash.parentNode) splash.remove();
+      }, 600);
+    }
+    forceGatekeeperToShow();
+  }, 3000);
+}
+
 // Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   initializeApp();
   attachLoginListeners();
+  forceShowGatekeeper(); // Backup: ensure gatekeeper appears
   
   // Retry attaching listeners a few times to ensure they're set
   setSafeTimeout(attachLoginListeners, 500);
   setSafeTimeout(attachLoginListeners, 1000);
   setSafeTimeout(attachLoginListeners, 2000);
-  
-  // Force gatekeeper to be interactive if it's visible
-  const gatekeeper = document.getElementById('gatekeeper');
-  if (gatekeeper) {
-    gatekeeper.style.pointerEvents = 'auto';
-  }
 });
 
 // Also attach when window loads
