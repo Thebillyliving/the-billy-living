@@ -1799,6 +1799,12 @@
             if (el) el.classList.add('active');
             if (name === 'vaultmgr') vmInit();
             if (name === 'catalog') renderCatalogList();
+            if (name === 'home') renderHomeList();
+            if (name === 'trending') renderTrendingList();
+            if (name === 'designers') renderDesignersList();
+            if (name === 'vip') renderVIPList();
+            if (name === 'portfolio') loadPortfolioUsers();
+            if (name === 'messages') initAdminMessagesListener();
         }
 
         // Vault Manager Init
@@ -2518,64 +2524,110 @@
         }
 
         // Stubs for other functions
-        function renderHomeList() { document.getElementById('homeList').innerHTML = '<div class="empty-state">No posts</div>'; }
-        const _adminCatalogMap = {};
-        function renderCatalogList() {
-          const grid = document.getElementById('catalogList');
-          grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;"><div style="width:32px;height:32px;border:2px solid rgba(201,168,76,.1);border-top-color:#C9A84C;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;"></div><div style="font-size:11px;letter-spacing:3px;color:rgba(201,168,76,.4);">LOADING...</div></div>';
-          adminFbDB.ref('content/catalog').once('value').then(snap => {
-            if (!snap.exists()) {
-              grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:rgba(201,168,76,.3);">No catalog collections yet</div>';
-              return;
-            }
-            const boxes = Object.values(snap.val()).sort((a,b) => {
-              const n = s => parseInt((s.id||'').replace(/\D/g,''))||0;
-              return n(a)-n(b);
+        function renderHomeList() {
+          const el = document.getElementById('homeList');
+          el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
+          adminFbDB.ref('content/posts').limitToLast(30).once('value').then(snap => {
+            if (!snap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div>No posts yet</div>'; return; }
+            const posts = Object.values(snap.val()).reverse();
+            el.innerHTML = posts.map(p => `<div class="list-item">
+              <div class="list-image">${p.imageData||p.imageUrl ? '<img src="'+(p.imageData||p.imageUrl)+'" loading="lazy">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">🏠</div>'}</div>
+              <div class="list-info"><div class="list-title">${p.caption||p.title||'Post'}</div><div class="list-meta">${p.location||''} · ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div></div>
+              <div class="list-actions"><button class="btn btn-danger" style="padding:8px 12px;font-size:12px;" onclick="if(confirm('Delete?'))adminFbDB.ref('content/posts/${p.id||''}').remove().then(()=>{showToast('Deleted');renderHomeList();})">×</button></div>
+            </div>`).join('');
+          }).catch(e => { el.innerHTML = '<div class="empty-state">Error: '+e.message+'</div>'; });
+        }
+        function renderCatalogList() { document.getElementById('catalogList').innerHTML = '<div class="empty-state">No catalog</div>'; }
+        function renderTrendingList() {
+          const el = document.getElementById('trendingList');
+          el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
+          adminFbDB.ref('content/trending').limitToLast(30).once('value').then(snap => {
+            if (!snap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔥</div>No trending items yet</div>'; return; }
+            const items = Object.values(snap.val()).reverse();
+            el.innerHTML = items.map(p => `<div class="list-item">
+              <div class="list-image">${p.imageData||p.imageUrl ? '<img src="'+(p.imageData||p.imageUrl)+'" loading="lazy">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">🔥</div>'}</div>
+              <div class="list-info"><div class="list-title">${p.caption||p.title||'Trending'}</div><div class="list-meta">${p.location||''} · ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div></div>
+              <div class="list-actions"><button class="btn btn-danger" style="padding:8px 12px;font-size:12px;" onclick="if(confirm('Delete?'))adminFbDB.ref('content/trending/${p.id||''}').remove().then(()=>{showToast('Deleted');renderTrendingList();})">×</button></div>
+            </div>`).join('');
+          }).catch(e => { el.innerHTML = '<div class="empty-state">Error: '+e.message+'</div>'; });
+        }
+        function renderDesignersList() {
+          const el = document.getElementById('designersList');
+          el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
+          adminFbDB.ref('designers').limitToFirst(30).once('value').then(snap => {
+            if (!snap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👤</div>No designers yet</div>'; return; }
+            const items = Object.values(snap.val());
+            el.innerHTML = items.map(d => `<div class="list-item">
+              <div class="list-image"><div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#C9A84C,#7A5C10);font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:#0A0804;">${(d.name||'D')[0].toUpperCase()}</div></div>
+              <div class="list-info"><div class="list-title">${d.name||'Designer'}</div><div class="list-meta">${d.specialty||d.role||''} · ${d.email||''}</div></div>
+              <div class="list-actions"><button class="btn btn-danger" style="padding:8px 12px;font-size:12px;" onclick="if(confirm('Delete?'))adminFbDB.ref('designers/${d.id||''}').remove().then(()=>{showToast('Deleted');renderDesignersList();})">×</button></div>
+            </div>`).join('');
+          }).catch(e => { el.innerHTML = '<div class="empty-state">Error: '+e.message+'</div>'; });
+        }
+        function renderVIPList() {
+          const grid = document.getElementById('vipGrid');
+          grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(201,168,76,.4);">Loading VIPs...</div>';
+          adminFbDB.ref('vip').once('value').then(snap => {
+            const vips = snap.val() ? Object.values(snap.val()) : [];
+            const countEl = document.getElementById('vipCount');
+            if (countEl) countEl.textContent = vips.length + ' member' + (vips.length !== 1 ? 's' : '');
+            if (!vips.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(201,168,76,.3);">No VIP members yet</div>'; return; }
+            grid.innerHTML = vips.map(v => `<div class="vip-card status-active">
+              <div class="vip-name">${v.name||'VIP Member'}</div>
+              <div class="vip-phone">📱 ${v.phone||'—'} &nbsp;·&nbsp; 🔑 ${v.password||v.code||'—'}</div>
+              <div class="vip-phone" style="font-size:11px;color:rgba(201,168,76,.4);">${v.id ? '✓ Linked to account' : '⏳ No account yet'}</div>
+              <div class="vip-actions" style="margin-top:12px;">
+                <button class="vip-btn btn-danger" onclick="if(confirm('Remove VIP?'))adminFbDB.ref('vip/${v.phone}').remove().then(()=>{showToast('VIP removed');renderVIPList();})">Remove</button>
+              </div>
+            </div>`).join('');
+          }).catch(e => { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#ef4444;">Error: '+e.message+'</div>'; });
+        }
+        function loadPortfolioUsers() {
+          const el = document.getElementById('portfolioUsersList');
+          el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
+          adminFbDB.ref('userProfiles').limitToFirst(50).once('value').then(snap => {
+            if (!snap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🖼</div>No users yet</div>'; return; }
+            const users = Object.entries(snap.val());
+            document.getElementById('portfolioUserTotal').textContent = users.length;
+            // For each user check if they have portfolio items
+            Promise.all(users.map(([uid, u]) =>
+              adminFbDB.ref('portfolio/' + uid).once('value').then(ps => ({ uid, u, count: ps.exists() ? Object.keys(ps.val()).length : 0 }))
+            )).then(results => {
+              const withPortfolio = results.filter(r => r.count > 0).sort((a,b) => b.count - a.count);
+              document.getElementById('portfolioUserTotal').textContent = withPortfolio.length;
+              if (!withPortfolio.length) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🖼</div>No portfolio saves yet</div>'; return; }
+              el.innerHTML = withPortfolio.map(({uid, u, count}) => {
+                const name = u.name || u.email || 'Client';
+                const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+                return `<div class="port-user-card" onclick="openClientPortfolioView('${uid}','${name}','${u.email||''}')">
+                  <div class="port-user-av">${initials}</div>
+                  <div class="port-user-info"><div class="port-user-name">${name}</div><div class="port-user-email">${u.email||''}</div></div>
+                  <div class="port-user-count"><div class="port-user-badge">${count}</div></div>
+                  <span class="port-user-arrow">›</span>
+                </div>`;
+              }).join('');
             });
-            boxes.forEach(b => { _adminCatalogMap[b.id] = b; });
-            grid.innerHTML = boxes.map(box => {
-              const imgs = box.images ? (Array.isArray(box.images) ? box.images : Object.values(box.images)) : [];
-              const thumb = imgs.find(i=>i) || null;
-              return '<div class="elite-collection-cell-admin" onclick="openAdminCatalogInner(_adminCatalogMap[\'' + box.id + '\'])">'
-                + '<div class="elite-cell-meta-admin">'
-                +   '<div class="elite-cell-topic-admin">' + (box.value||box.topic||'Collection') + '</div>'
-                +   '<div class="elite-cell-feeling-admin">' + (box.description||box.feeling||'') + '</div>'
-                + '</div>'
-                + '<div class="elite-cell-box-admin" style="position:relative;overflow:hidden;">'
-                +   (thumb ? '<img data-src="' + thumb + '" alt="" style="width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .35s;position:relative;z-index:1;">' : '')
-                +   '<div class="elite-cell-grain-admin"></div>'
-                +   '<div id="skel_' + box.id + '" style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.12) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;z-index:0;"></div>'
-                + '</div>'
-                + '<div class="elite-cell-actions-admin">'
-                +   '<button class="btn btn-secondary" style="font-size:11px;padding:8px 6px;" onclick="event.stopPropagation();openAdminCatalogInner(_adminCatalogMap[\'' + box.id + '\'])">Edit</button>'
-                +   '<button class="btn btn-danger" style="flex:0 0 36px;padding:8px;font-size:14px;" onclick="event.stopPropagation();if(confirm(\'Delete?\'))adminFbDB.ref(\'content/catalog/' + box.id + '\').remove().then(()=>{showToast(\'Deleted\');renderCatalogList();})">×</button>'
-                + '</div>'
-              + '</div>';
-            }).join('');
-            // Lazy-load: only decode base64/fetch image when card enters viewport
-            const obs = new IntersectionObserver(entries => {
-              entries.forEach(entry => {
-                if (!entry.isIntersecting) return;
-                const img = entry.target.querySelector('img[data-src]');
-                const skel = entry.target.querySelector('[id^="skel_"]');
-                if (img) {
-                  img.src = img.getAttribute('data-src');
-                  img.removeAttribute('data-src');
-                  img.onload = () => { img.style.opacity = '1'; if (skel) skel.remove(); };
-                  img.onerror = () => { if (skel) skel.remove(); };
-                } else { if (skel) skel.remove(); }
-                obs.unobserve(entry.target);
-              });
-            }, { rootMargin: '150px' });
-            grid.querySelectorAll('.elite-collection-cell-admin').forEach(c => obs.observe(c));
-          }).catch(err => {
-            grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:#ef4444;">Error: ' + err.message + '</div>';
+          }).catch(e => { el.innerHTML = '<div class="empty-state">Error: '+e.message+'</div>'; });
+        }
+        function openClientPortfolioView(uid, name, email) {
+          document.getElementById('portfolioUsersView').style.display = 'none';
+          const cv = document.getElementById('portfolioClientView');
+          cv.style.display = 'flex';
+          document.getElementById('portfolioClientName').textContent = name;
+          document.getElementById('portfolioClientEmail').textContent = email;
+          document.getElementById('portfolioClientAv').textContent = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+          const grid = document.getElementById('portfolioClientGrid');
+          grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(201,168,76,.4);">Loading...</div>';
+          adminFbDB.ref('portfolio/'+uid).once('value').then(snap => {
+            const items = snap.val() ? Object.values(snap.val()) : [];
+            document.getElementById('portfolioClientTotal').textContent = items.length;
+            if (!items.length) { grid.innerHTML = '<div class="port-empty">No saved items</div>'; return; }
+            grid.innerHTML = items.map(item => `<div class="port-grid-item">
+              ${item.imageData||item.imageUrl||item.thumb ? '<img src="'+(item.imageData||item.imageUrl||item.thumb)+'" loading="lazy" alt="">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:32px;">🖼</div>'}
+              <div class="port-grid-item-label">${item.title||item.caption||''}</div>
+            </div>`).join('');
           });
         }
-        function renderTrendingList() { document.getElementById('trendingList').innerHTML = '<div class="empty-state">No trending</div>'; }
-        function renderDesignersList() { document.getElementById('designersList').innerHTML = '<div class="empty-state">No designers</div>'; }
-        function renderVIPList() { document.getElementById('vipGrid').innerHTML = '<div class="empty-state">No VIPs</div>'; }
-        function loadPortfolioUsers() { document.getElementById('portfolioUsersList').innerHTML = '<div class="empty-state">No portfolios</div>'; }
         function backToPortfolioUsers() { document.getElementById('portfolioClientView').style.display = 'none'; document.getElementById('portfolioUsersView').style.display = 'block'; }
         function openClientPortfolio() {}
         function addVIP() {
@@ -2649,7 +2701,67 @@
         function adminSendMessage() { showToast('Message sent'); }
         function openClientProfile() {}
         function closeClientProfile() { document.getElementById('clientProfileDrawer').style.display = 'none'; document.getElementById('clientProfileOverlay').style.display = 'none'; }
-        function initAdminMessagesListener() {}
+        function initAdminMessagesListener() {
+          const el = document.getElementById('msgsConversationsList');
+          el.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(201,168,76,.4);">Loading messages...</div>';
+          adminFbDB.ref('messages').limitToFirst(30).once('value').then(snap => {
+            if (!snap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💬</div>No messages yet</div>'; return; }
+            const convos = Object.entries(snap.val());
+            el.innerHTML = convos.map(([uid, msgs]) => {
+              const msgList = Object.values(msgs);
+              const last = msgList[msgList.length - 1];
+              const unread = msgList.filter(m => !m.read && m.role !== 'admin').length;
+              const name = last.clientName || 'Client';
+              const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+              return `<div class="msg-conv-item ${unread > 0 ? 'unread' : ''}" onclick="openAdminChat('${uid}','${name}')">
+                <div class="msg-conv-avatar">${initials}</div>
+                <div class="msg-conv-body">
+                  <div class="msg-conv-name">${name}</div>
+                  <div class="msg-conv-preview">${last.text||'[media]'}</div>
+                </div>
+                <div class="msg-conv-meta">
+                  <div class="msg-conv-time">${last.createdAt ? new Date(last.createdAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : ''}</div>
+                  ${unread > 0 ? '<div class="msg-unread-badge">'+unread+'</div>' : ''}
+                </div>
+              </div>`;
+            }).join('');
+          }).catch(e => { el.innerHTML = '<div class="empty-state">Error: '+e.message+'</div>'; });
+        }
+        function openAdminChat(uid, name) {
+          document.getElementById('msgsListView').style.display = 'none';
+          document.getElementById('msgsAdminChatView').style.display = 'block';
+          document.getElementById('adminChatClientName').textContent = name;
+          document.getElementById('adminChatAv').textContent = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+          const msgs = document.getElementById('adminChatMsgs');
+          msgs.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(201,168,76,.4);">Loading...</div>';
+          adminFbDB.ref('messages/'+uid).orderByChild('createdAt').once('value').then(snap => {
+            if (!snap.exists()) { msgs.innerHTML = '<div style="text-align:center;padding:20px;">No messages</div>'; return; }
+            msgs.innerHTML = Object.values(snap.val()).map(m => `
+              <div class="admin-msg ${m.role==='admin' ? 'from-admin' : 'from-client'}">
+                <div class="admin-bubble">${m.text||''}</div>
+                <div class="admin-msg-time">${m.createdAt ? new Date(m.createdAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : ''}</div>
+              </div>`).join('');
+            msgs.scrollTop = msgs.scrollHeight;
+            // Mark as read
+            adminFbDB.ref('messages/'+uid).once('value').then(s => {
+              const updates = {};
+              Object.entries(s.val()||{}).forEach(([k,v]) => { if(!v.read && v.role!=='admin') updates[k+'/read'] = true; });
+              if (Object.keys(updates).length) adminFbDB.ref('messages/'+uid).update(updates);
+            });
+          });
+          // Store current uid for sending
+          window._adminChatUID = uid;
+        }
+        function adminSendMessage() {
+          const input = document.getElementById('adminChatInput');
+          const text = input.value.trim();
+          if (!text || !window._adminChatUID) return;
+          const uid = window._adminChatUID;
+          const id = 'msg_' + Date.now();
+          adminFbDB.ref('messages/'+uid+'/'+id).set({ text, role: 'admin', createdAt: Date.now(), read: false })
+            .then(() => { input.value = ''; openAdminChat(uid, document.getElementById('adminChatClientName').textContent); })
+            .catch(e => showToast('Error: '+e.message));
+        }
         function forceSyncAllCatalog() {}
         function handleContextImageUpload() {}
         function handleCoverReplaceUpload() {}
