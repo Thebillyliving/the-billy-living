@@ -392,12 +392,13 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .dl-banner-close{background:none;border:none;color:rgba(168,155,140,.5);font-size:20px;cursor:pointer;padding:4px;flex-shrink:0;line-height:1}
 
 /* ─── SPLASH SCREEN ─────────────────────────────────────────────────────────── */
-#splashScreen{position:fixed;inset:0;background:#120D06;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .6s ease,visibility .6s ease;animation:splashAutoDismiss .7s ease 2.8s forwards}
+#splashScreen{position:fixed;inset:0;background:#120D06;z-index:100002;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .6s ease,visibility .6s ease;animation:splashAutoDismiss .7s ease 2.8s forwards}
 #splashScreen.hidden{opacity:0;visibility:hidden;pointer-events:none}
 @keyframes splashAutoDismiss{0%{opacity:1;visibility:visible;pointer-events:auto}100%{opacity:0;visibility:hidden;pointer-events:none}}
 .splash-logo{width:140px;height:140px;border-radius:28px;animation:splashPop .7s cubic-bezier(.22,1,.36,1) both}
 .splash-name{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;letter-spacing:7px;color:#C9A84C;text-transform:uppercase;text-align:center;animation:splashFadeUp .6s .3s ease both}
 .splash-tagline{font-family:'Jost',sans-serif;font-size:9px;letter-spacing:4px;color:rgba(201,168,76,.45);text-transform:uppercase;animation:splashFadeUp .6s .45s ease both}
+@keyframes skelShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 @keyframes splashPop{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
 @keyframes splashFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 </style>
@@ -472,7 +473,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     <div class="story-item" onclick="openProfile()">
       <div class="story-circle" id="profileStoryCircle">
         <svg id="profileStoryDefault" viewBox="0 0 60 60" fill="none" style="width:38px;height:38px"><circle cx="30" cy="22" r="10" fill="rgba(201,168,76,0.18)" stroke="#C9A84C" stroke-width="1.5"/><path d="M10 54c0-11.046 8.954-20 20-20s20 8.954 20 20" fill="rgba(201,168,76,0.15)" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <img id="profileStoryPhoto" class="story-circle-photo" src="" alt="">
+        <img id="profileStoryPhoto" class="story-circle-photo" src="" alt="" style="display:none">
       </div>
       <span class="story-label" id="profileStoryLabel">My Profile</span>
     </div>
@@ -678,10 +679,17 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
           <span style="font-size:20px;">📊</span>
           <span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold-light);">Progress Tracker</span>
         </div>
-        <span id="projectCountBadge" style="background:rgba(212,175,55,.15);color:var(--gold);font-size:11px;padding:4px 12px;border-radius:30px;">0</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="projectCountBadge" style="background:rgba(212,175,55,.15);color:var(--gold);font-size:11px;padding:4px 12px;border-radius:30px;">0</span>
+          <button onclick="loadProjectsUniversal()" style="background:none;border:1px solid rgba(212,175,55,.3);color:rgba(212,175,55,.6);border-radius:50%;width:28px;height:28px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Refresh">↻</button>
+        </div>
       </div>
-      <div id="projectsContainer" style="display:flex;flex-direction:column;gap:10px;min-height:60px;">
-        <div style="text-align:center;padding:20px;color:rgba(212,175,55,.4);">Loading projects...</div>
+      <!-- Skeleton loader shown while projects load -->
+      <div id="ptSkeleton" style="display:flex;flex-direction:column;gap:10px;">
+        <div style="height:64px;border-radius:14px;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
+        <div style="height:64px;border-radius:14px;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;opacity:.7;"></div>
+      </div>
+      <div id="projectsContainer" style="display:flex;flex-direction:column;gap:10px;min-height:60px;display:none;">
       </div>
     </div>
     <!-- VAULT ASSETS GRID -->
@@ -724,6 +732,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 <!-- CONCIERGE -->
 <div id="concierge" class="page">
   <div class="cg-header">
+    <button onclick="showPage('home')" style="background:none;border:none;color:var(--gold);font-size:22px;cursor:pointer;line-height:1;padding:0 8px 0 0;flex-shrink:0;">←</button>
     <div class="cg-avatar">TBL</div>
     <div style="flex:1">
       <div class="cg-info-name">Design Concierge</div>
@@ -2839,6 +2848,9 @@ function tryProjectPaths(paths, index) {
 function displayProjectsUniversal(projects) {
   const container = document.getElementById('projectsContainer');
   const badge = document.getElementById('projectCountBadge');
+  const skel = document.getElementById('ptSkeleton');
+  if (skel) skel.style.display = 'none';
+  if (container) container.style.display = 'flex';
   if (!container) return;
   const projectCount = Object.keys(projects).length;
   console.log('📊 Displaying ' + projectCount + ' projects');
@@ -2861,6 +2873,9 @@ function displayProjectsUniversal(projects) {
 function showProjectsEmpty(message) {
   const container = document.getElementById('projectsContainer');
   const badge = document.getElementById('projectCountBadge');
+  const skel = document.getElementById('ptSkeleton');
+  if (skel) skel.style.display = 'none';
+  if (container) container.style.display = 'flex';
   if (badge) badge.textContent = '0';
   if (container) container.innerHTML = '<div style="text-align:center;padding:32px 20px;"><div style="font-size:36px;margin-bottom:12px;opacity:.3;">📋</div><div style="color:rgba(212,175,55,.5);font-size:15px;margin-bottom:8px;">' + message + '</div><div style="color:rgba(212,175,55,.25);font-size:12px;">Projects will appear here once created by your designer</div></div>';
 }
