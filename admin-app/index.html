@@ -2667,7 +2667,7 @@
           document.getElementById('portfolioClientAv').textContent = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
           const grid = document.getElementById('portfolioClientGrid');
           grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(201,168,76,.4);">Loading...</div>';
-          adminFbDB.ref('portfolio/'+uid).once('value').then(snap => {
+          adminFbDB.ref('portfolios/'+uid+'/items').once('value').then(snap => {
             const items = snap.val() ? Object.values(snap.val()) : [];
             document.getElementById('portfolioClientTotal').textContent = items.length;
             if (!items.length) { grid.innerHTML = '<div class="port-empty">No saved items</div>'; return; }
@@ -2753,19 +2753,16 @@
         function initAdminMessagesListener() {
           const el = document.getElementById('msgsConversationsList');
           el.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(201,168,76,.4);">Loading messages...</div>';
-          // Try 'chats' path first, fallback to 'messages'
-          const tryPath = (path) => adminFbDB.ref(path).limitToFirst(30).once('value');
-          tryPath('chats').then(snap => {
-            if (!snap.exists()) return tryPath('messages');
-            return snap;
-          }).then(snap => {
+          adminFbDB.ref('chats').limitToFirst(30).once('value').then(snap => {
             if (!snap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💬</div>No messages yet</div>'; return; }
             const convos = Object.entries(snap.val());
-            el.innerHTML = convos.map(([uid, msgs]) => {
-              const msgList = Object.values(msgs);
+            el.innerHTML = convos.map(([uid, convo]) => {
+              const rawMsgs = convo.messages ? convo.messages : convo;
+              const msgList = typeof rawMsgs === 'object' ? Object.values(rawMsgs).filter(v => v && v.text) : [];
+              if (!msgList.length) return '';
               const last = msgList[msgList.length - 1];
-              const unread = msgList.filter(m => !m.read && m.role !== 'admin').length;
-              const name = last.clientName || 'Client';
+              const unread = msgList.filter(m => !m.read && m.sender !== 'admin').length;
+              const name = convo.clientName || last.senderName || last.clientName || 'Client';
               const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
               return `<div class="msg-conv-item ${unread > 0 ? 'unread' : ''}" onclick="openAdminChat('${uid}','${name}')">
                 <div class="msg-conv-avatar">${initials}</div>
@@ -2788,19 +2785,19 @@
           document.getElementById('adminChatAv').textContent = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
           const msgs = document.getElementById('adminChatMsgs');
           msgs.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(201,168,76,.4);">Loading...</div>';
-          adminFbDB.ref('messages/'+uid).orderByChild('createdAt').once('value').then(snap => {
+          adminFbDB.ref('chats/'+uid+'/messages').orderByChild('timestamp').once('value').then(snap => {
             if (!snap.exists()) { msgs.innerHTML = '<div style="text-align:center;padding:20px;">No messages</div>'; return; }
             msgs.innerHTML = Object.values(snap.val()).map(m => `
-              <div class="admin-msg ${m.role==='admin' ? 'from-admin' : 'from-client'}">
+              <div class="admin-msg ${(m.role==='admin'||m.sender==='admin') ? 'from-admin' : 'from-client'}">
                 <div class="admin-bubble">${m.text||''}</div>
-                <div class="admin-msg-time">${m.createdAt ? new Date(m.createdAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : ''}</div>
+                <div class="admin-msg-time">${(m.timestamp||m.createdAt) ? new Date(m.timestamp||m.createdAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : ''}</div>
               </div>`).join('');
             msgs.scrollTop = msgs.scrollHeight;
             // Mark as read
-            adminFbDB.ref('messages/'+uid).once('value').then(s => {
+            adminFbDB.ref('chats/'+uid+'/messages').once('value').then(s => {
               const updates = {};
-              Object.entries(s.val()||{}).forEach(([k,v]) => { if(!v.read && v.role!=='admin') updates[k+'/read'] = true; });
-              if (Object.keys(updates).length) adminFbDB.ref('messages/'+uid).update(updates);
+              Object.entries(s.val()||{}).forEach(([k,v]) => { if(!v.read && v.sender!=='admin') updates[k+'/read'] = true; });
+              if (Object.keys(updates).length) adminFbDB.ref('chats/'+uid+'/messages').update(updates);
             });
           });
           // Store current uid for sending
@@ -2812,7 +2809,7 @@
           if (!text || !window._adminChatUID) return;
           const uid = window._adminChatUID;
           const id = 'msg_' + Date.now();
-          adminFbDB.ref('messages/'+uid+'/'+id).set({ text, role: 'admin', createdAt: Date.now(), read: false })
+          adminFbDB.ref('chats/'+uid+'/messages/'+id).set({ text, sender: 'admin', role: 'admin', timestamp: Date.now(), createdAt: Date.now(), read: true })
             .then(() => { input.value = ''; openAdminChat(uid, document.getElementById('adminChatClientName').textContent); })
             .catch(e => showToast('Error: '+e.message));
         }
@@ -3067,19 +3064,22 @@
 
         // Initialization
         document.addEventListener('DOMContentLoaded', () => {
-            // Auto sign-in with admin account
+            // Only load data after auth is confirmed
+            adminFbAuth.onAuthStateChanged(user => {
+                if (user) {
+                    console.log('Admin authenticated:', user.uid);
+                    adminFbDB.ref('admins/' + user.uid).set(true);
+                    showPanel('dashboard', document.querySelector('.nav-item.active'));
+                    loadDashboardStats();
+                }
+            });
+            // Sign in silently
             adminFbAuth.signInWithEmailAndPassword('admin@billyliving.com', '147414')
-              .then(() => { console.log('Admin signed in'); })
               .catch(() => {
-                // First time: create the account then sign in
                 adminFbAuth.createUserWithEmailAndPassword('admin@billyliving.com', '147414')
-                  .then(cred => {
-                    // Write UID to admins node
-                    adminFbDB.ref('admins/' + cred.user.uid).set(true);
-                    console.log('Admin account created, UID:', cred.user.uid);
-                  }).catch(e => console.error('Auth error:', e));
+                  .then(cred => { adminFbDB.ref('admins/' + cred.user.uid).set(true); })
+                  .catch(e => console.error('Auth error:', e));
               });
-            showPanel('dashboard', document.querySelector('.nav-item.active'));
         });
     </script>
 </body>
