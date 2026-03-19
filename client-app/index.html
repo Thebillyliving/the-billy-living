@@ -1129,13 +1129,33 @@ async function handleLogin() {
   
   btn.disabled = true;
   btn.textContent = 'Signing in…';
+
+  // Safety net: re-enable button after 10s if stuck
+  const resetTimer = setTimeout(() => {
+    btn.disabled = false;
+    btn.textContent = 'Enter';
+  }, 10000);
   
   try {
-    await fbAuth.signInWithEmailAndPassword(email, password);
-    // Success - auth state will handle navigation
+    const cred = await fbAuth.signInWithEmailAndPassword(email, password);
+    clearTimeout(resetTimer);
+    // Explicitly navigate — don't rely solely on onAuthStateChanged
+    currentUser = cred.user;
+    forceGatekeeperToHide();
+    showPage('home');
+    loadUserProfile(cred.user.uid);
   } catch (e) {
+    clearTimeout(resetTimer);
     console.error('Login error:', e);
-    showGateError('loginError', e.message);
+    let msg = 'Sign in failed. Please check your email and password.';
+    if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
+      msg = 'Incorrect email or password.';
+    } else if (e.code === 'auth/too-many-requests') {
+      msg = 'Too many attempts. Please try again later.';
+    } else if (e.code === 'auth/network-request-failed') {
+      msg = 'Network error. Please check your connection.';
+    }
+    showGateError('loginError', msg);
     btn.disabled = false;
     btn.textContent = 'Enter';
   }
