@@ -953,7 +953,7 @@ async function handleLogin() {
     clearTimeout(resetTimer);
     // Navigate immediately — don't wait solely on onAuthStateChanged
     currentUser = cred.user;
-    forceGatekeeperToHide();
+    hideGatekeeper();
     showPage('home');
     loadUserProfile(cred.user.uid);
   } catch(e) {
