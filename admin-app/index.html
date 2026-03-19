@@ -1568,6 +1568,8 @@
         <div class="panel" id="panel-vip">
             <div class="page-header"><h1 class="page-title">VIP Manager</h1></div>
             <div class="vip-form"><h3 style="margin-bottom:16px;color:var(--gold);">Register New VIP</h3><div class="form-row"><div class="form-group"><label class="form-label">Phone Number (10 digits)</label><input type="tel" class="form-input" id="vipPhone" placeholder="08012345678" maxlength="10"></div><div class="form-group"><label class="form-label">4-Digit Code</label><input type="text" class="form-input" id="vipCode" placeholder="4521" maxlength="4"></div><div class="form-group"><label class="form-label">Full Name</label><input type="text" class="form-input" id="vipName" placeholder="Mr. Adeyemi"></div></div><button class="btn btn-primary" onclick="addVIP()" style="margin-top:16px;">Add VIP Member</button></div>
+            <h3 style="margin:32px 0 16px;color:var(--gold);">VIP Requests <span id="vipRequestCount" style="font-size:14px;font-weight:400;color:rgba(201,168,76,.5);margin-left:8px;"></span></h3>
+            <div id="vipRequestsList" style="margin-bottom:32px;"></div>
             <h3 style="margin:32px 0 16px;color:var(--gold);">Registered VIPs <span id="vipCount" style="font-size:14px;font-weight:400;color:rgba(201,168,76,0.5);margin-left:8px;"></span></h3>
             <div class="vip-grid" id="vipGrid"></div>
         </div>
@@ -1585,6 +1587,14 @@
             <div id="vmLibraryView" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
                 <div class="vm-pov-header"><button class="vm-detail-back" onclick="event.stopPropagation(); vmShowView('main'); return false;">← Back</button><div><div class="vm-eyebrow">Master Assets</div><div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--vault-text);">Vault Library</div></div><button class="vm-pov-sync" onclick="event.stopPropagation(); vmOpenCreateForm(); return false;">+ Add Asset</button></div>
                 <div style="overflow-y:auto;flex:1;">
+                    <!-- Texture Gallery Manager -->
+                    <div style="padding:16px 16px 0;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0 10px;border-bottom:1px solid rgba(212,175,55,.15);margin-bottom:12px;">
+                            <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--vault-text);">🎨 Texture Gallery</div>
+                            <button onclick="vmAddTextureItem()" style="background:var(--vault-gold);color:#0A0700;border:none;border-radius:20px;padding:8px 16px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">+ Add Texture</button>
+                        </div>
+                        <div id="vmTextureList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;"></div>
+                    </div>
                     <div id="vmLibraryGrid" class="vm-asset-grid" style="padding:16px;"></div>
                 </div>
             </div>
@@ -1803,7 +1813,7 @@
             if (name === 'home') renderHomeList();
             if (name === 'trending') renderTrendingList();
             if (name === 'designers') renderDesignersList();
-            if (name === 'vip') renderVIPList();
+            if (name === 'vip') { renderVIPList(); loadVIPRequests(); }
             if (name === 'portfolio') loadPortfolioUsers();
             if (name === 'messages') initAdminMessagesListener();
         }
@@ -1823,7 +1833,7 @@
             const map = { main:'vmMainView', library:'vmLibraryView', defaults:'vmDefaultsView', pov:'vmClientPOV', project:'vmProjectDetailView' };
             const target = document.getElementById(map[view]);
             if (target) { target.style.display = 'flex'; target.style.flexDirection = 'column'; }
-            if (view === 'library') vmRenderLibrary();
+            if (view === 'library') { vmRenderLibrary(); vmLoadTextureGallery(); }
             if (view === 'defaults') vmRenderDefaults();
         }
 
@@ -2338,12 +2348,32 @@
             vmRef('clients/' + uid).limitToFirst(20).once('value').then(s => {
                 const assets = Object.values(s.val() || {});
                 document.getElementById('vmPOVSub').textContent = assets.length + ' vault item' + (assets.length!==1?'s':'');
-                if (!assets.length) {
-                    grid.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◇</div><div class="vm-empty-title">This client\'s vault is empty</div><div class="vm-empty-sub">Use Vault Library to add assets</div></div>';
-                    return;
-                }
-                grid.innerHTML = assets.map(a => vmAssetCard(a, 'pov')).join('');
+                // Always show progress tracker card permanently at top
+                const ptCard = `<div class="vm-asset-card" style="border-color:rgba(212,175,55,.4);" onclick="vmOpenProgressTracker('pt_default')">
+                    <div class="vm-asset-thumb" style="background:linear-gradient(135deg,#0E0B06,#1A1408);display:flex;align-items:center;justify-content:center;font-size:42px;">📊</div>
+                    <div class="vm-asset-body">
+                        <div class="vm-asset-cat">Progress Tracker</div>
+                        <div class="vm-asset-title">Project Progress</div>
+                        <div class="vm-asset-desc">Track project milestones and workflows</div>
+                    </div>
+                    <div class="vm-asset-actions"><button class="vm-asset-btn vm-asset-btn-add" onclick="event.stopPropagation();vmOpenProgressTracker('pt_default')">OPEN</button></div>
+                </div>`;
+                // Also show texture gallery card
+                const tgCard = `<div class="vm-asset-card" style="border-color:rgba(212,175,55,.3);" onclick="vmOpenTextureGallery()">
+                    <div class="vm-asset-thumb" style="background:linear-gradient(135deg,#0E0B06,#1A1408);display:flex;align-items:center;justify-content:center;font-size:42px;">🎨</div>
+                    <div class="vm-asset-body">
+                        <div class="vm-asset-cat">Texture Gallery</div>
+                        <div class="vm-asset-title">Material Samples</div>
+                        <div class="vm-asset-desc">Browse and track texture selections</div>
+                    </div>
+                    <div class="vm-asset-actions"><button class="vm-asset-btn vm-asset-btn-add" onclick="event.stopPropagation();vmOpenTextureGallery()">OPEN</button></div>
+                </div>`;
+                const otherAssets = assets.filter(a => a.cat !== 'Progress Tracker').map(a => vmAssetCard(a, 'pov')).join('');
+                grid.innerHTML = ptCard + tgCard + otherAssets;
             });
+        }
+        function vmOpenTextureGallery() {
+            showToast('Texture Gallery — manage from Vault Library');
         }
 
         function vmLoadClientProjects(uid) {
@@ -2545,7 +2575,7 @@
               <div class="list-info"><div class="list-title">${p.caption||p.title||'Post'}</div><div class="list-meta">${p.location||''} · ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div></div>
               <div class="list-actions"><button class="btn btn-danger" style="padding:8px 12px;font-size:12px;" onclick="if(confirm('Delete?'))adminFbDB.ref('content/posts/${p.id||''}').remove().then(()=>{showToast('Deleted');renderHomeList();})">×</button></div>
             </div>`).join('');
-          }).catch(e => { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔒</div><div style="font-size:14px;margin-bottom:8px;">Permission Error</div><div style="font-size:11px;color:rgba(201,168,76,.4);">Add chats rule to Firebase: auth != null && root.child(\'admins/\'+auth.uid).exists()</div></div>'; });
+          }).catch(e => { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div style="font-size:14px;margin-bottom:8px;">Error loading posts</div><div style="font-size:11px;color:rgba(201,168,76,.4);">' + e.message + '</div></div>'; });
         }
         const _adminCatalogMap = {};
         function renderCatalogList() {
@@ -2609,6 +2639,40 @@
               <div class="list-actions"><button class="btn btn-danger" style="padding:8px 12px;font-size:12px;" onclick="if(confirm('Delete?'))adminFbDB.ref('designers/${d.id||''}').remove().then(()=>{showToast('Deleted');renderDesignersList();})">×</button></div>
             </div>`).join('');
           }).catch(e => { el.innerHTML = '<div class="empty-state">Error: '+e.message+'</div>'; });
+        }
+        function loadVIPRequests() {
+          const el = document.getElementById('vipRequestsList');
+          const countEl = document.getElementById('vipRequestCount');
+          if (!el) return;
+          el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(201,168,76,.4);">Loading requests...</div>';
+          adminFbDB.ref('vipRequests').once('value').then(snap => {
+            const requests = snap.val() ? Object.values(snap.val()) : [];
+            if (countEl) countEl.textContent = requests.length + ' request' + (requests.length !== 1 ? 's' : '');
+            if (!requests.length) { el.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(201,168,76,.3);border:1px solid rgba(201,168,76,.1);border-radius:12px;">No VIP requests yet</div>'; return; }
+            el.innerHTML = requests.map(r => `<div style="background:var(--bg-card);border:1px solid rgba(201,168,76,.2);border-left:4px solid var(--gold);border-radius:12px;padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;gap:16px;">
+              <div style="flex:1;">
+                <div style="font-weight:600;color:var(--gold);margin-bottom:4px;">${r.name||'Unknown'}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">📱 ${r.phone||'—'} · ${r.email||'—'}</div>
+                <div style="font-size:11px;color:rgba(201,168,76,.4);margin-top:4px;">${r.createdAt ? new Date(r.createdAt).toLocaleString() : ''}</div>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button onclick="approveVIPRequest('${r.phone||r.id}')" style="padding:8px 14px;background:var(--success);border:none;border-radius:8px;color:white;font-size:12px;cursor:pointer;font-weight:600;">Approve</button>
+                <button onclick="adminFbDB.ref('vipRequests/${r.phone||r.id}').remove().then(()=>{showToast('Request removed');loadVIPRequests();})" style="padding:8px 14px;background:var(--danger);border:none;border-radius:8px;color:white;font-size:12px;cursor:pointer;">✕</button>
+              </div>
+            </div>`).join('');
+          }).catch(() => { el.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(201,168,76,.3);">No requests yet</div>'; });
+        }
+        function approveVIPRequest(phone) {
+          adminFbDB.ref('vipRequests/' + phone).once('value').then(snap => {
+            if (!snap.exists()) return;
+            const r = snap.val();
+            document.getElementById('vipPhone').value = r.phone || '';
+            document.getElementById('vipName').value = r.name || '';
+            document.getElementById('vipCode').value = '0000';
+            showToast('Fill in the PIN and tap Add VIP Member');
+            adminFbDB.ref('vipRequests/' + phone).remove();
+            loadVIPRequests();
+          });
         }
         function renderVIPList() {
           const grid = document.getElementById('vipGrid');
@@ -3119,6 +3183,54 @@
                     console.error('Error deleting workflow:', err);
                     showToast('Error: ' + err.message);
                 });
+        }
+
+        // ── TEXTURE GALLERY ─────────────────────────────────────────────────
+        function vmLoadTextureGallery() {
+          const list = document.getElementById('vmTextureList');
+          if (!list) return;
+          list.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(212,175,55,.4);">Loading textures...</div>';
+          adminFbDB.ref('textureGallery').once('value').then(snap => {
+            const items = snap.val() ? Object.entries(snap.val()).map(([k,v]) => ({...v, _key:k})).sort((a,b)=>(a.order||0)-(b.order||0)) : [];
+            if (!items.length) { list.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(212,175,55,.3);">No textures yet. Tap + Add Texture.</div>'; return; }
+            list.innerHTML = items.map((item, i) => `
+              <div style="background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,.2);border-radius:14px;padding:14px;display:flex;align-items:center;gap:14px;">
+                <div style="width:32px;height:32px;border-radius:50%;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.25);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--vault-gold);flex-shrink:0;">${i+1}</div>
+                ${item.imageUrl ? `<img src="${item.imageUrl}" style="width:60px;height:60px;border-radius:10px;object-fit:cover;flex-shrink:0;">` : '<div style="width:60px;height:60px;border-radius:10px;background:rgba(212,175,55,.08);border:1px dashed rgba(212,175,55,.3);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🖼</div>'}
+                <div style="flex:1;">
+                  <div style="font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--vault-text);margin-bottom:6px;">${item.name||'Texture'}</div>
+                  <button onclick="vmToggleTextureStatus('${item._key}','${item.status||'previewing'}')" style="padding:5px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:none;background:${item.status==='installed'?'rgba(80,200,120,.15)':'rgba(212,175,55,.15)'};color:${item.status==='installed'?'#50C878':'var(--vault-gold)'};">
+                    ${item.status==='installed'?'✓ INSTALLED':'PREVIEWING'}
+                  </button>
+                </div>
+                <div style="display:flex;gap:6px;flex-shrink:0;">
+                  <button onclick="vmEditTextureItem('${item._key}')" style="padding:6px 10px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.2);border-radius:8px;color:var(--vault-gold);font-size:11px;cursor:pointer;">Edit</button>
+                  <button onclick="if(confirm('Delete texture?'))adminFbDB.ref('textureGallery/${item._key}').remove().then(()=>{showToast('Deleted');vmLoadTextureGallery();})" style="padding:6px 10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#ef4444;font-size:11px;cursor:pointer;">✕</button>
+                </div>
+              </div>`).join('');
+          });
+        }
+        function vmToggleTextureStatus(key, current) {
+          const next = current === 'installed' ? 'previewing' : 'installed';
+          adminFbDB.ref('textureGallery/' + key + '/status').set(next).then(() => { showToast(next === 'installed' ? '✓ Marked as Installed' : 'Marked as Previewing'); vmLoadTextureGallery(); });
+        }
+        function vmAddTextureItem() {
+          const name = prompt('Texture name:');
+          if (!name) return;
+          const imageUrl = prompt('Image URL (leave blank to skip):') || '';
+          const id = 'tex_' + Date.now();
+          adminFbDB.ref('textureGallery/' + id).set({ id, name, imageUrl, status: 'previewing', order: Date.now(), createdAt: Date.now() })
+            .then(() => { showToast('Texture added'); vmLoadTextureGallery(); });
+        }
+        function vmEditTextureItem(key) {
+          adminFbDB.ref('textureGallery/' + key).once('value').then(snap => {
+            const item = snap.val();
+            const name = prompt('Texture name:', item.name||'');
+            if (name === null) return;
+            const imageUrl = prompt('Image URL:', item.imageUrl||'');
+            if (imageUrl === null) return;
+            adminFbDB.ref('textureGallery/' + key).update({ name, imageUrl }).then(() => { showToast('Updated'); vmLoadTextureGallery(); });
+          });
         }
 
         // Initialization
