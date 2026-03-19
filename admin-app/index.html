@@ -3013,7 +3013,18 @@
 
         // Initialization
         document.addEventListener('DOMContentLoaded', () => {
-            adminFbAuth.signInAnonymously().catch(() => {});
+            // Auto sign-in with admin account
+            adminFbAuth.signInWithEmailAndPassword('admin@billyliving.com', '147414')
+              .then(() => { console.log('Admin signed in'); })
+              .catch(() => {
+                // First time: create the account then sign in
+                adminFbAuth.createUserWithEmailAndPassword('admin@billyliving.com', '147414')
+                  .then(cred => {
+                    // Write UID to admins node
+                    adminFbDB.ref('admins/' + cred.user.uid).set(true);
+                    console.log('Admin account created, UID:', cred.user.uid);
+                  }).catch(e => console.error('Auth error:', e));
+              });
             showPanel('dashboard', document.querySelector('.nav-item.active'));
         });
     </script>
