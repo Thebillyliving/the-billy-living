@@ -2539,13 +2539,13 @@
           el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
           adminFbDB.ref('content/posts').limitToLast(30).once('value').then(snap => {
             if (!snap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div>No posts yet</div>'; return; }
-            const posts = Object.values(snap.val()).reverse();
+            const posts = Object.entries(snap.val()).map(([k,v]) => ({...v, id: v.id||k})).reverse();
             el.innerHTML = posts.map(p => `<div class="list-item">
               <div class="list-image">${p.imageData||p.imageUrl ? '<img src="'+(p.imageData||p.imageUrl)+'" loading="lazy">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">🏠</div>'}</div>
               <div class="list-info"><div class="list-title">${p.caption||p.title||'Post'}</div><div class="list-meta">${p.location||''} · ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div></div>
               <div class="list-actions"><button class="btn btn-danger" style="padding:8px 12px;font-size:12px;" onclick="if(confirm('Delete?'))adminFbDB.ref('content/posts/${p.id||''}').remove().then(()=>{showToast('Deleted');renderHomeList();})">×</button></div>
             </div>`).join('');
-          }).catch(e => { el.innerHTML = '<div class="empty-state">Error: '+e.message+'</div>'; });
+          }).catch(e => { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔒</div><div style="font-size:14px;margin-bottom:8px;">Permission Error</div><div style="font-size:11px;color:rgba(201,168,76,.4);">Add chats rule to Firebase: auth != null && root.child(\'admins/\'+auth.uid).exists()</div></div>'; });
         }
         const _adminCatalogMap = {};
         function renderCatalogList() {
@@ -2639,8 +2639,9 @@
             document.getElementById('portfolioUserTotal').textContent = users.length;
             // For each user check if they have portfolio items
             Promise.all(users.map(([uid, u]) =>
-              Promise.all([adminFbDB.ref('portfolio/' + uid).once('value'), adminFbDB.ref('portfolios/' + uid).once('value')])
-                .then(([ps1, ps2]) => { const ps = ps1.exists() ? ps1 : ps2; return { uid, u, count: ps.exists() ? Object.keys(ps.val()).length : 0 }; })
+              adminFbDB.ref('portfolios/' + uid + '/items').once('value')
+                .then(ps => ({ uid, u, count: ps.exists() ? Object.keys(ps.val()).length : 0 }))
+                .catch(() => ({ uid, u, count: 0 }))
             )).then(results => {
               const withPortfolio = results.filter(r => r.count > 0).sort((a,b) => b.count - a.count);
               document.getElementById('portfolioUserTotal').textContent = withPortfolio.length;
@@ -2825,8 +2826,66 @@
         function contextManageImages() {}
         function contextDeleteBox() {}
         function contextUploadPalettePhoto() {}
-        function openAdminCatalogInner() {}
-        function closeAdminCatalogInner() {}
+        function openAdminCatalogInner(box) {
+          if (!box) return;
+          currentCatalogBox = box;
+          document.getElementById('adminInnerTitle').textContent = box.value || box.topic || 'Collection';
+          document.getElementById('adminInnerFeeling').textContent = box.description || box.feeling || '';
+          // Build palette card
+          const mixRow = document.getElementById('adminColorMixturesRow');
+          const svgHouse = '<svg viewBox="0 0 100 100" fill="none"><polygon points="50,10 90,40 90,90 10,90 10,40" stroke="#C9A84C" stroke-width="1.5" fill="rgba(201,168,76,0.04)"/><rect x="30" y="60" width="18" height="30" stroke="#C9A84C" stroke-width="1" fill="rgba(201,168,76,0.06)"/><rect x="52" y="50" width="28" height="40" stroke="#C9A84C" stroke-width="1" fill="rgba(201,168,76,0.04)"/></svg>';
+          const label = (box.mixtureLabels && box.mixtureLabels[0]) || 'Color Palette';
+          // Fetch palette image from Firebase
+          adminFbDB.ref('content/catalog/' + box.id + '/paletteImage').once('value').then(snap => {
+            const img = snap.val();
+            const houseHtml = img
+              ? '<div class="house-layout" style="overflow:hidden"><img src="' + img + '" style="width:100%;height:100%;object-fit:cover;border-radius:2px;display:block;"></div>'
+              : '<div class="house-layout">' + svgHouse + '</div>';
+            mixRow.innerHTML = '<div class="color-mixture-card" onclick="openAdminCatalogRooms()">' + houseHtml
+              + '<div style="font-family:Cormorant Garamond,serif;font-size:15px;font-weight:700;letter-spacing:1.5px;color:#C9A84C;padding:10px 0 2px;border-bottom:1px solid rgba(201,168,76,0.25);">' + label + '</div></div>';
+          });
+          document.getElementById('catalogInnerOverlay').classList.add('active');
+        }
+        function closeAdminCatalogInner() {
+          document.getElementById('catalogInnerOverlay').classList.remove('active');
+        }
+        function openAdminCatalogRooms() {
+          if (!currentCatalogBox) return;
+          const box = currentCatalogBox;
+          document.getElementById('adminRoomsTitle').textContent = box.value || box.topic || 'ROOMS';
+          document.getElementById('adminRoomsSubtitle').textContent = box.description || box.feeling || '';
+          const ROOM_NAMES = ['Living Room','Dining Room','Bed Room','Kitchen','Toilet','Passage Way','Rest Room'];
+          const area = document.getElementById('adminRoomGalleryArea');
+          area.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(201,168,76,.4);">Loading rooms...</div>';
+          adminFbDB.ref('content/catalog/' + box.id).once('value').then(snap => {
+            const freshBox = snap.val() || box;
+            const getMixtureImages = (b, idx) => {
+              if (!b.mixtureImages) return [];
+              const raw = b.mixtureImages[idx];
+              if (!raw) return [];
+              if (Array.isArray(raw)) return raw;
+              const keys = Object.keys(raw).map(Number).sort((a,c)=>a-c);
+              const arr = Array(Math.max(...keys)+1).fill(null);
+              keys.forEach(k => { arr[k] = raw[k]; });
+              return arr;
+            };
+            const imgs = getMixtureImages(freshBox, 0);
+            area.innerHTML = ROOM_NAMES.map((name, i) => {
+              const img = imgs[i] || null;
+              return '<div class="room-category-block">'
+                + '<div class="room-category-header"><span class="room-category-name">' + name + '</span></div>'
+                + '<div class="room-single-slot">'
+                + (img ? '<img src="' + img + '" alt="' + name + '">' : '<div class="elite-slot-placeholder"><div class="elite-slot-icon"><svg viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" stroke="#C9A84C" stroke-width="1"/></svg></div><span class="elite-slot-num">No Image</span></div>')
+                + '</div></div>';
+            }).join('');
+            document.getElementById('catalogInnerOverlay').classList.remove('active');
+            document.getElementById('catalogRoomsOverlay').classList.add('active');
+          });
+        }
+        function closeAdminCatalogRooms() {
+          document.getElementById('catalogRoomsOverlay').classList.remove('active');
+          document.getElementById('catalogInnerOverlay').classList.add('active');
+        }
         function openAdminPaletteRooms() {}
         function closeAdminCatalogRooms() {}
         function startMixPress() {}
