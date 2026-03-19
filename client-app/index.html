@@ -646,6 +646,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
           <p id="vault-error" style="display:none;color:#ff5555;font-size:12px;text-align:center;margin-top:10px;letter-spacing:.3px;line-height:1.6">Access Denied. Please contact the Concierge<br>for VIP consideration.</p>
         </div>
         <button id="vault-btn" class="vault-btn" onclick="handleVaultUnlock()">UNLOCK</button>
+        <button onclick="requestVIPAccess()" style="margin-top:16px;background:none;border:none;color:rgba(201,168,76,.5);font-family:'Jost',sans-serif;font-size:13px;letter-spacing:1px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;">Request VIP Access</button>
       </div>
     </div>
     <div id="vault-success-state">
@@ -691,6 +692,22 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       </div>
       <div id="projectsContainer" style="display:flex;flex-direction:column;gap:10px;min-height:60px;display:none;">
       </div>
+    </div>
+    <!-- TEXTURE GALLERY SECTION -->
+    <div id="textureGallerySection" style="padding:16px 20px 20px;border-bottom:1px solid rgba(212,175,55,.1);background:rgba(212,175,55,.01);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:20px;">🎨</span>
+          <span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold-light);">Texture Gallery</span>
+        </div>
+        <span id="textureCountBadge" style="background:rgba(212,175,55,.15);color:var(--gold);font-size:11px;padding:4px 12px;border-radius:30px;">0</span>
+      </div>
+      <!-- Skeleton -->
+      <div id="textureSkeleton" style="display:flex;flex-direction:column;gap:10px;">
+        <div style="height:72px;border-radius:14px;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
+        <div style="height:72px;border-radius:14px;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;opacity:.6;"></div>
+      </div>
+      <div id="textureContainer" style="display:none;flex-direction:column;gap:10px;"></div>
     </div>
     <!-- VAULT ASSETS GRID -->
     <div style="padding:20px 20px 10px;">
@@ -884,6 +901,7 @@ fbAuth.onAuthStateChanged(user => {
     loadUserProfile(user.uid);
     loadHomeFeed();   // immediate — user sees this first
     loadCatalog();    // immediate — cache-first, near-instant
+    loadConciergeHistory(); // load chat history on login
     // Trending, portfolio, concierge deferred — loaded on first navigation to each
     // Sync UID into VIP record so admin-created projects resolve correctly
     fbDb.ref('userProfiles/' + user.uid + '/mobile').once('value')
@@ -1982,6 +2000,16 @@ function viewRoomImage(name, idx) {
 function closeViewModal() { document.getElementById('viewModal').classList.remove('active'); }
 
 // ─── VAULT ────────────────────────────────────────────────────────────────────
+function requestVIPAccess() {
+  showPage('concierge');
+  setTimeout(() => {
+    const input = document.getElementById('cgInput');
+    if (input) {
+      input.value = "Hello, I'd like to request VIP access to The Vault. My name is " + (currentProfile?.name || '') + ".";
+      input.focus();
+    }
+  }, 300);
+}
 function clearVaultError() { document.getElementById('vault-error').style.display = 'none'; document.getElementById('vault-pin').classList.remove('input-error'); }
 
 async function handleVaultUnlock() {
@@ -2023,6 +2051,36 @@ async function handleVaultUnlock() {
   }
 }
 
+function loadTextureGallery() {
+  const container = document.getElementById('textureContainer');
+  const skeleton = document.getElementById('textureSkeleton');
+  const badge = document.getElementById('textureCountBadge');
+  if (!container) return;
+  fbDb.ref('textureGallery').once('value').then(snap => {
+    if (skeleton) skeleton.style.display = 'none';
+    if (container) container.style.display = 'flex';
+    const items = snap.val() ? Object.entries(snap.val()).map(([k,v]) => ({...v, _key:k})).sort((a,b)=>(a.order||0)-(b.order||0)) : [];
+    if (badge) badge.textContent = items.length;
+    if (!items.length) {
+      container.innerHTML = '<div style="text-align:center;padding:24px;color:rgba(212,175,55,.3);">No textures added yet</div>';
+      return;
+    }
+    container.innerHTML = items.map((item, i) => `
+      <div style="background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,.15);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;">
+        <div style="width:28px;height:28px;border-radius:50%;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.2);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--gold);flex-shrink:0;">${i+1}</div>
+        ${item.imageUrl ? `<img src="${item.imageUrl}" style="width:52px;height:52px;border-radius:8px;object-fit:cover;flex-shrink:0;">` : '<div style="width:52px;height:52px;border-radius:8px;background:rgba(212,175,55,.06);border:1px solid rgba(212,175,55,.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🖼</div>'}
+        <div style="flex:1;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--gold-light);margin-bottom:5px;">${item.name||'Texture'}</div>
+          <div style="display:inline-block;padding:3px 12px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;background:${item.status==='installed'?'rgba(80,200,120,.12)':'rgba(212,175,55,.1)'};color:${item.status==='installed'?'#50C878':'var(--gold)'};">
+            ${item.status==='installed'?'✓ INSTALLED':'PREVIEWING'}
+          </div>
+        </div>
+      </div>`).join('');
+  }).catch(() => {
+    if (skeleton) skeleton.style.display = 'none';
+    if (container) { container.style.display = 'flex'; container.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(212,175,55,.3);">Unable to load textures</div>'; }
+  });
+}
 function _renderVaultGrid(assets) {
   const grid = document.getElementById('vaultGalleryGrid');
   const meta = document.getElementById('vaultGalleryMeta');
@@ -2057,6 +2115,8 @@ async function enterBespokeVault() {
   document.getElementById('vaultGallery').style.display = 'block';
   // Load progress tracker
 
+  // Load texture gallery
+  loadTextureGallery();
   // Gold shimmer glint
   const glint = document.getElementById('vaultGlint');
   if (glint) { glint.style.display = 'block'; setTimeout(() => { glint.style.display = 'none'; }, 1200); }
