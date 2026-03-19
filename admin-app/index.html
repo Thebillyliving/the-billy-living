@@ -1797,6 +1797,9 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('panel-' + name).classList.add('active');
             if (el) el.classList.add('active');
+            // Guard: only load data if authenticated
+            const user = adminFbAuth.currentUser;
+            if (!user) return;
             if (name === 'vaultmgr') vmInit();
             if (name === 'catalog') renderCatalogList();
             if (name === 'home') renderHomeList();
@@ -3013,19 +3016,25 @@
 
         // Initialization
         document.addEventListener('DOMContentLoaded', () => {
-            // Auto sign-in with admin account
+            // Listen for auth state — only load data once signed in
+            adminFbAuth.onAuthStateChanged(user => {
+                if (user) {
+                    console.log('Admin authenticated:', user.uid);
+                    // Ensure UID is in admins node
+                    adminFbDB.ref('admins/' + user.uid).set(true);
+                    // Now safe to load all panels
+                    showPanel('dashboard', document.querySelector('.nav-item.active'));
+                    renderVIPList();
+                }
+            });
+
+            // Sign in automatically
             adminFbAuth.signInWithEmailAndPassword('admin@billyliving.com', '147414')
-              .then(() => { console.log('Admin signed in'); })
               .catch(() => {
-                // First time: create the account then sign in
+                // First time: create the account
                 adminFbAuth.createUserWithEmailAndPassword('admin@billyliving.com', '147414')
-                  .then(cred => {
-                    // Write UID to admins node
-                    adminFbDB.ref('admins/' + cred.user.uid).set(true);
-                    console.log('Admin account created, UID:', cred.user.uid);
-                  }).catch(e => console.error('Auth error:', e));
+                  .catch(e => console.error('Auth error:', e));
               });
-            showPanel('dashboard', document.querySelector('.nav-item.active'));
         });
     </script>
 </body>
