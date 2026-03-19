@@ -1797,9 +1797,7 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('panel-' + name).classList.add('active');
             if (el) el.classList.add('active');
-            // Guard: only load data if authenticated
-            const user = adminFbAuth.currentUser;
-            if (!user) return;
+            if (name === 'dashboard') loadDashboardStats();
             if (name === 'vaultmgr') vmInit();
             if (name === 'catalog') renderCatalogList();
             if (name === 'home') renderHomeList();
@@ -2527,6 +2525,15 @@
         }
 
         // Stubs for other functions
+        function loadDashboardStats() {
+          adminFbDB.ref('content/posts').once('value').then(s => { document.getElementById('statPosts').textContent = s.exists() ? Object.keys(s.val()).length : 0; });
+          adminFbDB.ref('content/trending').once('value').then(s => { document.getElementById('statTrending').textContent = s.exists() ? Object.keys(s.val()).length : 0; });
+          adminFbDB.ref('designers').once('value').then(s => { document.getElementById('statDesigners').textContent = s.exists() ? Object.keys(s.val()).length : 0; });
+          adminFbDB.ref('vip').once('value').then(s => {
+            const vips = s.val() ? Object.values(s.val()) : [];
+            document.getElementById('statPendingVIP').textContent = vips.filter(v => !v.id).length;
+          });
+        }
         function renderHomeList() {
           const el = document.getElementById('homeList');
           el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
@@ -2540,7 +2547,43 @@
             </div>`).join('');
           }).catch(e => { el.innerHTML = '<div class="empty-state">Error: '+e.message+'</div>'; });
         }
-        function renderCatalogList() { document.getElementById('catalogList').innerHTML = '<div class="empty-state">No catalog</div>'; }
+        const _adminCatalogMap = {};
+        function renderCatalogList() {
+          const grid = document.getElementById('catalogList');
+          grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;"><div style="width:32px;height:32px;border:2px solid rgba(201,168,76,.1);border-top-color:#C9A84C;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;"></div><div style="font-size:11px;letter-spacing:3px;color:rgba(201,168,76,.4);">LOADING...</div></div>';
+          adminFbDB.ref('content/catalog').once('value').then(snap => {
+            if (!snap.exists()) { grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:rgba(201,168,76,.3);">No catalog collections yet</div>'; return; }
+            const boxes = Object.values(snap.val()).sort((a,b) => { const n=s=>parseInt((s.id||'').replace(/\D/g,''))||0; return n(a)-n(b); });
+            boxes.forEach(b => { _adminCatalogMap[b.id] = b; });
+            grid.innerHTML = boxes.map(box => {
+              const imgs = box.images ? (Array.isArray(box.images) ? box.images : Object.values(box.images)) : [];
+              const thumb = imgs.find(i=>i) || null;
+              return '<div class="elite-collection-cell-admin" onclick="openAdminCatalogInner(_adminCatalogMap[\'' + box.id + '\'])">'
+                + '<div class="elite-cell-meta-admin"><div class="elite-cell-topic-admin">' + (box.value||box.topic||'Collection') + '</div>'
+                + '<div class="elite-cell-feeling-admin">' + (box.description||box.feeling||'') + '</div></div>'
+                + '<div class="elite-cell-box-admin" style="position:relative;overflow:hidden;">'
+                + (thumb ? '<img data-src="' + thumb + '" alt="" style="width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .35s;position:relative;z-index:1;">' : '')
+                + '<div class="elite-cell-grain-admin"></div>'
+                + '<div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.12) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;z-index:0;" class="cat-skel"></div>'
+                + '</div>'
+                + '<div class="elite-cell-actions-admin">'
+                + '<button class="btn btn-secondary" style="font-size:11px;padding:8px 6px;" onclick="event.stopPropagation();openAdminCatalogInner(_adminCatalogMap[\'' + box.id + '\'])">Edit</button>'
+                + '<button class="btn btn-danger" style="flex:0 0 36px;padding:8px;font-size:14px;" onclick="event.stopPropagation();if(confirm(\'Delete?\'))adminFbDB.ref(\'content/catalog/' + box.id + '\').remove().then(()=>{showToast(\'Deleted\');renderCatalogList();})">×</button>'
+                + '</div></div>';
+            }).join('');
+            const obs = new IntersectionObserver(entries => {
+              entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                const img = entry.target.querySelector('img[data-src]');
+                const skel = entry.target.querySelector('.cat-skel');
+                if (img) { img.src = img.getAttribute('data-src'); img.removeAttribute('data-src'); img.onload = () => { img.style.opacity='1'; if(skel)skel.remove(); }; img.onerror = () => { if(skel)skel.remove(); }; }
+                else { if(skel)skel.remove(); }
+                obs.unobserve(entry.target);
+              });
+            }, { rootMargin: '150px' });
+            grid.querySelectorAll('.elite-collection-cell-admin').forEach(c => obs.observe(c));
+          }).catch(err => { grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:#ef4444;">Error: ' + err.message + '</div>'; });
+        }
         function renderTrendingList() {
           const el = document.getElementById('trendingList');
           el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
@@ -2574,6 +2617,8 @@
             const vips = snap.val() ? Object.values(snap.val()) : [];
             const countEl = document.getElementById('vipCount');
             if (countEl) countEl.textContent = vips.length + ' member' + (vips.length !== 1 ? 's' : '');
+            const badge = document.getElementById('vipBadge');
+            if (badge) { badge.textContent = vips.length; badge.style.display = vips.length > 0 ? 'inline-block' : 'none'; }
             if (!vips.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(201,168,76,.3);">No VIP members yet</div>'; return; }
             grid.innerHTML = vips.map(v => `<div class="vip-card status-active">
               <div class="vip-name">${v.name||'VIP Member'}</div>
@@ -2594,7 +2639,8 @@
             document.getElementById('portfolioUserTotal').textContent = users.length;
             // For each user check if they have portfolio items
             Promise.all(users.map(([uid, u]) =>
-              adminFbDB.ref('portfolio/' + uid).once('value').then(ps => ({ uid, u, count: ps.exists() ? Object.keys(ps.val()).length : 0 }))
+              Promise.all([adminFbDB.ref('portfolio/' + uid).once('value'), adminFbDB.ref('portfolios/' + uid).once('value')])
+                .then(([ps1, ps2]) => { const ps = ps1.exists() ? ps1 : ps2; return { uid, u, count: ps.exists() ? Object.keys(ps.val()).length : 0 }; })
             )).then(results => {
               const withPortfolio = results.filter(r => r.count > 0).sort((a,b) => b.count - a.count);
               document.getElementById('portfolioUserTotal').textContent = withPortfolio.length;
@@ -2707,7 +2753,12 @@
         function initAdminMessagesListener() {
           const el = document.getElementById('msgsConversationsList');
           el.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(201,168,76,.4);">Loading messages...</div>';
-          adminFbDB.ref('messages').limitToFirst(30).once('value').then(snap => {
+          // Try 'chats' path first, fallback to 'messages'
+          const tryPath = (path) => adminFbDB.ref(path).limitToFirst(30).once('value');
+          tryPath('chats').then(snap => {
+            if (!snap.exists()) return tryPath('messages');
+            return snap;
+          }).then(snap => {
             if (!snap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💬</div>No messages yet</div>'; return; }
             const convos = Object.entries(snap.val());
             el.innerHTML = convos.map(([uid, msgs]) => {
@@ -3016,25 +3067,19 @@
 
         // Initialization
         document.addEventListener('DOMContentLoaded', () => {
-            // Listen for auth state — only load data once signed in
-            adminFbAuth.onAuthStateChanged(user => {
-                if (user) {
-                    console.log('Admin authenticated:', user.uid);
-                    // Ensure UID is in admins node
-                    adminFbDB.ref('admins/' + user.uid).set(true);
-                    // Now safe to load all panels
-                    showPanel('dashboard', document.querySelector('.nav-item.active'));
-                    renderVIPList();
-                }
-            });
-
-            // Sign in automatically
+            // Auto sign-in with admin account
             adminFbAuth.signInWithEmailAndPassword('admin@billyliving.com', '147414')
+              .then(() => { console.log('Admin signed in'); })
               .catch(() => {
-                // First time: create the account
+                // First time: create the account then sign in
                 adminFbAuth.createUserWithEmailAndPassword('admin@billyliving.com', '147414')
-                  .catch(e => console.error('Auth error:', e));
+                  .then(cred => {
+                    // Write UID to admins node
+                    adminFbDB.ref('admins/' + cred.user.uid).set(true);
+                    console.log('Admin account created, UID:', cred.user.uid);
+                  }).catch(e => console.error('Auth error:', e));
               });
+            showPanel('dashboard', document.querySelector('.nav-item.active'));
         });
     </script>
 </body>
