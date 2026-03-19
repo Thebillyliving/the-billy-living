@@ -1,314 +1,27 @@
-<!-- client.html — Billy Living (SIMPLIFIED - Buttons Working) -->
+<!-- client.html — Billy Living (Fixed) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>THE BILLY LIVING INTERIOR Platform</title>
-<!-- Security Headers Meta -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://*.firebaseio.com https://*.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://*.firebaseio.com https://*.firebase.com https://*.googleapis.com wss://*.firebaseio.com; img-src 'self' data: https:; media-src 'self' data: https:; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';" />
-<meta http-equiv="X-Content-Type-Options" content="nosniff" />
-<meta http-equiv="X-Frame-Options" content="DENY" />
-<meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
-<meta name="application-name" content="THE BILLY LIVING INTERIOR Platform" />
-<meta name="apple-mobile-web-app-title" content="THE BILLY LIVING INTERIOR Platform" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="mobile-web-app-capable" content="yes" />
-<meta name="theme-color" content="#C9A84C" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<meta name="application-name" content="THE BILLY LIVING INTERIOR Platform">
+<meta name="apple-mobile-web-app-title" content="THE BILLY LIVING INTERIOR Platform">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#C9A84C">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/ic_launcher-web.png">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 :root{--bg-primary:#120D06;--bg-card:#1E160C;--bg-secondary:#2A1F14;--bg-navy:#060D18;--text-primary:#F5F0E8;--text-secondary:#A89B8C;--gold:#C9A84C;--gold-light:#E8D5A3;--gold-dark:#8B6914;--nav-height:80px}
-body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow-x:hidden;min-height:100vh;padding-bottom:var(--nav-height)}
-.page{display:none;min-height:calc(100vh - var(--nav-height))}
-.page.active{display:block;animation:fadeIn 0.3s ease}
+body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow-x:hidden;min-height:100vh;padding-bottom:var(--nav-height);overscroll-behavior-y:contain}
+.page{display:none;min-height:calc(100vh - var(--nav-height));overscroll-behavior-y:contain}
+.page.active{display:block;animation:fadeIn 0.3s ease;pointer-events:auto}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes catalogFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 @keyframes vaultShimmer{0%{transform:translateX(-100%) skewX(-15deg);opacity:0}30%{opacity:1}100%{transform:translateX(200%) skewX(-15deg);opacity:0}}
-@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-@keyframes gateShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-@keyframes splashPop{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
-@keyframes splashFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-@keyframes vaultGlow{from{filter:drop-shadow(0 0 12px rgba(201,168,76,.25))}to{filter:drop-shadow(0 0 28px rgba(201,168,76,.6))}}
-
-/* ===== ULTIMATE FIX: GATEKEEPER MUST BE FORCEFULLY MANAGED ===== */
-#gatekeeper {
-  position: fixed;
-  inset: 0;
-  z-index: 100001;
-  background: #060D18;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0 28px;
-  font-family: 'Jost', sans-serif;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
-  /* CRITICAL: Default state - fully visible and interactive */
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-
-/* When hidden, completely remove from interaction */
-#gatekeeper.hidden {
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-  display: none !important;
-}
-
-/* Ensure all children are clickable when gatekeeper is visible */
-#gatekeeper:not(.hidden) *,
-#gatekeeper:not(.hidden) button,
-#gatekeeper:not(.hidden) .gate-btn,
-#gatekeeper:not(.hidden) .gate-tab,
-#gatekeeper:not(.hidden) .gate-input {
-  pointer-events: auto !important;
-  cursor: pointer !important;
-  opacity: 1 !important;
-  z-index: 100002 !important;
-}
-
-/* Force all interactive elements to be clickable */
-.gate-tab, .gate-btn, .gate-input, .gate-input-label {
-  cursor: pointer;
-  -webkit-tap-highlight-color: rgba(201,169,98,0.3);
-}
-
-.gate-logo {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 28px;
-  font-weight: 700;
-  color: #C9A84C;
-  letter-spacing: 2px;
-  text-align: center;
-  margin-bottom: 6px;
-}
-
-.gate-tagline {
-  font-size: 11px;
-  color: rgba(201, 169, 98, 0.5);
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
-  text-align: center;
-  margin-bottom: 44px;
-  font-family: 'Jost', sans-serif;
-}
-
-.gate-panel {
-  width: 100%;
-  max-width: 360px;
-  background: transparent;
-}
-
-.gate-tab-row {
-  display: flex;
-  gap: 0;
-  margin-bottom: 32px;
-  border-bottom: 1px solid rgba(201, 169, 98, 0.15);
-}
-
-.gate-tab {
-  flex: 1;
-  background: none;
-  border: none;
-  padding: 14px 0;
-  font-size: 13px;
-  letter-spacing: 1px;
-  color: rgba(201, 169, 98, 0.4);
-  cursor: pointer;
-  font-family: 'Jost', sans-serif;
-  text-transform: uppercase;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  -webkit-appearance: none;
-  position: relative;
-}
-
-.gate-tab.active {
-  color: #C9A84C;
-  border-bottom-color: #C9A84C;
-}
-
-.gate-input-group {
-  margin-bottom: 16px;
-  width: 100%;
-}
-
-.gate-input-label {
-  font-size: 10px;
-  color: rgba(201, 169, 98, 0.6);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-  display: block;
-  font-family: 'Jost', sans-serif;
-}
-
-.gate-input {
-  width: 100%;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(201, 169, 98, 0.2);
-  border-radius: 8px;
-  padding: 13px 16px;
-  color: #F5F0E8;
-  font-size: 14px;
-  font-family: 'Jost', sans-serif;
-  outline: none;
-  -webkit-appearance: none;
-  box-sizing: border-box;
-}
-
-.gate-input:focus {
-  border-color: rgba(201, 169, 98, 0.6);
-}
-
-.gate-input::placeholder {
-  color: rgba(255, 255, 255, 0.2);
-}
-
-.gate-btn {
-  width: 100%;
-  padding: 15px;
-  background: linear-gradient(135deg, #C9A84C, #8B6914);
-  border: none;
-  border-radius: 8px;
-  color: #060D18;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  font-family: 'Jost', sans-serif;
-  cursor: pointer;
-  margin-top: 8px;
-  -webkit-appearance: none;
-  transition: opacity 0.2s;
-}
-
-.gate-btn:hover {
-  opacity: 0.9;
-}
-
-.gate-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.gate-error {
-  font-size: 13px;
-  color: #ff6b6b;
-  text-align: center;
-  margin-top: 14px;
-  font-family: 'Jost', sans-serif;
-  background: rgba(255, 107, 107, 0.12);
-  border: 1px solid rgba(255, 107, 107, 0.35);
-  border-radius: 8px;
-  padding: 12px 14px;
-  display: none;
-}
-
-.gate-error.visible {
-  display: block;
-}
-
-#gateStep2 {
-  display: none;
-  text-align: center;
-}
-
-.gate-step2-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 22px;
-  color: #C9A84C;
-  margin-bottom: 6px;
-}
-
-.gate-step2-sub {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.35);
-  margin-bottom: 28px;
-  font-family: 'Jost', sans-serif;
-}
-
-.gate-photo-ring {
-  width: 110px;
-  height: 110px;
-  border-radius: 50%;
-  border: 2px solid #C9A84C;
-  margin: 0 auto 20px;
-  position: relative;
-  overflow: hidden;
-  background: rgba(201, 169, 98, 0.06);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 24px rgba(201, 169, 98, 0.15);
-}
-
-.gate-photo-prompt {
-  font-size: 11px;
-  color: rgba(201, 169, 98, 0.5);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  font-family: 'Jost', sans-serif;
-  margin-bottom: 24px;
-}
-
-/* ===== SPLASH SCREEN ===== */
-#splashScreen {
-  position: fixed;
-  inset: 0;
-  background: #120D06;
-  z-index: 99999;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 28px;
-  transition: opacity 0.6s ease, visibility 0.6s ease;
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-
-#splashScreen.hidden {
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-  display: none !important;
-}
-
-.splash-logo {
-  width: 140px;
-  height: 140px;
-  border-radius: 28px;
-  animation: splashPop .7s cubic-bezier(.22,1,.36,1) both
-}
-
-.splash-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 7px;
-  color: #C9A84C;
-  text-transform: uppercase;
-  text-align: center;
-  animation: splashFadeUp .6s .3s ease both
-}
-
-.splash-tagline {
-  font-family: 'Jost', sans-serif;
-  font-size: 9px;
-  letter-spacing: 4px;
-  color: rgba(201,168,76,.45);
-  text-transform: uppercase;
-  animation: splashFadeUp .6s .45s ease both
-}
-
-/* ===== ORIGINAL STYLES (All your existing CSS below) ===== */
-.loading-spinner{width:24px;height:24px;border:2px solid rgba(201,168,76,.1);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite}
 #vaultGlint{pointer-events:none;position:fixed;inset:0;z-index:99999;overflow:hidden;display:none}
 #vaultGlint::after{content:'';position:absolute;top:0;left:0;width:40%;height:100%;background:linear-gradient(105deg,transparent 20%,rgba(201,168,76,.18) 50%,rgba(255,235,160,.12) 60%,transparent 80%);animation:vaultShimmer 1.1s ease forwards}
 .stories-row{display:flex;gap:14px;padding:20px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid rgba(201,169,98,.1);align-items:flex-start;justify-content:center}
@@ -323,6 +36,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .consult-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:5000;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
 .consult-overlay.active{display:flex}
 .consult-sheet{width:100%;max-width:520px;background:#0E0A04;border-top:1px solid #C9A84C;border-radius:22px 22px 0 0;padding-bottom:36px;animation:sheetUp .38s cubic-bezier(.32,.72,0,1)}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .consult-handle{width:38px;height:3px;background:rgba(201,168,76,.28);border-radius:2px;margin:14px auto 0}
 .consult-header{padding:22px 24px 16px;border-bottom:1px solid rgba(201,168,76,.1)}
 .consult-eyebrow{font-size:9px;letter-spacing:4px;color:rgba(201,168,76,.5);text-transform:uppercase;margin-bottom:5px}
@@ -372,6 +86,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .feed-caption-text{font-family:'Jost',sans-serif;font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .feed-caption-location{display:flex;align-items:center;gap:4px;font-family:'Jost',sans-serif;font-size:11px;color:rgba(168,155,140,.6);letter-spacing:.3px}
 .feed-caption-location svg{width:11px;height:11px;stroke:rgba(168,155,140,.5);fill:none;stroke-width:2;flex-shrink:0}
+/* FIX 1: overscroll-behavior:contain stops scroll bleeding into nav taps */
 .trending-page{position:fixed;top:0;left:0;right:0;bottom:var(--nav-height);background:#000;z-index:100;display:none}
 .trending-page.active{display:block}
 .trending-container{height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;overscroll-behavior-y:contain}
@@ -395,6 +110,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .tiktok-caption{font-size:14px;color:white;margin-bottom:8px;line-height:1.4;text-shadow:0 2px 4px rgba(0,0,0,.8)}
 .tiktok-music{display:flex;align-items:center;gap:8px;color:white;font-size:13px;text-shadow:0 2px 4px rgba(0,0,0,.8)}
 .tiktok-music-icon{animation:spin 3s linear infinite}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .tiktok-music-text{flex:1;overflow:hidden;white-space:nowrap}
 .tiktok-music-text span{display:inline-block;animation:scrollText 8s linear infinite}
 @keyframes scrollText{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
@@ -481,6 +197,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 #vault-login-form{opacity:1;transition:opacity .5s ease;width:100%;display:flex;flex-direction:column;align-items:center}
 #vault-success-state{opacity:1;transition:opacity .5s ease;width:100%;display:none;flex-direction:column;align-items:center}
 .vault-success-icon{margin-bottom:28px;animation:vaultGlow 3s ease-in-out infinite alternate}
+@keyframes vaultGlow{from{filter:drop-shadow(0 0 12px rgba(201,168,76,.25))}to{filter:drop-shadow(0 0 28px rgba(201,168,76,.6))}}
 .vault-success-eyebrow{font-family:'Jost',sans-serif;font-size:9px;letter-spacing:6px;color:rgba(201,168,76,.5);text-transform:uppercase;margin-bottom:14px}
 .vault-success-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:var(--gold);letter-spacing:1px;line-height:1.3;margin-bottom:20px}
 .vault-success-divider{width:60px;height:1px;background:linear-gradient(to right,transparent,rgba(201,168,76,.6),transparent);margin:0 auto 20px}
@@ -538,6 +255,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .cg-send{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#8B6914);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .cg-send svg{width:18px;height:18px;stroke:#060D18;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .cg-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgba(201,169,98,.3);text-align:center;padding:40px;gap:12px}
+/* FIX 2: touch-action:manipulation kills 300ms delay on Android nav taps */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-height);background:rgba(18,13,6,.98);display:flex;justify-content:space-around;align-items:center;z-index:99000;border-top:1px solid rgba(201,169,98,.1);padding:0 2px;isolation:isolate;will-change:transform}
 .bottom-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text-secondary);font-size:8px;cursor:pointer;padding:5px 2px;border:none;background:none;flex:1;min-width:0;letter-spacing:.1px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;position:relative;z-index:5001}
 .bottom-nav-item.active{color:var(--gold)}
@@ -636,8 +354,34 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .share-action-item-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .share-action-item-icon svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .share-action-item-label{font-size:15px;color:#E5E5E5}
+#gatekeeper{position:fixed;inset:0;z-index:100001;background:var(--bg-navy);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 28px;transition:opacity .6s ease}
+#gatekeeper.hidden{opacity:0;pointer-events:none}
+.gate-logo{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--gold);letter-spacing:2px;text-align:center;margin-bottom:6px}
+.gate-tagline{font-size:11px;color:rgba(201,169,98,.5);letter-spacing:2.5px;text-transform:uppercase;text-align:center;margin-bottom:44px}
+.gate-panel{width:100%;max-width:360px}
+.gate-tab-row{display:flex;gap:0;margin-bottom:32px;border-bottom:1px solid rgba(201,169,98,.15);position:relative;z-index:10;}
+.gate-tab{flex:1;background:none;border:none;padding:14px 0;font-size:13px;letter-spacing:1px;color:rgba(201,169,98,.4);cursor:pointer;font-family:'Jost',sans-serif;text-transform:uppercase;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;position:relative;z-index:10;-webkit-tap-highlight-color:rgba(201,169,98,0.1);}
+.gate-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.gate-input-group{margin-bottom:16px}
+.gate-input-label{font-size:10px;color:rgba(201,169,98,.6);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;display:block;font-family:'Jost',sans-serif}
+.gate-input{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(201,169,98,.2);border-radius:8px;padding:13px 16px;color:#F5F0E8;font-size:14px;font-family:'Jost',sans-serif;outline:none;transition:border-color .2s;-webkit-user-select:text;user-select:text}
+.gate-input:focus{border-color:rgba(201,169,98,.6)}
+.gate-input::placeholder{color:rgba(255,255,255,.2)}
+.gate-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--gold),#8B6914);border:none;border-radius:8px;color:#060D18;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-family:'Jost',sans-serif;cursor:pointer;margin-top:8px;transition:opacity .2s}
+.gate-btn:active{opacity:.85}
+.gate-btn:disabled{opacity:.5;cursor:not-allowed}
+.gate-error{font-size:13px;color:#ff6b6b;text-align:center;margin-top:14px;font-family:'Jost',sans-serif;background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.35);border-radius:8px;padding:12px 14px;display:none;line-height:1.5;letter-spacing:.2px}
+.gate-error.visible{display:block;animation:gateShake .35s ease}
+@keyframes gateShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+#gateStep2{display:none;text-align:center}
+.gate-photo-ring{width:110px;height:110px;border-radius:50%;border:2px solid var(--gold);margin:0 auto 20px;position:relative;cursor:default;overflow:hidden;background:rgba(201,169,98,.06);display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(201,169,98,.15)}
+.gate-photo-ring img{width:100%;height:100%;object-fit:cover;display:none}
+.gate-photo-prompt{font-size:11px;color:rgba(201,169,98,.5);letter-spacing:1px;text-transform:uppercase;font-family:'Jost',sans-serif;margin-bottom:24px}
+.gate-step2-title{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);margin-bottom:6px}
+.gate-step2-sub{font-size:12px;color:rgba(255,255,255,.35);margin-bottom:28px;font-family:'Jost',sans-serif}
+.story-circle-photo{width:100%;height:100%;object-fit:cover;border-radius:50%}
 
-/* Download Banner */
+/* ─── DOWNLOAD BANNER ───────────────────────────────────────────────────────── */
 #downloadBanner{position:fixed;top:0;left:0;right:0;z-index:88888;background:#0E0A04;border-bottom:1px solid rgba(201,168,76,.4);padding:10px 14px;display:flex;align-items:center;gap:12px;transform:translateY(-100%);transition:transform .4s cubic-bezier(.32,.72,0,1);box-shadow:0 4px 24px rgba(0,0,0,.7)}
 #downloadBanner.show{transform:translateY(0)}
 .dl-banner-icon{width:40px;height:40px;border-radius:10px;flex-shrink:0;object-fit:cover}
@@ -646,6 +390,16 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .dl-banner-sub{font-family:'Jost',sans-serif;font-size:10px;color:rgba(168,155,140,.8);margin-top:1px}
 .dl-banner-btn{background:#C9A84C;color:#0E0A04;font-family:'Jost',sans-serif;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;border:none;border-radius:8px;padding:9px 14px;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .dl-banner-close{background:none;border:none;color:rgba(168,155,140,.5);font-size:20px;cursor:pointer;padding:4px;flex-shrink:0;line-height:1}
+
+/* ─── SPLASH SCREEN ─────────────────────────────────────────────────────────── */
+#splashScreen{position:fixed;inset:0;background:#120D06;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .6s ease,visibility .6s ease;animation:splashAutoDismiss .7s ease 2.8s forwards}
+#splashScreen.hidden{opacity:0;visibility:hidden;pointer-events:none}
+@keyframes splashAutoDismiss{0%{opacity:1;visibility:visible;pointer-events:auto}100%{opacity:0;visibility:hidden;pointer-events:none}}
+.splash-logo{width:140px;height:140px;border-radius:28px;animation:splashPop .7s cubic-bezier(.22,1,.36,1) both}
+.splash-name{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;letter-spacing:7px;color:#C9A84C;text-transform:uppercase;text-align:center;animation:splashFadeUp .6s .3s ease both}
+.splash-tagline{font-family:'Jost',sans-serif;font-size:9px;letter-spacing:4px;color:rgba(201,168,76,.45);text-transform:uppercase;animation:splashFadeUp .6s .45s ease both}
+@keyframes splashPop{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
+@keyframes splashFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -653,7 +407,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 </head>
 <body>
 <div id="downloadBanner">
-  <img class="dl-banner-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Crect width='56' height='56' fill='%23C9A84C' rx='12'/%3E%3Ctext x='28' y='38' font-family='serif' font-size='24' fill='%23120D06' text-anchor='middle' font-weight='bold'%3EBL%3C/text%3E%3C/svg%3E" alt="Billy Living app icon" />
+  <img class="dl-banner-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Crect width='56' height='56' fill='%23C9A84C' rx='12'/%3E%3Ctext x='28' y='38' font-family='serif' font-size='24' fill='%23120D06' text-anchor='middle' font-weight='bold'%3EBL%3C/text%3E%3C/svg%3E" alt="" role="presentation" alt="Billy Living">
   <div class="dl-banner-text">
     <div class="dl-banner-title">The Billy Living</div>
     <div class="dl-banner-sub">Get the full app experience</div>
@@ -661,16 +415,13 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
   <button class="dl-banner-btn" onclick="openPlayStore()">Download</button>
   <button class="dl-banner-close" onclick="dismissBanner()">✕</button>
 </div>
-
-<!-- SPLASH SCREEN -->
 <div id="splashScreen">
-  <img class="splash-logo" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23C9A84C' rx='20'/%3E%3Ctext x='50' y='68' font-family='Cormorant Garamond,serif' font-size='42' fill='%23120D06' text-anchor='middle' font-weight='bold'%3EBL%3C/text%3E%3C/svg%3E" alt="Billy Living Logo" />
+  <img class="splash-logo" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23C9A84C' rx='20'/%3E%3Ctext x='50' y='68' font-family='Cormorant Garamond,serif' font-size='42' fill='%23120D06' text-anchor='middle' font-weight='bold'%3EBL%3C/text%3E%3C/svg%3E" alt="Billy Living Logo" alt="Billy Living">
   <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
     <div class="splash-name">The Billy Living</div>
     <div class="splash-tagline">Interior Platform</div>
   </div>
 </div>
-
 <!-- GATEKEEPER -->
 <div id="gatekeeper">
   <div class="gate-logo">THE BILLY LIVING</div>
@@ -681,39 +432,24 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       <button class="gate-tab" onclick="switchGateTab('signup', this)">Create Account</button>
     </div>
     <div id="gateLogin">
-      <div class="gate-input-group">
-        <label class="gate-input-label">Email Address</label>
-        <input id="loginEmail" class="gate-input" type="email" placeholder="your@email.com" autocomplete="email" />
-      </div>
-      <div class="gate-input-group">
-        <label class="gate-input-label">Password</label>
-        <input id="loginPassword" class="gate-input" type="password" placeholder="••••••••" autocomplete="current-password" />
-      </div>
-      <button type="button" class="gate-btn" id="loginBtn" onclick="handleLogin()">Enter</button>
+      <div class="gate-input-group"><label class="gate-input-label">Email Address</label><input id="loginEmail" class="gate-input" type="email" placeholder="your@email.com" autocomplete="email"></div>
+      <div class="gate-input-group"><label class="gate-input-label">Password</label><input id="loginPassword" class="gate-input" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+      <button class="gate-btn" id="loginBtn" onclick="handleLogin()">Enter</button>
       <div class="gate-error" id="loginError"></div>
     </div>
     <div id="gateSignup" style="display:none">
-      <div class="gate-input-group">
-        <label class="gate-input-label">Full Name</label>
-        <input id="signupName" class="gate-input" type="text" placeholder="Your full name" autocomplete="name" />
-      </div>
-      <div class="gate-input-group">
-        <label class="gate-input-label">Email Address</label>
-        <input id="signupEmail" class="gate-input" type="email" placeholder="your@email.com" autocomplete="email" />
-      </div>
-      <div class="gate-input-group">
-        <label class="gate-input-label">Password</label>
-        <input id="signupPassword" class="gate-input" type="password" placeholder="Min. 6 characters" autocomplete="new-password" />
-      </div>
-      <button type="button" class="gate-btn" id="signupBtn" onclick="handleSignup()">Continue →</button>
+      <div class="gate-input-group"><label class="gate-input-label">Full Name</label><input id="signupName" class="gate-input" type="text" placeholder="Your full name" autocomplete="name"></div>
+      <div class="gate-input-group"><label class="gate-input-label">Email Address</label><input id="signupEmail" class="gate-input" type="email" placeholder="your@email.com" autocomplete="email"></div>
+      <div class="gate-input-group"><label class="gate-input-label">Password</label><input id="signupPassword" class="gate-input" type="password" placeholder="Min. 6 characters" autocomplete="new-password"></div>
+      <button class="gate-btn" id="signupBtn" onclick="handleSignup()">Continue →</button>
       <div class="gate-error" id="signupError"></div>
     </div>
   </div>
-  <div class="gate-panel" id="gateStep2" style="display:none">
-    <div class="gate-step2-title">Welcome,<br /><span id="gateNameReveal" style="color:#C9A84C">Designer</span></div>
+  <div class="gate-panel" id="gateStep2">
+    <div class="gate-step2-title">Welcome,<br><span id="gateNameReveal" style="color:var(--gold)">Designer</span></div>
     <div class="gate-step2-sub">Your luxury profile is ready</div>
     <div class="gate-photo-ring">
-      <svg viewBox="0 0 60 60" fill="none" style="width:38px;height:38px"><circle cx="30" cy="22" r="10" stroke="#C9A84C" stroke-width="1.5" fill="rgba(201,169,98,0.1)"/><path d="M10 54c0-11.046 8.954-20 20-20s20 8.954 20 20" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round" fill="rgba(201,169,98,0.07)"/></svg>
+      <svg id="gatePhotoIcon" viewBox="0 0 60 60" fill="none" style="width:38px;height:38px"><circle cx="30" cy="22" r="10" stroke="var(--gold)" stroke-width="1.5" fill="rgba(201,169,98,0.1)"/><path d="M10 54c0-11.046 8.954-20 20-20s20 8.954 20 20" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" fill="rgba(201,169,98,0.07)"/></svg>
     </div>
     <div class="gate-photo-prompt">Your account is ready ✦</div>
     <button class="gate-btn" id="finishBtn" onclick="handleFinishSignup()">Enter The Billy Living</button>
@@ -735,12 +471,12 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
   <div class="stories-row">
     <div class="story-item" onclick="openProfile()">
       <div class="story-circle" id="profileStoryCircle">
-        <svg id="profileStoryDefault" viewBox="0 0 60 60" fill="none" style="width:38px;height:38px" aria-label="Default profile icon"><circle cx="30" cy="22" r="10" fill="rgba(201,168,76,0.18)" stroke="#C9A84C" stroke-width="1.5"/><path d="M10 54c0-11.046 8.954-20 20-20s20 8.954 20 20" fill="rgba(201,168,76,0.15)" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <img id="profileStoryPhoto" class="story-circle-photo" src="" alt="Profile photo" />
+        <svg id="profileStoryDefault" viewBox="0 0 60 60" fill="none" style="width:38px;height:38px"><circle cx="30" cy="22" r="10" fill="rgba(201,168,76,0.18)" stroke="#C9A84C" stroke-width="1.5"/><path d="M10 54c0-11.046 8.954-20 20-20s20 8.954 20 20" fill="rgba(201,168,76,0.15)" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <img id="profileStoryPhoto" class="story-circle-photo" src="" alt="">
       </div>
       <span class="story-label" id="profileStoryLabel">My Profile</span>
     </div>
-    <div class="story-item" onclick="window.open('https://wa.me/2348084410220?text=' + encodeURIComponent('Good day. I am exploring the 2026 Collection on the app and would like to request a private consultation for my residence'), '_blank')">
+    <div class="story-item" onclick="window.open('https://wa.me/' + CONFIG.WHATSAPP_NUMBER + '?text=' + encodeURIComponent('Good day. I am exploring the 2026 Collection on the app and would like to request a private consultation for my residence'), '_blank')">
       <div class="story-circle" style="background:linear-gradient(135deg,#25D366,#128C7E)">
         <span class="story-circle-icon"><svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.564 4.14 1.548 5.872L0 24l6.336-1.524A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.877 9.877 0 01-5.031-1.378l-.36-.214-3.762.904.944-3.659-.235-.374A9.861 9.861 0 012.118 12C2.118 6.533 6.533 2.118 12 2.118c5.466 0 9.882 4.415 9.882 9.882 0 5.466-4.416 9.882-9.882 9.882z"/></svg></span>
       </div>
@@ -754,13 +490,14 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     </div>
   </div>
   <div class="feed-container" id="homeFeed"></div>
+
 </div>
 
 <!-- PROFILE SCREEN -->
 <div class="profile-screen" id="profileScreen">
   <div class="profile-container" id="profileContainer">
     <div class="profile-topbar">
-      <button class="profile-topbar-back" onclick="closeProfile()" aria-label="Back">←</button>
+      <button class="profile-topbar-back" onclick="closeProfile()">←</button>
       <span class="profile-topbar-title">My Profile</span>
       <div class="profile-topbar-spacer"></div>
     </div>
@@ -770,12 +507,12 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
         <div class="profile-avatar-placeholder" id="avatarPlaceholder">
           <svg viewBox="0 0 60 72" fill="none"><circle cx="30" cy="20" r="13" fill="rgba(201,168,76,0.18)" stroke="rgba(201,168,76,0.65)" stroke-width="1"/><path d="M4 70c0-14.36 11.64-26 26-26s26 11.64 26 26" fill="rgba(201,168,76,0.15)" stroke="rgba(201,168,76,0.65)" stroke-width="1"/></svg>
         </div>
-        <img class="profile-avatar-img" id="profileAvatarImg" src="" alt="Profile avatar" style="display:none" />
+        <img class="profile-avatar-img" id="profileAvatarImg" src="" alt="" style="display:none">
         <div class="profile-avatar-camera"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
-        <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)" />
+        <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
       </div>
       <div class="profile-name-row">
-        <input class="profile-client-name" type="text" placeholder="Enter Your Name" id="profileNameInput" oninput="onProfileChange()" maxlength="50" />
+        <input class="profile-client-name" type="text" placeholder="Enter Your Name" id="profileNameInput" oninput="onProfileChange()">
         <span class="profile-name-pencil"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
       </div>
       <span class="profile-standard-tag">Standard Access</span>
@@ -788,19 +525,19 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       </div>
     </div>
     <div class="profile-dashboard">
-      <div class="dash-card"><div class="dash-card-eyebrow">Active Projects</div><div class="dash-card-value">0</div><div class="dash-card-label">No active<br />projects</div></div>
-      <div class="dash-card"><div class="dash-card-eyebrow">Portfolio Saves</div><div class="dash-card-value" id="dashSavesCount">0</div><div class="dash-card-label">Catalog designs<br />saved</div></div>
+      <div class="dash-card"><div class="dash-card-eyebrow">Active Projects</div><div class="dash-card-value">0</div><div class="dash-card-label">No active<br>projects</div></div>
+      <div class="dash-card"><div class="dash-card-eyebrow">Portfolio Saves</div><div class="dash-card-value" id="dashSavesCount">0</div><div class="dash-card-label">Catalog designs<br>saved</div></div>
     </div>
     <div class="profile-section-header">Account Details</div>
     <div class="profile-fields">
       <div class="profile-field-row">
         <span class="profile-field-label">Residence</span>
-        <input class="profile-field-input" id="profileResidenceInput" type="text" placeholder="Add your address" oninput="onProfileChange()" maxlength="100" />
+        <input class="profile-field-input" id="profileResidenceInput" type="text" placeholder="Add your address" oninput="onProfileChange()">
         <span class="profile-field-pencil"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
       </div>
       <div class="profile-field-row">
         <span class="profile-field-label">Mobile</span>
-        <input class="profile-field-input" id="profileMobileInput" type="tel" placeholder="Add your number" oninput="onProfileChange()" maxlength="15" />
+        <input class="profile-field-input" id="profileMobileInput" type="tel" placeholder="Add your number" oninput="onProfileChange()">
         <span class="profile-field-pencil"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
       </div>
       <div class="profile-field-row">
@@ -816,6 +553,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     <div class="profile-actions">
       <button class="profile-btn-primary" id="saveProfileBtn" onclick="saveProfileUpdates()" style="display:none">Save Profile Updates</button>
       <button class="profile-btn-ghost" onclick="requestConciergeSupport()">Request Concierge Support</button>
+      <!-- FIX 3: handleLogout now calls fbAuth.signOut() properly -->
       <button class="profile-btn-text" onclick="handleLogout()">Log Out</button>
     </div>
   </div>
@@ -856,7 +594,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 <!-- CATALOG INNER -->
 <div id="catalogInner" class="page" style="display:none">
   <div class="inner-back-bar">
-    <button class="inner-back-btn" onclick="closeCatalogInner()" aria-label="Back">←</button>
+    <button class="inner-back-btn" onclick="closeCatalogInner()">←</button>
     <div><div class="inner-collection-title" id="innerCollectionTitle">—</div><div class="inner-collection-feeling" id="innerCollectionFeeling">—</div></div>
   </div>
   <div class="color-config-area">
@@ -868,7 +606,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 <!-- CATALOG ROOMS -->
 <div id="catalogRooms" class="page" style="display:none">
   <div class="inner-back-bar">
-    <button class="inner-back-btn" onclick="closeCatalogRooms()" aria-label="Back">←</button>
+    <button class="inner-back-btn" onclick="closeCatalogRooms()">←</button>
     <div><div class="inner-collection-title" id="roomsPageTitle">ROOMS</div><div class="inner-collection-feeling" id="roomsPageSubtitle">—</div></div>
   </div>
   <div class="room-gallery-area" id="roomGalleryArea"></div>
@@ -876,7 +614,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 
 <!-- VIEW MODAL -->
 <div class="view-modal" id="viewModal">
-  <button class="view-modal-close" onclick="closeViewModal()" aria-label="Close">×</button>
+  <button class="view-modal-close" onclick="closeViewModal()">×</button>
   <div class="view-modal-content">
     <div class="view-modal-image" id="viewModalImage" style="position:relative">
       <div id="viewModalWatermark" style="position:absolute;bottom:0;left:0;right:0;z-index:10;padding:10px 0 10px;text-align:center;pointer-events:none;background:linear-gradient(transparent,rgba(0,0,0,0.35))">
@@ -900,11 +638,11 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       <div class="vault-form">
         <div class="vault-phone-wrapper">
           <span class="vault-phone-prefix">+234</span>
-          <input type="tel" class="vault-phone-input" id="vault-phone" placeholder="8012345678" maxlength="10" pattern="[0-9]{10}" />
+          <input type="tel" class="vault-phone-input" id="vault-phone" placeholder="8012345678" maxlength="10">
         </div>
         <div class="vault-pin-input-wrapper">
-          <input type="password" class="vault-input" id="vault-pin" placeholder="4-Digit VIP PIN" maxlength="4" pattern="[0-9]{4}" oninput="clearVaultError()" />
-          <p id="vault-error" style="display:none;color:#ff5555;font-size:12px;text-align:center;margin-top:10px;">Access Denied. Please contact the Concierge for VIP consideration.</p>
+          <input type="password" class="vault-input" id="vault-pin" placeholder="4-Digit VIP PIN" maxlength="4" oninput="clearVaultError()" style="transition:border-color .2s,box-shadow .2s">
+          <p id="vault-error" style="display:none;color:#ff5555;font-size:12px;text-align:center;margin-top:10px;letter-spacing:.3px;line-height:1.6">Access Denied. Please contact the Concierge<br>for VIP consideration.</p>
         </div>
         <button id="vault-btn" class="vault-btn" onclick="handleVaultUnlock()">UNLOCK</button>
       </div>
@@ -914,9 +652,9 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
         <svg viewBox="0 0 80 80" fill="none" style="width:80px;height:80px"><circle cx="40" cy="40" r="38" stroke="#C9A84C" stroke-width="1.5" fill="rgba(201,168,76,0.06)"/><path d="M29 36 L29 26 Q29 16 40 16 Q51 16 51 26 L51 30" stroke="#C9A84C" stroke-width="2.2" stroke-linecap="round" fill="none"/><rect x="22" y="36" width="36" height="27" rx="4" fill="rgba(201,168,76,0.1)" stroke="#C9A84C" stroke-width="1.5"/><circle cx="40" cy="47" r="4" stroke="#C9A84C" stroke-width="1.5" fill="rgba(201,168,76,0.15)"/><line x1="40" y1="51" x2="40" y2="57" stroke="#C9A84C" stroke-width="2" stroke-linecap="round"/></svg>
       </div>
       <div class="vault-success-eyebrow">Access Granted</div>
-      <h2 class="vault-success-title" id="vaultWelcomeTitle">Welcome to<br />The Inner Circle.</h2>
+      <h2 class="vault-success-title" id="vaultWelcomeTitle">Welcome to<br>The Inner Circle.</h2>
       <div class="vault-success-divider"></div>
-      <p class="vault-success-sub" id="vaultWelcomeSub">Your VIP status has been verified.<br />Exclusive content is now unlocked.</p>
+      <p class="vault-success-sub" id="vaultWelcomeSub">Your VIP status has been verified.<br>Exclusive content is now unlocked.</p>
       <div class="vault-success-badges">
         <div class="vault-badge-item"><span class="vault-badge-icon">✦</span><span>Elite Collections</span></div>
         <div class="vault-badge-item"><span class="vault-badge-icon">✦</span><span>Priority Concierge</span></div>
@@ -927,11 +665,13 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     </div>
   </div>
   <div id="vaultGallery" style="display:none;min-height:100vh;background:#0A0804">
+    <!-- Header -->
     <div style="padding:32px 20px 20px;border-bottom:1px solid rgba(212,175,55,.12);position:sticky;top:0;background:rgba(10,8,4,.97);z-index:10;backdrop-filter:blur(12px)">
       <div style="font-family:'Jost',sans-serif;font-size:8px;letter-spacing:6px;color:rgba(212,175,55,.5);text-transform:uppercase;margin-bottom:8px;font-weight:400">Your Private Collection</div>
       <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--gold-light);margin-bottom:8px">Design Vault</div>
       <div style="font-family:'Jost',sans-serif;font-size:9px;font-weight:400;color:rgba(212,175,55,.55);letter-spacing:4px;text-transform:uppercase" id="vaultGalleryMeta">Loading your collection…</div>
     </div>
+    <!-- PROGRESS TRACKER SECTION -->
     <div id="progressTrackerSection" style="padding:16px 20px 20px;border-bottom:1px solid rgba(212,175,55,.1);background:rgba(212,175,55,.02);">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
         <div style="display:flex;align-items:center;gap:8px;">
@@ -944,10 +684,12 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
         <div style="text-align:center;padding:20px;color:rgba(212,175,55,.4);">Loading projects...</div>
       </div>
     </div>
+    <!-- VAULT ASSETS GRID -->
     <div style="padding:20px 20px 10px;">
       <div style="font-size:10px;letter-spacing:3px;color:rgba(212,175,55,.4);text-transform:uppercase;margin-bottom:12px;">Your Collection</div>
     </div>
     <div id="vaultGalleryGrid" style="padding:0 20px 20px;display:grid;grid-template-columns:repeat(2,1fr);gap:14px;"></div>
+    <!-- Exit Button -->
     <div style="padding:20px;text-align:center">
       <button onclick="handleVaultLogout()" style="background:none;border:1px solid rgba(201,168,76,.15);color:rgba(201,168,76,.4);border-radius:8px;padding:12px 28px;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer">Exit Vault</button>
     </div>
@@ -964,17 +706,17 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
   </div>
   <div class="portfolio-grid" id="portfolioGrid"></div>
   <div class="portfolio-actions" id="portfolioActions">
-    <button class="portfolio-action-btn delete" onclick="deleteSelected()" title="Delete selected">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+    <button class="portfolio-action-btn delete" onclick="deleteSelected()" title="Delete">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
     </button>
     <button class="portfolio-action-btn chat" onclick="sendPortfolioToDesigner()" title="Send to Concierge">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
     </button>
-    <button class="portfolio-action-btn whatsapp" onclick="sendPortfolioToWhatsApp()" title="Share on WhatsApp">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.136.564 4.14 1.548 5.872L0 24l6.336-1.524A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.877 9.877 0 01-5.031-1.378l-.36-.214-3.762.904.944-3.659-.235-.374A9.861 9.861 0 012.118 12C2.118 6.533 6.533 2.118 12 2.118c5.466 0 9.882 4.415 9.882 9.882 0 5.466-4.416 9.882-9.882 9.882z"/></svg>
+    <button class="portfolio-action-btn whatsapp" onclick="sendPortfolioToWhatsApp()" title="WhatsApp">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.136.564 4.14 1.548 5.872L0 24l6.336-1.524A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.877 9.877 0 01-5.031-1.378l-.36-.214-3.762.904.944-3.659-.235-.374A9.861 9.861 0 012.118 12C2.118 6.533 6.533 2.118 12 2.118c5.466 0 9.882 4.415 9.882 9.882 0 5.466-4.416 9.882-9.882 9.882z"/></svg>
     </button>
     <button class="portfolio-action-btn share" onclick="sendPortfolioNative()" title="Share">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
     </button>
   </div>
 </div>
@@ -997,7 +739,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
   </div>
   <div class="cg-typing" id="cgTyping">Concierge is typing…</div>
   <div class="cg-input-row">
-    <input class="cg-input" id="cgInput" placeholder="Message your concierge…" onkeypress="if(event.key==='Enter')sendConciergeMessage()" maxlength="500" />
+    <input class="cg-input" id="cgInput" placeholder="Message your concierge…" onkeypress="if(event.key==='Enter')sendConciergeMessage()">
     <button class="cg-send" onclick="sendConciergeMessage()"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
   </div>
 </div>
@@ -1019,7 +761,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
   <div class="share-handle"></div>
   <div style="text-align:center;font-size:11px;letter-spacing:3px;color:rgba(255,255,255,.3);text-transform:uppercase;padding:12px 0 16px" id="shareSheetTitle">Share Design</div>
   <div class="share-preview" id="sharePreview">
-    <img class="share-preview-thumb" id="sharePreviewThumb" src="" alt="Share preview" onerror="this.style.display='none';document.getElementById('sharePreviewThumbEmpty').style.display='flex'" />
+    <img class="share-preview-thumb" id="sharePreviewThumb" src="" alt="" onerror="this.style.display='none';document.getElementById('sharePreviewThumbEmpty').style.display='flex'">
     <div class="share-preview-thumb-empty" id="sharePreviewThumbEmpty" style="display:none"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="rgba(201,168,76,.4)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
     <div class="share-preview-info">
       <div class="share-preview-title" id="sharePreviewTitle">Design</div>
@@ -1038,23 +780,23 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 <!-- IMAGE MODAL -->
 <div class="image-modal" id="imageModal">
   <button class="image-modal-close" onclick="closeImageModal()">×</button>
-  <img id="imageModalImg" src="" alt="Enlarged view" />
+  <img id="imageModalImg" src="" alt="">
 </div>
 
 <!-- TOAST -->
-<div class="toast" id="toast" role="alert"></div>
+<div class="toast" id="toast"></div>
 
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
-  <button class="bottom-nav-item active" id="nav-home" onclick="showPage('home')">
+  <button class="bottom-nav-item active" id="nav-home" aria-label="Home" onclick="showPage('home')">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H15v-5h-6v5H4a1 1 0 01-1-1V10.5z"/></svg></span>
     <span>Home</span>
   </button>
-  <button class="bottom-nav-item" id="nav-trending" onclick="showPage('trending')">
+  <button class="bottom-nav-item" id="nav-trending" aria-label="Trending" onclick="showPage('trending')">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><path d="M12 2C12 2 7 8 7 13a5 5 0 0010 0c0-5-5-11-5-11z"/><path d="M9.5 15.5c.5-1.5 2-2.5 2.5-4"/></svg></span>
     <span>Trending</span>
   </button>
-  <button class="bottom-nav-item" id="nav-catalog" onclick="showPage('catalog')">
+  <button class="bottom-nav-item" id="nav-catalog" aria-label="Catalog" onclick="showPage('catalog')">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx=".5"/><rect x="14" y="3" width="7" height="7" rx=".5"/><rect x="3" y="14" width="7" height="7" rx=".5"/><rect x="14" y="14" width="7" height="7" rx=".5"/></svg></span>
     <span>Catalog</span>
   </button>
@@ -1073,7 +815,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 </nav>
 
 <script>
-// ─── FIREBASE CONFIG ────────────────────────────────────────────────────────
+// ─── FIREBASE ───────────────────────────────────────────────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyBbs6k7PInHUnv1x9FzHB31kUwrCcoGG7c",
   authDomain: "the-billy-living.firebaseapp.com",
@@ -1083,435 +825,2164 @@ const firebaseConfig = {
   messagingSenderId: "362987579779",
   appId: "1:362987579779:web:4e5f2a3c2b1d0e6f8a9b0c"
 };
-
 firebase.initializeApp(firebaseConfig);
 const fbAuth = firebase.auth();
-const fbDb = firebase.database();
 
-// ─── APP STATE ──────────────────────────────────────────────────────────────
-let currentUser = null;
-let currentProfile = null;
+// ─── APP CONFIG ──────────────────────────────────────────────────────────────
+const CONFIG = {
+  WHATSAPP_NUMBER: '2348084410220',
+  SUPPORT_EMAIL: 'support@billyliving.com'
+};
+
+const fbDb   = firebase.database();
+// keepSynced: Firebase keeps these paths cached in memory — instant on repeat visits
+try {
+    fbDb.ref('content/catalog').keepSynced(true);
+    fbDb.ref('content/posts').keepSynced(true);
+    fbDb.ref('content/trending').keepSynced(true);
+} catch(e) {}
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let currentUser = null, currentProfile = null;
+// Global state guards
+window._currentRoomImgs = window._currentRoomImgs || [];
+window._vaultAssets = window._vaultAssets || {};
+window._feedSoundEnabled = window._feedSoundEnabled !== undefined ? window._feedSoundEnabled : false;
+window._feedVideoObserver = window._feedVideoObserver || null;
+window._feedImgObserver = window._feedImgObserver || null;
+let cgMessages = [], cgHistory = [];
+let portfolioItems = [], selectedPortfolioItems = [];
+let currentCatalogBox = null;
+let currentCatalogPaletteIndex = 0;
+let vaultSession = null;
+let currentShareItem = null;
 let pendingSignupName = '', pendingSignupEmail = '', pendingSignupPw = '';
-let initializationComplete = false;
 
-// Timer management
-const _timeouts = [];
-function setSafeTimeout(fn, delay) {
-  const id = setTimeout(() => {
-    fn();
-    const index = _timeouts.indexOf(id);
-    if (index > -1) _timeouts.splice(index, 1);
-  }, delay);
-  _timeouts.push(id);
-  return id;
+// ─── GATEKEEPER ──────────────────────────────────────────────────────────────
+function hideGatekeeper() {
+  document.getElementById('gatekeeper').classList.add('hidden');
+  setTimeout(() => { document.getElementById('gatekeeper').style.display = 'none'; }, 600);
 }
 
-function clearAllTimeouts() {
-  _timeouts.forEach(id => clearTimeout(id));
-  _timeouts.length = 0;
-}
+// FIX: Always hide gatekeeper after 5s max (guards against Firebase auth delay)
+const gatekeeperTimeout = setTimeout(hideGatekeeper, 5000);
 
-// ─── SET PERSISTENCE ────────────────────────────────────────────────────────
-fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(console.error);
-
-// ─── LOGIN HANDLERS ───────────────────────────────────────────────────
-async function handleLogin() {
-  console.log('handleLogin called');
-  
-  const btn = document.getElementById('loginBtn');
-  const email = document.getElementById('loginEmail')?.value.trim();
-  const password = document.getElementById('loginPassword')?.value;
-  
-  if (!email || !password) {
-    showGateError('loginError', 'Please enter email and password');
-    return;
+fbAuth.onAuthStateChanged(user => {
+  clearTimeout(gatekeeperTimeout);
+  if (user) {
+    currentUser = user;
+    hideGatekeeper();
+    loadUserProfile(user.uid);
+    loadHomeFeed();   // immediate — user sees this first
+    loadCatalog();    // immediate — cache-first, near-instant
+    // Trending, portfolio, concierge deferred — loaded on first navigation to each
+    // Sync UID into VIP record so admin-created projects resolve correctly
+    fbDb.ref('userProfiles/' + user.uid + '/mobile').once('value')
+      .then(phoneSnap => {
+        const phone = phoneSnap.val();
+        if (phone) fbDb.ref('vip/' + phone + '/id').set(user.uid);
+      })
+      .catch(() => {}); // silently ignore if profile not yet created
+  } else {
+    currentUser = null;
+    document.getElementById('gatekeeper').classList.remove('hidden');
+    document.getElementById('gatekeeper').style.display = 'flex';
   }
-  
-  btn.disabled = true;
-  btn.textContent = 'Signing in…';
+});
 
-  // Safety net: re-enable button after 10s if stuck
+function switchGateTab(tab, el) {
+  document.querySelectorAll('.gate-tab').forEach(t => t.classList.remove('active'));
+  if(el) el.classList.add("active");
+  document.getElementById('gateLogin').style.display  = tab === 'login'  ? 'block' : 'none';
+  document.getElementById('gateSignup').style.display = tab === 'signup' ? 'block' : 'none';
+}
+
+function gateAuthError(code, context) {
+  const map = {
+    'auth/user-not-found':        'No account found with this email. Please create an account.',
+    'auth/wrong-password':        'Incorrect password. Please try again.',
+    'auth/invalid-credential':    'Incorrect email or password. Please try again.',
+    'auth/invalid-email':         'Please enter a valid email address.',
+    'auth/user-disabled':         'This account has been disabled. Please contact support.',
+    'auth/too-many-requests':     'Too many failed attempts. Please wait a few minutes and try again.',
+    'auth/network-request-failed':'No internet connection. Please check your network and try again.',
+    'auth/email-already-in-use':  'An account with this email already exists. Please sign in instead.',
+    'auth/weak-password':         'Password is too weak. Please use at least 6 characters.',
+    'auth/operation-not-allowed': 'Sign-in is currently unavailable. Please try again later.',
+    'auth/requires-recent-login': 'Session expired. Please sign in again.',
+    'auth/popup-closed-by-user':  'Sign-in was cancelled. Please try again.',
+    'auth/cancelled-popup-request': 'Sign-in was cancelled. Please try again.',
+    'auth/internal-error':        'Something went wrong on our end. Please try again.',
+    'auth/timeout':               'The request timed out. Please check your connection and try again.',
+    'auth/app-not-authorized':    'This app is not authorised. Please contact support.',
+  };
+  return map[code] || (context === 'login'
+    ? `Sign in failed (${code || 'unknown error'}). Please check your details and try again.`
+    : `Account creation failed (${code || 'unknown error'}). Please check your details and try again.`);
+}
+
+function showGateError(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+function clearGateError(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = '';
+  el.classList.remove('visible');
+}
+
+async function handleLogin() {
+  const btn = document.getElementById('loginBtn');
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw    = document.getElementById('loginPassword').value;
+  clearGateError('loginError');
+  if (!email && !pw) { showGateError('loginError', 'Please enter your email and password.'); return; }
+  if (!email)        { showGateError('loginError', 'Please enter your email address.'); return; }
+  if (!pw)           { showGateError('loginError', 'Please enter your password.'); return; }
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  // Safety net: re-enable after 12s if stuck
   const resetTimer = setTimeout(() => {
-    btn.disabled = false;
-    btn.textContent = 'Enter';
-  }, 10000);
-  
+    btn.disabled = false; btn.textContent = 'Enter';
+  }, 12000);
   try {
-    const cred = await fbAuth.signInWithEmailAndPassword(email, password);
+    await fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    const cred = await fbAuth.signInWithEmailAndPassword(email, pw);
     clearTimeout(resetTimer);
-    // Explicitly navigate — don't rely solely on onAuthStateChanged
+    // Navigate immediately — don't wait solely on onAuthStateChanged
     currentUser = cred.user;
     forceGatekeeperToHide();
     showPage('home');
     loadUserProfile(cred.user.uid);
-  } catch (e) {
+  } catch(e) {
     clearTimeout(resetTimer);
-    console.error('Login error:', e);
-    let msg = 'Sign in failed. Please check your email and password.';
-    if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
-      msg = 'Incorrect email or password.';
-    } else if (e.code === 'auth/too-many-requests') {
-      msg = 'Too many attempts. Please try again later.';
-    } else if (e.code === 'auth/network-request-failed') {
-      msg = 'Network error. Please check your connection.';
-    }
-    showGateError('loginError', msg);
-    btn.disabled = false;
-    btn.textContent = 'Enter';
+    showGateError('loginError', gateAuthError(e.code || '', 'login'));
+    btn.disabled = false; btn.textContent = 'Enter';
   }
 }
 
 async function handleSignup() {
   const btn = document.getElementById('signupBtn');
-  const name = document.getElementById('signupName')?.value.trim();
-  const email = document.getElementById('signupEmail')?.value.trim();
-  const password = document.getElementById('signupPassword')?.value;
-  
-  if (!name || !email || !password) {
-    showGateError('signupError', 'Please fill all fields');
-    return;
+  const name  = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const pw    = document.getElementById('signupPassword').value;
+  clearGateError('signupError');
+  if (!name)         { showGateError('signupError', 'Please enter your full name.'); return; }
+  if (!email)        { showGateError('signupError', 'Please enter your email address.'); return; }
+  if (!pw)           { showGateError('signupError', 'Please enter a password.'); return; }
+  if (pw.length < 6) { showGateError('signupError', 'Password must be at least 6 characters.'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showGateError('signupError', 'Please enter a valid email address.'); return; }
+  btn.disabled = true; btn.textContent = 'Creating…';
+  try {
+    pendingSignupName = name; pendingSignupEmail = email; pendingSignupPw = pw;
+    document.getElementById('gateStep1').style.display = 'none';
+    document.getElementById('gateStep2').style.display = 'block';
+    document.getElementById('gateNameReveal').textContent = name.split(' ')[0];
+  } catch(e) {
+    showGateError('signupError', gateAuthError(e.code || '', 'signup'));
+    btn.disabled = false; btn.textContent = 'Continue →';
   }
-  
-  if (password.length < 6) {
-    showGateError('signupError', 'Password must be at least 6 characters');
-    return;
-  }
-  
-  pendingSignupName = name;
-  pendingSignupEmail = email;
-  pendingSignupPw = password;
-  
-  document.getElementById('gateStep1').style.display = 'none';
-  document.getElementById('gateStep2').style.display = 'block';
-  document.getElementById('gateNameReveal').textContent = name.split(' ')[0];
 }
 
 async function handleFinishSignup() {
   const btn = document.getElementById('finishBtn');
-  btn.disabled = true;
-  btn.textContent = 'Creating account…';
-  
+  clearGateError('photoError');
+  btn.disabled = true; btn.textContent = 'Creating account…';
   try {
     const cred = await fbAuth.createUserWithEmailAndPassword(pendingSignupEmail, pendingSignupPw);
     await fbDb.ref('userProfiles/' + cred.user.uid).set({
-      name: pendingSignupName,
-      email: pendingSignupEmail,
-      createdAt: Date.now()
+      name: pendingSignupName, email: pendingSignupEmail,
+      avatar: '', residence: '', mobile: '', measure: '', createdAt: Date.now()
     });
-  } catch (e) {
-    console.error('Signup error:', e);
-    showGateError('photoError', e.message);
-    btn.disabled = false;
-    btn.textContent = 'Enter The Billy Living';
+  } catch(e) {
+    showGateError('photoError', gateAuthError(e.code || '', 'signup'));
+    btn.disabled = false; btn.textContent = 'Enter The Billy Living';
   }
 }
 
-function switchGateTab(tab, el) {
-  document.querySelectorAll('.gate-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('gateLogin').style.display = tab === 'login' ? 'block' : 'none';
-  document.getElementById('gateSignup').style.display = tab === 'signup' ? 'block' : 'none';
-}
-
-function showGateError(id, msg) {
-  const el = document.getElementById(id);
-  if (el) {
-    el.textContent = msg;
-    el.classList.add('visible');
-    
-    // Auto-hide after 5 seconds
-    setSafeTimeout(() => {
-      el.classList.remove('visible');
-    }, 5000);
-  }
-}
-
-// ─── ENTER KEY HANDLERS (SIMPLIFIED) ─────────────────────────────────────────────
-function setupEnterKeyHandlers() {
-  // LOGIN FORM: Press Enter on any field submits the form
-  const loginEmail = document.getElementById('loginEmail');
-  const loginPassword = document.getElementById('loginPassword');
-  
-  if (loginEmail) {
-    loginEmail.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        handleLogin();
-      }
-    });
-  }
-  
-  if (loginPassword) {
-    loginPassword.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        handleLogin();
-      }
-    });
-  }
-  
-  // SIGNUP FORM: Press Enter on any field goes to next step
-  const signupName = document.getElementById('signupName');
-  const signupEmail = document.getElementById('signupEmail');
-  const signupPassword = document.getElementById('signupPassword');
-  
-  if (signupName) {
-    signupName.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        handleSignup();
-      }
-    });
-  }
-  
-  if (signupEmail) {
-    signupEmail.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        handleSignup();
-      }
-    });
-  }
-  
-  if (signupPassword) {
-    signupPassword.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        handleSignup();
-      }
-    });
-  }
-}
-
-// ─── GATEKEEPER CONTROL ──────────────────────────────────────────────
-function forceGatekeeperToShow() {
-  const gatekeeper = document.getElementById('gatekeeper');
-  if (gatekeeper) {
-    gatekeeper.classList.remove('hidden');
-    gatekeeper.style.display = 'flex';
-    gatekeeper.style.opacity = '1';
-    gatekeeper.style.visibility = 'visible';
-    gatekeeper.style.pointerEvents = 'auto';
-    gatekeeper.style.zIndex = '100001';
-    
-    // Ensure all children are clickable
-    const allChildren = gatekeeper.querySelectorAll('button, .gate-btn, .gate-tab, .gate-input, input');
-    allChildren.forEach(el => {
-      el.style.pointerEvents = 'auto';
-      el.style.cursor = 'pointer';
-      el.style.opacity = '1';
-      if (el.disabled !== undefined) {
-        el.disabled = false;
-      }
-    });
-  }
-}
-
-function forceGatekeeperToHide() {
-  const gatekeeper = document.getElementById('gatekeeper');
-  if (gatekeeper) {
-    gatekeeper.classList.add('hidden');
-    gatekeeper.style.display = 'none';
-    gatekeeper.style.opacity = '0';
-    gatekeeper.style.visibility = 'hidden';
-    gatekeeper.style.pointerEvents = 'none';
-    gatekeeper.style.zIndex = '-1';
-  }
-}
-
-// ─── SPLASH SCREEN HANDLING ─────────────────────────────────────────
-function initializeApp() {
-  if (initializationComplete) return;
-  
-  const splash = document.getElementById('splashScreen');
-  
-  // Ensure splash is visible initially
-  if (splash) {
-    splash.style.display = 'flex';
-    splash.classList.remove('hidden');
-  }
-  
-  // Force show gatekeeper after splash
-  setSafeTimeout(() => {
-    // Hide splash
-    if (splash) {
-      splash.classList.add('hidden');
-      setSafeTimeout(() => {
-        if (splash.parentNode) splash.remove();
-      }, 600);
-    }
-    
-    // Check if user is already logged in via localStorage
-    const savedUser = localStorage.getItem('firebase:authUser:AIzaSyBbs6k7PInHUnv1x9FzHB31kUwrCcoGG7c:[DEFAULT]');
-    if (savedUser) {
-      try {
-        const userData = JSON.parse(savedUser);
-        if (userData && userData.uid) {
-          forceGatekeeperToHide();
-          return;
-        }
-      } catch (e) {}
-    }
-    
-    // Show gatekeeper and setup enter key handlers
-    forceGatekeeperToShow();
-    setupEnterKeyHandlers(); // CRITICAL: Setup Enter key handlers after gatekeeper is visible
-    
-  }, 3500);
-  
-  // Listen for auth state changes
-  fbAuth.onAuthStateChanged(user => {
-    if (user) {
-      currentUser = user;
-      forceGatekeeperToHide();
-      showPage('home');
-      loadUserProfile(user.uid);
-    }
+// Enter key triggers login/signup
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('loginPassword').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleLogin();
   });
-  
-  initializationComplete = true;
-}
+  document.getElementById('loginEmail').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleLogin();
+  });
+  document.getElementById('signupPassword').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleSignup();
+  });
+  // onclick attributes already handle clicks — no duplicate listeners needed
+});
 
-// Backup: Show gatekeeper after 3 seconds if splash still present
-function forceShowGatekeeper() {
-  setSafeTimeout(() => {
-    const splash = document.getElementById('splashScreen');
-    if (splash && !splash.classList.contains('hidden')) {
-      splash.classList.add('hidden');
-      setSafeTimeout(() => {
-        if (splash.parentNode) splash.remove();
-      }, 600);
-    }
-    forceGatekeeperToShow();
-    setupEnterKeyHandlers(); // Setup handlers here too as backup
-  }, 3000);
-}
-
-// ─── PAGE NAVIGATION ─────────────────────────────────────────────────
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
 function showPage(pageId) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  const targetPage = document.getElementById(pageId);
-  if (targetPage) targetPage.classList.add('active');
-  
+  // Force-close ALL overlays — class-only, never inline (inline overrides class permanently)
+  const _ps = document.getElementById('profileScreen');
+  if (_ps) { _ps.classList.remove('active'); _ps.style.display = ''; }
+  const _sb = document.getElementById('shareBackdrop');
+  if (_sb) { _sb.classList.remove('active'); _sb.style.display = ''; }
+  const _ss = document.querySelector('.share-sheet');
+  if (_ss) { _ss.classList.remove('active'); _ss.style.bottom = ''; }
+  const _co = document.getElementById('consultOverlay');
+  if (_co) { _co.classList.remove('active'); _co.style.display = ''; }
+  const _im = document.getElementById('imageModal');
+  if (_im) { _im.classList.remove('active'); _im.style.display = ''; }
+  const _va = document.getElementById('vaultAssetDetail');
+  if (_va) _va.style.display = 'none';
+  // Hide all standard pages
+  document.querySelectorAll('.page').forEach(p => {
+    p.classList.remove('active');
+    p.style.display = '';  // rely on CSS — .page default is display:none, .page.active overrides
+  });
+  // Handle trending separately (fixed-position)
+  const trendingEl = document.getElementById('trending');
+  trendingEl.classList.remove('active');
+  trendingEl.style.display = 'none';
+
+  // Update nav
   document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
-  const navBtn = document.getElementById(`nav-${pageId}`);
+  const navBtn = document.getElementById('nav-' + pageId);
   if (navBtn) navBtn.classList.add('active');
+
+  if (pageId === 'trending') {
+    trendingEl.style.display = 'block';
+    trendingEl.classList.add('active');
+    // Resume audio for currently visible tiktok item
+    const visibleItem = document.querySelector('.tiktok-item');
+    if (visibleItem) {
+      const a = visibleItem.querySelector('audio[id^="taudio_"]');
+      if (a) a.play().catch(()=>{});
+    }
+  } else {
+    // Pause all trending audio when leaving
+    document.querySelectorAll('audio[id^="taudio_"]').forEach(a => a.pause());
+    const el = document.getElementById(pageId);
+    if (el) {
+      el.style.display = '';  // clear inline — let CSS .active class control display
+      el.classList.add('active');
+    }
+    // Hide catalog sub-pages unless explicitly going there
+    if (pageId !== 'catalogInner') { document.getElementById('catalogInner').style.display = 'none'; }
+    if (pageId !== 'catalogRooms') { document.getElementById('catalogRooms').style.display = 'none'; }
+  }
+  // Reset concierge keyboard offset when navigating away
+  const cgEl = document.getElementById('concierge');
+  if (cgEl) {
+    if (pageId !== 'concierge') cgEl.style.bottom = 'var(--nav-height)';
+    // Never set inline display — CSS .active class controls visibility
+  }
+
+  // On-demand loads — only fire once on first visit, or on explicit refresh
+  if (pageId === 'portfolio') loadPortfolio();
+  if (pageId === 'trending' && !document.querySelector('.tiktok-item')) loadTrending();
+  if (pageId === 'concierge' && _conciergeListener === null) loadConciergeHistory();
+
+  // Vault page — always reset button to clean state on every visit
+  if (pageId === 'vault') {
+    const _vb = document.getElementById('vault-btn');
+    if (_vb) { _vb.textContent = 'UNLOCK'; _vb.disabled = false; }
+    // Auto-enter if valid session within 24hrs
+    if (!vaultSession) {
+      const saved = localStorage.getItem('vaultSession');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          const hrs24 = 24 * 60 * 60 * 1000;
+          if (parsed.unlockedAt && (Date.now() - parsed.unlockedAt) < hrs24) {
+            vaultSession = parsed;
+            const _savedName = (parsed.name || '').split(' ')[0];
+            if (_savedName) {
+              const titleEl = document.getElementById('vaultWelcomeTitle');
+              const subEl   = document.getElementById('vaultWelcomeSub');
+              if (titleEl) titleEl.innerHTML = 'Welcome back, ' + _savedName + '.<br><span style="font-size:22px;opacity:.75">Your Inner Circle awaits.</span>';
+              if (subEl)   subEl.textContent  = 'Your private archive is ready.';
+            }
+            enterBespokeVault();
+          } else {
+            localStorage.removeItem('vaultSession');
+          }
+        } catch(e) { localStorage.removeItem('vaultSession'); }
+      }
+    } else {
+      // Already have a session — go straight in
+      enterBespokeVault();
+    }
+  }
+
+  window.scrollTo(0, 0);
 }
 
-// ─── PROFILE LOADING ────────────────────────────────────────────────────────
+// ─── PROFILE ─────────────────────────────────────────────────────────────────
+function openProfile()  { document.getElementById('profileScreen').classList.add('active'); }
+function closeProfile() { document.getElementById('profileScreen').classList.remove('active'); }
+
 async function loadUserProfile(uid) {
   try {
-    const snap = await fbDb.ref('userProfiles/' + uid).get();
-    if (snap.exists()) {
-      currentProfile = snap.val();
-      document.getElementById('profileNameInput').value = currentProfile.name || '';
+  const snap = await fbDb.ref('userProfiles/' + uid).get();
+  if (!snap.exists()) return;
+  const p = snap.val();
+  currentProfile = p;
+  document.getElementById('profileNameInput').value      = p.name     || '';
+  document.getElementById('profileResidenceInput').value = p.residence|| '';
+  document.getElementById('profileMobileInput').value    = p.mobile   || '';
+  if (p.measure) document.getElementById('profileMeasurementSelect').value = p.measure;
+  document.getElementById('profileStoryLabel').textContent = 'My Profile';
+  if (p.avatar) {
+    document.getElementById('profileAvatarImg').src = p.avatar;
+    document.getElementById('profileAvatarImg').style.display = 'block';
+    document.getElementById('avatarPlaceholder').style.display = 'none';
+    document.getElementById('profileStoryPhoto').src = p.avatar;
+    document.getElementById('profileStoryPhoto').style.display = 'block';
+    document.getElementById('profileStoryDefault').style.display = 'none';
+  }
+  // Check VIP — first check stored flag, then fallback to phone lookup
+  if (p.isVip) {
+    document.getElementById('profileContainer').classList.add('is-vip');
+  } else if (p.mobile) {
+    const phone = p.mobile.replace(/\D/g,'').slice(-10);
+    const vSnap = await fbDb.ref('vip/' + phone).get();
+    if (vSnap.exists()) {
+      document.getElementById('profileContainer').classList.add('is-vip');
+      fbDb.ref('userProfiles/' + uid).update({ isVip: true });
     }
-  } catch (e) {
-    console.error('Error loading profile:', e);
   }
+  updatePortfolioDashCount();
+  } catch(e) { console.error('loadUserProfile:', e); }
 }
 
-// ─── TOAST NOTIFICATION ─────────────────────────────────────────────────────
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setSafeTimeout(() => t.classList.remove('show'), 2000);
-}
-
-// ─── UTILITY FUNCTIONS ──────────────────────────────────────────────────────
-function openProfile() { showPage('profileScreen'); }
-function closeProfile() { showPage('home'); }
-function openConsultSheet() { document.getElementById('consultOverlay').classList.add('active'); }
-function closeConsultSheet(e) { 
-  if (!e || e.target === document.getElementById('consultOverlay')) {
-    document.getElementById('consultOverlay').classList.remove('active');
-  }
-}
-function handleConsultOption(type) {
-  closeConsultSheet();
-  if (type === 'whatsapp') window.open('https://wa.me/2348084410220', '_blank');
-}
-function dismissBanner() { document.getElementById('downloadBanner').classList.remove('show'); }
-function openPlayStore() { window.open('https://play.google.com/store/apps', '_blank'); }
-function handleLogout() { fbAuth.signOut(); forceGatekeeperToShow(); }
-function requestConciergeSupport() { showPage('concierge'); }
 function onProfileChange() {
   document.getElementById('saveProfileBtn').style.display = 'block';
 }
-function saveProfileUpdates() {
+
+async function saveProfileUpdates() {
   if (!currentUser) return;
-  const name = document.getElementById('profileNameInput').value;
-  fbDb.ref('userProfiles/' + currentUser.uid).update({ name })
-    .then(() => {
-      showToast('Profile updated');
-      document.getElementById('saveProfileBtn').style.display = 'none';
-    })
-    .catch(console.error);
+  try {
+  const updates = {
+    name:      document.getElementById('profileNameInput').value.trim(),
+    residence: document.getElementById('profileResidenceInput').value.trim(),
+    mobile:    document.getElementById('profileMobileInput').value.trim(),
+    measure:   document.getElementById('profileMeasurementSelect').value,
+  };
+  await fbDb.ref('userProfiles/' + currentUser.uid).update(updates);
+  document.getElementById('saveProfileBtn').style.display = 'none';
+  showToast('Profile saved');
+  document.getElementById('profileStoryLabel').textContent = 'My Profile';
+  } catch(e) { showToast('Error saving profile'); console.error(e); }
 }
-function handleAvatarUpload(event) {
-  // Preview only - would need Firebase Storage for actual upload
+
+async function handleAvatarUpload(event) {
   const file = event.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = document.getElementById('profileAvatarImg');
-      const placeholder = document.getElementById('avatarPlaceholder');
-      img.src = e.target.result;
-      img.style.display = 'block';
-      placeholder.style.display = 'none';
-    };
-    reader.readAsDataURL(file);
+  if (!file || !currentUser) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const dataUrl = e.target.result;
+    await fbDb.ref('userProfiles/' + currentUser.uid).update({ avatar: dataUrl });
+    document.getElementById('profileAvatarImg').src = dataUrl;
+    document.getElementById('profileAvatarImg').style.display = 'block';
+    document.getElementById('avatarPlaceholder').style.display = 'none';
+    document.getElementById('profileStoryPhoto').src = dataUrl;
+    document.getElementById('profileStoryPhoto').style.display = 'block';
+    document.getElementById('profileStoryDefault').style.display = 'none';
+    showToast('Photo updated');
+  };
+  reader.readAsDataURL(file);
+}
+
+// ─── FIX 3: handleLogout properly signs out ─────────────────────────────────
+function handleLogout() {
+  closeProfile();
+  // Detach real-time concierge listener before signing out
+  if (_conciergeListener && currentUser) {
+    fbDb.ref(`chats/${currentUser.uid}/messages`).off('value', _conciergeListener);
+    _conciergeListener = null;
+  }
+  fbAuth.signOut().then(() => {
+    showToast('Signed out');
+    // Reset all in-memory state
+    cgMessages = []; cgHistory = [];
+    portfolioItems = []; selectedPortfolioItems = []; portfolioSelectionMode = false;
+    currentProfile = null;
+    vaultSession = null;
+    currentShareItem = null;
+    // Reset concierge UI — re-insert cgEmpty (innerHTML='' destroys it as a child node)
+    const cgMsgs = document.getElementById('cgMessages');
+    const cgEmptyEl = document.getElementById('cgEmpty');
+    if (cgMsgs && cgEmptyEl) {
+      cgMsgs.innerHTML = cgEmptyEl.outerHTML;
+    }
+    // Reset vault to login screen
+    const vaultLogin = document.getElementById('vaultLogin');
+    const vaultGallery = document.getElementById('vaultGallery');
+    const vaultLoginForm = document.getElementById('vault-login-form');
+    const vaultSuccess = document.getElementById('vault-success-state');
+    if (vaultGallery) vaultGallery.style.display = 'none';
+    if (vaultLogin) vaultLogin.style.display = '';
+    if (vaultLoginForm) vaultLoginForm.style.display = 'flex';
+    if (vaultSuccess) vaultSuccess.style.display = 'none';
+    // Reset vault pin/phone inputs
+    const vaultPin = document.getElementById('vault-pin');
+    const vaultPhone = document.getElementById('vault-phone');
+    if (vaultPin) vaultPin.value = '';
+    if (vaultPhone) vaultPhone.value = '';
+    // Reset signup flow step
+    const gateStep2 = document.getElementById('gateStep2');
+    const gateStep1 = document.getElementById('gateStep1');
+    if (gateStep2) gateStep2.style.display = 'none';
+    if (gateStep1) gateStep1.style.display = '';
+    // Reset portfolio grid
+    const grid = document.getElementById('portfolioGrid');
+    if (grid) grid.innerHTML = '';
+    const dashCount = document.getElementById('dashSavesCount');
+    if (dashCount) dashCount.textContent = '0';
+    // Reset login button
+    const loginBtn = document.getElementById('loginBtn');
+    if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Enter'; }
+    showPage('home');
+  }).catch(() => showToast('Sign out failed'));
+}
+
+function requestConciergeSupport() {
+  closeProfile();
+  showPage('concierge');
+}
+
+// ─── HOME FEED ────────────────────────────────────────────────────────────────
+// Lookup map — keeps base64 blobs OUT of onclick HTML attributes
+const _postsMap = {};
+
+function _renderFeed(posts) {
+  const feed = document.getElementById('homeFeed');
+  if (!posts || !posts.length) {
+    feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
+    return;
+  }
+  posts.forEach(p => { _postsMap[p.id] = p; });
+  feed.innerHTML = posts.map(p => buildFeedItem(p)).join('');
+  initCarousels();
+  initFeedVideos();
+  // Restore liked + bookmarked state
+  if (currentUser) {
+    fbDb.ref(`userLikes/${currentUser.uid}`).get().then(likeSnap => {
+      if (!likeSnap.exists()) return;
+      const liked = likeSnap.val();
+      document.querySelectorAll('.feed-item').forEach(item => {
+        const pid = item.dataset.id;
+        if (pid && liked[pid]) { const btn = item.querySelector('.feed-action-btn'); if (btn) btn.classList.add('liked'); }
+      });
+    });
+    fbDb.ref(`userBookmarks/${currentUser.uid}`).get().then(bmSnap => {
+      if (!bmSnap.exists()) return;
+      const bookmarks = bmSnap.val();
+      document.querySelectorAll('.feed-item').forEach(item => {
+        const pid = item.dataset.id;
+        if (pid && bookmarks[pid]) {
+          const btns = item.querySelectorAll('.feed-action-btn');
+          const bmBtn = btns[btns.length - 1];
+          if (bmBtn) bmBtn.classList.add('bookmarked');
+        }
+      });
+    });
   }
 }
-function clearSelection() {}
-function shareSelection() {}
-function sendPortfolioToDesigner() {}
-function sendPortfolioToWhatsApp() {}
-function sendPortfolioNative() {}
-function deleteSelected() {}
-function handleVaultUnlock() {}
-function clearVaultError() {}
-function enterBespokeVault() {}
-function handleVaultLogout() {}
-function closeCatalogInner() {}
-function closeCatalogRooms() {}
-function closeViewModal() {}
-function openCatalogInner() {}
-function shareToDesigner() {}
-function shareToWhatsApp() {}
-function copyShareLink() {}
-function shareNative() {}
-function addToPortfolioFromShare() {}
-function closeShareSheet() {}
-function closeImageModal() {}
-function sendConciergeMessage() {}
-function loadProjectsUniversal() {}
-function loadPortfolio() {}
-function closeVaultAsset() {}
 
-// ─── INITIALIZATION ─────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  initializeApp();
-  forceShowGatekeeper();
-  
-  // Show download banner after a delay
-  setSafeTimeout(() => {
-    document.getElementById('downloadBanner').classList.add('show');
-  }, 5000);
-});
-
-// Also ensure everything is clickable on load
-window.addEventListener('load', () => {
-  const allInteractive = document.querySelectorAll('button, .gate-btn, .gate-tab, .story-item, .consult-option, .bottom-nav-item, [onclick]');
-  allInteractive.forEach(el => {
-    el.style.pointerEvents = 'auto';
-    el.style.cursor = 'pointer';
+async function loadHomeFeed() {
+  const feed = document.getElementById('homeFeed');
+  const _sortPosts = arr => arr.filter(p => p.published !== false).sort((a,b) => {
+    const ta = parseInt((a.id||'').replace('post_','')) || 0;
+    const tb = parseInt((b.id||'').replace('post_','')) || 0;
+    return tb - ta;
   });
+
+  // ── CACHE-FIRST: render instantly from localStorage ──
+  try {
+    const cached = JSON.parse(localStorage.getItem('tbl_feed_posts') || '[]');
+    if (cached.length) _renderFeed(_sortPosts(cached));
+  } catch(e) {}
+
+  // ── BACKGROUND: fetch from Firebase, update if changed ──
+  try {
+    const snap = await fbDb.ref('content/posts').get();
+    if (!snap.exists()) {
+      if (!document.querySelector('.feed-item')) feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
+      return;
+    }
+    const posts = _sortPosts(Object.values(snap.val()));
+    if (!posts.length) return;
+    // Save to cache (metadata only — skip large imageData blobs to avoid quota)
+    try {
+      const meta = posts.map(p => { const {imageData, videoData, audioData, ...rest} = p; return rest; });
+      localStorage.setItem('tbl_feed_posts', JSON.stringify(meta));
+    } catch(e) {}
+    _renderFeed(posts);
+  } catch(e) {
+    console.error('loadHomeFeed:', e);
+    if (!document.querySelector('.feed-item')) feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
+  }
+}
+
+function initCarousels() {
+  document.querySelectorAll('.feed-carousel').forEach(car => {
+    const id = car.id.replace('car_','');
+    const track = document.getElementById('track_' + id);
+    const dots  = car.querySelectorAll('.feed-carousel-dot');
+    if (!track || dots.length < 2) return;
+    let cur = 0;
+    const goTo = (n) => {
+      cur = Math.max(0, Math.min(n, dots.length - 1));
+      track.style.transform = 'translateX(-' + (cur * 100) + '%)';
+      dots.forEach((d, i) => d.classList.toggle('active', i === cur));
+    };
+    // Touch swipe
+    let startX = 0;
+    car.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, {passive:true});
+    car.addEventListener('touchend',   e => {
+      const dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 40) goTo(dx < 0 ? cur + 1 : cur - 1);
+    }, {passive:true});
+    // Dot click
+    dots.forEach((d, i) => d.addEventListener('click', () => goTo(i)));
+  });
+}
+
+function buildFeedItem(p) {
+  const id = p.id;
+  let mediaHtml;
+  const imgs = (p.images && p.images.length > 1) ? p.images : null;
+  if (imgs) {
+    // Multi-image carousel
+    const slides = imgs.map(src => '<img src="' + src + '" alt="" loading="lazy" style="width:100%;aspect-ratio:1/1;object-fit:cover;flex-shrink:0;">').join('');
+    const dots   = imgs.map((_, i) => '<span class="feed-carousel-dot' + (i===0?' active':'') + '"></span>').join('');
+    mediaHtml = '<div class="feed-carousel" id="car_' + id + '" style="aspect-ratio:1/1;">'
+      + '<div class="feed-carousel-track" id="track_' + id + '" style="height:100%;">' + slides + '</div>'
+      + '<div class="feed-carousel-dots">' + dots + '</div>'
+      + '<div class="feed-multi-icon"><span></span><span></span><span></span></div>'
+      + '</div>';
+  } else if (p.videoData) {
+    mediaHtml = '<video src="' + p.videoData + '" loop muted autoplay playsinline style="width:100%;height:100%;object-fit:cover;display:block"></video>';
+  } else if (p.imageData) {
+    mediaHtml = '<img src="' + p.imageData + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block">';
+  } else if (p.imageUrl) {
+    mediaHtml = '<img src="' + p.imageUrl + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block">';
+  } else if (p.videoUrl) {
+    mediaHtml = '<video src="' + p.videoUrl + '" loop muted autoplay playsinline style="width:100%;height:100%;object-fit:cover;display:block"></video>';
+  } else {
+    mediaHtml = '<div class="feed-image-placeholder">🛋️</div>';
+  }
+  const locHtml = p.location ? '<div class="feed-caption-location"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>' + p.location + '</div>' : '';
+  const headerLocHtml = p.location ? '<div class="feed-header-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>' + p.location + '</div>' : '';
+  return '<div class="feed-item" data-id="' + id + '">'
+    + '<div class="feed-header">'
+    +   '<div class="feed-header-avatar">BL</div>'
+    +   '<div class="feed-header-info"><span class="feed-header-name">The Billy Living</span>' + headerLocHtml + '</div>'
+    +   '<button class="feed-header-more" onclick="openShareSheetNoCount(_postsMap[\'' + id + '\'])">···</button>'
+    + '</div>'
+    + '<div class="feed-image">' + mediaHtml + '</div>'
+    + '<div class="feed-actions">'
+    +   '<button class="feed-action-btn" onclick="toggleLike(this,\'' + id + '\',\'posts\')">'
+    +     '<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>'
+    +     '<span class="feed-action-count">' + fmtCount(p.likes||0) + '</span>'
+    +   '</button>'
+    +   '<button class="feed-action-btn" onclick="openShareSheet(_postsMap[\'' + id + '\'])">'
+    +     '<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>'
+    +     '<span class="feed-action-count">' + fmtCount(p.shares||0) + '</span>'
+    +   '</button>'
+    +   '<div class="feed-action-spacer"></div>'
+    +   (p.audioData ? '<button class="feed-action-btn feed-post-sound" onclick="togglePostSound(this,\'audio_post_' + id + '\')" style="padding:4px 6px;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;">' + '<svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>' + '</button>' : '')
+    +   '<button class="feed-action-btn" onclick="bookmarkPost(this,\'' + id + '\',_postsMap[\'' + id + '\'])">'
+    +     '<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>'
+    +   '</button>'
+    + '</div>'
+    + (p.audioData ? '<audio id="audio_post_' + id + '" src="' + p.audioData + '" loop style="display:none;"></audio>' : '')
+    + '<div class="feed-caption">'
+    +   '<div class="feed-caption-title">' + (p.title||'') + '</div>'
+    +   '<div class="feed-caption-text">' + (p.caption||'') + '</div>'
+    + '</div>'
+  + '</div>';
+}
+
+function togglePostAudio(btn, audioId) {
+  const audio = document.getElementById(audioId);
+  if (!audio) return;
+  if (audio.paused) {
+    audio.play().then(() => { btn.textContent = '⏸'; }).catch(e => {
+      console.error('audio play failed:', e);
+      // Reload src and retry once
+      const src = audio.src;
+      audio.src = '';
+      audio.src = src;
+      audio.play().then(() => { btn.textContent = '⏸'; }).catch(()=>{});
+    });
+  } else {
+    audio.pause();
+    btn.textContent = '▶';
+  }
+}
+
+function fmtCount(n) {
+  if (!n) return 0;
+  if (n >= 1000000) return (n/1000000).toFixed(1).replace(/\.0$/,'') + 'M';
+  if (n >= 1000) return (n/1000).toFixed(1).replace(/\.0$/,'') + 'k';
+  return n;
+}
+
+// Pause all feed audio when user leaves the app
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    document.querySelectorAll('audio[id^="audio_post_"], audio[id^="taudio_"]').forEach(a => a.pause());
+  }
+  // Don't auto-resume — user re-taps to play
 });
 
-// Clean up on page unload
-window.addEventListener('beforeunload', clearAllTimeouts);
+const _svgMuted = '<svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
+const _svgUnmuted = '<svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M11 5L6 9H2v6h4l5 4V5z" fill="white"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
+
+// Global sound flag — once user enables sound, all posts auto-unmute on scroll-in
+window._feedSoundEnabled = false;
+
+function _setFeedSoundState(enabled) {
+  window._feedSoundEnabled = enabled;
+  document.querySelectorAll('.feed-post-sound').forEach(b => {
+    b.innerHTML = enabled ? _svgUnmuted : _svgMuted;
+  });
+  if (!enabled) {
+    document.querySelectorAll('audio[id^="audio_post_"]').forEach(a => a.pause());
+  }
+}
+
+function togglePostSound(btn, audioId) {
+  const audio = document.getElementById(audioId);
+  if (!audio) return;
+  if (window._feedSoundEnabled) {
+    _setFeedSoundState(false);
+  } else {
+    _setFeedSoundState(true);
+    audio.play().catch(()=>{});
+  }
+}
+
+function initFeedVideos() {
+  // Disconnect previous observers to avoid stacking on re-render
+  if (window._feedVideoObserver) { window._feedVideoObserver.disconnect(); window._feedVideoObserver = null; }
+  if (window._feedImgObserver) { window._feedImgObserver.disconnect(); window._feedImgObserver = null; }
+  if (!('IntersectionObserver' in window)) {
+    document.querySelectorAll('.feed-image video').forEach(v => v.play().catch(()=>{}));
+    return;
+  }
+  window._feedVideoObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      const feedItem = e.target.closest('.feed-item');
+      const v = e.target;
+      const audio = feedItem ? feedItem.querySelector('audio[id^="audio_post_"]') : null;
+      const soundBtn = feedItem ? feedItem.querySelector('.feed-post-sound') : null;
+      if (e.isIntersecting) {
+        v.play().catch(()=>{});
+        if (window._feedSoundEnabled && audio) {
+          audio.play().catch(()=>{});
+          if (soundBtn) soundBtn.innerHTML = _svgUnmuted;
+        }
+      } else {
+        v.pause();
+        if (audio && !audio.paused) {
+          audio.pause();
+        }
+        if (soundBtn) soundBtn.innerHTML = window._feedSoundEnabled ? _svgUnmuted : _svgMuted;
+      }
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('.feed-image video').forEach(v => {
+    v.muted = true;
+    v.playsInline = true;
+    window._feedVideoObserver.observe(v);
+  });
+  // Image posts with audio
+  window._feedImgObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      const feedItem = e.target.closest('.feed-item');
+      if (!feedItem) return;
+      const hasVideo = feedItem.querySelector('.feed-image video');
+      if (hasVideo) return;
+      const audio = feedItem.querySelector('audio[id^="audio_post_"]');
+      const soundBtn = feedItem.querySelector('.feed-post-sound');
+      if (!audio) return;
+      if (e.isIntersecting && window._feedSoundEnabled) {
+        audio.play().catch(()=>{});
+        if (soundBtn) soundBtn.innerHTML = _svgUnmuted;
+      } else if (!e.isIntersecting) {
+        audio.pause();
+        if (soundBtn) soundBtn.innerHTML = window._feedSoundEnabled ? _svgUnmuted : _svgMuted;
+      }
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('.feed-item .feed-image').forEach(el => { if (!el.querySelector('video')) window._feedImgObserver.observe(el); });
+}
+
+async function toggleLike(btn, id, collection) {
+  if (btn._busy) return; btn._busy = true;
+  btn.classList.toggle('liked');
+  const isLiked = btn.classList.contains('liked');
+  const ref = fbDb.ref(`content/${collection}/${id}/likes`);
+  const snap = await ref.get();
+  const curr = snap.val() || 0;
+  const delta = isLiked ? 1 : -1;
+  await ref.set(curr + delta);
+  btn.querySelector('.feed-action-count').textContent = fmtCount(curr + delta);
+  if (currentUser) {
+    if (isLiked) { fbDb.ref(`userLikes/${currentUser.uid}/${id}`).set(true); }
+    else { fbDb.ref(`userLikes/${currentUser.uid}/${id}`).remove(); }
+  }
+  setTimeout(() => { btn._busy = false; }, 800);
+}
+
+async function bookmarkPost(btn, id, post) {
+  if (!currentUser) return;
+  btn.classList.toggle('bookmarked');
+  const isBookmarked = btn.classList.contains('bookmarked');
+  const bmRef = fbDb.ref(`userBookmarks/${currentUser.uid}/${id}`);
+  if (isBookmarked) {
+    const portId = 'port_' + id;
+    const item = { id: portId, postId: id, title: post.title||'Design', emoji: '🛋️', imageData: post.imageData||post.imageUrl||'', description: post.caption||'', savedAt: Date.now() };
+    await fbDb.ref(`portfolios/${currentUser.uid}/items/${portId}`).set(item);
+    await bmRef.set(portId);
+    showToast('Saved to Portfolio ✓');
+    loadPortfolio();
+  } else {
+    const snap = await bmRef.get();
+    const portId = snap.val();
+    if (portId) await fbDb.ref(`portfolios/${currentUser.uid}/items/${portId}`).remove();
+    await bmRef.remove();
+    showToast('Removed from Portfolio');
+    loadPortfolio();
+  }
+}
+
+// ─── TRENDING ────────────────────────────────────────────────────────────────
+const _trendMap = {};
+
+async function loadTrending() {
+  const container = document.getElementById('trendingContainer');
+  const EMPTY_HTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:Cormorant Garamond,serif;font-size:22px">No trending yet</div>';
+
+  // ── CACHE-FIRST ──
+  try {
+    const cached = JSON.parse(localStorage.getItem('tbl_trending') || '[]');
+    if (cached.length) {
+      cached.forEach(item => { _trendMap[item.id] = item; });
+      container.innerHTML = cached.map(item => buildTikTokItem(item)).join('');
+      _initTrendingObservers(container);
+    }
+  } catch(e) {}
+
+  // ── BACKGROUND REFRESH ──
+  let snap;
+  try { snap = await fbDb.ref('content/trending').get(); }
+  catch(e) { console.error('loadTrending error:', e); if (!container.querySelector('.tiktok-item')) container.innerHTML = EMPTY_HTML; return; }
+  if (!snap.exists()) { if (!container.querySelector('.tiktok-item')) container.innerHTML = EMPTY_HTML; return; }
+  const items = Object.values(snap.val()).filter(item => item.published !== false);
+  if (!items.length) { if (!container.querySelector('.tiktok-item')) container.innerHTML = EMPTY_HTML; return; }
+  // Save metadata to cache (no blobs)
+  try {
+    const meta = items.map(i => { const {videoData, imageData, audioData, ...rest} = i; return rest; });
+    localStorage.setItem('tbl_trending', JSON.stringify(meta));
+  } catch(e) {}
+  items.forEach(item => { _trendMap[item.id] = item; });
+  container.innerHTML = items.map(item => buildTikTokItem(item)).join('');
+  _initTrendingObservers(container);
+  // Restore liked/bookmarked state after fresh load
+  if (currentUser) {
+    fbDb.ref(`userTrendingLikes/${currentUser.uid}`).get().then(likeSnap => {
+      if (!likeSnap.exists()) return;
+      const liked = likeSnap.val();
+      container.querySelectorAll('.tiktok-item').forEach(el => {
+        const pid = el.dataset.id;
+        if (pid && liked[pid]) { const btn = el.querySelector('.tiktok-action'); if (btn) btn.classList.add('liked'); }
+      });
+    });
+    fbDb.ref(`userBookmarks/${currentUser.uid}`).get().then(bmSnap => {
+      if (!bmSnap.exists()) return;
+      const bookmarks = bmSnap.val();
+      container.querySelectorAll('.tiktok-item').forEach(el => {
+        const pid = el.dataset.id;
+        if (pid && bookmarks['trend_' + pid]) {
+          const btns = el.querySelectorAll('.tiktok-action');
+          const bmBtn = btns[btns.length - 1];
+          if (bmBtn) bmBtn.classList.add('bookmarked');
+        }
+      });
+    });
+  }
+}
+
+function _initTrendingObservers(container) {
+  const firstVideo = container.querySelector('video');
+  if (firstVideo) firstVideo.play().catch(()=>{});
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      const v = e.target.querySelector('video');
+      if (v) { if (e.isIntersecting) v.play().catch(()=>{}); else v.pause(); }
+      const audioEl = e.target.querySelector('audio[id^="taudio_"]');
+      if (audioEl) { if (e.isIntersecting) audioEl.play().catch(()=>{}); else audioEl.pause(); }
+    });
+  }, { threshold: 0.6 });
+  container.querySelectorAll('.tiktok-item').forEach(el => observer.observe(el));
+  // Init carousels
+  container.querySelectorAll('.tiktok-car').forEach(car => {
+    const trackId = car.id.replace('car_t_','track_t_');
+    const track = document.getElementById(trackId);
+    const dots  = car.querySelectorAll('.feed-carousel-dot');
+    if (!track || dots.length < 2) return;
+    let cur = 0;
+    const goTo = (n) => {
+      cur = Math.max(0, Math.min(n, dots.length-1));
+      track.style.transform = 'translateX(-' + (cur*100) + '%)';
+      dots.forEach((d,i) => d.classList.toggle('active', i===cur));
+    };
+    let sx = 0;
+    car.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, {passive:true});
+    car.addEventListener('touchend',   e => { const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx)>40) goTo(dx<0?cur+1:cur-1); }, {passive:true});
+  });
+}
+
+function buildTikTokItem(item) {
+  const id = item.id;
+  let mediaHtml;
+  const timgs = (item.images && item.images.length > 1) ? item.images : null;
+  if (timgs) {
+    // Multi-image tiktok carousel
+    const slides = timgs.map(src => '<img src="' + src + '" alt="" style="width:100%;height:100%;object-fit:cover;flex-shrink:0;">').join('');
+    const dots   = timgs.map((_,i) => '<span class="feed-carousel-dot' + (i===0?' active':'') + '"></span>').join('');
+    mediaHtml = '<div class="feed-carousel tiktok-car" id="car_t_' + id + '" style="width:100%;height:100%;">'
+      + '<div class="feed-carousel-track" id="track_t_' + id + '" style="height:100%;">' + slides + '</div>'
+      + '<div class="feed-carousel-dots">' + dots + '</div>'
+      + '</div>';
+  } else if (item.videoData) {
+    mediaHtml = '<video src="' + item.videoData + '" loop muted playsinline style="width:100%;height:100%;object-fit:cover"></video>';
+  } else if (item.videoUrl) {
+    mediaHtml = '<video src="' + item.videoUrl + '" loop muted playsinline style="width:100%;height:100%;object-fit:cover"></video>';
+  } else if (item.imageData) {
+    mediaHtml = '<img src="' + item.imageData + '" alt="" style="width:100%;height:100%;object-fit:contain">';
+  } else {
+    mediaHtml = '<div style="width:100%;height:100%;background:linear-gradient(135deg,#1a0f00,#2a1a00);display:flex;align-items:center;justify-content:center;font-size:64px">🛋️</div>';
+  }
+  const audioEl = item.audioData
+    ? '<audio id="taudio_' + id + '" src="' + item.audioData + '" loop style="display:none;"></audio>'
+    : '';
+  const muteBtn = ''; // Audio auto-plays — no manual mute button needed
+  return '<div class="tiktok-item" data-id="' + id + '">'
+    + audioEl
+    + mediaHtml
+    + '<div class="tiktok-actions">'
+    +   '<button class="tiktok-action" onclick="toggleTikTokLike(this,\'' + id + '\')">'
+    +     '<div class="tiktok-action-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>'
+    +     '<span class="tiktok-action-count">' + fmtCount(item.likes||0) + '</span>'
+    +   '</button>'
+    +   '<button class="tiktok-action" onclick="openShareSheet(_trendMap[\'' + id + '\'])">'
+    +     '<div class="tiktok-action-icon"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></div>'
+    +     '<span class="tiktok-action-count">' + (item.shares||0) + '</span>'
+    +   '</button>'
+    +   '<button class="tiktok-action" onclick="bookmarkTrending(this,\'' + id + '\',_trendMap[\'' + id + '\'])">'
+    +     '<div class="tiktok-action-icon"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></div>'
+    +     '<span class="tiktok-action-count">Save</span>'
+    +   '</button>'
+    +   muteBtn
+    + '</div>'
+    + '<div class="tiktok-info">'
+    +   '<div class="tiktok-user"><span class="tiktok-username">@billyliving</span><span class="tiktok-badge">✓</span></div>'
+    +   '<div class="tiktok-caption">' + (item.title||'') + ' — ' + (item.caption||'') + '</div>'
+    +   '<div class="tiktok-music"><span class="tiktok-music-icon">🎵</span><div class="tiktok-music-text"><span>' + (item.audioData ? 'Billy Living · Original Audio' : 'Billy Living · Luxury Interiors') + '</span></div></div>'
+    + '</div>'
+  + '</div>';
+}
+
+function toggleTikTokAudio(btn, id) {
+  const audio = document.getElementById('taudio_' + id);
+  const icon  = btn.querySelector('.tiktok-action-icon');
+  if (!audio) return;
+  if (audio.paused) {
+    audio.play().catch(()=>{});
+    if (icon) icon.textContent = '🔊';
+  } else {
+    audio.pause();
+    if (icon) icon.textContent = '🔇';
+  }
+}
+
+async function toggleTikTokLike(btn, id) {
+  if (btn._busy) return; btn._busy = true;
+  btn.classList.toggle('liked');
+  const isLiked = btn.classList.contains('liked');
+  const ref = fbDb.ref(`content/trending/${id}/likes`);
+  const snap = await ref.get();
+  const curr = snap.val() || 0;
+  const delta = isLiked ? 1 : -1;
+  await ref.set(curr + delta);
+  btn.querySelector('.tiktok-action-count').textContent = fmtCount(curr + delta);
+  if (currentUser) {
+    if (isLiked) { fbDb.ref(`userTrendingLikes/${currentUser.uid}/${id}`).set(true); }
+    else { fbDb.ref(`userTrendingLikes/${currentUser.uid}/${id}`).remove(); }
+  }
+  setTimeout(() => { btn._busy = false; }, 800);
+}
+
+async function bookmarkTrending(btn, id, item) {
+  if (!currentUser) return;
+  btn.classList.toggle('bookmarked');
+  const isBookmarked = btn.classList.contains('bookmarked');
+  const bmRef = fbDb.ref(`userBookmarks/${currentUser.uid}/trend_${id}`);
+  if (isBookmarked) {
+    const portId = 'port_trend_' + id;
+    const portItem = { id: portId, postId: id, title: item.title||'Design', emoji: '🎬', imageData: item.imageData||item.imageUrl||'', description: item.caption||'', savedAt: Date.now() };
+    await fbDb.ref(`portfolios/${currentUser.uid}/items/${portId}`).set(portItem);
+    await bmRef.set(portId);
+    showToast('Saved to Portfolio ✓');
+    loadPortfolio();
+  } else {
+    const snap = await bmRef.get();
+    const portId = snap.val();
+    if (portId) await fbDb.ref(`portfolios/${currentUser.uid}/items/${portId}`).remove();
+    await bmRef.remove();
+    showToast('Removed from Portfolio');
+    loadPortfolio();
+  }
+}
+
+// ─── CATALOG ─────────────────────────────────────────────────────────────────
+const _catalogMap = {};
+
+// ── Cover image cache: {boxId: base64} — grid loads with photos instantly ──
+function _saveCoverCache(boxId, imgSrc) {
+  try {
+    const covers = JSON.parse(localStorage.getItem('catalog_covers') || '{}');
+    if (imgSrc) covers[boxId] = imgSrc; else delete covers[boxId];
+    localStorage.setItem('catalog_covers', JSON.stringify(covers));
+  } catch(e) {}
+}
+function _getCoverCache() {
+  try { return JSON.parse(localStorage.getItem('catalog_covers') || '{}'); } catch(e) { return {}; }
+}
+
+function _renderCatalogGrid(boxes) {
+  const grid = document.getElementById('eliteCatalogGrid');
+  if (!boxes || !boxes.length) {
+    grid.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3)">No collections yet</div>';
+    return;
+  }
+  boxes.forEach(box => { _catalogMap[box.id] = box; });
+  const _covers = _getCoverCache();
+  grid.innerHTML = boxes.map(box => {
+    const imgsArr = box.images ? (Array.isArray(box.images) ? box.images : Object.values(box.images)) : [];
+    const fbCover = imgsArr.find(i => i) || null;
+    if (fbCover) _saveCoverCache(box.id, fbCover);
+    const thumb = _covers[box.id] || fbCover || null;
+    return '<div class="elite-collection-cell" onclick="openCatalogInner(_catalogMap[\'' + box.id + '\'])">'
+      + '<div class="elite-cell-meta">'
+      +   '<div class="elite-cell-topic">' + (box.value||box.topic||'Collection') + '</div>'
+      +   '<div class="elite-cell-feeling">' + (box.description||box.feeling||'') + '</div>'
+      + '</div>'
+      + '<div class="elite-cell-box">'
+      +   (thumb ? '<img src="' + thumb + '" alt="' + (box.value||'') + '" loading="lazy">' : '<div class="elite-cell-grain"></div>')
+      +   '<div class="elite-cell-grain"></div>'
+      +   '<span class="elite-cell-arrow">›</span>'
+      + '</div>'
+    + '</div>';
+  }).join('');
+}
+
+async function loadCatalog() {
+  const grid = document.getElementById('eliteCatalogGrid');
+  const sortBoxes = arr => arr.sort((a, b) => {
+    const n = s => parseInt((s.id||'').replace(/\D/g,'')) || 0;
+    return n(a) - n(b);
+  });
+
+  // Show immediately from metadata + cover image cache — zero Firebase wait
+  const cached = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
+  if (cached.length) _renderCatalogGrid(sortBoxes(cached));
+
+  // Background Firebase refresh — updates cover cache + grid silently
+  try {
+    const snap = await fbDb.ref('content/catalog').get();
+    if (!snap.exists()) {
+      if (!cached.length) grid.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3)">No collections yet</div>';
+      return;
+    }
+    const boxes = sortBoxes(Object.values(snap.val()));
+    // Store only metadata (no images) to avoid localStorage quota issues
+    const meta = boxes.map(b => { const {images, mixtureImages, ...rest} = b; return rest; });
+    try { localStorage.setItem('tbl_catalog_boxes', JSON.stringify(meta)); } catch(e) {}
+    _renderCatalogGrid(boxes);
+  } catch(e) {
+    if (!cached.length) grid.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3)">No collections yet</div>';
+  }
+}
+
+function _buildPaletteCard(box, paletteImage) {
+  const label = (box.mixtureLabels && box.mixtureLabels[0]) || 'Color Palette';
+  const svgHouse = '<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">'
+    + '<polygon points="50,10 90,40 90,90 10,90 10,40" stroke="#C9A84C" stroke-width="1.5" fill="rgba(201,168,76,0.04)"/>'
+    + '<rect x="30" y="60" width="18" height="30" stroke="#C9A84C" stroke-width="1" fill="rgba(201,168,76,0.06)"/>'
+    + '<rect x="52" y="50" width="28" height="40" stroke="#C9A84C" stroke-width="1" fill="rgba(201,168,76,0.04)"/>'
+    + '<rect x="35" y="40" width="10" height="12" stroke="#C9A84C" stroke-width="1" fill="rgba(201,168,76,0.08)"/>'
+    + '</svg>';
+  // When image uploaded — show photo only, no SVG behind it
+  const houseBlock = paletteImage
+    ? '<div class="house-layout" style="overflow:hidden;">'
+      + '<img src="' + paletteImage + '" style="width:100%;height:100%;object-fit:cover;border-radius:2px;display:block;">'
+      + '</div>'
+    : '<div class="house-layout">' + svgHouse + '</div>';
+  // Bold label below image (read-only on client side)
+  const labelBlock = '<div style="font-family:\'Cormorant Garamond\',serif;font-size:15px;font-weight:700;letter-spacing:1.5px;color:#C9A84C;padding:10px 0 2px;border-bottom:1px solid rgba(201,168,76,0.25);">' + label + '</div>';
+  return '<div class="color-mixture-card" onclick="openCatalogRooms(_catalogMap[\'' + box.id + '\'],0)">'
+    + houseBlock + labelBlock + '</div>';
+}
+
+function openCatalogInner(box) {
+  currentCatalogBox = box;
+  document.getElementById('innerCollectionTitle').textContent   = box.value || box.topic || 'Collection';
+  document.getElementById('innerCollectionFeeling').textContent = box.description || box.feeling || '';
+
+  const mixRow = document.getElementById('colorMixturesRow');
+  // Show loading state immediately while data fetches
+  if (!box.paletteImage) {
+    mixRow.innerHTML = '<div style="text-align:center;padding:24px;"><div style="width:24px;height:24px;margin:0 auto 10px;border:2px solid rgba(201,168,76,.1);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;"></div><div style="font-size:12px;color:rgba(201,168,76,.5);">Loading palette...</div></div>';
+  } else {
+    mixRow.innerHTML = _buildPaletteCard(box, box.paletteImage);
+  }
+
+  document.getElementById('catalog').style.display = 'none';
+  document.getElementById('catalog').classList.remove('active');
+  const _ci = document.getElementById('catalogInner');
+  _ci.classList.remove('active');
+  _ci.style.display = 'block';
+  void _ci.offsetWidth; // force reflow to restart animation
+  _ci.classList.add('active');
+  window.scrollTo(0, 0);
+
+  // Fetch paletteImage from Firebase and update card
+  fbDb.ref('content/catalog/' + box.id + '/paletteImage').get().then(snap => {
+    if (snap.exists() && snap.val()) {
+      mixRow.innerHTML = _buildPaletteCard(box, snap.val());
+      if (_catalogMap[box.id]) _catalogMap[box.id].paletteImage = snap.val();
+    } else {
+      // Fallback to cached data
+      mixRow.innerHTML = _buildPaletteCard(box, null);
+    }
+  }).catch(() => {
+    mixRow.innerHTML = _buildPaletteCard(box, null);
+  });
+}
+
+function closeCatalogInner() {
+  document.getElementById('catalogInner').style.display = 'none';
+  document.getElementById('catalogInner').classList.remove('active');
+  document.getElementById('catalog').style.display = 'block';
+  document.getElementById('catalog').classList.add('active');
+}
+
+const ROOM_NAMES = ['Living Room','Dining Room','Bed Room','Kitchen','Toilet','Passage Way','Rest Room'];
+
+function openCatalogRooms(box, paletteIndex) {
+  paletteIndex = paletteIndex || 0;
+  currentCatalogBox = box;
+  currentCatalogPaletteIndex = paletteIndex;
+  document.getElementById('roomsPageTitle').textContent    = box.value || box.topic || 'ROOMS';
+  document.getElementById('roomsPageSubtitle').textContent = box.description || box.feeling || '';
+
+  // Show rooms page immediately with loading state
+  document.getElementById('catalogInner').style.display = 'none';
+  document.getElementById('catalogInner').classList.remove('active');
+  const _cr = document.getElementById('catalogRooms');
+  _cr.classList.remove('active');
+  _cr.style.display = 'block';
+  void _cr.offsetWidth; // force reflow to restart animation
+  _cr.classList.add('active');
+  window.scrollTo(0, 0);
+
+  const area = document.getElementById('roomGalleryArea');
+
+  const renderRooms = (freshBox) => {
+    // Helper: get images for a specific mixture, handling Firebase object format
+    const getMixtureImages = (b, palIdx) => {
+      if (!b.mixtureImages) return [];
+      const raw = b.mixtureImages[palIdx];
+      if (!raw) return [];
+      if (Array.isArray(raw)) return raw;
+      const keys = Object.keys(raw).map(Number).sort((a,c)=>a-c);
+      const maxIdx = keys.length ? Math.max(...keys) : -1;
+      const arr = Array(maxIdx + 1).fill(null);
+      keys.forEach(k => { arr[k] = raw[k]; });
+      return arr;
+    };
+    const imgs = getMixtureImages(freshBox, paletteIndex);
+    // Update cached box so viewRoomImage works
+    currentCatalogBox = freshBox;
+    if (freshBox.id) _catalogMap[freshBox.id] = freshBox;
+
+    // Store images on window so onclick can access them cleanly
+    window._currentRoomImgs = imgs;
+    area.innerHTML = ROOM_NAMES.map((name, i) => {
+      const img = imgs[i] || null;
+      return '<div class="room-category-block">'
+        + '<div class="room-category-header"><span class="room-category-name">' + name + '</span></div>'
+        + '<div class="room-single-slot" onclick="viewRoomImage(\'' + name.replace(/'/g,"\\'") + '\',' + i + ')">'
+        + (img ? '<img src="' + img + '" alt="' + name + '" loading="lazy">'
+               : '<div class="elite-slot-placeholder"><div class="elite-slot-icon"><svg viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" stroke="#C9A84C" stroke-width="1"/><path d="M1 11l4-4 3 3 3-4 4 5" stroke="#C9A84C" stroke-width="1" fill="none"/></svg></div><span class="elite-slot-num">No Image</span></div>')
+        + '</div></div>';
+    }).join('');
+  };
+
+  // Render immediately from cached box structure
+  renderRooms(box);
+
+  // Always fetch from Firebase to get latest room images — updates in place
+  fbDb.ref('content/catalog/' + box.id).get()
+    .then(snap => { if (snap.exists()) renderRooms(snap.val()); })
+    .catch(() => {});
+}
+
+function closeCatalogRooms() {
+  document.getElementById('catalogRooms').style.display = 'none';
+  document.getElementById('catalogRooms').classList.remove('active');
+  const _ci2 = document.getElementById('catalogInner');
+  _ci2.classList.remove('active');
+  _ci2.style.display = 'block';
+  void _ci2.offsetWidth;
+  _ci2.classList.add('active');
+}
+
+function viewRoomImage(name, idx) {
+  const imgs = window._currentRoomImgs || [];
+  const imgSrc = imgs[idx] || null;
+  if (!imgSrc) return;
+  const modal = document.getElementById('viewModal');
+  const imgEl = document.getElementById('viewModalImage');
+  document.getElementById('viewModalTitle').textContent = name;
+  document.getElementById('viewModalMeta').textContent  = (currentCatalogBox?.value||'Collection') + ' • ' + name;
+  // Only replace/insert the img — preserve the watermark div already in #viewModalImage
+  let imgTag = imgEl.querySelector('img');
+  if (!imgTag) {
+    imgTag = document.createElement('img');
+    imgTag.style.cssText = 'width:100%;height:100%;object-fit:cover';
+    imgEl.insertBefore(imgTag, imgEl.firstChild);
+  }
+  imgTag.src = imgSrc;
+  imgTag.alt = name;
+  modal.classList.add('active');
+}
+function closeViewModal() { document.getElementById('viewModal').classList.remove('active'); }
+
+// ─── VAULT ────────────────────────────────────────────────────────────────────
+function clearVaultError() { document.getElementById('vault-error').style.display = 'none'; document.getElementById('vault-pin').classList.remove('input-error'); }
+
+async function handleVaultUnlock() {
+  const phone = document.getElementById('vault-phone').value.trim();
+  const pin   = document.getElementById('vault-pin').value.trim();
+  if (!phone || !pin) { showToast('Enter phone and PIN'); return; }
+  const btn = document.getElementById('vault-btn');
+  btn.textContent = 'Verifying…'; btn.disabled = true;
+  try {
+    const snap = await fbDb.ref('vip/' + phone).get();
+    if (snap.exists()) {
+      const vip = snap.val();
+      if (vip.password === pin && vip.status === 'active') {
+        vaultSession = { phone, ...vip, unlockedAt: Date.now() };
+        // Persist vault session for 24hrs
+        localStorage.setItem('vaultSession', JSON.stringify(vaultSession));
+        // Write permanent VIP flag to user profile in Firebase
+        if (currentUser) {
+          fbDb.ref('userProfiles/' + currentUser.uid).update({ isVip: true, vipName: vip.name || '' });
+          document.getElementById('profileContainer').classList.add('is-vip');
+        }
+        // Personalized greeting
+        const _vipFirstName = (vip.name || '').split(' ')[0] || 'VIP Member';
+        const titleEl = document.getElementById('vaultWelcomeTitle');
+        const subEl = document.getElementById('vaultWelcomeSub');
+        if (titleEl) titleEl.innerHTML = 'Welcome back, ' + _vipFirstName + '.<br><span style="font-size:22px;opacity:.75">Your Inner Circle awaits.</span>';
+        if (subEl) subEl.textContent = 'Your private archive is ready.';
+        document.getElementById('vault-login-form').style.display = 'none';
+        document.getElementById('vault-success-state').style.display = 'flex';
+        return;
+      }
+    }
+    document.getElementById('vault-error').style.display = 'block';
+    document.getElementById('vault-pin').classList.add('input-error');
+  } catch(e) { showToast('Error verifying access'); console.error(e); }
+  finally {
+    // ALWAYS reset button state regardless of outcome
+    btn.textContent = 'UNLOCK'; btn.disabled = false;
+  }
+}
+
+function _renderVaultGrid(assets) {
+  const grid = document.getElementById('vaultGalleryGrid');
+  const meta = document.getElementById('vaultGalleryMeta');
+  if (meta) meta.textContent = `${assets.length} Exclusive Item${assets.length!==1?'s':''} · VIP Access`;
+  if (!assets.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:60px 20px;text-align:center;">
+      <div style="font-size:48px;margin-bottom:16px;opacity:0.4">🔐</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold-light);margin-bottom:8px">Your Vault is Empty</div>
+      <div style="font-family:'Jost',sans-serif;font-size:13px;color:rgba(168,155,140,.7);max-width:280px;margin:0 auto;line-height:1.6">Save designs from the catalog and trending section to build your private collection.</div>
+    </div>`;
+    return;
+  }
+  const va = {};
+  assets.forEach((a, i) => { va['va_' + i] = a; });
+  window._vaultAssets = va;
+  grid.innerHTML = assets.map((a, i) => {
+    const key = 'va_' + i;
+    return '<div style="aspect-ratio:1;border:1px solid rgba(212,175,55,.18);border-radius:8px;overflow:hidden;background:#0E0A02;cursor:pointer;position:relative" onclick="openVaultAsset(window._vaultAssets[\' + key + \'])">'
+      + (a.thumb ? '<img src="' + a.thumb + '" style="width:100%;height:100%;object-fit:cover" loading="lazy">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px">🔐</div>')
+      + '<div style="position:absolute;bottom:0;left:0;right:0;padding:10px 10px 8px;background:linear-gradient(transparent,rgba(0,0,0,.75))">'
+      +   '<div style="font-family:\'Cormorant Garamond\',serif;font-size:13px;color:var(--gold-light);letter-spacing:.5px;line-height:1.2">' + (a.title||'Exclusive') + '</div>'
+      +   '<div style="font-size:9px;color:rgba(212,175,55,.5);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px">' + (a.cat||'Collection') + '</div>'
+      + '</div>'
+    + '</div>';
+  }).join('');
+}
+
+
+async function enterBespokeVault() {
+  if (!vaultSession) return;
+  document.getElementById('vaultLogin').style.display = 'none';
+  document.getElementById('vaultGallery').style.display = 'block';
+  // Load progress tracker
+
+  // Gold shimmer glint
+  const glint = document.getElementById('vaultGlint');
+  if (glint) { glint.style.display = 'block'; setTimeout(() => { glint.style.display = 'none'; }, 1200); }
+
+  // ── CACHE-FIRST: render instantly ──
+  // Use uid if ready, else phone as fallback cache key (same data, user-specific)
+  const cacheKey = currentUser ? ('tbl_vault_' + currentUser.uid) : ('tbl_vault_phone_' + vaultSession.phone);
+  try {
+    const cached = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+    if (cached.length) _renderVaultGrid(cached);
+  } catch(e) {}
+
+  // ── BACKGROUND: fetch fresh from Firebase (requires auth) ──
+  if (!currentUser) {
+    // Auth not ready yet — onAuthStateChanged will re-trigger loadUserProfile
+    // which will set currentUser; user can tap "ENTER YOUR VAULT" again if needed
+    return;
+  }
+  try {
+    const [clientSnap, defaultSnap] = await Promise.all([
+      fbDb.ref(`vault/clients/${currentUser.uid}`).get(),
+      fbDb.ref('vault/defaults').get()
+    ]);
+    const assets = [];
+    if (defaultSnap.exists()) assets.push(...Object.values(defaultSnap.val()));
+    if (clientSnap.exists())  assets.push(...Object.values(clientSnap.val()));
+    // Cache thumb/title/cat only — skip large url blobs for quota safety
+    try {
+      const cacheable = assets.map(a => ({ title: a.title||'', cat: a.cat||'', thumb: a.thumb||'' }));
+      localStorage.setItem(cacheKey, JSON.stringify(cacheable));
+    } catch(e) {}
+    _renderVaultGrid(assets);
+  } catch(e) { showToast('Error loading vault'); console.error(e); }
+  // Load progress tracker (single call, no race conditions)
+  if (window._projectLoadTimeout) clearTimeout(window._projectLoadTimeout);
+  window._projectLoadTimeout = setTimeout(() => loadProjectsUniversal(), 1500);
+}
+
+function openVaultAsset(asset) {
+  const detail = document.getElementById('vaultAssetDetail');
+  const content = document.getElementById('vaultAssetDetailContent');
+  detail.style.display = 'flex';
+  detail.style.alignItems = 'center';
+  detail.style.justifyContent = 'center';
+  content.innerHTML = `
+    ${asset.url || asset.thumb ? `<div style="width:100%;aspect-ratio:4/3;border:1px solid rgba(212,175,55,.18);border-radius:8px;overflow:hidden;margin-bottom:24px;position:relative"><img src="${asset.url||asset.thumb}" style="width:100%;height:100%;object-fit:cover"><div style="position:absolute;bottom:0;left:0;right:0;padding:10px 0 10px;text-align:center;pointer-events:none;background:linear-gradient(transparent,rgba(0,0,0,0.35))"><div style="font-family:'Jost',sans-serif;font-size:9px;font-weight:500;letter-spacing:4px;color:rgba(255,255,255,0.55);text-transform:uppercase;line-height:1">THE BILLY LIVING INTERIOR PLATFORM</div></div></div>` : ''}
+    <div style="font-size:9px;letter-spacing:5px;color:rgba(212,175,55,.35);text-transform:uppercase;margin-bottom:8px">${asset.cat||'Collection'}</div>
+    <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--gold-light);margin-bottom:16px">${asset.title||'Exclusive Design'}</h2>
+    <p style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.7">${asset.desc||'Exclusive content for verified VIP members.'}</p>`;
+}
+
+function closeVaultAsset() { document.getElementById('vaultAssetDetail').style.display = 'none'; }
+function handleVaultLogout() {
+  vaultSession = null;
+  localStorage.removeItem('vaultSession');
+  if (currentUser) { try { localStorage.removeItem('tbl_vault_' + currentUser.uid); } catch(e) {} }
+  document.getElementById('vaultLogin').style.display = 'flex';
+  document.getElementById('vaultGallery').style.display = 'none';
+  document.getElementById('vault-login-form').style.display = 'flex';
+  document.getElementById('vault-success-state').style.display = 'none';
+  document.getElementById('vault-phone').value = '';
+  document.getElementById('vault-pin').value = '';
+  // Always reset button — it may be stuck as "Verifying…" from previous session
+  const vaultBtn = document.getElementById('vault-btn');
+  if (vaultBtn) { vaultBtn.textContent = 'UNLOCK'; vaultBtn.disabled = false; }
+  clearVaultError();
+}
+
+// ─── PORTFOLIO ────────────────────────────────────────────────────────────────
+async function loadPortfolio() {
+  if (!currentUser) return;
+  // ── CACHE-FIRST: render instantly from memory or localStorage ──
+  const cacheKey = 'tbl_portfolio_' + currentUser.uid;
+  if (!portfolioItems.length) {
+    try {
+      const cached = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+      if (cached.length) { portfolioItems = cached; updatePortfolioDashCount(); renderPortfolioGrid(); }
+    } catch(e) {}
+  } else {
+    // Already have items in memory — render immediately
+    updatePortfolioDashCount();
+    renderPortfolioGrid();
+  }
+  // ── BACKGROUND: sync from Firebase ──
+  try {
+    const snap = await fbDb.ref(`portfolios/${currentUser.uid}/items`).get();
+    const fresh = snap.exists() ? Object.values(snap.val()).sort((a,b)=>(b.savedAt||0)-(a.savedAt||0)) : [];
+    portfolioItems = fresh;
+    // Cache metadata only (skip imageData blobs)
+    try {
+      const meta = fresh.map(p => { const {imageData, ...rest} = p; return {...rest, imageData: p.imageData ? '[img]' : ''}; });
+      localStorage.setItem(cacheKey, JSON.stringify(meta));
+    } catch(e) {}
+    updatePortfolioDashCount();
+    renderPortfolioGrid();
+  } catch(e) { console.error('loadPortfolio:', e); }
+}
+
+function updatePortfolioDashCount() {
+  document.getElementById('dashSavesCount').textContent = portfolioItems.length;
+}
+
+let portfolioSelectionMode = false;
+
+function renderPortfolioGrid() {
+  const grid = document.getElementById('portfolioGrid');
+  const SLOTS = portfolioItems.length + 1;
+  let html = portfolioItems.slice(0, SLOTS).map(item => {
+    const isSel = selectedPortfolioItems.includes(item.id);
+    const mediaHtml = item.imageData
+      ? `<img src="${item.imageData}" alt="${item.title||''}">`
+      : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px">${item.emoji||'🛋️'}</div>`;
+    return `<div class="portfolio-item${isSel?' selected':''}"
+        data-id="${item.id}"
+        onclick="onPortfolioItemTap('${item.id}')"
+        oncontextmenu="enterPortfolioSelectionMode(event,'${item.id}')"
+        ontouchstart="startPortfolioLongPress(event,'${item.id}')"
+        ontouchend="cancelPortfolioLongPress()"
+        ontouchmove="cancelPortfolioLongPress()">
+      ${mediaHtml}
+      <div class="portfolio-select">${isSel?'✓':''}</div>
+    </div>`;
+  }).join('');
+  const remaining = Math.max(0, SLOTS - portfolioItems.length);
+  for (let i = 0; i < remaining; i++) {
+    html += `<div class="portfolio-item empty-state"><div class="empty-state-content">
+      <div class="empty-state-icon"><svg viewBox="0 0 52 52" fill="none"><rect x="8" y="14" width="36" height="28" rx="2" stroke="rgba(201,168,76,0.7)" stroke-width="1.5"/><path d="M8 30l10-10 8 8 6-6 12 10" stroke="rgba(201,168,76,0.55)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="19" cy="23" r="3" stroke="rgba(201,168,76,0.65)" stroke-width="1.2"/></svg></div>
+      <div class="empty-state-text">Save Designs</div>
+      <div class="empty-state-subtext">Tap bookmark</div>
+    </div></div>`;
+  }
+  grid.innerHTML = html;
+  // Apply selection-mode class so checkboxes show/hide via CSS
+  grid.classList.toggle('selection-mode', portfolioSelectionMode);
+}
+
+// ── Single tap: view OR toggle if in selection mode ──
+function onPortfolioItemTap(id) {
+  if (portfolioSelectionMode) {
+    const idx = selectedPortfolioItems.indexOf(id);
+    if (idx > -1) selectedPortfolioItems.splice(idx, 1); else selectedPortfolioItems.push(id);
+    // Exit selection mode if nothing left selected
+    if (!selectedPortfolioItems.length) portfolioSelectionMode = false;
+    renderPortfolioGrid();
+    const hasAny = selectedPortfolioItems.length > 0;
+    document.getElementById('portfolioActions').classList.toggle('active', hasAny);
+    document.getElementById('selectionCount').textContent = selectedPortfolioItems.length + ' Selected';
+    document.getElementById('selectionModeBar').classList.toggle('active', hasAny);
+  } else {
+    // View the item
+    const item = portfolioItems.find(i => i.id === id);
+    if (item) openPortfolioItem(item);
+  }
+}
+
+function openPortfolioItem(item) {
+  const src = item.imageData || item.imageUrl || null;
+  if (!src) { showToast(item.title || 'Design'); return; }
+  document.getElementById('imageModalImg').src = src;
+  document.getElementById('imageModal').classList.add('active');
+}
+
+// ── Long press: enter selection mode ──
+let _portfolioLongPressTimer = null;
+function startPortfolioLongPress(e, id) {
+  _portfolioLongPressTimer = setTimeout(() => {
+    _portfolioLongPressTimer = null;
+    enterPortfolioSelectionMode(e, id);
+  }, 500);
+}
+function cancelPortfolioLongPress() {
+  if (_portfolioLongPressTimer) { clearTimeout(_portfolioLongPressTimer); _portfolioLongPressTimer = null; }
+}
+function enterPortfolioSelectionMode(e, id) {
+  if (e) e.preventDefault();
+  portfolioSelectionMode = true;
+  if (!selectedPortfolioItems.includes(id)) selectedPortfolioItems.push(id);
+  renderPortfolioGrid();
+  document.getElementById('portfolioActions').classList.add('active');
+  document.getElementById('selectionCount').textContent = selectedPortfolioItems.length + ' Selected';
+  document.getElementById('selectionModeBar').classList.add('active');
+}
+
+function togglePortfolioItem(id) { onPortfolioItemTap(id); }
+
+function clearSelection() {
+  selectedPortfolioItems = [];
+  portfolioSelectionMode = false;
+  renderPortfolioGrid();
+  document.getElementById('portfolioActions').classList.remove('active');
+  const smb = document.getElementById('selectionModeBar');
+  if (smb) smb.classList.remove('active');
+}
+
+async function deleteSelected() {
+  if (!currentUser || !selectedPortfolioItems.length) return;
+  const count = selectedPortfolioItems.length;
+  const label = count === 1 ? '1 item' : count + ' items';
+  // Remove from Firebase
+  const removes = selectedPortfolioItems.map(portId =>
+    fbDb.ref(`portfolios/${currentUser.uid}/items/${portId}`).remove()
+  );
+  // Also clean up bookmark refs
+  const bmRemoves = selectedPortfolioItems.map(async portId => {
+    const item = portfolioItems.find(i => i.id === portId);
+    if (item && item.postId) {
+      await fbDb.ref(`userBookmarks/${currentUser.uid}/${item.postId}`).remove().catch(()=>{});
+      await fbDb.ref(`userBookmarks/${currentUser.uid}/trend_${item.postId}`).remove().catch(()=>{});
+    }
+  });
+  try {
+    await Promise.all([...removes, ...bmRemoves]);
+    showToast(`Removed ${label}`);
+  } catch(e) { showToast('Error removing items'); console.error(e); }
+  selectedPortfolioItems = [];
+  portfolioSelectionMode = false;
+  document.getElementById('portfolioActions').classList.remove('active');
+  document.getElementById('selectionModeBar').classList.remove('active');
+  loadPortfolio();
+}
+
+function shareSelection() {
+  const items = portfolioItems.filter(i => selectedPortfolioItems.includes(i.id));
+  currentShareItem = items[0] || null;
+  openShareSheet(currentShareItem, true);
+}
+
+// ── Direct portfolio action: send ALL selected items to concierge (no share sheet) ──
+async function sendPortfolioToDesigner() {
+  if (!currentUser || !selectedPortfolioItems.length) return;
+  const items = portfolioItems.filter(i => selectedPortfolioItems.includes(i.id));
+  if (!items.length) return;
+  try {
+    for (const item of items) {
+      const msg = {
+        text: '📌 Sharing design: ' + (item.title || 'Design'),
+        imageData: item.imageData || item.imageUrl || '',
+        sender: 'client',
+        senderName: currentProfile?.name || 'Client',
+        timestamp: Date.now(),
+        read: false
+      };
+      await fbDb.ref(`chats/${currentUser.uid}/messages`).push(msg);
+      fbDb.ref(`chats/${currentUser.uid}/clientName`).set(currentProfile?.name || 'Client');
+      fbDb.ref(`chats/${currentUser.uid}/clientEmail`).set(currentUser.email || '');
+    }
+    showToast(items.length === 1 ? 'Sent to Concierge ✓' : items.length + ' items sent to Concierge ✓');
+    clearSelection();
+    showPage('concierge');
+  } catch(e) { showToast('Failed to send — check connection'); console.error(e); }
+}
+
+// ── Direct portfolio action: WhatsApp ──
+function sendPortfolioToWhatsApp() {
+  const items = portfolioItems.filter(i => selectedPortfolioItems.includes(i.id));
+  const title = items.length ? items.map(i => i.title || 'Design').join(', ') : 'Billy Living';
+  const text = 'Check out these designs from Billy Living: ' + title;
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+  clearSelection();
+}
+
+// ── Direct portfolio action: native share ──
+function sendPortfolioNative() {
+  const items = portfolioItems.filter(i => selectedPortfolioItems.includes(i.id));
+  const title = items.length ? (items[0].title || 'Design') : 'Billy Living';
+  if (navigator.share) {
+    navigator.share({ title: 'Billy Living', text: 'Sharing: ' + title, url: 'https://billy-living.vercel.app' })
+      .then(() => clearSelection()).catch(() => {});
+  } else {
+    navigator.clipboard.writeText('https://billy-living.vercel.app').then(() => showToast('Link copied'));
+    clearSelection();
+  }
+}
+
+async function shareToDesigner() {
+  if (!currentUser || !currentShareItem) return;
+  closeShareSheet();
+  const msg = { text: '📌 Sharing design: ' + (currentShareItem.title || 'Design'), imageData: currentShareItem.imageData||currentShareItem.imageUrl||'', sender: 'client', senderName: currentProfile?.name||'Client', timestamp: Date.now(), read: false };
+  try {
+    await fbDb.ref(`chats/${currentUser.uid}/messages`).push(msg);
+    fbDb.ref(`chats/${currentUser.uid}/clientName`).set(currentProfile?.name || 'Client');
+    fbDb.ref(`chats/${currentUser.uid}/clientEmail`).set(currentUser.email || '');
+    showToast('Sent to Concierge ✓');
+    clearSelection();
+    showPage('concierge');
+  } catch(e) { showToast('Failed to send'); console.error(e); }
+}
+
+function shareToWhatsApp() {
+  const text = currentShareItem ? ('Check out this design from Billy Living: ' + (currentShareItem.title||'')) : 'Check out Billy Living — luxury interior design!';
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+  closeShareSheet();
+}
+
+function copyShareLink() {
+  navigator.clipboard.writeText('https://billy-living.vercel.app').then(() => showToast('Link copied')).catch(() => showToast('Copy failed'));
+  closeShareSheet();
+}
+
+function shareNative() {
+  if (navigator.share) {
+    navigator.share({ title: 'Billy Living', text: currentShareItem?.title||'Luxury Interior Design', url: 'https://billy-living.vercel.app' })
+      .then(() => closeShareSheet())
+      .catch(()=>{});
+  } else { copyShareLink(); }
+}
+
+async function addToPortfolioFromShare() {
+  if (!currentUser || !currentShareItem) return;
+  try {
+  const portId = 'port_share_' + (currentShareItem.id || Date.now());
+  const item = { id: portId, postId: currentShareItem.id||'', title: currentShareItem.title||'Design', emoji: '🛋️', imageData: currentShareItem.imageData||currentShareItem.imageUrl||'', description: currentShareItem.caption||'', savedAt: Date.now() };
+  await fbDb.ref(`portfolios/${currentUser.uid}/items/${portId}`).set(item);
+  showToast('Saved to Portfolio');
+  loadPortfolio();
+  closeShareSheet();
+  } catch(e) { showToast('Error saving'); console.error(e); }
+}
+
+// ─── SHARE SHEET ─────────────────────────────────────────────────────────────
+function openShareSheet(item, fromPortfolio) {
+  currentShareItem = typeof item === 'string' ? null : item;
+  document.getElementById('shareBackdrop').classList.add('active');
+  document.getElementById('shareSheet').classList.add('active');
+  // Populate preview
+  const preview = document.getElementById('sharePreview');
+  const thumb = document.getElementById('sharePreviewThumb');
+  const thumbEmpty = document.getElementById('sharePreviewThumbEmpty');
+  const previewTitle = document.getElementById('sharePreviewTitle');
+  const previewSub = document.getElementById('sharePreviewSub');
+  const portOption = document.getElementById('sharePortfolioOption');
+  if (currentShareItem) {
+    preview.classList.add('visible');
+    const imgSrc = currentShareItem.imageData || currentShareItem.imageUrl || '';
+    if (imgSrc) { thumb.src = imgSrc; thumb.style.display = 'block'; thumbEmpty.style.display = 'none'; }
+    else { thumb.style.display = 'none'; thumbEmpty.style.display = 'flex'; }
+    previewTitle.textContent = currentShareItem.title || 'Design';
+    previewSub.textContent = fromPortfolio ? 'From your portfolio' : 'The Billy Living';
+  } else {
+    preview.classList.remove('visible');
+  }
+  // Hide "Save to Portfolio" when already in portfolio
+  if (portOption) portOption.style.display = fromPortfolio ? 'none' : '';
+  // Increment share count
+  if (currentShareItem && currentShareItem.id) {
+    const pid = currentShareItem.id;
+    // Determine collection: trending ids vs post ids
+    const collection = _trendMap[pid] ? 'trending' : 'posts';
+    const ref = fbDb.ref('content/' + collection + '/' + pid + '/shares');
+    ref.get().then(snap => {
+      const newVal = (snap.val() || 0) + 1;
+      ref.set(newVal);
+      // Update DOM count in feed and trending
+      const postEl = document.querySelector('[data-id="' + pid + '"]');
+      if (postEl) {
+        // Feed: share button is the one with openShareSheet onclick
+        postEl.querySelectorAll('button').forEach(btn => {
+          if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes('openShareSheet')) {
+            const countEl = btn.querySelector('.feed-action-count, .tiktok-action-count');
+            if (countEl) countEl.textContent = newVal;
+          }
+        });
+      }
+    });
+  }
+}
+function closeShareSheet() {
+  document.getElementById('shareBackdrop').classList.remove('active');
+  document.getElementById('shareSheet').classList.remove('active');
+}
+// Open share sheet without incrementing share count (used by ··· header button)
+function openShareSheetNoCount(item) {
+  currentShareItem = typeof item === 'string' ? null : item;
+  document.getElementById('shareBackdrop').classList.add('active');
+  document.getElementById('shareSheet').classList.add('active');
+  // Populate preview panel (same as openShareSheet but no count increment)
+  const preview = document.getElementById('sharePreview');
+  const thumb = document.getElementById('sharePreviewThumb');
+  const thumbEmpty = document.getElementById('sharePreviewThumbEmpty');
+  const previewTitle = document.getElementById('sharePreviewTitle');
+  const previewSub = document.getElementById('sharePreviewSub');
+  const portOption = document.getElementById('sharePortfolioOption');
+  if (currentShareItem) {
+    preview.classList.add('visible');
+    const imgSrc = currentShareItem.imageData || currentShareItem.imageUrl || '';
+    if (imgSrc) { thumb.src = imgSrc; thumb.style.display = 'block'; thumbEmpty.style.display = 'none'; }
+    else { thumb.style.display = 'none'; thumbEmpty.style.display = 'flex'; }
+    previewTitle.textContent = currentShareItem.title || 'Design';
+    previewSub.textContent = 'The Billy Living';
+  } else {
+    preview.classList.remove('visible');
+  }
+  if (portOption) portOption.style.display = '';  // always show Portfolio option from feed ··· menu
+}
+
+// ─── CONSULTATION ────────────────────────────────────────────────────────────
+function openConsultSheet()   { document.getElementById('consultOverlay').classList.add('active'); }
+function closeConsultSheet(e) {
+  if (e && e.target !== document.getElementById('consultOverlay')) return;
+  document.getElementById('consultOverlay').classList.remove('active');
+}
+function handleConsultOption(type) {
+  document.getElementById('consultOverlay').classList.remove('active');
+  if (type === 'whatsapp') { window.open('https://wa.me/' + CONFIG.WHATSAPP_NUMBER + '?text=' + encodeURIComponent('Hello The Billy Living. I would like to discuss a custom interior design project'), '_blank'); }
+  else if (type === 'call') { showPage('concierge'); sendAIGreeting('booking'); }
+  else if (type === 'quote') { showPage('concierge'); sendAIGreeting('quote'); }
+}
+
+// ─── CONCIERGE / AI CHAT ─────────────────────────────────────────────────────
+let _conciergeListener = null;
+async function loadConciergeHistory() {
+  if (!currentUser) return;
+  // Detach any existing listener
+  if (_conciergeListener) {
+    fbDb.ref(`chats/${currentUser.uid}/messages`).off('value', _conciergeListener);
+  }
+  // Real-time listener — updates chat whenever admin replies
+  _conciergeListener = fbDb.ref(`chats/${currentUser.uid}/messages`).orderByChild('timestamp').on('value', snap => {
+    if (!snap.exists()) return;
+    const msgs = [];
+    snap.forEach(child => msgs.push(child.val()));
+    cgHistory = msgs.map(m => ({ role: m.sender === 'client' ? 'user' : 'assistant', content: m.text }));
+    cgMessages = msgs;
+    renderConciergeMessages();
+  });
+}
+
+function renderConciergeMessages() {
+  const container = document.getElementById('cgMessages');
+  if (!container) return;
+  if (!cgMessages.length) return;
+  const emptyEl = document.getElementById('cgEmpty');
+  if (emptyEl) emptyEl.style.display = 'none';
+  const existing = container.querySelectorAll('.cg-msg');
+  existing.forEach(e => e.remove());
+  cgMessages.forEach(m => {
+    const el = document.createElement('div');
+    el.className = 'cg-msg ' + (m.sender === 'client' ? 'sent' : 'recv');
+    const time = m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
+    const safeText = (m.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    el.innerHTML = `<div class="cg-bubble">${safeText}</div><div class="cg-msg-time">${time}</div>`;
+    container.appendChild(el);
+  });
+  container.scrollTop = container.scrollHeight;
+}
+
+async function sendConciergeMessage() {
+  const input = document.getElementById('cgInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  try {
+  const userMsg = { text, sender: 'client', senderName: currentProfile?.name||'Client', timestamp: Date.now(), read: false };
+  cgMessages.push(userMsg);
+  cgHistory.push({ role: 'user', content: text });
+  renderConciergeMessages();
+  if (currentUser) {
+    try {
+      await fbDb.ref(`chats/${currentUser.uid}/messages`).push(userMsg);
+      // Ensure clientName is always set so admin conversation list shows real name
+      fbDb.ref(`chats/${currentUser.uid}/clientName`).set(currentProfile?.name || userMsg.senderName || 'Client');
+      fbDb.ref(`chats/${currentUser.uid}/clientEmail`).set(currentUser.email || '');
+    } catch(fbErr) {
+      console.error('Firebase write failed:', fbErr);
+      showToast('Message failed to send — check connection');
+      // Remove the local message since Firebase failed
+      cgMessages = cgMessages.filter(m => m !== userMsg);
+      renderConciergeMessages();
+      return;
+    }
+  }
+  await sendAIMessage(text);
+  } catch(e) { console.error('sendConciergeMessage:', e); }
+}
+
+function sendAIGreeting(type) {
+  const greetings = {
+    booking: 'I\'d like to book a design consultation.',
+    quote:   'I\'d like to request a quote for my space.'
+  };
+  document.getElementById('cgInput').value = greetings[type] || '';
+  sendConciergeMessage();
+}
+
+// Concierge is Billy's private human line — client messages go to Firebase, Billy replies from admin
+async function sendAIMessage(userText) {
+  // Nothing to do here — client message already saved in sendConciergeMessage
+  // Billy responds manually from the admin dashboard
+}
+
+// ─── IMAGE MODAL ─────────────────────────────────────────────────────────────
+function openImageModal(src) {
+  document.getElementById('imageModalImg').src = src;
+  document.getElementById('imageModal').classList.add('active');
+}
+function closeImageModal() { document.getElementById('imageModal').classList.remove('active'); }
+
+// ─── KEYBOARD PUSH (Concierge + AI Chat) ────────────────────────────────────
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    const keyboardHeight = window.innerHeight - window.visualViewport.height;
+    const concierge = document.getElementById('concierge');
+    if (concierge && concierge.classList.contains('active')) {
+      concierge.style.bottom = (keyboardHeight + parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-height') || '70')) + 'px';
+      const msgs = document.getElementById('cgMessages');
+      if (msgs) msgs.scrollTop = msgs.scrollHeight;
+    }
+  });
+  window.visualViewport.addEventListener('scroll', () => {
+    const kbH2 = window.innerHeight - window.visualViewport.height;
+    const cgEl2 = document.getElementById('concierge');
+    if (cgEl2 && cgEl2.classList.contains('active')) {
+      cgEl2.style.bottom = (kbH2 + parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-height') || '70')) + 'px';
+    }
+  });
+}
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+// Ensure catalog sub-pages start hidden
+document.getElementById('catalogInner').style.display = 'none';
+document.getElementById('catalogRooms').style.display = 'none';
+
+// ─── SERVICE WORKER REGISTRATION ─────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(e => console.warn('SW:', e));
+  });
+}
+
+// ─── DOWNLOAD BANNER ─────────────────────────────────────────────────────────
+function openPlayStore() {
+  // Replace with your actual Play Store URL once published
+  window.open('https://play.google.com/store/apps/details?id=com.billyliving.app', '_blank');
+}
+function dismissBanner() {
+  const b = document.getElementById('downloadBanner');
+  if (b) { b.classList.remove('show'); }
+  sessionStorage.setItem('dlBannerDismissed', '1');
+}
+(function initDownloadBanner() {
+  // Only show on mobile browsers, not if already installed as PWA
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  const dismissed = sessionStorage.getItem('dlBannerDismissed');
+  if (isMobile && !isPWA && !dismissed) {
+    setTimeout(() => {
+      const b = document.getElementById('downloadBanner');
+      if (b) b.classList.add('show');
+    }, 3200); // show after splash clears
+  }
+})();
+
+// ─── SPLASH DISMISS ──────────────────────────────────────────────────────────
+(function() {
+  let dismissed = false;
+  function dismissSplash() {
+    if (dismissed) return;
+    dismissed = true;
+    const s = document.getElementById('splashScreen');
+    if (s) s.classList.add('hidden');
+    setTimeout(() => { if (s && s.parentNode) s.remove(); }, 700);
+  }
+  // Dismiss on load (normal case)
+  window.addEventListener('load', () => setTimeout(dismissSplash, 1800));
+  // Hard fallback: always dismiss after 2.8s max (matches CSS animation)
+  setTimeout(dismissSplash, 2800);
+})();
+</script>
+
+<script>
+// ===========================================
+// PROGRESS TRACKER FOR CLIENT APP - COMPLETE
+// ===========================================
+
+function forceLoadClientProjects() {
+  console.log('🔍 FORCE LOADING PROJECTS...');
+  if (!currentUser) {
+    console.log('❌ No user logged in');
+    updateProjectsDisplay('error', 'Please log in to view projects');
+    return;
+  }
+  const clientUID = currentUser.uid;
+  console.log('👤 Client UID:', clientUID);
+  console.log('👤 Client Email:', currentUser.email);
+  updateProjectsDisplay('loading', null);
+  const projectsPath = 'timelines/' + clientUID + '/projects';
+  console.log('📁 Checking path:', projectsPath);
+  fbDb.ref(projectsPath).once('value')
+    .then(snapshot => {
+      console.log('📦 Raw Firebase response:', snapshot.val());
+      const projects = snapshot.val();
+      if (!projects || Object.keys(projects).length === 0) {
+        console.log('❌ No projects found at:', projectsPath);
+        const altPath = 'vault/clients/' + clientUID + '/projects';
+        console.log('🔄 Trying alternate path:', altPath);
+        return fbDb.ref(altPath).once('value').then(altSnapshot => {
+          const altProjects = altSnapshot.val();
+          if (altProjects && Object.keys(altProjects).length > 0) {
+            console.log('✅ Found projects at alternate path!');
+            displayProjects(altProjects);
+          } else {
+            console.log('❌ No projects found anywhere');
+            updateProjectsDisplay('empty', null);
+          }
+        });
+      } else {
+        console.log('✅ Found projects at primary path!');
+        displayProjects(projects);
+      }
+    })
+    .catch(err => {
+      console.error('❌ Error loading projects:', err);
+      updateProjectsDisplay('error', err.message);
+    });
+}
+
+function updateProjectsDisplay(state, data) {
+  const container = document.getElementById('projectsContainer');
+  if (!container) { console.log('❌ projectsContainer not found'); return; }
+  const badge = document.getElementById('projectCountBadge');
+  if (state === 'loading') {
+    container.innerHTML = '<div style="text-align:center;padding:24px;"><div class="loading-spinner" style="width:24px;height:24px;margin:0 auto 12px;border:2px solid rgba(212,175,55,.1);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;"></div><div style="color:rgba(212,175,55,.5);font-size:13px;">Loading progress tracker...</div></div>';
+    if (badge) badge.textContent = '0';
+  } else if (state === 'empty') {
+    container.innerHTML = '<div style="text-align:center;padding:32px 20px;"><div style="font-size:36px;margin-bottom:12px;opacity:.3;">📋</div><div style="color:rgba(212,175,55,.5);font-size:15px;margin-bottom:8px;">No projects in progress</div><div style="color:rgba(212,175,55,.25);font-size:12px;">Projects will appear here once created by your designer</div></div>';
+    if (badge) badge.textContent = '0';
+  } else if (state === 'error') {
+    container.innerHTML = '<div style="text-align:center;padding:24px;color:#ef4444;font-size:13px;">Error loading projects: ' + data + '</div>';
+    if (badge) badge.textContent = '0';
+  }
+}
+
+function displayProjects(projects) {
+  const container = document.getElementById('projectsContainer');
+  const badge = document.getElementById('projectCountBadge');
+  if (!container) return;
+  const projectCount = Object.keys(projects).length;
+  console.log('📊 Displaying ' + projectCount + ' projects');
+  if (badge) badge.textContent = projectCount;
+  if (projectCount === 0) { updateProjectsDisplay('empty', null); return; }
+  const sorted = Object.entries(projects).sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0));
+  if (!document.getElementById('ptStyles')) {
+    const style = document.createElement('style');
+    style.id = 'ptStyles';
+    style.textContent = '.project-card:hover{transform:translateY(-2px);border-color:rgba(212,175,55,.3);box-shadow:0 8px 24px rgba(0,0,0,.3);}@keyframes spin{to{transform:rotate(360deg);}}';
+    document.head.appendChild(style);
+  }
+  let html = '';
+  sorted.forEach(([projectId, project], i) => {
+    const date = project.createdAt ? new Date(project.createdAt).toLocaleDateString() : 'Recent';
+    html += '<div class="project-card" onclick="openProjectWorkflows(\'' + projectId + '\',\'' + (project.name||'').replace(/\'/g,"\\'") + '\')" style="background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,.15);border-radius:14px;padding:16px;cursor:pointer;transition:all .2s;margin-bottom:2px;">'
+      + '<div style="display:flex;align-items:center;gap:14px;">'
+      + '<div style="width:40px;height:40px;border-radius:12px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.25);display:flex;align-items:center;justify-content:center;font-family:\'Cormorant Garamond\',serif;font-size:18px;color:var(--gold);flex-shrink:0;">' + (i+1) + '</div>'
+      + '<div style="flex:1;"><div style="font-family:\'Cormorant Garamond\',serif;font-size:17px;color:var(--gold-light);margin-bottom:4px;">' + (project.name||'Project') + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:10px;color:rgba(212,175,55,.4);">Started ' + date + '</span><span style="width:4px;height:4px;border-radius:50%;background:rgba(212,175,55,.2);"></span><span style="font-size:10px;color:#50C878;">● Active</span></div></div>'
+      + '<span style="color:rgba(212,175,55,.3);font-size:18px;">›</span></div></div>';
+  });
+  container.innerHTML = html;
+}
+
+function openProjectWorkflows(projectId, projectName) {
+  if (!currentUser) return;
+  console.log('📂 Opening project:', projectId, projectName);
+  const modal = document.createElement('div');
+  modal.className = 'workflow-modal';
+  modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.98);z-index:30000;display:flex;flex-direction:column;padding:24px 20px;overflow-y:auto;backdrop-filter:blur(8px);';
+  modal.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">'
+    + '<button onclick="this.closest(\'.workflow-modal\').remove()" style="background:none;border:1px solid rgba(212,175,55,.3);color:rgba(212,175,55,.6);border-radius:8px;padding:8px 16px;font-family:\'Jost\',sans-serif;font-size:10px;letter-spacing:2px;cursor:pointer;">← BACK</button>'
+    + '<div style="font-family:\'Cormorant Garamond\',serif;font-size:20px;color:var(--gold-light);letter-spacing:.5px;">' + projectName + '</div>'
+    + '<div style="width:72px;"></div></div>'
+    + '<div style="font-family:\'Jost\',sans-serif;font-size:9px;letter-spacing:4px;color:rgba(212,175,55,.4);text-transform:uppercase;margin-bottom:16px;">Workflow Progress</div>'
+    + '<div id="workflowsContainer" style="display:flex;flex-direction:column;gap:12px;min-height:200px;">'
+    + '<div style="text-align:center;padding:40px;"><div class="loading-spinner" style="width:24px;height:24px;margin:0 auto 12px;border:2px solid rgba(212,175,55,.1);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;"></div><div style="color:rgba(212,175,55,.5);">Loading workflows...</div></div></div>';
+  document.body.appendChild(modal);
+  const wPath = 'timelines/' + currentUser.uid + '/projects/' + projectId + '/workflows';
+  console.log('🔍 Loading workflows from:', wPath);
+  fbDb.ref(wPath).once('value')
+    .then(snapshot => {
+      console.log('📦 Workflows data:', snapshot.val());
+      const workflows = snapshot.val() || {};
+      const wc = modal.querySelector('#workflowsContainer');
+      if (!wc) return;
+      const entries = Object.entries(workflows);
+      if (!entries.length) {
+        wc.innerHTML = '<div style="text-align:center;padding:60px;"><div style="font-size:48px;margin-bottom:16px;opacity:.3;">📋</div><div style="font-size:16px;color:rgba(212,175,55,.5);">No workflows yet</div></div>';
+        return;
+      }
+      wc.innerHTML = entries.map(([id, w], i) => {
+        const done = w.status === 'progressed';
+        return '<div style="background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,' + (done?'.35':'.15') + ');border-radius:16px;padding:16px 20px;">'
+          + '<div style="display:flex;align-items:center;gap:16px;">'
+          + '<div style="width:36px;height:36px;border-radius:50%;background:' + (done?'rgba(80,200,120,.1)':'rgba(212,175,55,.1)') + ';border:1px solid ' + (done?'rgba(80,200,120,.3)':'rgba(212,175,55,.2)') + ';display:flex;align-items:center;justify-content:center;font-family:\'Cormorant Garamond\',serif;font-size:16px;color:' + (done?'#50C878':'var(--gold)') + ';flex-shrink:0;">' + (i+1) + '</div>'
+          + '<div style="flex:1;"><div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;color:#E8D9B5;margin-bottom:6px;">' + (w.name||'Step '+(i+1)) + '</div>'
+          + '<div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:' + (done?'#50C878':'rgba(212,175,55,.2)') + ';' + (done?'box-shadow:0 0 6px rgba(80,200,120,.5);':'') + '"></div>'
+          + '<span style="font-family:\'Jost\',sans-serif;font-size:9px;letter-spacing:2px;color:' + (done?'#50C878':'rgba(212,175,55,.5)') + ';text-transform:uppercase;">' + (done?'COMPLETED':'IN PROGRESS') + '</span></div></div></div></div>';
+      }).join('');
+    })
+    .catch(err => {
+      console.error('❌ Error loading workflows:', err);
+      const wc = modal.querySelector('#workflowsContainer');
+      if (wc) wc.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(239,68,68,.7);">Error loading workflows</div>';
+    });
+}
+
+// Progress tracker is triggered inside enterBespokeVault directly
+
+// Manual refresh for testing in console
+window.refreshProgressTracker = function() { forceLoadClientProjects(); };
+
+// ===========================================
+// UNIVERSAL PROGRESS TRACKER - MULTI-PATH FALLBACK
+// ===========================================
+
+function loadProjectsUniversal() {
+  console.log('🔍 UNIVERSAL PROJECT LOADER STARTED');
+  if (!currentUser) {
+    console.log('❌ No user logged in');
+    showProjectsEmpty('Please log in to view projects');
+    return;
+  }
+  const clientUID = currentUser.uid;
+  const clientEmail = currentUser.email;
+  console.log('👤 Current user:', { uid: clientUID, email: clientEmail });
+  const container = document.getElementById('projectsContainer');
+  if (container) container.innerHTML = '<div style="text-align:center;padding:24px;"><div class="loading-spinner" style="width:24px;height:24px;margin:0 auto 12px;border:2px solid rgba(212,175,55,.1);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;"></div><div style="color:rgba(212,175,55,.5);font-size:13px;">Syncing with designer...</div></div>';
+  fbDb.ref('userProfiles/' + clientUID + '/mobile').once('value')
+    .then(phoneSnap => {
+      const phone = phoneSnap.val();
+      console.log('📱 Client phone from profile:', phone);
+      return fbDb.ref('vip').once('value').then(vipSnap => {
+        const vips = vipSnap.val() || {};
+        let matchedVIP = null, matchedVIPPhone = null;
+        Object.entries(vips).forEach(([vipPhone, vipData]) => {
+          if (vipPhone === phone || vipData.id === clientUID || vipData.email === clientEmail) {
+            matchedVIP = vipData;
+            matchedVIPPhone = vipPhone;
+            console.log('✅ Found matching VIP:', { vipPhone, vipData });
+          }
+        });
+        const pathsToTry = ['timelines/' + clientUID + '/projects'];
+        if (matchedVIPPhone) {
+          pathsToTry.push('timelines/' + matchedVIPPhone + '/projects');
+          pathsToTry.push('timelines/phone_' + matchedVIPPhone + '/projects');
+        }
+        if (matchedVIP && matchedVIP.id) pathsToTry.push('timelines/' + matchedVIP.id + '/projects');
+        pathsToTry.push('vault/clients/' + clientUID + '/projects');
+        if (matchedVIPPhone) pathsToTry.push('vault/clients/' + matchedVIPPhone + '/projects');
+        console.log('📁 Will check these paths:', pathsToTry);
+        return tryProjectPaths(pathsToTry, 0);
+      });
+    })
+    .catch(err => {
+      console.error('Error in universal loader:', err);
+      showProjectsEmpty('Unable to load projects');
+    });
+}
+
+function tryProjectPaths(paths, index) {
+  if (index >= paths.length) {
+    console.log('❌ No projects found in any path');
+    showProjectsEmpty('No projects yet');
+    return Promise.resolve();
+  }
+  const path = paths[index];
+  console.log('🔍 Trying path ' + (index+1) + '/' + paths.length + ':', path);
+  return fbDb.ref(path).once('value').then(snapshot => {
+    const data = snapshot.val();
+    console.log('📦 Data at ' + path + ':', data);
+    if (data && Object.keys(data).length > 0) {
+      console.log('✅ FOUND PROJECTS at ' + path + '!');
+      displayProjectsUniversal(data);
+      return Promise.resolve();
+    }
+    console.log('⏭️ No projects at ' + path + ', trying next...');
+    return tryProjectPaths(paths, index + 1);
+  }).catch(err => {
+    console.log('❌ Error checking ' + path + ':', err.message);
+    return tryProjectPaths(paths, index + 1);
+  });
+}
+
+function displayProjectsUniversal(projects) {
+  const container = document.getElementById('projectsContainer');
+  const badge = document.getElementById('projectCountBadge');
+  if (!container) return;
+  const projectCount = Object.keys(projects).length;
+  console.log('📊 Displaying ' + projectCount + ' projects');
+  if (badge) badge.textContent = projectCount;
+  if (projectCount === 0) { showProjectsEmpty('No projects in progress'); return; }
+  const sorted = Object.entries(projects).sort((a, b) => (b[1].createdAt||0) - (a[1].createdAt||0));
+  let html = '';
+  sorted.forEach(([projectId, project], i) => {
+    const date = project.createdAt ? new Date(project.createdAt).toLocaleDateString() : 'Just started';
+    html += '<div class="project-card" onclick="openProjectWorkflowsUniversal(\'' + projectId + '\',\'' + (project.name||'').replace(/\'/g,"\\'") + '\')" style="background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,.15);border-radius:14px;padding:16px;cursor:pointer;margin-bottom:8px;transition:all .2s;">'
+      + '<div style="display:flex;align-items:center;gap:14px;">'
+      + '<div style="width:40px;height:40px;border-radius:12px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.25);display:flex;align-items:center;justify-content:center;font-family:\'Cormorant Garamond\',serif;font-size:18px;color:var(--gold);flex-shrink:0;">' + (i+1) + '</div>'
+      + '<div style="flex:1;"><div style="font-family:\'Cormorant Garamond\',serif;font-size:17px;color:var(--gold-light);margin-bottom:4px;">' + (project.name||'Project') + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:10px;color:rgba(212,175,55,.4);">' + date + '</span><span style="width:4px;height:4px;border-radius:50%;background:rgba(212,175,55,.2);"></span><span style="font-size:10px;color:#50C878;">● Active</span></div></div>'
+      + '<span style="color:rgba(212,175,55,.3);font-size:18px;">›</span></div></div>';
+  });
+  container.innerHTML = html;
+}
+
+function showProjectsEmpty(message) {
+  const container = document.getElementById('projectsContainer');
+  const badge = document.getElementById('projectCountBadge');
+  if (badge) badge.textContent = '0';
+  if (container) container.innerHTML = '<div style="text-align:center;padding:32px 20px;"><div style="font-size:36px;margin-bottom:12px;opacity:.3;">📋</div><div style="color:rgba(212,175,55,.5);font-size:15px;margin-bottom:8px;">' + message + '</div><div style="color:rgba(212,175,55,.25);font-size:12px;">Projects will appear here once created by your designer</div></div>';
+}
+
+function openProjectWorkflowsUniversal(projectId, projectName) {
+  if (!currentUser) return;
+  const clientUID = currentUser.uid;
+  console.log('📂 Opening project:', projectId, projectName);
+  const modal = document.createElement('div');
+  modal.className = 'workflow-modal';
+  modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.98);z-index:30000;display:flex;flex-direction:column;padding:24px 20px;overflow-y:auto;backdrop-filter:blur(8px);';
+  modal.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">'
+    + '<button onclick="this.closest(\'.workflow-modal\').remove()" style="background:none;border:1px solid rgba(212,175,55,.3);color:rgba(212,175,55,.6);border-radius:8px;padding:8px 16px;font-family:\'Jost\',sans-serif;font-size:10px;letter-spacing:2px;cursor:pointer;">← BACK</button>'
+    + '<div style="font-family:\'Cormorant Garamond\',serif;font-size:20px;color:var(--gold-light);letter-spacing:.5px;">' + projectName + '</div>'
+    + '<div style="width:72px;"></div></div>'
+    + '<div style="font-family:\'Jost\',sans-serif;font-size:9px;letter-spacing:4px;color:rgba(212,175,55,.4);text-transform:uppercase;margin-bottom:16px;">Workflow Progress</div>'
+    + '<div id="workflowsUniversalContainer" style="display:flex;flex-direction:column;gap:12px;"><div style="text-align:center;padding:40px;"><div class="loading-spinner" style="width:24px;height:24px;margin:0 auto 12px;border:2px solid rgba(212,175,55,.1);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;"></div><div style="color:rgba(212,175,55,.5);">Loading workflows...</div></div></div>';
+  document.body.appendChild(modal);
+  const workflowPaths = [
+    'timelines/' + clientUID + '/projects/' + projectId + '/workflows',
+    'vault/clients/' + clientUID + '/projects/' + projectId + '/workflows'
+  ];
+  fbDb.ref('userProfiles/' + clientUID + '/mobile').once('value').then(phoneSnap => {
+    const phone = phoneSnap.val();
+    if (phone) workflowPaths.push('timelines/' + phone + '/projects/' + projectId + '/workflows');
+    return tryWorkflowPaths(workflowPaths, 0, modal);
+  }).catch(() => tryWorkflowPaths(workflowPaths, 0, modal));
+}
+
+function tryWorkflowPaths(paths, index, modal) {
+  if (index >= paths.length) {
+    const wc = modal.querySelector('#workflowsUniversalContainer');
+    if (wc) wc.innerHTML = '<div style="text-align:center;padding:60px;"><div style="font-size:48px;margin-bottom:16px;opacity:.3;">📋</div><div style="font-size:16px;color:rgba(212,175,55,.5);">No workflows yet</div></div>';
+    return Promise.resolve();
+  }
+  const path = paths[index];
+  console.log('🔍 Checking workflow path:', path);
+  return fbDb.ref(path).once('value').then(snapshot => {
+    const workflows = snapshot.val();
+    if (workflows && Object.keys(workflows).length > 0) {
+      displayWorkflowsUniversal(workflows, modal);
+      return Promise.resolve();
+    }
+    return tryWorkflowPaths(paths, index + 1, modal);
+  }).catch(() => tryWorkflowPaths(paths, index + 1, modal));
+}
+
+function displayWorkflowsUniversal(workflows, modal) {
+  const container = modal.querySelector('#workflowsUniversalContainer');
+  if (!container) return;
+  const entries = Object.entries(workflows);
+  if (!entries.length) {
+    container.innerHTML = '<div style="text-align:center;padding:60px;"><div style="font-size:48px;margin-bottom:16px;opacity:.3;">📋</div><div style="font-size:16px;color:rgba(212,175,55,.5);">No workflows yet</div></div>';
+    return;
+  }
+  container.innerHTML = entries.map(([id, w], i) => {
+    const done = w.status === 'progressed';
+    return '<div style="background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,' + (done?'.35':'.15') + ');border-radius:16px;padding:16px 20px;">'
+      + '<div style="display:flex;align-items:center;gap:16px;">'
+      + '<div style="width:36px;height:36px;border-radius:50%;background:' + (done?'rgba(80,200,120,.1)':'rgba(212,175,55,.1)') + ';border:1px solid ' + (done?'rgba(80,200,120,.3)':'rgba(212,175,55,.2)') + ';display:flex;align-items:center;justify-content:center;font-family:\'Cormorant Garamond\',serif;font-size:16px;color:' + (done?'#50C878':'var(--gold)') + ';flex-shrink:0;">' + (i+1) + '</div>'
+      + '<div style="flex:1;"><div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;color:#E8D9B5;margin-bottom:6px;">' + (w.name||'Step '+(i+1)) + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:' + (done?'#50C878':'rgba(212,175,55,.3)') + ';"></div>'
+      + '<span style="font-family:\'Jost\',sans-serif;font-size:9px;letter-spacing:2px;color:' + (done?'#50C878':'rgba(212,175,55,.5)') + ';text-transform:uppercase;">' + (done?'COMPLETED':'IN PROGRESS') + '</span></div></div></div></div>';
+  }).join('');
+}
+
+// enterBespokeVault is defined once above and calls loadProjectsUniversal directly
+
+// Refresh button
+function addRefreshButton() {
+  const section = document.getElementById('progressTrackerSection');
+  if (!section || document.getElementById('ptRefreshBtn')) return;
+  const header = section.querySelector('div');
+  if (!header) return;
+  const btn = document.createElement('button');
+  btn.id = 'ptRefreshBtn';
+  btn.innerHTML = '↻';
+  btn.style.cssText = 'background:none;border:1px solid rgba(212,175,55,.3);color:rgba(212,175,55,.6);border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer;margin-left:8px;flex-shrink:0;';
+  btn.onclick = function(e) { e.stopPropagation(); loadProjectsUniversal(); };
+  header.appendChild(btn);
+}
+setTimeout(addRefreshButton, 2000);
+
+window.loadProjectsUniversal = loadProjectsUniversal;
+
+// ===========================================
+// FIREBASE CONNECTION TEST + DEBUG BUTTON
+// ===========================================
+
+window.testFirebaseConnection = function() {
+  console.log('🔍 TESTING FIREBASE CONNECTION...');
+  if (!currentUser) { console.log('❌ No user logged in'); alert('Please log in first'); return; }
+  const clientUID = currentUser.uid;
+  console.log('Current User UID:', clientUID);
+  fbDb.ref('timelines/' + clientUID + '/projects').once('value')
+    .then(snapshot => {
+      console.log('Projects at timelines/' + clientUID + '/projects:', snapshot.val());
+      if (snapshot.exists()) {
+        const projects = snapshot.val();
+        const count = Object.keys(projects).length;
+        alert('✅ Found ' + count + ' project(s) at timelines/' + clientUID + '/projects');
+        displayProjectsUniversal(projects);
+      } else {
+        alert('❌ No projects found at timelines/' + clientUID + '/projects');
+      }
+    })
+    .catch(err => { console.error('Error:', err); alert('Error: ' + err.message); });
+};
+
+function addManualRefreshButton() {
+  const section = document.getElementById('progressTrackerSection');
+  if (!section || document.getElementById('ptTestBtn')) return;
+  const header = section.querySelector('div');
+  if (!header) return;
+  const testBtn = document.createElement('button');
+  testBtn.id = 'ptTestBtn';
+  testBtn.textContent = '🔍 TEST';
+  testBtn.style.cssText = 'background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);color:var(--gold);border-radius:20px;padding:4px 12px;font-family:\'Jost\',sans-serif;font-size:10px;letter-spacing:1px;margin-left:8px;cursor:pointer;flex-shrink:0;';
+  testBtn.onclick = function(e) { e.stopPropagation(); window.testFirebaseConnection(); };
+  header.appendChild(testBtn);
+}
+setTimeout(addManualRefreshButton, 3000);
 </script>
 <div id="vaultGlint"></div>
 </body>
