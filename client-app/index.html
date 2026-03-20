@@ -698,14 +698,15 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
         <div style="display:flex;align-items:center;gap:8px;">
           <span style="font-size:20px;">🎨</span>
-          <span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold-light);">Texture Gallery</span>
+          <span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold-light);">Material Samples</span>
         </div>
         <span id="textureCountBadge" style="background:rgba(212,175,55,.15);color:var(--gold);font-size:11px;padding:4px 12px;border-radius:30px;">0</span>
       </div>
       <!-- Skeleton -->
       <div id="textureSkeleton" style="display:flex;flex-direction:column;gap:10px;">
-        <div style="height:72px;border-radius:14px;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
-        <div style="height:72px;border-radius:14px;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;opacity:.6;"></div>
+        <div style="height:80px;border-radius:14px;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
+        <div style="height:80px;border-radius:14px;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;opacity:.7;"></div>
+        <div style="height:80px;border-radius:14px;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;opacity:.5;"></div>
       </div>
       <div id="textureContainer" style="display:none;flex-direction:column;gap:10px;"></div>
     </div>
@@ -714,16 +715,35 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
         <div style="display:flex;align-items:center;gap:8px;">
           <span style="font-size:20px;">✈️</span>
-          <span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold-light);">Unreleased Unreleased Overseas Exclusives</span>
+          <span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold-light);">Unreleased Overseas Exclusives</span>
         </div>
         <span id="overseasCountBadge" style="background:rgba(212,175,55,.15);color:var(--gold);font-size:11px;padding:4px 12px;border-radius:30px;">0</span>
       </div>
-      <!-- Skeleton -->
-      <div id="overseasSkeleton" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">
-        <div style="aspect-ratio:3/4;border-radius:14px;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
-        <div style="aspect-ratio:3/4;border-radius:14px;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;opacity:.6;"></div>
+      <!-- Skeleton — numbered rows -->
+      <div id="overseasSkeleton" style="display:flex;flex-direction:column;gap:12px;">
+        <div style="height:96px;border-radius:14px;background:linear-gradient(90deg,rgba(6,13,24,.6) 25%,rgba(212,175,55,.08) 50%,rgba(6,13,24,.6) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
+        <div style="height:96px;border-radius:14px;background:linear-gradient(90deg,rgba(6,13,24,.6) 25%,rgba(212,175,55,.08) 50%,rgba(6,13,24,.6) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;opacity:.75;"></div>
+        <div style="height:96px;border-radius:14px;background:linear-gradient(90deg,rgba(6,13,24,.6) 25%,rgba(212,175,55,.08) 50%,rgba(6,13,24,.6) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;opacity:.5;"></div>
       </div>
-      <div id="overseasContainer" style="display:none;grid-template-columns:repeat(2,1fr);gap:12px;"></div>
+      <div id="overseasContainer" style="display:none;flex-direction:column;gap:12px;"></div>
+    </div>
+    <!-- PRIORITY CONCIERGE ACCESS -->
+    <div id="priorityConciergeSection" style="padding:16px 20px 24px;border-bottom:1px solid rgba(212,175,55,.1);background:linear-gradient(135deg,rgba(26,15,0,.5),rgba(18,13,6,.8));">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+        <span style="font-size:20px;">⭐</span>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold-light);">Priority Concierge Access</span>
+      </div>
+      <div style="font-family:'Jost',sans-serif;font-size:12px;color:rgba(212,175,55,.5);letter-spacing:1px;margin-bottom:16px;" id="pcSubtitle">Apply for a VIP Partnership</div>
+      <div id="pcContentArea" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+        <!-- Skeleton -->
+        <div id="pcSkeleton" style="display:flex;flex-direction:column;gap:8px;">
+          <div style="height:28px;border-radius:8px;width:60%;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
+          <div style="height:60px;border-radius:8px;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;opacity:.7;"></div>
+        </div>
+        <div id="pcContent" style="display:none;flex-direction:column;gap:12px;"></div>
+      </div>
+      <button onclick="applyForPartnership()" style="width:100%;padding:16px;background:linear-gradient(135deg,var(--gold),#8B6914);border:none;border-radius:12px;color:#0A1628;font-family:'Jost',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">Apply for Partnership &nbsp;(1)</button>
+      <div style="font-size:10px;color:rgba(212,175,55,.3);text-align:center;margin-top:8px;letter-spacing:1px;">One application per month</div>
     </div>
     <!-- VAULT ASSETS GRID -->
     <div style="padding:20px 20px 10px;">
@@ -2078,23 +2098,45 @@ function loadTextureGallery() {
     const items = snap.val() ? Object.entries(snap.val()).map(([k,v]) => ({...v, _key:k})).sort((a,b)=>(a.order||0)-(b.order||0)) : [];
     if (badge) badge.textContent = items.length;
     if (!items.length) {
-      container.innerHTML = '<div style="text-align:center;padding:24px;color:rgba(212,175,55,.3);">No textures added yet</div>';
+      container.innerHTML = '<div style="text-align:center;padding:24px;color:rgba(212,175,55,.3);">No material samples added yet</div>';
       return;
     }
     container.innerHTML = items.map((item, i) => `
-      <div style="background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,.15);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;">
-        <div style="width:28px;height:28px;border-radius:50%;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.2);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--gold);flex-shrink:0;">${i+1}</div>
-        ${item.imageUrl ? `<img src="${item.imageUrl}" style="width:52px;height:52px;border-radius:8px;object-fit:cover;flex-shrink:0;">` : '<div style="width:52px;height:52px;border-radius:8px;background:rgba(212,175,55,.06);border:1px solid rgba(212,175,55,.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🖼</div>'}
-        <div style="flex:1;">
-          <div style="font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--gold-light);margin-bottom:5px;">${item.name||'Texture'}</div>
-          <div style="display:inline-block;padding:3px 12px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;background:${item.status==='installed'?'rgba(80,200,120,.12)':'rgba(212,175,55,.1)'};color:${item.status==='installed'?'#50C878':'var(--gold)'};">
-            ${item.status==='installed'?'✓ INSTALLED':'PREVIEWING'}
+      <div onclick="openTextureItem('${item._key}')" style="background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,.18);border-radius:16px;overflow:hidden;cursor:pointer;display:flex;align-items:stretch;transition:border-color .2s;" ontouchstart="this.style.background='rgba(212,175,55,.05)'" ontouchend="this.style.background=''">
+        <div style="width:32px;display:flex;align-items:center;justify-content:center;background:rgba(212,175,55,.06);border-right:1px solid rgba(212,175,55,.12);flex-shrink:0;">
+          <span style="font-family:'Cormorant Garamond',serif;font-size:15px;color:rgba(212,175,55,.6);">${i+1}</span>
+        </div>
+        <div style="position:relative;width:80px;flex-shrink:0;">
+          ${item.imageUrl ? `<img src="${item.imageUrl}" style="width:80px;height:80px;object-fit:cover;display:block;" loading="lazy">` : '<div style="width:80px;height:80px;background:rgba(212,175,55,.06);display:flex;align-items:center;justify-content:center;font-size:24px;">🖼</div>'}
+        </div>
+        <div style="flex:1;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--gold-light);font-weight:600;">${item.name||'Material'}</div>
+          <div style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;width:fit-content;background:${item.status==='installed'?'rgba(80,200,120,.12)':'rgba(212,175,55,.1)'};color:${item.status==='installed'?'#50C878':'var(--gold)'};">
+            <span style="width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block;"></span>
+            ${item.status==='installed'?'INSTALLED':'PREVIEWING'}
           </div>
         </div>
+        <div style="display:flex;align-items:center;padding-right:14px;color:rgba(212,175,55,.3);font-size:18px;">›</div>
       </div>`).join('');
   }).catch(() => {
     if (skeleton) skeleton.style.display = 'none';
-    if (container) { container.style.display = 'flex'; container.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(212,175,55,.3);">Unable to load textures</div>'; }
+    if (container) { container.style.display = 'flex'; container.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(212,175,55,.3);">Unable to load</div>'; }
+  });
+}
+function openTextureItem(key) {
+  fbDb.ref('textureGallery/' + key).once('value').then(snap => {
+    const item = snap.val(); if (!item) return;
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:#0A0804;z-index:30000;display:flex;flex-direction:column;';
+    modal.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid rgba(212,175,55,.15);background:rgba(10,8,4,.97);position:sticky;top:0;z-index:10;flex-shrink:0;">
+        <button onclick="this.closest('div[style*=position\\:fixed]').remove()" style="background:none;border:1px solid rgba(212,175,55,.3);color:rgba(212,175,55,.6);border-radius:8px;padding:8px 14px;font-size:11px;cursor:pointer;">←</button>
+        <div style="flex:1;font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold-light);">${item.name||'Material'}</div>
+        <div style="padding:5px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:${item.status==='installed'?'rgba(80,200,120,.15)':'rgba(212,175,55,.1)'};color:${item.status==='installed'?'#50C878':'var(--gold)'};">${item.status==='installed'?'✓ INSTALLED':'PREVIEWING'}</div>
+      </div>
+      ${item.imageUrl ? `<img src="${item.imageUrl}" style="width:100%;max-height:260px;object-fit:cover;flex-shrink:0;">` : ''}
+      <div style="padding:24px 20px;"><p style="font-family:'Jost',sans-serif;font-size:14px;color:rgba(232,217,181,.7);line-height:1.8;">${item.description||'A premium material sample for your project.'}</p></div>`;
+    document.body.appendChild(modal);
   });
 }
 function loadOverseasGallery() {
@@ -2104,25 +2146,30 @@ function loadOverseasGallery() {
   if (!container) return;
   fbDb.ref('overseasExclusives').orderByChild('createdAt').once('value').then(snap => {
     if (skeleton) skeleton.style.display = 'none';
-    if (container) { container.style.display = 'grid'; }
+    if (container) { container.style.display = 'flex'; }
     const items = snap.val() ? Object.entries(snap.val()).map(([k,v])=>({...v,_key:k})).reverse() : [];
     if (badge) badge.textContent = items.length;
     if (!items.length) {
-      container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:24px;color:rgba(212,175,55,.3);">No overseas exclusives yet</div>';
+      container.innerHTML = '<div style="text-align:center;padding:24px;color:rgba(212,175,55,.3);">No exclusives yet</div>';
       return;
     }
-    container.innerHTML = items.map(item => `
-      <div onclick="openOverseasItem('${item._key}')" style="position:relative;border-radius:14px;overflow:hidden;border:1px solid rgba(212,175,55,.2);cursor:pointer;aspect-ratio:3/4;background:#060D18;">
-        ${item.coverImage ? `<img src="${item.coverImage}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;" loading="lazy">` : '<div style="width:100%;height:100%;background:linear-gradient(135deg,#060D18,#0E0B06);display:flex;align-items:center;justify-content:center;font-size:36px;position:absolute;inset:0;">✈️</div>'}
-        <div style="position:absolute;inset:0;background:linear-gradient(transparent 45%,rgba(0,0,0,.88));"></div>
-        <div style="position:absolute;bottom:0;left:0;right:0;padding:10px 12px;display:flex;align-items:flex-end;justify-content:space-between;">
-          <div style="font-family:'Cormorant Garamond',serif;font-size:13px;color:#E8D9B5;font-weight:600;line-height:1.3;">${item.name||'Exclusive'}</div>
-          <div style="font-size:9px;color:rgba(212,175,55,.7);letter-spacing:1px;text-align:right;">${item.location||''}</div>
+    container.innerHTML = items.map((item, i) => `
+      <div onclick="openOverseasItem('${item._key}')" style="position:relative;border-radius:16px;overflow:hidden;border:1px solid rgba(212,175,55,.2);cursor:pointer;background:#060D18;display:flex;align-items:stretch;height:96px;transition:border-color .2s;" ontouchstart="this.style.borderColor='rgba(212,175,55,.5)'" ontouchend="this.style.borderColor='rgba(212,175,55,.2)'">
+        <div style="width:32px;display:flex;align-items:center;justify-content:center;background:rgba(6,13,24,.8);border-right:1px solid rgba(212,175,55,.12);flex-shrink:0;">
+          <span style="font-family:'Cormorant Garamond',serif;font-size:15px;color:rgba(212,175,55,.6);">${i+1}</span>
         </div>
+        <div style="position:relative;width:96px;flex-shrink:0;">
+          ${item.coverImage ? `<img src="${item.coverImage}" style="width:96px;height:96px;object-fit:cover;display:block;" loading="lazy">` : '<div style="width:96px;height:96px;background:linear-gradient(135deg,#060D18,#0E0B06);display:flex;align-items:center;justify-content:center;font-size:28px;">✈️</div>'}
+        </div>
+        <div style="flex:1;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(90deg,rgba(6,13,24,.9),rgba(6,13,24,.6));">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:16px;color:#E8D9B5;font-weight:600;line-height:1.3;">${item.name||'Exclusive'}</div>
+          <div style="font-size:10px;color:rgba(212,175,55,.6);letter-spacing:1px;">${item.location||''}</div>
+        </div>
+        <div style="display:flex;align-items:center;padding-right:14px;color:rgba(212,175,55,.3);font-size:18px;">›</div>
       </div>`).join('');
   }).catch(() => {
     if (skeleton) skeleton.style.display = 'none';
-    if (container) { container.style.display = 'grid'; container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:rgba(212,175,55,.3);">Unable to load</div>'; }
+    if (container) { container.style.display = 'flex'; container.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(212,175,55,.3);">Unable to load</div>'; }
   });
 }
 
@@ -2154,6 +2201,55 @@ function openOverseasItem(key) {
       </div>`;
     document.body.appendChild(modal);
   });
+}
+
+function loadPriorityConcierge() {
+  const pcSkel = document.getElementById('pcSkeleton');
+  const pcContent = document.getElementById('pcContent');
+  if (!pcContent) return;
+  fbDb.ref('priorityConcierge').once('value').then(snap => {
+    if (pcSkel) pcSkel.style.display = 'none';
+    pcContent.style.display = 'flex';
+    const item = snap.val() || {};
+    const blocks = item.content || [];
+    if (!blocks.length) {
+      pcContent.innerHTML = '<p style="font-family:Jost,sans-serif;font-size:13px;color:rgba(212,175,55,.4);line-height:1.7;">Exclusive partnership access for our most valued clients. Apply below to be considered for our VIP programme.</p>';
+      return;
+    }
+    pcContent.innerHTML = blocks.map(b => {
+      if (b.type === 'heading') return `<div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--gold-light);letter-spacing:1px;line-height:1.3;">${b.value}</div>`;
+      if (b.type === 'subheading') return `<div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--gold);letter-spacing:.5px;">${b.value}</div>`;
+      if (b.type === 'image') return `<img src="${b.value}" style="width:100%;border-radius:12px;object-fit:cover;" loading="lazy">`;
+      return `<p style="font-family:'Jost',sans-serif;font-size:14px;color:rgba(232,217,181,.75);line-height:1.8;">${b.value}</p>`;
+    }).join('');
+  }).catch(() => {
+    if (pcSkel) pcSkel.style.display = 'none';
+    if (pcContent) { pcContent.style.display = 'flex'; pcContent.innerHTML = '<p style="color:rgba(212,175,55,.3);font-size:13px;">Unable to load</p>'; }
+  });
+}
+
+function applyForPartnership() {
+  if (!currentUser) { showToast('Please sign in first'); return; }
+  const now = Date.now();
+  const lastKey = 'pc_apply_' + currentUser.uid;
+  const last = parseInt(localStorage.getItem(lastKey) || '0');
+  const oneMonth = 30 * 24 * 60 * 60 * 1000;
+  if (now - last < oneMonth) {
+    const daysLeft = Math.ceil((oneMonth - (now - last)) / (24*60*60*1000));
+    showToast('You can apply again in ' + daysLeft + ' day' + (daysLeft !== 1 ? 's' : ''));
+    return;
+  }
+  fbDb.ref('vipRequests/' + currentUser.uid).set({
+    uid: currentUser.uid,
+    name: currentProfile?.name || 'Client',
+    email: currentUser.email || '',
+    phone: currentProfile?.mobile || '',
+    type: 'partnership',
+    createdAt: now
+  }).then(() => {
+    localStorage.setItem(lastKey, now.toString());
+    showToast('✓ Application submitted! We will be in touch.');
+  }).catch(() => showToast('Error submitting — please try again'));
 }
 
 function _renderVaultGrid(assets) {
@@ -2194,6 +2290,8 @@ async function enterBespokeVault() {
   loadTextureGallery();
   // Load overseas exclusives
   loadOverseasGallery();
+  // Load priority concierge
+  loadPriorityConcierge();
   // Gold shimmer glint
   const glint = document.getElementById('vaultGlint');
   if (glint) { glint.style.display = 'block'; setTimeout(() => { glint.style.display = 'none'; }, 1200); }
@@ -3111,7 +3209,7 @@ window.testFirebaseConnection = function() {
     .then(snapshot => {
       console.log('Projects at timelines/' + clientUID + '/projects:', snapshot.val());
       if (snapshot.exists()) {
-        const projects = snapshot.vahdldgsjdoshsl();
+        const projects = snapshot.val();
         const count = Object.keys(projects).length;
         alert('✅ Found ' + count + ' project(s) at timelines/' + clientUID + '/projects');
         displayProjectsUniversal(projects);
