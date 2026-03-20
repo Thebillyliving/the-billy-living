@@ -2375,14 +2375,14 @@
                         <div class="vm-asset-body"><div class="vm-asset-cat">Progress Tracker</div><div class="vm-asset-title">Project Progress</div></div>
                         <div class="vm-asset-actions">${makeVisBtn('progressTracker', ptVis)}</div>
                     </div>`;
-                    const tgCard = `<div class="vm-asset-card" style="border-color:rgba(212,175,55,.3);cursor:pointer;" onclick="vmShowView('library')">
+                    const tgCard = `<div class="vm-asset-card" style="border-color:rgba(212,175,55,.3);cursor:pointer;" onclick="vmOpenTextureEditor()">
                         ${makeCover('🎨','linear-gradient(135deg,#0E0B06,#1A1408)','tg')}
-                        <div class="vm-asset-body"><div class="vm-asset-cat">Texture Gallery</div><div class="vm-asset-title">Material Samples</div></div>
+                        <div class="vm-asset-body"><div class="vm-asset-cat">Texture Gallery</div><div class="vm-asset-title">Material Samples</div><div class="vm-asset-desc" style="font-size:10px;color:rgba(212,175,55,.4);">Tap to manage · Hold to set cover</div></div>
                         <div class="vm-asset-actions">${makeVisBtn('textureGallery', tgVis)}</div>
                     </div>`;
-                    const oeCard = `<div class="vm-asset-card" style="border-color:rgba(212,175,55,.3);cursor:pointer;" onclick="vmShowView('library')">
+                    const oeCard = `<div class="vm-asset-card" style="border-color:rgba(212,175,55,.3);cursor:pointer;" onclick="vmOpenOverseasEditor()">
                         ${makeCover('✈️','linear-gradient(135deg,#060D18,#0D1E3A)','oe')}
-                        <div class="vm-asset-body"><div class="vm-asset-cat">Unreleased Overseas Exclusives</div><div class="vm-asset-title">Global Properties</div></div>
+                        <div class="vm-asset-body"><div class="vm-asset-cat">Unreleased Overseas Exclusives</div><div class="vm-asset-title">Global Properties</div><div class="vm-asset-desc" style="font-size:10px;color:rgba(212,175,55,.4);">Tap to manage · Hold to set cover</div></div>
                         <div class="vm-asset-actions">${makeVisBtn('overseasExclusives', oeVis)}</div>
                     </div>`;
                     const pcCard = `<div class="vm-asset-card" style="border-color:rgba(212,175,55,.3);cursor:pointer;" onclick="vmEditPriorityConcierge()">
@@ -2397,8 +2397,22 @@
                 grid.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">⚠</div><div class="vm-empty-title">Error loading vault</div><div class="vm-empty-sub">' + e.message + '</div></div>';
             });
         }
-        function vmOpenTextureGallery() {
-            showToast('Texture Gallery — manage from Vault Library');
+        function vmOpenTextureGallery() { vmOpenTextureEditor(); }
+        function vmOpenTextureEditor() {
+            // Navigate to library and scroll to texture section
+            vmShowView('library');
+            setTimeout(() => {
+                const el = document.getElementById('vmTextureList');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }, 300);
+        }
+        function vmOpenOverseasEditor() {
+            // Navigate to library and scroll to overseas section
+            vmShowView('library');
+            setTimeout(() => {
+                const el = document.getElementById('vmOverseasList');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }, 300);
         }
 
         function vmLoadClientProjects(uid) {
