@@ -1358,6 +1358,19 @@ async function loadHomeFeed() {
     return tb - ta;
   });
 
+  // Show shimmer skeleton immediately
+  if (!feed.querySelector('.feed-item')) {
+    feed.innerHTML = Array(3).fill(0).map(() => `
+      <div style="padding:14px;border-bottom:1px solid rgba(201,169,98,.08);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.12) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;flex-shrink:0;"></div>
+          <div style="flex:1;height:14px;border-radius:6px;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.12) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
+        </div>
+        <div style="width:100%;aspect-ratio:4/5;border-radius:4px;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.1) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;margin-bottom:10px;"></div>
+        <div style="height:12px;width:70%;border-radius:4px;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.1) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
+      </div>`).join('');
+  }
+
   // ── CACHE-FIRST: render instantly from localStorage ──
   try {
     const cached = JSON.parse(localStorage.getItem('tbl_feed_posts') || '[]');
@@ -1373,9 +1386,17 @@ async function loadHomeFeed() {
     }
     const posts = _sortPosts(Object.values(snap.val()));
     if (!posts.length) return;
-    // Save to cache (metadata only — skip large imageData blobs to avoid quota)
+    // Save to cache — keep imageUrl but skip base64 blobs to avoid quota
     try {
-      const meta = posts.map(p => { const {imageData, videoData, audioData, ...rest} = p; return rest; });
+      const meta = posts.slice(0, 20).map(p => {
+        const {videoData, audioData, ...rest} = p;
+        // Keep imageUrl but strip base64 imageData (too large for localStorage)
+        if (p.imageData && p.imageData.startsWith('data:')) {
+          const {imageData, ...noBlob} = rest;
+          return noBlob;
+        }
+        return rest;
+      });
       localStorage.setItem('tbl_feed_posts', JSON.stringify(meta));
     } catch(e) {}
     _renderFeed(posts);
@@ -1626,6 +1647,11 @@ const _trendMap = {};
 async function loadTrending() {
   const container = document.getElementById('trendingContainer');
   const EMPTY_HTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:Cormorant Garamond,serif;font-size:22px">No trending yet</div>';
+
+  // Show shimmer immediately
+  if (!container.querySelector('.tiktok-item')) {
+    container.innerHTML = '<div style="width:100%;height:100%;background:linear-gradient(90deg,rgba(255,255,255,.02) 25%,rgba(255,255,255,.06) 50%,rgba(255,255,255,.02) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;display:flex;align-items:center;justify-content:center;"><div style="text-align:center;color:rgba(255,255,255,.2);font-family:Cormorant Garamond,serif;font-size:18px;letter-spacing:2px;">Loading...</div></div>';
+  }
 
   // ── CACHE-FIRST ──
   try {
@@ -2704,6 +2730,14 @@ function handleConsultOption(type) {
 let _conciergeListener = null;
 async function loadConciergeHistory() {
   if (!currentUser) return;
+  // Show cached messages instantly while Firebase loads
+  try {
+    const cached = JSON.parse(localStorage.getItem('cg_msgs_' + currentUser.uid) || '[]');
+    if (cached.length && !cgMessages.length) {
+      cgMessages = cached;
+      renderConciergeMessages();
+    }
+  } catch(e) {}
   // Detach any existing listener
   if (_conciergeListener) {
     fbDb.ref(`chats/${currentUser.uid}/messages`).off('value', _conciergeListener);
@@ -2713,7 +2747,7 @@ async function loadConciergeHistory() {
     if (!snap.exists()) return;
     const msgs = [];
     snap.forEach(child => msgs.push(child.val()));
-    cgHistory = msgs.map(m => ({ role: m.sender === 'client' ? 'user' : 'assistant', content: m.text }));
+    cgHistory = msgs.map(m => ({ role: (m.sender === 'client' || (!m.sender && m.role !== 'admin')) ? 'user' : 'assistant', content: m.text }));
     cgMessages = msgs;
     renderConciergeMessages();
   });
@@ -2728,14 +2762,21 @@ function renderConciergeMessages() {
   const existing = container.querySelectorAll('.cg-msg');
   existing.forEach(e => e.remove());
   cgMessages.forEach(m => {
+    // Support both sender field and role field for backwards compatibility
+    const isClient = m.sender === 'client' || (m.role !== 'admin' && !m.sender);
     const el = document.createElement('div');
-    el.className = 'cg-msg ' + (m.sender === 'client' ? 'sent' : 'recv');
-    const time = m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
+    el.className = 'cg-msg ' + (isClient ? 'sent' : 'recv');
+    const ts = m.timestamp || m.createdAt || 0;
+    const time = ts ? new Date(ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
     const safeText = (m.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     el.innerHTML = `<div class="cg-bubble">${safeText}</div><div class="cg-msg-time">${time}</div>`;
     container.appendChild(el);
   });
   container.scrollTop = container.scrollHeight;
+  // Cache messages to localStorage so they survive page refresh
+  try {
+    if (currentUser) localStorage.setItem('cg_msgs_' + currentUser.uid, JSON.stringify(cgMessages.slice(-50)));
+  } catch(e) {}
 }
 
 async function sendConciergeMessage() {
