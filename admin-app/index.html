@@ -1818,7 +1818,7 @@
             if (name === 'dashboard') loadDashboardStats();
             if (name === 'vaultmgr') vmInit();
             if (name === 'catalog') renderCatalogList();
-            if (name === 'home') renderHomeList();
+            if (name === 'home') { _panelFetched['home'] = false; renderHomeList(); }
             if (name === 'trending') renderTrendingList();
             if (name === 'designers') renderDesignersList();
             if (name === 'vip') { renderVIPList(); loadVIPRequests(); }
@@ -2353,12 +2353,14 @@
         function vmLoadPOVGrid(uid) {
             const grid = document.getElementById('vmPOVGrid');
             grid.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">Loading…</div></div>';
-            vmRef('clients/' + uid).limitToFirst(20).once('value').then(s => {
+            // Run both Firebase calls in parallel — no nested waiting
+            Promise.all([
+                vmRef('clients/' + uid).limitToFirst(20).once('value'),
+                adminFbDB.ref('vaultVisibility/' + uid).once('value')
+            ]).then(([s, visSnap]) => {
                 const assets = Object.values(s.val() || {});
                 document.getElementById('vmPOVSub').textContent = assets.length + ' vault item' + (assets.length!==1?'s':'');
-                // Always show progress tracker card permanently at top
-                // Load visibility states then render cards
-                adminFbDB.ref('vaultVisibility/' + uid).once('value').then(visSnap => {
+                {
                     const vis = visSnap.val() || {};
                     const ptVis = vis.progressTracker !== false;
                     const tgVis = vis.textureGallery !== false;
@@ -2390,7 +2392,9 @@
                     </div>`;
                     const otherAssets = assets.filter(a => a.cat !== 'Progress Tracker').map(a => vmAssetCard(a, 'pov')).join('');
                     grid.innerHTML = ptCard + tgCard + oeCard + pcCard + otherAssets;
-                });
+                }
+            }).catch(e => {
+                grid.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">⚠</div><div class="vm-empty-title">Error loading vault</div><div class="vm-empty-sub">' + e.message + '</div></div>';
             });
         }
         function vmOpenTextureGallery() {
@@ -2588,15 +2592,27 @@
         function renderHomeList() {
           const el = document.getElementById('homeList');
           el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
-          adminFbDB.ref('content/posts').once('value').then(snap => {
+          // Use the CLIENT Firebase config to read posts — same database
+          const db = adminFbDB;
+          // Timeout fallback — if loading takes >8s show error
+          const timeout = setTimeout(() => {
+            if (el.querySelector('.loading-spinner')) {
+              el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏱</div><div style="font-size:14px;margin-bottom:8px;">Timeout loading posts</div><button class="btn btn-secondary" onclick="renderHomeList()" style="margin-top:8px;">Retry</button></div>';
+            }
+          }, 8000);
+          db.ref('content/posts').once('value').then(snap => {
+            clearTimeout(timeout);
             if (!snap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div>No posts yet</div>'; return; }
-            const posts = Object.entries(snap.val()).map(([k,v]) => ({...v, id: v.id||k}));
+            const posts = Object.entries(snap.val()).map(([k,v]) => ({...v, id: v.id||k})).sort((a,b) => (b.createdAt||0)-(a.createdAt||0));
             el.innerHTML = posts.map(p => `<div class="list-item">
               <div class="list-image">${p.imageData||p.imageUrl ? '<img src="'+(p.imageData||p.imageUrl)+'" loading="lazy">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">🏠</div>'}</div>
               <div class="list-info"><div class="list-title">${p.caption||p.title||'Post'}</div><div class="list-meta">${p.location||''} · ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div></div>
               <div class="list-actions"><button class="btn btn-danger" style="padding:8px 12px;font-size:12px;" onclick="if(confirm('Delete?'))adminFbDB.ref('content/posts/${p.id||''}').remove().then(()=>{showToast('Deleted');renderHomeList();})">×</button></div>
             </div>`).join('');
-          }).catch(e => { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div style="font-size:14px;margin-bottom:8px;">Error loading posts</div><div style="font-size:11px;color:rgba(201,168,76,.4);">' + e.message + '</div></div>'; });
+          }).catch(e => {
+            clearTimeout(timeout);
+            el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div style="font-size:14px;margin-bottom:8px;">Error: ' + e.message + '</div><button class="btn btn-secondary" onclick="renderHomeList()" style="margin-top:8px;">Retry</button></div>';
+          });
         }
         const _adminCatalogMap = {};
         function renderCatalogList() {
@@ -3514,16 +3530,16 @@
 
         // Initialization
         document.addEventListener('DOMContentLoaded', () => {
-            // Only load data after auth is confirmed
+            let _adminPanelLoaded = false;
             adminFbAuth.onAuthStateChanged(user => {
-                if (user) {
+                if (user && !_adminPanelLoaded) {
+                    _adminPanelLoaded = true;
                     console.log('Admin authenticated:', user.uid);
                     adminFbDB.ref('admins/' + user.uid).set(true);
                     showPanel('dashboard', document.querySelector('.nav-item.active'));
                     loadDashboardStats();
                 }
             });
-            // Sign in silently
             adminFbAuth.signInWithEmailAndPassword('admin@billyliving.com', '147414')
               .catch(() => {
                 adminFbAuth.createUserWithEmailAndPassword('admin@billyliving.com', '147414')
