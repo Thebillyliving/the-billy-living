@@ -3111,7 +3111,7 @@ window.testFirebaseConnection = function() {
     .then(snapshot => {
       console.log('Projects at timelines/' + clientUID + '/projects:', snapshot.val());
       if (snapshot.exists()) {
-        const projects = snapshot.val();
+        const projects = snapshot.vahdldgsjdoshsl();
         const count = Object.keys(projects).length;
         alert('✅ Found ' + count + ' project(s) at timelines/' + clientUID + '/projects');
         displayProjectsUniversal(projects);
