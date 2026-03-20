@@ -1595,6 +1595,14 @@
                         </div>
                         <div id="vmTextureList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;"></div>
                     </div>
+                    <!-- Unreleased Unreleased Overseas Exclusives Manager -->
+                    <div style="padding:0 16px 0;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0 10px;border-bottom:1px solid rgba(212,175,55,.15);margin-bottom:12px;">
+                            <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--vault-text);">✈️ Unreleased Unreleased Overseas Exclusives</div>
+                            <button onclick="vmAddOverseasItem()" style="background:var(--vault-gold);color:#0A0700;border:none;border-radius:20px;padding:8px 16px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">+ Add Exclusive</button>
+                        </div>
+                        <div id="vmOverseasList" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px;"></div>
+                    </div>
                     <div id="vmLibraryGrid" class="vm-asset-grid" style="padding:16px;"></div>
                 </div>
             </div>
@@ -1833,7 +1841,7 @@
             const map = { main:'vmMainView', library:'vmLibraryView', defaults:'vmDefaultsView', pov:'vmClientPOV', project:'vmProjectDetailView' };
             const target = document.getElementById(map[view]);
             if (target) { target.style.display = 'flex'; target.style.flexDirection = 'column'; }
-            if (view === 'library') { vmRenderLibrary(); vmLoadTextureGallery(); }
+            if (view === 'library') { vmRenderLibrary(); vmLoadTextureGallery(); vmLoadOverseasList(); }
             if (view === 'defaults') vmRenderDefaults();
         }
 
@@ -2358,7 +2366,7 @@
                     </div>
                     <div class="vm-asset-actions"><button class="vm-asset-btn vm-asset-btn-add" onclick="event.stopPropagation();vmOpenProgressTracker('pt_default')">OPEN</button></div>
                 </div>`;
-                // Also show texture gallery card
+                // Texture Gallery card
                 const tgCard = `<div class="vm-asset-card" style="border-color:rgba(212,175,55,.3);" onclick="vmOpenTextureGallery()">
                     <div class="vm-asset-thumb" style="background:linear-gradient(135deg,#0E0B06,#1A1408);display:flex;align-items:center;justify-content:center;font-size:42px;">🎨</div>
                     <div class="vm-asset-body">
@@ -2368,8 +2376,18 @@
                     </div>
                     <div class="vm-asset-actions"><button class="vm-asset-btn vm-asset-btn-add" onclick="event.stopPropagation();vmOpenTextureGallery()">OPEN</button></div>
                 </div>`;
+                // Unreleased Unreleased Overseas Exclusives card
+                const oeCard = `<div class="vm-asset-card" style="border-color:rgba(212,175,55,.3);" onclick="vmOpenOverseasClient()">
+                    <div class="vm-asset-thumb" style="background:linear-gradient(135deg,#060D18,#0D1E3A);display:flex;align-items:center;justify-content:center;font-size:42px;">✈️</div>
+                    <div class="vm-asset-body">
+                        <div class="vm-asset-cat">Unreleased Unreleased Overseas Exclusives</div>
+                        <div class="vm-asset-title">Global Properties</div>
+                        <div class="vm-asset-desc">Exclusive international interior projects</div>
+                    </div>
+                    <div class="vm-asset-actions"><button class="vm-asset-btn vm-asset-btn-add" onclick="event.stopPropagation();vmOpenOverseasClient()">OPEN</button></div>
+                </div>`;
                 const otherAssets = assets.filter(a => a.cat !== 'Progress Tracker').map(a => vmAssetCard(a, 'pov')).join('');
-                grid.innerHTML = ptCard + tgCard + otherAssets;
+                grid.innerHTML = ptCard + tgCard + oeCard + otherAssets;
             });
         }
         function vmOpenTextureGallery() {
@@ -3183,6 +3201,175 @@
                     console.error('Error deleting workflow:', err);
                     showToast('Error: ' + err.message);
                 });
+        }
+
+        // ── OVERSEAS EXCLUSIVES ──────────────────────────────────────────────────
+        let _currentOverseasId = null;
+
+        function vmLoadOverseasList() {
+          const list = document.getElementById('vmOverseasList');
+          if (!list) return;
+          list.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:rgba(212,175,55,.4);">Loading...</div>';
+          adminFbDB.ref('overseasExclusives').orderByChild('createdAt').once('value').then(snap => {
+            const items = snap.val() ? Object.entries(snap.val()).map(([k,v])=>({...v,_key:k})).reverse() : [];
+            if (!items.length) {
+              list.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:rgba(212,175,55,.3);">No exclusives yet. Tap + Add Exclusive.</div>';
+              return;
+            }
+            list.innerHTML = items.map(item => `
+              <div style="position:relative;border-radius:14px;overflow:hidden;border:1px solid rgba(212,175,55,.25);cursor:pointer;aspect-ratio:3/4;background:#0A0804;" onclick="vmEditOverseasItem('${item._key}')">
+                ${item.coverImage ? `<img src="${item.coverImage}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;">` : '<div style="width:100%;height:100%;background:linear-gradient(135deg,#060D18,#0E0B06);display:flex;align-items:center;justify-content:center;font-size:36px;position:absolute;inset:0;">✈️</div>'}
+                <div style="position:absolute;inset:0;background:linear-gradient(transparent 40%,rgba(0,0,0,.85));"></div>
+                <div style="position:absolute;bottom:0;left:0;right:0;padding:10px 12px;display:flex;align-items:flex-end;justify-content:space-between;">
+                  <div style="font-family:'Cormorant Garamond',serif;font-size:13px;color:#E8D9B5;font-weight:600;line-height:1.3;">${item.name||'Exclusive'}</div>
+                  <div style="font-size:9px;color:rgba(212,175,55,.7);letter-spacing:1px;text-align:right;">${item.location||''}</div>
+                </div>
+                <div style="position:absolute;top:8px;right:8px;display:flex;gap:6px;">
+                  <button onclick="event.stopPropagation();vmDeleteOverseasItem('${item._key}')" style="width:26px;height:26px;background:rgba(239,68,68,.8);border:none;border-radius:50%;color:white;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+                </div>
+              </div>`).join('');
+          });
+        }
+
+        function vmAddOverseasItem() {
+          const name = prompt('Property name:');
+          if (!name) return;
+          const location = prompt('Location (e.g. Dubai, UAE):') || '';
+          const coverImage = prompt('Cover image URL (leave blank to skip):') || '';
+          const id = 'oe_' + Date.now();
+          adminFbDB.ref('overseasExclusives/' + id).set({
+            id, name, location, coverImage,
+            content: [], createdAt: Date.now()
+          }).then(() => {
+            showToast('✓ Exclusive added');
+            vmLoadOverseasList();
+            setTimeout(() => vmEditOverseasItem(id), 400);
+          });
+        }
+
+        function vmDeleteOverseasItem(key) {
+          if (!confirm('Delete this exclusive permanently?')) return;
+          adminFbDB.ref('overseasExclusives/' + key).remove().then(() => { showToast('Deleted'); vmLoadOverseasList(); });
+        }
+
+        function vmEditOverseasItem(key) {
+          _currentOverseasId = key;
+          adminFbDB.ref('overseasExclusives/' + key).once('value').then(snap => {
+            const item = snap.val() || {};
+            // Build editor overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'overseasEditorOverlay';
+            overlay.style.cssText = 'position:fixed;inset:0;background:#080808;z-index:12000;display:flex;flex-direction:column;';
+            overlay.innerHTML = `
+              <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid rgba(212,175,55,.2);background:#080808;position:sticky;top:0;z-index:10;flex-shrink:0;">
+                <button onclick="document.getElementById('overseasEditorOverlay').remove();vmLoadOverseasList();" style="background:none;border:1px solid rgba(212,175,55,.3);color:rgba(212,175,55,.6);border-radius:8px;padding:8px 14px;font-size:11px;cursor:pointer;letter-spacing:1px;">← BACK</button>
+                <div style="flex:1;">
+                  <div style="font-size:9px;letter-spacing:4px;color:rgba(212,175,55,.4);text-transform:uppercase;">Unreleased Overseas Exclusive</div>
+                  <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--vault-text);">${item.name||'Edit'}</div>
+                </div>
+                <button onclick="vmSaveOverseasContent('${key}')" style="background:var(--vault-gold);color:#0A0700;border:none;border-radius:20px;padding:10px 20px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">SAVE</button>
+              </div>
+              <!-- Meta fields -->
+              <div style="padding:16px 20px;border-bottom:1px solid rgba(212,175,55,.1);display:flex;flex-direction:column;gap:10px;flex-shrink:0;">
+                <div style="display:flex;gap:10px;">
+                  <div style="flex:1;"><div style="font-size:9px;letter-spacing:2px;color:rgba(212,175,55,.5);text-transform:uppercase;margin-bottom:4px;">Name</div>
+                  <input id="oeEditName" value="${item.name||''}" style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.2);border-radius:8px;padding:10px 12px;color:var(--vault-text);font-size:14px;outline:none;box-sizing:border-box;"></div>
+                  <div style="flex:1;"><div style="font-size:9px;letter-spacing:2px;color:rgba(212,175,55,.5);text-transform:uppercase;margin-bottom:4px;">Location</div>
+                  <input id="oeEditLocation" value="${item.location||''}" style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.2);border-radius:8px;padding:10px 12px;color:var(--vault-text);font-size:14px;outline:none;box-sizing:border-box;"></div>
+                </div>
+                <div><div style="font-size:9px;letter-spacing:2px;color:rgba(212,175,55,.5);text-transform:uppercase;margin-bottom:4px;">Cover Image URL</div>
+                <input id="oeEditCover" value="${item.coverImage||''}" style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.2);border-radius:8px;padding:10px 12px;color:var(--vault-text);font-size:14px;outline:none;box-sizing:border-box;" placeholder="https://..."></div>
+              </div>
+              <!-- Toolbar -->
+              <div style="padding:10px 20px;border-bottom:1px solid rgba(212,175,55,.1);display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;">
+                <button onclick="oeInsertBlock('text')" style="padding:8px 14px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);border-radius:8px;color:var(--vault-gold);font-size:11px;cursor:pointer;font-weight:600;">+ Text</button>
+                <button onclick="oeInsertBlock('heading')" style="padding:8px 14px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);border-radius:8px;color:var(--vault-gold);font-size:11px;cursor:pointer;font-weight:600;">T Big Text</button>
+                <button onclick="oeInsertBlock('image')" style="padding:8px 14px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);border-radius:8px;color:var(--vault-gold);font-size:11px;cursor:pointer;font-weight:600;">🖼 Image</button>
+              </div>
+              <!-- Content blocks editor -->
+              <div id="oeBlocksEditor" style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px;"></div>
+            `;
+            document.body.appendChild(overlay);
+            // Load existing blocks
+            const blocks = item.content || [];
+            if (blocks.length) blocks.forEach((b,i) => oeRenderBlock(b, i));
+            else oeInsertBlock('text');
+          });
+        }
+
+        function oeRenderBlock(block, index) {
+          const container = document.getElementById('oeBlocksEditor');
+          if (!container) return;
+          const div = document.createElement('div');
+          div.dataset.blockIndex = index;
+          div.dataset.blockType = block.type;
+          div.style.cssText = 'position:relative;';
+          if (block.type === 'heading') {
+            div.innerHTML = `<div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="font-size:9px;letter-spacing:2px;color:rgba(212,175,55,.4);text-transform:uppercase;padding-top:14px;white-space:nowrap;">HEADING</span>
+              <textarea data-block="${index}" data-type="heading" style="-webkit-user-select:text;user-select:text;flex:1;background:rgba(212,175,55,.06);border:1px solid rgba(212,175,55,.3);border-radius:8px;padding:12px;color:var(--vault-text);font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;letter-spacing:1px;outline:none;resize:none;min-height:60px;width:100%;box-sizing:border-box;" rows="2">${block.value||''}</textarea>
+              <button onclick="oeRemoveBlock(this)" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:6px;color:#ef4444;width:28px;height:28px;cursor:pointer;font-size:14px;flex-shrink:0;margin-top:4px;">✕</button>
+            </div>`;
+          } else if (block.type === 'image') {
+            div.innerHTML = `<div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="font-size:9px;letter-spacing:2px;color:rgba(212,175,55,.4);text-transform:uppercase;padding-top:14px;white-space:nowrap;">IMAGE</span>
+              <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+                <input data-block="${index}" data-type="image" value="${block.value||''}" placeholder="Paste image URL here..." style="-webkit-user-select:text;user-select:text;background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.2);border-radius:8px;padding:10px 12px;color:var(--vault-text);font-size:13px;outline:none;width:100%;box-sizing:border-box;" oninput="oeUpdateImagePreview(this)">
+                ${block.value ? `<img src="${block.value}" style="width:100%;border-radius:8px;max-height:180px;object-fit:cover;" onerror="this.style.display='none'">` : ''}
+              </div>
+              <button onclick="oeRemoveBlock(this)" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:6px;color:#ef4444;width:28px;height:28px;cursor:pointer;font-size:14px;flex-shrink:0;margin-top:4px;">✕</button>
+            </div>`;
+          } else {
+            div.innerHTML = `<div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="font-size:9px;letter-spacing:2px;color:rgba(212,175,55,.4);text-transform:uppercase;padding-top:14px;white-space:nowrap;">TEXT</span>
+              <textarea data-block="${index}" data-type="text" style="-webkit-user-select:text;user-select:text;flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.2);border-radius:8px;padding:12px;color:var(--vault-text);font-family:'Jost',sans-serif;font-size:14px;line-height:1.7;outline:none;resize:none;min-height:80px;width:100%;box-sizing:border-box;" rows="3">${block.value||''}</textarea>
+              <button onclick="oeRemoveBlock(this)" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:6px;color:#ef4444;width:28px;height:28px;cursor:pointer;font-size:14px;flex-shrink:0;margin-top:4px;">✕</button>
+            </div>`;
+          }
+          container.appendChild(div);
+        }
+
+        function oeInsertBlock(type) {
+          const container = document.getElementById('oeBlocksEditor');
+          if (!container) return;
+          const index = container.children.length;
+          oeRenderBlock({ type, value: '' }, index);
+          // Scroll to new block
+          setTimeout(() => container.lastElementChild?.scrollIntoView({ behavior: 'smooth' }), 100);
+        }
+
+        function oeRemoveBlock(btn) {
+          btn.closest('[data-block-index]')?.remove();
+        }
+
+        function oeUpdateImagePreview(input) {
+          const wrapper = input.parentElement;
+          let preview = wrapper.querySelector('img');
+          if (!preview) { preview = document.createElement('img'); preview.style.cssText = 'width:100%;border-radius:8px;max-height:180px;object-fit:cover;'; wrapper.appendChild(preview); }
+          preview.src = input.value;
+          preview.style.display = input.value ? 'block' : 'none';
+        }
+
+        function vmSaveOverseasContent(key) {
+          const name = document.getElementById('oeEditName')?.value.trim() || '';
+          const location = document.getElementById('oeEditLocation')?.value.trim() || '';
+          const coverImage = document.getElementById('oeEditCover')?.value.trim() || '';
+          // Collect all blocks
+          const blocks = [];
+          document.querySelectorAll('#oeBlocksEditor [data-block]').forEach(el => {
+            const type = el.dataset.type;
+            const value = el.value?.trim() || el.textContent?.trim() || '';
+            if (value) blocks.push({ type, value });
+          });
+          adminFbDB.ref('overseasExclusives/' + key).update({ name, location, coverImage, content: blocks }).then(() => {
+            showToast('✓ Saved');
+            document.getElementById('overseasEditorOverlay')?.remove();
+            vmLoadOverseasList();
+          }).catch(e => showToast('Error: ' + e.message));
+        }
+
+        function vmOpenOverseasClient() {
+          showToast('Unreleased Unreleased Overseas Exclusives — visible in client vault');
         }
 
         // ── TEXTURE GALLERY ─────────────────────────────────────────────────
