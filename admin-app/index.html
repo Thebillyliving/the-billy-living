@@ -2465,7 +2465,7 @@
             vmCurrentProjectId = id;
             document.getElementById('vmProjectDetailTitle').textContent = name;
             vmShowView('project');
-            vmLoadWorkflows();
+            vmLoadWorkflowsForProject();
         }
 
         function vmToggleClientLibrary() {
@@ -2889,7 +2889,6 @@
         function saveSettings() { showToast('Settings saved'); }
         function changePassword() { showToast('Password changed'); }
         function adminBackToList() { document.getElementById('msgsAdminChatView').style.display = 'none'; document.getElementById('msgsListView').style.display = 'block'; }
-        function adminSendMessage() { showToast('Message sent'); }
         function openClientProfile() {}
         function closeClientProfile() { document.getElementById('clientProfileDrawer').style.display = 'none'; document.getElementById('clientProfileOverlay').style.display = 'none'; }
         function initAdminMessagesListener() {
@@ -3028,7 +3027,6 @@
           document.getElementById('catalogInnerOverlay').classList.add('active');
         }
         function openAdminPaletteRooms() {}
-        function closeAdminCatalogRooms() {}
         function startMixPress() {}
         function startRoomPress() {}
         function handleInlineRoomUpload() {}
