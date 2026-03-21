@@ -2433,6 +2433,30 @@ function _loadVaultSectionConcierge(content) {
 }
 
 // Update vault card subtitles on load
+function applyVaultVisibility() {
+  if (!currentUser) return;
+  fbDb.ref('vaultVisibility/' + currentUser.uid).once('value').then(snap => {
+    const vis = snap.val() || {};
+    // Map type keys to card onclick attributes
+    const keyMap = {
+      progressTracker: 'progress',
+      textureGallery: 'textures',
+      overseasExclusives: 'overseas',
+      preservationProtocol: 'preservation',
+      priorityConcierge: 'concierge'
+    };
+    // Find each card by its onclick content and show/hide
+    document.querySelectorAll('#vaultGallery [onclick]').forEach(card => {
+      const onclick = card.getAttribute('onclick') || '';
+      Object.entries(keyMap).forEach(([key, type]) => {
+        if (onclick.includes("'" + type + "'")) {
+          const isVisible = vis[key] !== false;
+          card.style.display = isVisible ? '' : 'none';
+        }
+      });
+    });
+  }).catch(() => {});
+}
 function updateVaultCardSubtitles() {
   if (!currentUser) return;
   fbDb.ref('timelines/' + currentUser.uid + '/projects').once('value').then(s => {
@@ -2491,8 +2515,9 @@ async function enterBespokeVault() {
   document.getElementById('vaultGallery').style.display = 'block';
   // Load progress tracker
 
-  // Update vault card subtitles
+  // Update vault card subtitles + visibility
   updateVaultCardSubtitles();
+  applyVaultVisibility();
   // Load overseas exclusives
   loadOverseasGallery();
   // Load priority concierge
@@ -2908,7 +2933,9 @@ function handleConsultOption(type) {
 let _conciergeListener = null;
 async function loadConciergeHistory() {
   if (!currentUser) return;
-  // Show cached messages instantly while Firebase loads
+  // If listener already active, don't re-attach
+  if (_conciergeListener) return;
+  // Show cached messages instantly
   try {
     const cached = JSON.parse(localStorage.getItem('cg_msgs_' + currentUser.uid) || '[]');
     if (cached.length && !cgMessages.length) {
@@ -2916,11 +2943,7 @@ async function loadConciergeHistory() {
       renderConciergeMessages();
     }
   } catch(e) {}
-  // Detach any existing listener
-  if (_conciergeListener) {
-    fbDb.ref(`chats/${currentUser.uid}/messages`).off('value', _conciergeListener);
-  }
-  // Real-time listener — updates chat whenever admin replies
+  // Real-time listener
   _conciergeListener = fbDb.ref(`chats/${currentUser.uid}/messages`).orderByChild('timestamp').on('value', snap => {
     if (!snap.exists()) return;
     const msgs = [];
@@ -3212,7 +3235,7 @@ function openProjectWorkflows(projectId, projectName) {
           + '<div style="width:36px;height:36px;border-radius:50%;background:' + (done?'rgba(80,200,120,.1)':'rgba(212,175,55,.1)') + ';border:1px solid ' + (done?'rgba(80,200,120,.3)':'rgba(212,175,55,.2)') + ';display:flex;align-items:center;justify-content:center;font-family:\'Cormorant Garamond\',serif;font-size:16px;color:' + (done?'#50C878':'var(--gold)') + ';flex-shrink:0;">' + (i+1) + '</div>'
           + '<div style="flex:1;"><div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;color:#E8D9B5;margin-bottom:6px;">' + (w.name||'Step '+(i+1)) + '</div>'
           + '<div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:' + (done?'#50C878':'rgba(212,175,55,.2)') + ';' + (done?'box-shadow:0 0 6px rgba(80,200,120,.5);':'') + '"></div>'
-          + '<span style="font-family:\'Jost\',sans-serif;font-size:9px;letter-spacing:2px;color:' + (done?'#50C878':'rgba(212,175,55,.5)') + ';text-transform:uppercase;">' + (done?'COMPLETED':'IN PROGRESS') + '</span></div></div></div></div>';
+          + '<span style="font-family:\'Jost\',sans-serif;font-size:9px;letter-spacing:2px;color:#50C878;text-transform:uppercase;">' + (done?'COMPLETED':'IN PROGRESS') + '</span></div></div></div></div>';
       }).join('');
     })
     .catch(err => {
@@ -3392,7 +3415,7 @@ function displayWorkflowsUniversal(workflows, modal) {
       + '<div style="width:36px;height:36px;border-radius:50%;background:' + (done?'rgba(80,200,120,.1)':'rgba(212,175,55,.1)') + ';border:1px solid ' + (done?'rgba(80,200,120,.3)':'rgba(212,175,55,.2)') + ';display:flex;align-items:center;justify-content:center;font-family:\'Cormorant Garamond\',serif;font-size:16px;color:' + (done?'#50C878':'var(--gold)') + ';flex-shrink:0;">' + (i+1) + '</div>'
       + '<div style="flex:1;"><div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;color:#E8D9B5;margin-bottom:6px;">' + (w.name||'Step '+(i+1)) + '</div>'
       + '<div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:8px;border-radius:50%;background:' + (done?'#50C878':'rgba(212,175,55,.3)') + ';"></div>'
-      + '<span style="font-family:\'Jost\',sans-serif;font-size:9px;letter-spacing:2px;color:' + (done?'#50C878':'rgba(212,175,55,.5)') + ';text-transform:uppercase;">' + (done?'COMPLETED':'IN PROGRESS') + '</span></div></div></div></div>';
+      + '<span style="font-family:\'Jost\',sans-serif;font-size:9px;letter-spacing:2px;color:#50C878;text-transform:uppercase;">' + (done?'COMPLETED':'IN PROGRESS') + '</span></div></div></div></div>';
   }).join('');
 }
 
