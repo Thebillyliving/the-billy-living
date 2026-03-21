@@ -2644,15 +2644,8 @@
               el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div style="font-size:14px;margin-bottom:8px;">Error: ' + e.message + '</div><button class="btn btn-secondary" onclick="renderHomeList()" style="margin-top:8px;">Retry</button></div>';
             });
           };
-          // If already authenticated, load immediately; else wait for auth
-          if (adminFbAuth.currentUser) {
-            doLoad();
-          } else {
-            const unsub = adminFbAuth.onAuthStateChanged(user => {
-              unsub();
-              doLoad();
-            });
-          }
+          // content/.read is true so no auth needed — just load directly
+          doLoad();
         }
         const _adminCatalogMap = {};
         function renderCatalogList() {
