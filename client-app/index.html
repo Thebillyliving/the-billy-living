@@ -2434,8 +2434,10 @@ function _loadVaultSectionConcierge(content) {
 
 // Update vault card subtitles on load
 function applyVaultVisibility() {
-  if (!currentUser) return;
-  fbDb.ref('vaultVisibility/' + currentUser.uid).once('value').then(snap => {
+  if (!currentUser || !vaultSession) return;
+  // Use the VIP phone as key since visibility is set per-client by admin
+  const visKey = vaultSession.phone || currentUser.uid;
+  fbDb.ref('vaultVisibility/' + visKey).once('value').then(snap => {
     const vis = snap.val() || {};
     // Map type keys to card onclick attributes
     const keyMap = {
@@ -2446,12 +2448,12 @@ function applyVaultVisibility() {
       priorityConcierge: 'concierge'
     };
     // Find each card by its onclick content and show/hide
-    document.querySelectorAll('#vaultGallery [onclick]').forEach(card => {
+    document.querySelectorAll('#vaultGallery > div > div[onclick]').forEach(card => {
       const onclick = card.getAttribute('onclick') || '';
       Object.entries(keyMap).forEach(([key, type]) => {
         if (onclick.includes("'" + type + "'")) {
           const isVisible = vis[key] !== false;
-          card.style.display = isVisible ? '' : 'none';
+          card.style.display = isVisible ? 'flex' : 'none';
         }
       });
     });
@@ -2541,20 +2543,14 @@ async function enterBespokeVault() {
     return;
   }
   try {
-    const [clientSnap, defaultSnap] = await Promise.all([
-      fbDb.ref(`vault/clients/${currentUser.uid}`).get(),
-      fbDb.ref('vault/defaults').get()
-    ]);
-    const assets = [];
-    if (defaultSnap.exists()) assets.push(...Object.values(defaultSnap.val()));
-    if (clientSnap.exists())  assets.push(...Object.values(clientSnap.val()));
-    // Cache thumb/title/cat only — skip large url blobs for quota safety
+    const clientSnap = await fbDb.ref(`vault/clients/${currentUser.uid}`).get();
+    const assets = clientSnap.exists() ? Object.values(clientSnap.val()) : [];
     try {
       const cacheable = assets.map(a => ({ title: a.title||'', cat: a.cat||'', thumb: a.thumb||'' }));
       localStorage.setItem(cacheKey, JSON.stringify(cacheable));
     } catch(e) {}
     _renderVaultGrid(assets);
-  } catch(e) { showToast('Error loading vault'); console.error(e); }
+  } catch(e) { console.error('Vault load error:', e); /* Don't show error toast — vault cards always show */ }
   // Load progress tracker (single call, no race conditions)
   // Projects load on demand when section card is tapped
 }
