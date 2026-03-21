@@ -3672,20 +3672,21 @@
 
         // Initialization
         document.addEventListener('DOMContentLoaded', () => {
-            let _adminPanelLoaded = false;
-            adminFbAuth.onAuthStateChanged(user => {
-                if (user && !_adminPanelLoaded) {
-                    _adminPanelLoaded = true;
-                    console.log('Admin authenticated:', user.uid);
-                    adminFbDB.ref('admins/' + user.uid).set(true);
-                    showPanel('dashboard', document.querySelector('.nav-item.active'));
-                    loadDashboardStats();
-                }
-            });
+            // Show dashboard immediately — don't wait for auth
+            showPanel('dashboard', document.querySelector('.nav-item.active'));
+
+            // Sign in silently in background — never interfere with navigation
             adminFbAuth.signInWithEmailAndPassword('admin@billyliving.com', '147414')
+              .then(cred => {
+                adminFbDB.ref('admins/' + cred.user.uid).set(true);
+                loadDashboardStats();
+              })
               .catch(() => {
                 adminFbAuth.createUserWithEmailAndPassword('admin@billyliving.com', '147414')
-                  .then(cred => { adminFbDB.ref('admins/' + cred.user.uid).set(true); })
+                  .then(cred => {
+                    adminFbDB.ref('admins/' + cred.user.uid).set(true);
+                    loadDashboardStats();
+                  })
                   .catch(e => console.error('Auth error:', e));
               });
         });
