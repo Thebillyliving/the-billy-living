@@ -1603,6 +1603,14 @@
                         </div>
                         <div id="vmOverseasList" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px;"></div>
                     </div>
+                    <!-- Preservation Protocol Manager -->
+                    <div style="padding:0 16px 16px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0 10px;border-bottom:1px solid rgba(212,175,55,.15);margin-bottom:12px;">
+                            <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--vault-text);">📋 The Preservation Protocol</div>
+                            <button onclick="vmAddPreservationSheet()" style="background:var(--vault-gold);color:#0A0700;border:none;border-radius:20px;padding:8px 16px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">Create New Sheet</button>
+                        </div>
+                        <div id="vmPreservationList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;"></div>
+                    </div>
                     <div id="vmLibraryGrid" class="vm-asset-grid" style="padding:16px;"></div>
                 </div>
             </div>
@@ -1841,7 +1849,7 @@
             const map = { main:'vmMainView', library:'vmLibraryView', defaults:'vmDefaultsView', pov:'vmClientPOV', project:'vmProjectDetailView' };
             const target = document.getElementById(map[view]);
             if (target) { target.style.display = 'flex'; target.style.flexDirection = 'column'; }
-            if (view === 'library') { vmRenderLibrary(); vmLoadTextureGallery(); vmLoadOverseasList(); }
+            if (view === 'library') { vmRenderLibrary(); vmLoadTextureGallery(); vmLoadOverseasList(); vmLoadPreservationList(); }
             if (view === 'defaults') vmRenderDefaults();
         }
 
@@ -2390,8 +2398,14 @@
                         <div class="vm-asset-body"><div class="vm-asset-cat">Priority Concierge Access</div><div class="vm-asset-title">VIP Partnership</div></div>
                         <div class="vm-asset-actions">${makeVisBtn('priorityConcierge', pcVis)}</div>
                     </div>`;
+                    const ppVis = vis.preservationProtocol !== false;
+                    const ppCard = `<div class="vm-asset-card" style="border-color:rgba(80,200,120,.25);cursor:pointer;" onclick="vmShowView('library')">
+                        ${makeCover('📋','linear-gradient(135deg,#06100A,#0A1810)','pp')}
+                        <div class="vm-asset-body"><div class="vm-asset-cat">Preservation Protocol</div><div class="vm-asset-title">The Preservation Protocol</div></div>
+                        <div class="vm-asset-actions">${makeVisBtn('preservationProtocol', ppVis)}</div>
+                    </div>`;
                     const otherAssets = assets.filter(a => a.cat !== 'Progress Tracker').map(a => vmAssetCard(a, 'pov')).join('');
-                    grid.innerHTML = ptCard + tgCard + oeCard + pcCard + otherAssets;
+                    grid.innerHTML = ptCard + tgCard + oeCard + pcCard + ppCard + otherAssets;
                 }
             }).catch(e => {
                 grid.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">⚠</div><div class="vm-empty-title">Error loading vault</div><div class="vm-empty-sub">' + e.message + '</div></div>';
@@ -3234,6 +3248,98 @@
                     console.error('Error deleting workflow:', err);
                     showToast('Error: ' + err.message);
                 });
+        }
+
+        // ── PRESERVATION PROTOCOL ────────────────────────────────────────────────
+        function vmLoadPreservationList() {
+          const list = document.getElementById('vmPreservationList');
+          if (!list) return;
+          list.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(212,175,55,.4);">Loading...</div>';
+          adminFbDB.ref('preservationProtocol').orderByChild('createdAt').once('value').then(snap => {
+            const items = snap.val() ? Object.entries(snap.val()).map(([k,v])=>({...v,_key:k})).reverse() : [];
+            if (!items.length) { list.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(212,175,55,.3);">No sheets yet. Tap Create New Sheet.</div>'; return; }
+            list.innerHTML = items.map((item, i) => `
+              <div style="background:linear-gradient(145deg,#06100A,#0A1810);border:1px solid rgba(80,200,120,.2);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+                <div style="width:32px;height:32px;border-radius:50%;background:rgba(80,200,120,.08);border:1px solid rgba(80,200,120,.2);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:15px;color:#50C878;flex-shrink:0;">${i+1}</div>
+                <div style="flex:1;"><div style="font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--vault-text);">${item.name||'Sheet'}</div><div style="font-size:10px;color:rgba(212,175,55,.3);">${item.createdAt?new Date(item.createdAt).toLocaleDateString():''}</div></div>
+                <button onclick="vmEditPreservationSheet('${item._key}')" style="padding:6px 12px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.2);border-radius:8px;color:var(--vault-gold);font-size:11px;cursor:pointer;">Edit</button>
+                <button onclick="if(confirm('Delete sheet?'))adminFbDB.ref('preservationProtocol/${item._key}').remove().then(()=>{showToast('Deleted');vmLoadPreservationList()})" style="padding:6px 10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#ef4444;font-size:11px;cursor:pointer;">✕</button>
+              </div>`).join('');
+          });
+        }
+
+        function vmAddPreservationSheet() {
+          const name = prompt('Sheet name:');
+          if (!name) return;
+          const id = 'pp_' + Date.now();
+          adminFbDB.ref('preservationProtocol/' + id).set({ id, name, content: [], createdAt: Date.now() })
+            .then(() => { showToast('✓ Sheet created'); vmLoadPreservationList(); setTimeout(() => vmEditPreservationSheet(id), 400); });
+        }
+
+        function vmEditPreservationSheet(key) {
+          adminFbDB.ref('preservationProtocol/' + key).once('value').then(snap => {
+            const item = snap.val() || {};
+            const overlay = document.createElement('div');
+            overlay.id = 'ppEditorOverlay';
+            overlay.style.cssText = 'position:fixed;inset:0;background:#060D06;z-index:12000;display:flex;flex-direction:column;';
+            const blocks = item.content || [];
+            overlay.innerHTML = `
+              <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid rgba(212,175,55,.2);background:#060D06;position:sticky;top:0;z-index:10;flex-shrink:0;">
+                <button onclick="document.getElementById('ppEditorOverlay').remove();vmLoadPreservationList();" style="background:none;border:1px solid rgba(212,175,55,.3);color:rgba(212,175,55,.6);border-radius:8px;padding:8px 14px;font-size:11px;cursor:pointer;letter-spacing:1px;">← BACK</button>
+                <div style="flex:1;"><div style="font-size:9px;letter-spacing:4px;color:rgba(212,175,55,.4);text-transform:uppercase;">Preservation Protocol</div><div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--vault-text);">${item.name||'Edit Sheet'}</div></div>
+                <button onclick="vmSavePreservationSheet('${key}')" style="background:var(--vault-gold);color:#0A0700;border:none;border-radius:20px;padding:10px 20px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">SAVE</button>
+              </div>
+              <div style="padding:10px 20px;border-bottom:1px solid rgba(212,175,55,.1);display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;">
+                <button onclick="ppInsertBlock('text')" style="padding:8px 14px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);border-radius:8px;color:var(--vault-gold);font-size:11px;cursor:pointer;font-weight:600;">+ Text</button>
+                <button onclick="ppInsertBlock('heading')" style="padding:8px 14px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);border-radius:8px;color:var(--vault-gold);font-size:11px;cursor:pointer;font-weight:600;">T Topic</button>
+                <button onclick="ppInsertBlock('subheading')" style="padding:8px 14px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);border-radius:8px;color:var(--vault-gold);font-size:11px;cursor:pointer;font-weight:600;">T Sub</button>
+                <button onclick="ppInsertBlock('image')" style="padding:8px 14px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);border-radius:8px;color:var(--vault-gold);font-size:11px;cursor:pointer;font-weight:600;">🖼 Image</button>
+              </div>
+              <div id="ppBlocksEditor" style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px;"></div>`;
+            document.body.appendChild(overlay);
+            if (blocks.length) blocks.forEach((b,i) => ppRenderBlock(b, i));
+            else ppInsertBlock('text');
+          });
+        }
+
+        function ppRenderBlock(block, index) {
+          const container = document.getElementById('ppBlocksEditor');
+          if (!container) return;
+          const div = document.createElement('div');
+          div.dataset.blockIndex = index;
+          div.dataset.blockType = block.type;
+          const removeBtn = `<button onclick="this.closest('[data-block-index]').remove()" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:6px;color:#ef4444;width:28px;height:28px;cursor:pointer;font-size:14px;flex-shrink:0;margin-top:4px;">✕</button>`;
+          if (block.type === 'heading') {
+            div.innerHTML = `<div style="display:flex;align-items:flex-start;gap:8px;"><span style="font-size:9px;letter-spacing:2px;color:rgba(212,175,55,.4);text-transform:uppercase;padding-top:14px;white-space:nowrap;">TOPIC</span><textarea data-block="${index}" data-type="heading" style="-webkit-user-select:text;user-select:text;flex:1;background:rgba(212,175,55,.06);border:1px solid rgba(212,175,55,.3);border-radius:8px;padding:12px;color:var(--vault-text);font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;outline:none;resize:none;min-height:60px;width:100%;box-sizing:border-box;" rows="2">${block.value||''}</textarea>${removeBtn}</div>`;
+          } else if (block.type === 'subheading') {
+            div.innerHTML = `<div style="display:flex;align-items:flex-start;gap:8px;"><span style="font-size:9px;letter-spacing:2px;color:rgba(212,175,55,.4);text-transform:uppercase;padding-top:14px;white-space:nowrap;">SUB</span><textarea data-block="${index}" data-type="subheading" style="-webkit-user-select:text;user-select:text;flex:1;background:rgba(212,175,55,.04);border:1px solid rgba(212,175,55,.2);border-radius:8px;padding:12px;color:var(--vault-text);font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;outline:none;resize:none;min-height:50px;width:100%;box-sizing:border-box;" rows="2">${block.value||''}</textarea>${removeBtn}</div>`;
+          } else if (block.type === 'image') {
+            div.innerHTML = `<div style="display:flex;align-items:flex-start;gap:8px;"><span style="font-size:9px;letter-spacing:2px;color:rgba(212,175,55,.4);text-transform:uppercase;padding-top:14px;white-space:nowrap;">IMAGE</span><div style="flex:1;display:flex;flex-direction:column;gap:6px;"><input data-block="${index}" data-type="image" value="${block.value||''}" placeholder="Paste image URL..." style="-webkit-user-select:text;user-select:text;background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.2);border-radius:8px;padding:10px 12px;color:var(--vault-text);font-size:13px;outline:none;width:100%;box-sizing:border-box;" oninput="oeUpdateImagePreview(this)">${block.value?'<img src="'+block.value+'" style="width:100%;border-radius:8px;max-height:180px;object-fit:cover;">':''}</div>${removeBtn}</div>`;
+          } else {
+            div.innerHTML = `<div style="display:flex;align-items:flex-start;gap:8px;"><span style="font-size:9px;letter-spacing:2px;color:rgba(212,175,55,.4);text-transform:uppercase;padding-top:14px;white-space:nowrap;">TEXT</span><textarea data-block="${index}" data-type="text" style="-webkit-user-select:text;user-select:text;flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.2);border-radius:8px;padding:12px;color:var(--vault-text);font-family:'Jost',sans-serif;font-size:14px;line-height:1.7;outline:none;resize:none;min-height:80px;width:100%;box-sizing:border-box;" rows="3">${block.value||''}</textarea>${removeBtn}</div>`;
+          }
+          container.appendChild(div);
+        }
+
+        function ppInsertBlock(type) {
+          const container = document.getElementById('ppBlocksEditor');
+          if (!container) return;
+          ppRenderBlock({ type, value: '' }, container.children.length);
+          setTimeout(() => container.lastElementChild?.scrollIntoView({ behavior: 'smooth' }), 100);
+        }
+
+        function vmSavePreservationSheet(key) {
+          const blocks = [];
+          document.querySelectorAll('#ppBlocksEditor [data-block]').forEach(el => {
+            const type = el.dataset.type;
+            const value = (el.value || '').trim();
+            if (value) blocks.push({ type, value });
+          });
+          adminFbDB.ref('preservationProtocol/' + key).update({ content: blocks, updatedAt: Date.now() }).then(() => {
+            showToast('✓ Sheet saved');
+            document.getElementById('ppEditorOverlay')?.remove();
+            vmLoadPreservationList();
+          }).catch(e => showToast('Error: ' + e.message));
         }
 
         // ── VAULT SECTION VISIBILITY & COVER ───────────────────────────────────
