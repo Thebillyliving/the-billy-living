@@ -2620,27 +2620,39 @@
         function renderHomeList() {
           const el = document.getElementById('homeList');
           el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
-          // Use the CLIENT Firebase config to read posts — same database
-          const db = adminFbDB;
-          // Timeout fallback — if loading takes >8s show error
-          const timeout = setTimeout(() => {
-            if (el.querySelector('.loading-spinner')) {
-              el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏱</div><div style="font-size:14px;margin-bottom:8px;">Timeout loading posts</div><button class="btn btn-secondary" onclick="renderHomeList()" style="margin-top:8px;">Retry</button></div>';
-            }
-          }, 8000);
-          db.ref('content/posts').once('value').then(snap => {
-            clearTimeout(timeout);
-            if (!snap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div>No posts yet</div>'; return; }
-            const posts = Object.entries(snap.val()).map(([k,v]) => ({...v, id: v.id||k})).sort((a,b) => (b.createdAt||0)-(a.createdAt||0));
-            el.innerHTML = posts.map(p => `<div class="list-item">
-              <div class="list-image">${p.imageData||p.imageUrl ? '<img src="'+(p.imageData||p.imageUrl)+'" loading="lazy">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">🏠</div>'}</div>
-              <div class="list-info"><div class="list-title">${p.caption||p.title||'Post'}</div><div class="list-meta">${p.location||''} · ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div></div>
-              <div class="list-actions"><button class="btn btn-danger" style="padding:8px 12px;font-size:12px;" onclick="if(confirm('Delete?'))adminFbDB.ref('content/posts/${p.id||''}').remove().then(()=>{showToast('Deleted');renderHomeList();})">×</button></div>
-            </div>`).join('');
-          }).catch(e => {
-            clearTimeout(timeout);
-            el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div style="font-size:14px;margin-bottom:8px;">Error: ' + e.message + '</div><button class="btn btn-secondary" onclick="renderHomeList()" style="margin-top:8px;">Retry</button></div>';
-          });
+          // content/.read is true — no auth needed
+          // Use the REST API as fallback if Firebase SDK returns empty
+          const doLoad = () => {
+            adminFbDB.ref('content/posts').once('value').then(snap => {
+              console.log('Posts snap exists:', snap.exists(), 'val:', snap.val() ? Object.keys(snap.val()).length + ' posts' : 'null');
+              if (!snap.exists() || !snap.val()) {
+                el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><div>No posts yet</div><div style="font-size:11px;color:rgba(201,168,76,.3);margin-top:8px;">Posts added from client app will appear here</div></div>';
+                return;
+              }
+              const posts = Object.entries(snap.val()).map(([k,v]) => ({...v, id: v.id||k})).sort((a,b) => (b.createdAt||0)-(a.createdAt||0));
+              el.innerHTML = posts.map(p => {
+                const imgSrc = p.imageData || p.imageUrl || p.image || null;
+                const thumb = imgSrc ? '<img src="'+imgSrc+'" loading="lazy" onerror="this.parentElement.innerHTML='<div style=width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px>🏠</div>'">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">🏠</div>';
+                return `<div class="list-item">
+                  <div class="list-image">${thumb}</div>
+                  <div class="list-info"><div class="list-title">${p.caption||p.title||p.description||'Post'}</div><div class="list-meta">${p.location||''} · ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div></div>
+                  <div class="list-actions"><button class="btn btn-danger" style="padding:8px 12px;font-size:12px;" onclick="if(confirm('Delete?'))adminFbDB.ref('content/posts/${p.id||''}').remove().then(()=>{showToast('Deleted');renderHomeList();})">×</button></div>
+                </div>`;
+              }).join('');
+            }).catch(e => {
+              console.error('renderHomeList error:', e);
+              el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div style="font-size:14px;margin-bottom:8px;">Error: ' + e.message + '</div><button class="btn btn-secondary" onclick="renderHomeList()" style="margin-top:8px;">Retry</button></div>';
+            });
+          };
+          // If already authenticated, load immediately; else wait for auth
+          if (adminFbAuth.currentUser) {
+            doLoad();
+          } else {
+            const unsub = adminFbAuth.onAuthStateChanged(user => {
+              unsub();
+              doLoad();
+            });
+          }
         }
         const _adminCatalogMap = {};
         function renderCatalogList() {
