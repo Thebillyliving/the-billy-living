@@ -674,76 +674,59 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       <div style="font-family:'Jost',sans-serif;font-size:9px;font-weight:400;color:rgba(212,175,55,.55);letter-spacing:4px;text-transform:uppercase" id="vaultGalleryMeta">Loading your collection…</div>
     </div>
     <!-- PROGRESS TRACKER SECTION -->
-    <div id="progressTrackerSection" style="padding:16px 20px 20px;border-bottom:1px solid rgba(212,175,55,.1);background:rgba(212,175,55,.02);">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:20px;">📊</span>
-          <span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold-light);">Progress Tracker</span>
+    <!-- VAULT SECTION CARDS — tap to open full screen -->
+    <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px;">
+
+      <!-- Progress Tracker Card -->
+      <div onclick="openVaultSection('progress')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,.2);border-radius:16px;cursor:pointer;transition:border-color .2s;" ontouchstart="this.style.borderColor='rgba(212,175,55,.5)'" ontouchend="this.style.borderColor='rgba(212,175,55,.2)'">
+        <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.08);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">📊</div>
+        <div style="flex:1;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--gold-light);font-weight:600;margin-bottom:3px;">Progress Tracker</div>
+          <div style="font-size:11px;color:rgba(212,175,55,.4);letter-spacing:.5px;" id="ptCardSub">Loading projects…</div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span id="projectCountBadge" style="background:rgba(212,175,55,.15);color:var(--gold);font-size:11px;padding:4px 12px;border-radius:30px;">0</span>
-          <button onclick="loadProjectsUniversal()" style="background:none;border:1px solid rgba(212,175,55,.3);color:rgba(212,175,55,.6);border-radius:50%;width:28px;height:28px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Refresh">↻</button>
+        <div style="color:rgba(212,175,55,.3);font-size:22px;">›</div>
+      </div>
+
+      <!-- Material Samples Card -->
+      <div onclick="openVaultSection('textures')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,.2);border-radius:16px;cursor:pointer;transition:border-color .2s;" ontouchstart="this.style.borderColor='rgba(212,175,55,.5)'" ontouchend="this.style.borderColor='rgba(212,175,55,.2)'">
+        <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.08);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">🎨</div>
+        <div style="flex:1;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--gold-light);font-weight:600;margin-bottom:3px;">Material Samples</div>
+          <div style="font-size:11px;color:rgba(212,175,55,.4);letter-spacing:.5px;" id="tgCardSub">Loading samples…</div>
         </div>
+        <div style="color:rgba(212,175,55,.3);font-size:22px;">›</div>
       </div>
-      <!-- Skeleton loader shown while projects load -->
-      <div id="ptSkeleton" style="display:flex;flex-direction:column;gap:10px;">
-        <div style="height:64px;border-radius:14px;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
-        <div style="height:64px;border-radius:14px;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;opacity:.7;"></div>
-      </div>
-      <div id="projectsContainer" style="display:flex;flex-direction:column;gap:10px;min-height:60px;display:none;">
-      </div>
-    </div>
-    <!-- TEXTURE GALLERY SECTION -->
-    <div id="textureGallerySection" style="padding:16px 20px 20px;border-bottom:1px solid rgba(212,175,55,.1);background:rgba(212,175,55,.01);">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:20px;">🎨</span>
-          <span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold-light);">Material Samples</span>
+
+      <!-- Unreleased Overseas Card -->
+      <div onclick="openVaultSection('overseas')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,#060D18,#0D1E3A);border:1px solid rgba(212,175,55,.2);border-radius:16px;cursor:pointer;transition:border-color .2s;" ontouchstart="this.style.borderColor='rgba(212,175,55,.5)'" ontouchend="this.style.borderColor='rgba(212,175,55,.2)'">
+        <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.08);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">✈️</div>
+        <div style="flex:1;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--gold-light);font-weight:600;margin-bottom:3px;">Unreleased Overseas Exclusives</div>
+          <div style="font-size:11px;color:rgba(212,175,55,.4);letter-spacing:.5px;" id="oeCardSub">Loading exclusives…</div>
         </div>
-        <span id="textureCountBadge" style="background:rgba(212,175,55,.15);color:var(--gold);font-size:11px;padding:4px 12px;border-radius:30px;">0</span>
+        <div style="color:rgba(212,175,55,.3);font-size:22px;">›</div>
       </div>
-      <!-- Skeleton -->
-      <div id="textureSkeleton" style="display:flex;flex-direction:column;gap:10px;">
-        <div style="height:80px;border-radius:14px;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
-        <div style="height:80px;border-radius:14px;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;opacity:.7;"></div>
-        <div style="height:80px;border-radius:14px;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;opacity:.5;"></div>
-      </div>
-      <div id="textureContainer" style="display:none;flex-direction:column;gap:10px;"></div>
-    </div>
-    <!-- OVERSEAS EXCLUSIVES SECTION -->
-    <div id="overseasSection" style="padding:16px 20px 20px;border-bottom:1px solid rgba(212,175,55,.1);background:rgba(6,13,24,.3);">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:20px;">✈️</span>
-          <span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold-light);">Unreleased Overseas Exclusives</span>
+
+      <!-- Preservation Protocol Card -->
+      <div onclick="openVaultSection('preservation')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,#06100A,#0A1810);border:1px solid rgba(212,175,55,.2);border-radius:16px;cursor:pointer;transition:border-color .2s;" ontouchstart="this.style.borderColor='rgba(212,175,55,.5)'" ontouchend="this.style.borderColor='rgba(212,175,55,.2)'">
+        <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.08);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">📋</div>
+        <div style="flex:1;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--gold-light);font-weight:600;margin-bottom:3px;">The Preservation Protocol</div>
+          <div style="font-size:11px;color:rgba(212,175,55,.4);letter-spacing:.5px;" id="ppCardSub">Loading sheets…</div>
         </div>
-        <span id="overseasCountBadge" style="background:rgba(212,175,55,.15);color:var(--gold);font-size:11px;padding:4px 12px;border-radius:30px;">0</span>
+        <div style="color:rgba(212,175,55,.3);font-size:22px;">›</div>
       </div>
-      <!-- Skeleton — numbered rows -->
-      <div id="overseasSkeleton" style="display:flex;flex-direction:column;gap:12px;">
-        <div style="height:96px;border-radius:14px;background:linear-gradient(90deg,rgba(6,13,24,.6) 25%,rgba(212,175,55,.08) 50%,rgba(6,13,24,.6) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
-        <div style="height:96px;border-radius:14px;background:linear-gradient(90deg,rgba(6,13,24,.6) 25%,rgba(212,175,55,.08) 50%,rgba(6,13,24,.6) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;opacity:.75;"></div>
-        <div style="height:96px;border-radius:14px;background:linear-gradient(90deg,rgba(6,13,24,.6) 25%,rgba(212,175,55,.08) 50%,rgba(6,13,24,.6) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;opacity:.5;"></div>
-      </div>
-      <div id="overseasContainer" style="display:none;flex-direction:column;gap:12px;"></div>
-    </div>
-    <!-- PRIORITY CONCIERGE ACCESS -->
-    <div id="priorityConciergeSection" style="padding:16px 20px 24px;border-bottom:1px solid rgba(212,175,55,.1);background:linear-gradient(135deg,rgba(26,15,0,.5),rgba(18,13,6,.8));">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-        <span style="font-size:20px;">⭐</span>
-        <span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold-light);">Priority Concierge Access</span>
-      </div>
-      <div style="font-family:'Jost',sans-serif;font-size:12px;color:rgba(212,175,55,.5);letter-spacing:1px;margin-bottom:16px;" id="pcSubtitle">Apply for a VIP Partnership</div>
-      <div id="pcContentArea" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
-        <!-- Skeleton -->
-        <div id="pcSkeleton" style="display:flex;flex-direction:column;gap:8px;">
-          <div style="height:28px;border-radius:8px;width:60%;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
-          <div style="height:60px;border-radius:8px;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;opacity:.7;"></div>
+
+      <!-- Priority Concierge Card -->
+      <div onclick="openVaultSection('concierge')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,#1A0F00,#2A1A00);border:1px solid rgba(212,175,55,.2);border-radius:16px;cursor:pointer;transition:border-color .2s;" ontouchstart="this.style.borderColor='rgba(212,175,55,.5)'" ontouchend="this.style.borderColor='rgba(212,175,55,.2)'">
+        <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.08);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">⭐</div>
+        <div style="flex:1;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--gold-light);font-weight:600;margin-bottom:3px;">Priority Concierge Access</div>
+          <div style="font-size:11px;color:rgba(212,175,55,.4);letter-spacing:.5px;">Apply for a VIP Partnership</div>
         </div>
-        <div id="pcContent" style="display:none;flex-direction:column;gap:12px;"></div>
+        <div style="color:rgba(212,175,55,.3);font-size:22px;">›</div>
       </div>
-      <button onclick="applyForPartnership()" style="width:100%;padding:16px;background:linear-gradient(135deg,var(--gold),#8B6914);border:none;border-radius:12px;color:#0A1628;font-family:'Jost',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">Apply for Partnership &nbsp;(1)</button>
-      <div style="font-size:10px;color:rgba(212,175,55,.3);text-align:center;margin-top:8px;letter-spacing:1px;">One application per month</div>
+
     </div>
     <!-- VAULT ASSETS GRID -->
     <div style="padding:20px 20px 10px;">
@@ -1238,19 +1221,34 @@ async function saveProfileUpdates() {
 async function handleAvatarUpload(event) {
   const file = event.target.files[0];
   if (!file || !currentUser) return;
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    const dataUrl = e.target.result;
-    await fbDb.ref('userProfiles/' + currentUser.uid).update({ avatar: dataUrl });
-    document.getElementById('profileAvatarImg').src = dataUrl;
-    document.getElementById('profileAvatarImg').style.display = 'block';
-    document.getElementById('avatarPlaceholder').style.display = 'none';
-    document.getElementById('profileStoryPhoto').src = dataUrl;
-    document.getElementById('profileStoryPhoto').style.display = 'block';
-    document.getElementById('profileStoryDefault').style.display = 'none';
-    showToast('Photo updated');
+  showToast('Saving photo…');
+  // Compress to max 300x300 JPEG before Firebase write — much faster upload
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  img.onload = async () => {
+    const MAX = 300;
+    let w = img.width, h = img.height;
+    if (w > h) { if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; } }
+    else { if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; } }
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    URL.revokeObjectURL(url);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+    try {
+      await fbDb.ref('userProfiles/' + currentUser.uid).update({ avatar: dataUrl });
+      document.getElementById('profileAvatarImg').src = dataUrl;
+      document.getElementById('profileAvatarImg').style.display = 'block';
+      document.getElementById('avatarPlaceholder').style.display = 'none';
+      document.getElementById('profileStoryPhoto').src = dataUrl;
+      document.getElementById('profileStoryPhoto').style.display = 'block';
+      document.getElementById('profileStoryDefault').style.display = 'none';
+      showToast('Photo updated ✓');
+    } catch(e) {
+      showToast('Failed to save — try a smaller image');
+    }
   };
-  reader.readAsDataURL(file);
+  img.src = url;
 }
 
 // ─── FIX 3: handleLogout properly signs out ─────────────────────────────────
@@ -2021,13 +2019,24 @@ function openCatalogRooms(box, paletteIndex) {
     }).join('');
   };
 
-  // Render immediately from cached box structure
-  renderRooms(box);
+  // Show loading shimmer first — don't show "No Image" until Firebase responds
+  area.innerHTML = ROOM_NAMES.map(name => `
+    <div class="room-category-block">
+      <div class="room-category-header"><span class="room-category-name">${name}</span></div>
+      <div class="room-single-slot" style="background:#0A0A0A;">
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;height:100%;position:absolute;inset:0;">
+          <div style="width:100%;height:100%;background:linear-gradient(90deg,rgba(201,168,76,.03) 25%,rgba(201,168,76,.08) 50%,rgba(201,168,76,.03) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
+        </div>
+      </div>
+    </div>`).join('');
 
-  // Always fetch from Firebase to get latest room images — updates in place
+  // Fetch from Firebase — render real images when ready
   fbDb.ref('content/catalog/' + box.id).get()
-    .then(snap => { if (snap.exists()) renderRooms(snap.val()); })
-    .catch(() => {});
+    .then(snap => {
+      if (snap.exists()) renderRooms(snap.val());
+      else renderRooms(box); // fallback to cached if nothing in Firebase
+    })
+    .catch(() => renderRooms(box));
 }
 
 function closeCatalogRooms() {
@@ -2278,6 +2287,176 @@ function applyForPartnership() {
   }).catch(() => showToast('Error submitting — please try again'));
 }
 
+// ── VAULT SECTION ROUTER ─────────────────────────────────────────────────────
+function openVaultSection(type) {
+  const modal = document.createElement('div');
+  modal.id = 'vaultSectionModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:#0A0804;z-index:20000;display:flex;flex-direction:column;overflow:hidden;';
+  const titles = { progress:'Progress Tracker', textures:'Material Samples', overseas:'Unreleased Overseas Exclusives', preservation:'The Preservation Protocol', concierge:'Priority Concierge Access' };
+  const icons  = { progress:'📊', textures:'🎨', overseas:'✈️', preservation:'📋', concierge:'⭐' };
+  modal.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid rgba(212,175,55,.15);background:rgba(10,8,4,.98);position:sticky;top:0;flex-shrink:0;">
+      <button onclick="document.getElementById('vaultSectionModal').remove()" style="background:none;border:1px solid rgba(212,175,55,.3);color:rgba(212,175,55,.6);border-radius:8px;padding:8px 14px;font-size:11px;cursor:pointer;letter-spacing:1px;">←</button>
+      <span style="font-size:20px;">${icons[type]||'📂'}</span>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold-light);flex:1;">${titles[type]||'Section'}</div>
+    </div>
+    <div id="vaultSectionContent" style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="height:72px;border-radius:14px;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
+        <div style="height:72px;border-radius:14px;background:linear-gradient(90deg,rgba(212,175,55,.04) 25%,rgba(212,175,55,.1) 50%,rgba(212,175,55,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;opacity:.7;"></div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  const content = document.getElementById('vaultSectionContent');
+  // Load content based on type
+  if (type === 'progress') _loadVaultSectionProgress(content);
+  else if (type === 'textures') _loadVaultSectionTextures(content);
+  else if (type === 'overseas') _loadVaultSectionOverseas(content);
+  else if (type === 'preservation') _loadVaultSectionPreservation(content);
+  else if (type === 'concierge') _loadVaultSectionConcierge(content);
+}
+
+function _loadVaultSectionProgress(content) {
+  content.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.4);">Loading projects…</div>';
+  if (!currentUser) { content.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.3);">Please sign in</div>'; return; }
+  fbDb.ref('timelines/' + currentUser.uid + '/projects').once('value').then(snap => {
+    const projects = snap.val() ? Object.entries(snap.val()).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0)) : [];
+    const ptCardSub = document.getElementById('ptCardSub');
+    if (ptCardSub) ptCardSub.textContent = projects.length + ' project' + (projects.length!==1?'s':'');
+    if (!projects.length) { content.innerHTML = '<div style="text-align:center;padding:60px;"><div style="font-size:48px;margin-bottom:16px;opacity:.3;">📋</div><div style="color:rgba(212,175,55,.4);font-family:Cormorant Garamond,serif;font-size:18px;">No projects yet</div><div style="color:rgba(212,175,55,.25);font-size:12px;margin-top:8px;">Projects will appear here once created by your designer</div></div>'; return; }
+    content.innerHTML = projects.map(([id,p], i) => `
+      <div onclick="openProjectWorkflowsUniversal('${id}','${(p.name||'').replace(/'/g,"\'")}') " style="display:flex;align-items:center;gap:14px;padding:16px;background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,.15);border-radius:14px;cursor:pointer;">
+        <div style="width:40px;height:40px;border-radius:12px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.2);display:flex;align-items:center;justify-content:center;font-family:Cormorant Garamond,serif;font-size:18px;color:var(--gold);flex-shrink:0;">${i+1}</div>
+        <div style="flex:1;"><div style="font-family:Cormorant Garamond,serif;font-size:17px;color:var(--gold-light);margin-bottom:4px;">${p.name||'Project'}</div><div style="font-size:10px;color:rgba(212,175,55,.4);">${p.createdAt?new Date(p.createdAt).toLocaleDateString():''} · <span style="color:#50C878;">● Active</span></div></div>
+        <div style="color:rgba(212,175,55,.3);font-size:18px;">›</div>
+      </div>`).join('');
+  }).catch(() => { content.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.3);">Unable to load projects</div>'; });
+}
+
+function _loadVaultSectionTextures(content) {
+  content.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.4);">Loading samples…</div>';
+  fbDb.ref('textureGallery').once('value').then(snap => {
+    const items = snap.val() ? Object.entries(snap.val()).map(([k,v])=>({...v,_key:k})).sort((a,b)=>(a.order||0)-(b.order||0)) : [];
+    const tgCardSub = document.getElementById('tgCardSub');
+    if (tgCardSub) tgCardSub.textContent = items.length + ' sample' + (items.length!==1?'s':'');
+    if (!items.length) { content.innerHTML = '<div style="text-align:center;padding:60px;"><div style="font-size:48px;margin-bottom:16px;opacity:.3;">🎨</div><div style="color:rgba(212,175,55,.4);font-family:Cormorant Garamond,serif;font-size:18px;">No material samples yet</div></div>'; return; }
+    content.innerHTML = items.map((item, i) => `
+      <div onclick="openTextureItem('${item._key}')" style="display:flex;align-items:stretch;border-radius:16px;overflow:hidden;border:1px solid rgba(212,175,55,.18);cursor:pointer;height:88px;background:#0E0B06;">
+        <div style="width:36px;display:flex;align-items:center;justify-content:center;background:rgba(212,175,55,.06);border-right:1px solid rgba(212,175,55,.1);flex-shrink:0;font-family:Cormorant Garamond,serif;font-size:15px;color:rgba(212,175,55,.6);">${i+1}</div>
+        ${item.imageUrl?`<img src="${item.imageUrl}" style="width:88px;height:88px;object-fit:cover;flex-shrink:0;" loading="lazy">`:'<div style="width:88px;height:88px;background:rgba(212,175,55,.06);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">🖼</div>'}
+        <div style="flex:1;padding:12px 14px;display:flex;flex-direction:column;justify-content:center;gap:6px;">
+          <div style="font-family:Cormorant Garamond,serif;font-size:16px;color:var(--gold-light);font-weight:600;">${item.name||'Material'}</div>
+          <div style="padding:3px 12px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;width:fit-content;background:${item.status==='installed'?'rgba(80,200,120,.12)':'rgba(212,175,55,.1)'};color:${item.status==='installed'?'#50C878':'var(--gold)'};">${item.status==='installed'?'✓ INSTALLED':'PREVIEWING'}</div>
+        </div>
+        <div style="display:flex;align-items:center;padding-right:14px;color:rgba(212,175,55,.3);font-size:18px;">›</div>
+      </div>`).join('');
+  }).catch(() => { content.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.3);">Unable to load</div>'; });
+}
+
+function _loadVaultSectionOverseas(content) {
+  content.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.4);">Loading exclusives…</div>';
+  fbDb.ref('overseasExclusives').orderByChild('createdAt').once('value').then(snap => {
+    const items = snap.val() ? Object.entries(snap.val()).map(([k,v])=>({...v,_key:k})).reverse() : [];
+    const oeCardSub = document.getElementById('oeCardSub');
+    if (oeCardSub) oeCardSub.textContent = items.length + ' exclusive' + (items.length!==1?'s':'');
+    if (!items.length) { content.innerHTML = '<div style="text-align:center;padding:60px;"><div style="font-size:48px;margin-bottom:16px;opacity:.3;">✈️</div><div style="color:rgba(212,175,55,.4);font-family:Cormorant Garamond,serif;font-size:18px;">No exclusives yet</div></div>'; return; }
+    content.innerHTML = items.map((item, i) => `
+      <div onclick="openOverseasItem('${item._key}')" style="position:relative;border-radius:16px;overflow:hidden;border:1px solid rgba(212,175,55,.2);cursor:pointer;height:96px;display:flex;align-items:stretch;">
+        <div style="width:36px;display:flex;align-items:center;justify-content:center;background:rgba(6,13,24,.8);border-right:1px solid rgba(212,175,55,.12);flex-shrink:0;z-index:2;font-family:Cormorant Garamond,serif;font-size:15px;color:rgba(212,175,55,.6);">${i+1}</div>
+        ${item.coverImage?`<img src="${item.coverImage}" style="width:96px;height:96px;object-fit:cover;flex-shrink:0;" loading="lazy">`:'<div style="width:96px;height:96px;background:linear-gradient(135deg,#060D18,#0E0B06);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;">✈️</div>'}
+        <div style="flex:1;padding:12px 14px;background:rgba(6,13,24,.7);display:flex;flex-direction:column;justify-content:space-between;">
+          <div style="font-family:Cormorant Garamond,serif;font-size:16px;color:#E8D9B5;font-weight:600;">${item.name||'Exclusive'}</div>
+          <div style="font-size:10px;color:rgba(212,175,55,.6);letter-spacing:1px;">${item.location||''}</div>
+        </div>
+        <div style="display:flex;align-items:center;padding-right:14px;color:rgba(212,175,55,.3);font-size:18px;background:rgba(6,13,24,.7);">›</div>
+      </div>`).join('');
+  }).catch(() => { content.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.3);">Unable to load</div>'; });
+}
+
+function _loadVaultSectionPreservation(content) {
+  content.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.4);">Loading sheets…</div>';
+  fbDb.ref('preservationProtocol').orderByChild('createdAt').once('value').then(snap => {
+    const items = snap.val() ? Object.entries(snap.val()).map(([k,v])=>({...v,_key:k})).reverse() : [];
+    const ppCardSub = document.getElementById('ppCardSub');
+    if (ppCardSub) ppCardSub.textContent = items.length + ' sheet' + (items.length!==1?'s':'');
+    if (!items.length) { content.innerHTML = '<div style="text-align:center;padding:60px;"><div style="font-size:48px;margin-bottom:16px;opacity:.3;">📋</div><div style="color:rgba(212,175,55,.4);font-family:Cormorant Garamond,serif;font-size:18px;">No sheets yet</div><div style="color:rgba(212,175,55,.25);font-size:12px;margin-top:8px;">Sheets will appear here once created by your designer</div></div>'; return; }
+    content.innerHTML = items.map((item, i) => `
+      <div onclick="openPreservationSheet('${item._key}')" style="display:flex;align-items:center;gap:14px;padding:16px;background:linear-gradient(145deg,#06100A,#0A1810);border:1px solid rgba(212,175,55,.15);border-radius:14px;cursor:pointer;">
+        <div style="width:40px;height:40px;border-radius:12px;background:rgba(80,200,120,.08);border:1px solid rgba(80,200,120,.2);display:flex;align-items:center;justify-content:center;font-family:Cormorant Garamond,serif;font-size:18px;color:#50C878;flex-shrink:0;">${i+1}</div>
+        <div style="flex:1;"><div style="font-family:Cormorant Garamond,serif;font-size:17px;color:var(--gold-light);margin-bottom:3px;">${item.name||'Sheet'}</div><div style="font-size:10px;color:rgba(212,175,55,.35);">${item.createdAt?new Date(item.createdAt).toLocaleDateString():''}</div></div>
+        <div style="color:rgba(212,175,55,.3);font-size:18px;">›</div>
+      </div>`).join('');
+  }).catch(() => { content.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.3);">Unable to load</div>'; });
+}
+
+function openPreservationSheet(key) {
+  fbDb.ref('preservationProtocol/' + key).once('value').then(snap => {
+    const item = snap.val(); if (!item) return;
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:#060D06;z-index:21000;display:flex;flex-direction:column;overflow:hidden;';
+    const blocks = item.content || [];
+    modal.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid rgba(212,175,55,.15);background:rgba(6,13,6,.98);position:sticky;top:0;flex-shrink:0;">
+        <button onclick="this.closest('div[style*=position\\:fixed]').remove()" style="background:none;border:1px solid rgba(212,175,55,.3);color:rgba(212,175,55,.6);border-radius:8px;padding:8px 14px;font-size:11px;cursor:pointer;">←</button>
+        <div style="font-family:Cormorant Garamond,serif;font-size:18px;color:var(--gold-light);flex:1;">${item.name||'Sheet'}</div>
+        <div style="font-size:10px;color:rgba(212,175,55,.3);">${item.createdAt?new Date(item.createdAt).toLocaleDateString():''}</div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:24px 20px 40px;display:flex;flex-direction:column;gap:14px;">
+        ${blocks.length ? blocks.map(b => {
+          if (b.type==='heading') return `<div style="font-family:Cormorant Garamond,serif;font-size:26px;font-weight:700;color:var(--gold-light);letter-spacing:1px;line-height:1.3;">${b.value}</div>`;
+          if (b.type==='subheading') return `<div style="font-family:Cormorant Garamond,serif;font-size:18px;font-weight:600;color:var(--gold);letter-spacing:.5px;">${b.value}</div>`;
+          if (b.type==='image') return `<img src="${b.value}" style="width:100%;border-radius:12px;object-fit:cover;" loading="lazy">`;
+          return `<p style="font-family:Jost,sans-serif;font-size:14px;color:rgba(232,217,181,.8);line-height:1.8;">${b.value}</p>`;
+        }).join('') : '<p style="color:rgba(212,175,55,.3);font-size:14px;text-align:center;padding:40px;">No content yet</p>'}
+      </div>`;
+    document.body.appendChild(modal);
+  });
+}
+
+function _loadVaultSectionConcierge(content) {
+  content.innerHTML = '';
+  fbDb.ref('priorityConcierge').once('value').then(snap => {
+    const item = snap.val() || {};
+    const blocks = item.content || [];
+    const blocksHtml = blocks.length ? blocks.map(b => {
+      if (b.type==='heading') return `<div style="font-family:Cormorant Garamond,serif;font-size:26px;font-weight:700;color:var(--gold-light);letter-spacing:1px;line-height:1.3;">${b.value}</div>`;
+      if (b.type==='subheading') return `<div style="font-family:Cormorant Garamond,serif;font-size:18px;font-weight:600;color:var(--gold);letter-spacing:.5px;">${b.value}</div>`;
+      if (b.type==='image') return `<img src="${b.value}" style="width:100%;border-radius:12px;object-fit:cover;" loading="lazy">`;
+      return `<p style="font-family:Jost,sans-serif;font-size:14px;color:rgba(232,217,181,.8);line-height:1.8;">${b.value}</p>`;
+    }).join('') : '<p style="font-family:Jost,sans-serif;font-size:14px;color:rgba(212,175,55,.4);line-height:1.8;text-align:center;padding:20px 0;">Exclusive partnership access for our most valued clients.</p>';
+    content.innerHTML = blocksHtml + `
+      <div style="margin-top:20px;">
+        <button onclick="applyForPartnership()" style="width:100%;padding:16px;background:linear-gradient(135deg,var(--gold),#8B6914);border:none;border-radius:12px;color:#0A1628;font-family:Jost,sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">Apply for Partnership &nbsp;(1)</button>
+        <div style="font-size:10px;color:rgba(212,175,55,.3);text-align:center;margin-top:8px;letter-spacing:1px;">One application per month</div>
+      </div>`;
+  }).catch(() => { content.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.3);">Unable to load</div>'; });
+}
+
+// Update vault card subtitles on load
+function updateVaultCardSubtitles() {
+  if (!currentUser) return;
+  fbDb.ref('timelines/' + currentUser.uid + '/projects').once('value').then(s => {
+    const n = s.val() ? Object.keys(s.val()).length : 0;
+    const el = document.getElementById('ptCardSub');
+    if (el) el.textContent = n + ' project' + (n!==1?'s':'');
+  }).catch(()=>{});
+  fbDb.ref('textureGallery').once('value').then(s => {
+    const n = s.val() ? Object.keys(s.val()).length : 0;
+    const el = document.getElementById('tgCardSub');
+    if (el) el.textContent = n + ' sample' + (n!==1?'s':'');
+  }).catch(()=>{});
+  fbDb.ref('overseasExclusives').once('value').then(s => {
+    const n = s.val() ? Object.keys(s.val()).length : 0;
+    const el = document.getElementById('oeCardSub');
+    if (el) el.textContent = n + ' exclusive' + (n!==1?'s':'');
+  }).catch(()=>{});
+  fbDb.ref('preservationProtocol').once('value').then(s => {
+    const n = s.val() ? Object.keys(s.val()).length : 0;
+    const el = document.getElementById('ppCardSub');
+    if (el) el.textContent = n + ' sheet' + (n!==1?'s':'');
+  }).catch(()=>{});
+}
+
 function _renderVaultGrid(assets) {
   const grid = document.getElementById('vaultGalleryGrid');
   const meta = document.getElementById('vaultGalleryMeta');
@@ -2312,8 +2491,8 @@ async function enterBespokeVault() {
   document.getElementById('vaultGallery').style.display = 'block';
   // Load progress tracker
 
-  // Load texture gallery
-  loadTextureGallery();
+  // Update vault card subtitles
+  updateVaultCardSubtitles();
   // Load overseas exclusives
   loadOverseasGallery();
   // Load priority concierge
@@ -2352,8 +2531,7 @@ async function enterBespokeVault() {
     _renderVaultGrid(assets);
   } catch(e) { showToast('Error loading vault'); console.error(e); }
   // Load progress tracker (single call, no race conditions)
-  if (window._projectLoadTimeout) clearTimeout(window._projectLoadTimeout);
-  window._projectLoadTimeout = setTimeout(() => loadProjectsUniversal(), 1500);
+  // Projects load on demand when section card is tapped
 }
 
 function openVaultAsset(asset) {
