@@ -2435,8 +2435,8 @@ function _loadVaultSectionConcierge(content) {
 // Update vault card subtitles on load
 function applyVaultVisibility() {
   if (!currentUser || !vaultSession) return;
-  // Use the VIP phone as key since visibility is set per-client by admin
-  const visKey = vaultSession.phone || currentUser.uid;
+  // Admin sets visibility per-client using their UID
+  const visKey = currentUser.uid;
   fbDb.ref('vaultVisibility/' + visKey).once('value').then(snap => {
     const vis = snap.val() || {};
     // Map type keys to card onclick attributes
@@ -2448,7 +2448,7 @@ function applyVaultVisibility() {
       priorityConcierge: 'concierge'
     };
     // Find each card by its onclick content and show/hide
-    document.querySelectorAll('#vaultGallery > div > div[onclick]').forEach(card => {
+    document.querySelectorAll('#vaultGallery div[onclick*="openVaultSection"]').forEach(card => {
       const onclick = card.getAttribute('onclick') || '';
       Object.entries(keyMap).forEach(([key, type]) => {
         if (onclick.includes("'" + type + "'")) {
@@ -2939,14 +2939,16 @@ async function loadConciergeHistory() {
       renderConciergeMessages();
     }
   } catch(e) {}
-  // Real-time listener
+  // Real-time listener — always sync from Firebase
   _conciergeListener = fbDb.ref(`chats/${currentUser.uid}/messages`).orderByChild('timestamp').on('value', snap => {
-    if (!snap.exists()) return;
     const msgs = [];
-    snap.forEach(child => msgs.push(child.val()));
-    cgHistory = msgs.map(m => ({ role: (m.sender === 'client' || (!m.sender && m.role !== 'admin')) ? 'user' : 'assistant', content: m.text }));
-    cgMessages = msgs;
-    renderConciergeMessages();
+    if (snap.exists()) snap.forEach(child => msgs.push(child.val()));
+    // Only update if Firebase has MORE messages or same — don't wipe local optimistic messages
+    if (msgs.length >= cgMessages.length) {
+      cgHistory = msgs.map(m => ({ role: (m.sender === 'client' || (!m.sender && m.role !== 'admin')) ? 'user' : 'assistant', content: m.text }));
+      cgMessages = msgs;
+      renderConciergeMessages();
+    }
   });
 }
 
