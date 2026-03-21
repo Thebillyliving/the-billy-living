@@ -54,6 +54,7 @@
             position: fixed;
             height: 100vh;
             overflow-y: auto;
+            z-index: 500;
         }
 
         .sidebar-header {
@@ -3357,10 +3358,22 @@
             if (_vmLongPressTimer) { clearTimeout(_vmLongPressTimer); _vmLongPressTimer = null; }
         }
         function vmToggleVaultSection(uid, key, currentlyVisible) {
-            adminFbDB.ref('vaultVisibility/' + uid + '/' + key).set(!currentlyVisible).then(() => {
-                showToast(currentlyVisible ? 'Section hidden from client' : 'Section visible to client');
-                vmLoadPOVGrid(uid);
-            });
+            // Always use Firebase UID (not phone) for visibility key
+            // If uid looks like a phone number, try to resolve the actual Firebase UID
+            const saveVis = (targetUid) => {
+                adminFbDB.ref('vaultVisibility/' + targetUid + '/' + key).set(!currentlyVisible).then(() => {
+                    showToast(currentlyVisible ? 'Section hidden from client' : 'Section visible to client');
+                    vmLoadPOVGrid(uid);
+                });
+            };
+            // If uid is a 10-digit phone, look up the real Firebase UID
+            if (/^\d{10,}$/.test(uid)) {
+                adminFbDB.ref('vip/' + uid + '/id').once('value').then(snap => {
+                    saveVis(snap.val() || uid);
+                });
+            } else {
+                saveVis(uid);
+            }
         }
         function vmSetCardCover(uid, key) {
             const url = prompt('Enter cover image URL:');
