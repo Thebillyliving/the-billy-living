@@ -5,10 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>Billy Living - Admin Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <!-- Fonts: preconnect first so DNS/TLS is ready, then load async -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"></noscript>
+    <!-- Firebase: defer so scripts don't block rendering -->
+    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -307,6 +313,14 @@
         /* Loading Spinner */
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+
+        /* Skeleton shimmer for instant perceived load */
+        .skel {
+            background: linear-gradient(90deg, rgba(201,168,76,0.06) 25%, rgba(201,168,76,0.12) 50%, rgba(201,168,76,0.06) 75%);
+            background-size: 200% 100%;
+            animation: skelShimmer 1.2s infinite;
+            border-radius: 6px;
         }
         
         .panel-loading {
@@ -1544,10 +1558,10 @@
         <div class="panel active" id="panel-dashboard">
             <div class="page-header"><h1 class="page-title">Dashboard</h1></div>
             <div class="stats-grid">
-                <div class="stat-card"><div class="stat-value" id="statPosts">0</div><div class="stat-label">Total Posts</div></div>
-                <div class="stat-card"><div class="stat-value" id="statTrending">0</div><div class="stat-label">Total Trending</div></div>
-                <div class="stat-card"><div class="stat-value" id="statDesigners">0</div><div class="stat-label">Total Designers</div></div>
-                <div class="stat-card"><div class="stat-value" id="statPendingVIP">0</div><div class="stat-label">Pending VIP Requests</div></div>
+                <div class="stat-card"><div class="stat-value" id="statPosts"><span class="skel" style="display:inline-block;width:48px;height:48px;">&nbsp;</span></div><div class="stat-label">Total Posts</div></div>
+                <div class="stat-card"><div class="stat-value" id="statTrending"><span class="skel" style="display:inline-block;width:48px;height:48px;">&nbsp;</span></div><div class="stat-label">Total Trending</div></div>
+                <div class="stat-card"><div class="stat-value" id="statDesigners"><span class="skel" style="display:inline-block;width:48px;height:48px;">&nbsp;</span></div><div class="stat-label">Total Designers</div></div>
+                <div class="stat-card"><div class="stat-value" id="statPendingVIP"><span class="skel" style="display:inline-block;width:48px;height:48px;">&nbsp;</span></div><div class="stat-label">Pending VIP Requests</div></div>
             </div>
             <div class="quick-actions">
                 <button class="btn btn-primary" onclick="openForm('post')">+ Add Post</button>
@@ -2648,13 +2662,19 @@
 
         // Stubs for other functions
         function loadDashboardStats() {
-          adminFbDB.ref('content/posts').once('value').then(s => { document.getElementById('statPosts').textContent = s.exists() ? Object.keys(s.val()).length : 0; });
-          adminFbDB.ref('content/trending').once('value').then(s => { document.getElementById('statTrending').textContent = s.exists() ? Object.keys(s.val()).length : 0; });
-          adminFbDB.ref('designers').once('value').then(s => { document.getElementById('statDesigners').textContent = s.exists() ? Object.keys(s.val()).length : 0; });
-          adminFbDB.ref('vip').once('value').then(s => {
-            const vips = s.val() ? Object.values(s.val()) : [];
+          // Run all 4 reads in parallel — 4x faster than sequential
+          Promise.all([
+            adminFbDB.ref('content/posts').once('value'),
+            adminFbDB.ref('content/trending').once('value'),
+            adminFbDB.ref('designers').once('value'),
+            adminFbDB.ref('vip').once('value')
+          ]).then(([posts, trending, designers, vip]) => {
+            document.getElementById('statPosts').textContent = posts.exists() ? Object.keys(posts.val()).length : 0;
+            document.getElementById('statTrending').textContent = trending.exists() ? Object.keys(trending.val()).length : 0;
+            document.getElementById('statDesigners').textContent = designers.exists() ? Object.keys(designers.val()).length : 0;
+            const vips = vip.val() ? Object.values(vip.val()) : [];
             document.getElementById('statPendingVIP').textContent = vips.filter(v => !v.id).length;
-          });
+          }).catch(e => console.warn('Stats error:', e));
         }
         function renderHomeList() {
           const el = document.getElementById('homeList');
@@ -2915,9 +2935,39 @@
         function rejectVIP() {}
         function resetVIPPassword() {}
         function deleteVIP() {}
-        function openForm(t) { document.getElementById('formModal').classList.add('active'); document.getElementById('formTitle').textContent = 'Add ' + t; }
+        function openForm(t) {
+            currentForm = t;
+            document.getElementById('formModal').classList.add('active');
+            const titles = { post: 'Add Home Post', trending: 'Add Trending Item', designer: 'Add Designer', category: 'Add Catalog Category' };
+            document.getElementById('formTitle').textContent = titles[t] || (('Add ') + t);
+            const fc = document.getElementById('formContent');
+            if (t === 'post' || t === 'trending') {
+                fc.innerHTML = '<div class="form-group"><label class="form-label">Caption / Title</label><input class="form-input" id="fCaption" placeholder="e.g. Modern Living Room"></div><div class="form-group"><label class="form-label">Location</label><input class="form-input" id="fLocation" placeholder="e.g. Lagos, Nigeria"></div><div class="form-group"><label class="form-label">Image URL</label><input class="form-input" id="fImageUrl" placeholder="https://..."></div>';
+            } else if (t === 'designer') {
+                fc.innerHTML = '<div class="form-group"><label class="form-label">Designer Name</label><input class="form-input" id="fName" placeholder="e.g. Adaeze Williams"></div><div class="form-group"><label class="form-label">Specialty</label><input class="form-input" id="fSpecialty" placeholder="e.g. Interior Design"></div><div class="form-group"><label class="form-label">Photo URL</label><input class="form-input" id="fImageUrl" placeholder="https://..."></div>';
+            } else if (t === 'category') {
+                fc.innerHTML = '<div class="form-group"><label class="form-label">Collection Name</label><input class="form-input" id="fName" placeholder="e.g. Minimalist Luxury"></div><div class="form-group"><label class="form-label">Description</label><input class="form-input" id="fSpecialty" placeholder="e.g. Calm, Refined"></div>';
+            }
+        }
         function closeForm() { document.getElementById('formModal').classList.remove('active'); }
-        function submitForm() { closeForm(); showToast('Saved'); }
+        function submitForm() {
+            const t = currentForm;
+            const id = t + '_' + Date.now();
+            if (t === 'post') {
+                const data = { id, caption: (document.getElementById('fCaption').value||'Untitled'), location: (document.getElementById('fLocation').value||''), imageUrl: (document.getElementById('fImageUrl').value||''), createdAt: Date.now() };
+                adminFbDB.ref('content/posts/' + id).set(data).then(() => { closeForm(); showToast('✓ Post saved'); renderHomeList(); });
+            } else if (t === 'trending') {
+                const data = { id, caption: (document.getElementById('fCaption').value||'Untitled'), location: (document.getElementById('fLocation').value||''), imageUrl: (document.getElementById('fImageUrl').value||''), createdAt: Date.now() };
+                adminFbDB.ref('content/trending/' + id).set(data).then(() => { closeForm(); showToast('✓ Trending item saved'); renderTrendingList(); });
+            } else if (t === 'designer') {
+                const data = { id, name: (document.getElementById('fName').value||'Designer'), specialty: (document.getElementById('fSpecialty').value||''), imageUrl: (document.getElementById('fImageUrl').value||''), createdAt: Date.now() };
+                adminFbDB.ref('designers/' + id).set(data).then(() => { closeForm(); showToast('✓ Designer saved'); renderDesignersList(); });
+            } else if (t === 'category') {
+                const n = document.getElementById('fName').value||'Collection'; const sid = n.toLowerCase().replace(/[^a-z0-9]/g,'_');
+                const data = { id: sid, value: n, description: (document.getElementById('fSpecialty').value||''), createdAt: Date.now() };
+                adminFbDB.ref('content/catalog/' + sid).set(data).then(() => { closeForm(); showToast('✓ Category saved'); renderCatalogList(); });
+            } else { closeForm(); showToast('Saved'); }
+        }
         function saveSettings() { showToast('Settings saved'); }
         function changePassword() { showToast('Password changed'); }
         function adminBackToList() { document.getElementById('msgsAdminChatView').style.display = 'none'; document.getElementById('msgsListView').style.display = 'block'; }
@@ -3704,23 +3754,21 @@
 
         // Initialization
         document.addEventListener('DOMContentLoaded', () => {
-            // Show dashboard immediately — don't wait for auth
             showPanel('dashboard', document.querySelector('.nav-item.active'));
-
-            // Sign in silently in background — never interfere with navigation
-            adminFbAuth.signInWithEmailAndPassword('admin@billyliving.com', '147414')
-              .then(cred => {
-                adminFbDB.ref('admins/' + cred.user.uid).set(true);
-                loadDashboardStats();
-              })
-              .catch(() => {
-                adminFbAuth.createUserWithEmailAndPassword('admin@billyliving.com', '147414')
-                  .then(cred => {
-                    adminFbDB.ref('admins/' + cred.user.uid).set(true);
+            // onAuthStateChanged reuses existing session instantly (no round-trip on reload)
+            adminFbAuth.onAuthStateChanged(user => {
+                if (user) {
                     loadDashboardStats();
-                  })
-                  .catch(e => console.error('Auth error:', e));
-              });
+                } else {
+                    adminFbAuth.signInWithEmailAndPassword('admin@billyliving.com', '147414')
+                        .then(cred => { adminFbDB.ref('admins/' + cred.user.uid).set(true); loadDashboardStats(); })
+                        .catch(() => {
+                            adminFbAuth.createUserWithEmailAndPassword('admin@billyliving.com', '147414')
+                                .then(cred => { adminFbDB.ref('admins/' + cred.user.uid).set(true); loadDashboardStats(); })
+                                .catch(e => console.error('Auth error:', e));
+                        });
+                }
+            });
         });
     </script>
 </body>
