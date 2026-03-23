@@ -54,7 +54,7 @@
             position: fixed;
             height: 100vh;
             overflow-y: auto;
-            z-index: 500;
+            z-index: 9500;
             -webkit-user-select: none;
             user-select: none;
         }
@@ -114,6 +114,7 @@
             user-select: none;
             -webkit-tap-highlight-color: rgba(201,169,98,0.1);
             touch-action: manipulation;
+            pointer-events: auto !important;
         }
 
         .nav-item:hover {
@@ -1826,9 +1827,22 @@
 
         // Navigation
         function showPanel(name, el) {
+            // Close any stray backdrops / overlays that could block clicks
+            const backdrop = document.getElementById('contextBackdrop');
+            if (backdrop) backdrop.classList.remove('active');
+            const ctxMenu = document.getElementById('cellContextMenu');
+            if (ctxMenu) ctxMenu.classList.remove('active');
+            // Close catalog overlays
+            ['catalogInnerOverlay','catalogRoomsOverlay'].forEach(id => {
+                const o = document.getElementById(id);
+                if (o) o.classList.remove('active');
+            });
+
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById('panel-' + name).classList.add('active');
+            const target = document.getElementById('panel-' + name);
+            if (!target) return;
+            target.classList.add('active');
             if (el) el.classList.add('active');
             if (name === 'dashboard') loadDashboardStats();
             if (name === 'vaultmgr') vmInit();
