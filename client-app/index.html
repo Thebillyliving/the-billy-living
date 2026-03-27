@@ -1261,6 +1261,16 @@ function handleLogout() {
   }
   fbAuth.signOut().then(() => {
     showToast('Signed out');
+    // Clear all cached content on logout
+    try {
+      localStorage.removeItem('tbl_feed_posts');
+      localStorage.removeItem('tbl_trending');
+      localStorage.removeItem('tbl_catalog_boxes');
+      if (currentUser) {
+        localStorage.removeItem('tbl_vault_' + currentUser.uid);
+        localStorage.removeItem('tbl_portfolio_' + currentUser.uid);
+      }
+    } catch(e) {}
     // Reset all in-memory state
     cgMessages = []; cgHistory = [];
     portfolioItems = []; selectedPortfolioItems = []; portfolioSelectionMode = false;
@@ -1369,26 +1379,21 @@ async function loadHomeFeed() {
       </div>`).join('');
   }
 
-  // ── CACHE-FIRST: render instantly from localStorage ──
-  try {
-    const cached = JSON.parse(localStorage.getItem('tbl_feed_posts') || '[]');
-    if (cached.length) _renderFeed(_sortPosts(cached));
-  } catch(e) {}
-
-  // ── BACKGROUND: fetch from Firebase, update if changed ──
+  // 🔥 FIX: ALWAYS fetch from Firebase first, then cache
   try {
     const snap = await fbDb.ref('content/posts').get();
     if (!snap.exists()) {
       if (!document.querySelector('.feed-item')) feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
       return;
     }
+
     const posts = _sortPosts(Object.values(snap.val()));
     if (!posts.length) return;
-    // Save to cache — keep imageUrl but skip base64 blobs to avoid quota
+
+    // Update cache with fresh data
     try {
       const meta = posts.slice(0, 20).map(p => {
         const {videoData, audioData, ...rest} = p;
-        // Keep imageUrl but strip base64 imageData (too large for localStorage)
         if (p.imageData && p.imageData.startsWith('data:')) {
           const {imageData, ...noBlob} = rest;
           return noBlob;
@@ -1397,10 +1402,23 @@ async function loadHomeFeed() {
       });
       localStorage.setItem('tbl_feed_posts', JSON.stringify(meta));
     } catch(e) {}
+
     _renderFeed(posts);
+
   } catch(e) {
-    console.error('loadHomeFeed:', e);
-    if (!document.querySelector('.feed-item')) feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
+    console.error('loadHomeFeed error:', e);
+    // Only fall back to cache if Firebase fetch FAILED
+    try {
+      const cached = JSON.parse(localStorage.getItem('tbl_feed_posts') || '[]');
+      if (cached.length) {
+        console.warn('Using cached posts due to network error');
+        _renderFeed(_sortPosts(cached));
+      } else {
+        feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">Unable to load posts. Check your connection.</div>';
+      }
+    } catch(cacheErr) {
+      feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
+    }
   }
 }
 
