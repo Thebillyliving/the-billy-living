@@ -392,7 +392,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .dl-banner-close{background:none;border:none;color:rgba(168,155,140,.5);font-size:20px;cursor:pointer;padding:4px;flex-shrink:0;line-height:1}
 
 /* ─── SPLASH SCREEN ─────────────────────────────────────────────────────────── */
-#splashScreen{position:fixed;inset:0;background:#120D06;z-index:100002;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .6s ease,visibility .6s ease;animation:splashAutoDismiss .7s ease 2.8s forwards}
+#splashScreen{position:fixed;inset:0;background:#120D06;z-index:100002;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .6s ease,visibility .6s ease;animation:splashAutoDismiss .7s ease 3.5s forwards}
 #splashScreen.hidden{opacity:0;visibility:hidden;pointer-events:none}
 @keyframes splashAutoDismiss{0%{opacity:1;visibility:visible;pointer-events:auto}100%{opacity:0;visibility:hidden;pointer-events:none}}
 .splash-logo{width:140px;height:140px;border-radius:28px;animation:splashPop .7s cubic-bezier(.22,1,.36,1) both}
@@ -1259,6 +1259,10 @@ function handleLogout() {
     fbDb.ref(`chats/${currentUser.uid}/messages`).off('value', _conciergeListener);
     _conciergeListener = null;
   }
+  if (_feedListener) {
+    fbDb.ref('content/posts').off('value', _feedListener);
+    _feedListener = null;
+  }
   fbAuth.signOut().then(() => {
     showToast('Signed out');
     // Clear all cached content on logout
@@ -1322,6 +1326,62 @@ function requestConciergeSupport() {
 // ─── HOME FEED ────────────────────────────────────────────────────────────────
 // Lookup map — keeps base64 blobs OUT of onclick HTML attributes
 const _postsMap = {};
+let _feedListener = null;
+
+function _attachFeedListener() {
+  // Detach any existing listener first
+  if (_feedListener) {
+    fbDb.ref('content/posts').off('value', _feedListener);
+    _feedListener = null;
+  }
+  const feed = document.getElementById('homeFeed');
+  const _sortPosts = arr => arr.filter(p => p.published !== false).sort((a,b) => {
+    const ta = parseInt((a.id||'').replace('post_','')) || 0;
+    const tb = parseInt((b.id||'').replace('post_','')) || 0;
+    return tb - ta;
+  });
+  _feedListener = fbDb.ref('content/posts').on('value', snap => {
+    if (!snap.exists()) {
+      feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
+      return;
+    }
+    const posts = _sortPosts(Object.values(snap.val()));
+    if (!posts.length) {
+      feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
+      return;
+    }
+    // Update cache
+    try {
+      const meta = posts.slice(0, 20).map(p => {
+        const {videoData, audioData, ...rest} = p;
+        if (p.imageData && p.imageData.startsWith('data:')) { const {imageData, ...noBlob} = rest; return noBlob; }
+        return rest;
+      });
+      localStorage.setItem('tbl_feed_posts', JSON.stringify(meta));
+    } catch(e) {}
+    _renderFeed(posts);
+  }, err => {
+    console.error('Feed listener error:', err);
+    feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">Unable to load posts. Check your connection.</div>';
+  });
+}
+
+function loadHomeFeed() {
+  const feed = document.getElementById('homeFeed');
+  // Show shimmer skeleton while waiting for first Firebase push
+  if (!feed.querySelector('.feed-item')) {
+    feed.innerHTML = Array(3).fill(0).map(() => `
+      <div style="padding:14px;border-bottom:1px solid rgba(201,169,98,.08);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.12) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;flex-shrink:0;"></div>
+          <div style="flex:1;height:14px;border-radius:6px;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.12) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
+        </div>
+        <div style="width:100%;aspect-ratio:4/5;border-radius:4px;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.1) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;margin-bottom:10px;"></div>
+        <div style="height:12px;width:70%;border-radius:4px;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.1) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
+      </div>`).join('');
+  }
+  _attachFeedListener();
+}
 
 function _renderFeed(posts) {
   const feed = document.getElementById('homeFeed');
@@ -1355,70 +1415,6 @@ function _renderFeed(posts) {
         }
       });
     });
-  }
-}
-
-async function loadHomeFeed() {
-  const feed = document.getElementById('homeFeed');
-  const _sortPosts = arr => arr.filter(p => p.published !== false).sort((a,b) => {
-    const ta = parseInt((a.id||'').replace('post_','')) || 0;
-    const tb = parseInt((b.id||'').replace('post_','')) || 0;
-    return tb - ta;
-  });
-
-  // Show shimmer skeleton immediately
-  if (!feed.querySelector('.feed-item')) {
-    feed.innerHTML = Array(3).fill(0).map(() => `
-      <div style="padding:14px;border-bottom:1px solid rgba(201,169,98,.08);">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-          <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.12) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;flex-shrink:0;"></div>
-          <div style="flex:1;height:14px;border-radius:6px;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.12) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
-        </div>
-        <div style="width:100%;aspect-ratio:4/5;border-radius:4px;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.1) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;margin-bottom:10px;"></div>
-        <div style="height:12px;width:70%;border-radius:4px;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.1) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
-      </div>`).join('');
-  }
-
-  // 🔥 FIX: ALWAYS fetch from Firebase first, then cache
-  try {
-    const snap = await fbDb.ref('content/posts').get();
-    if (!snap.exists()) {
-      if (!document.querySelector('.feed-item')) feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
-      return;
-    }
-
-    const posts = _sortPosts(Object.values(snap.val()));
-    if (!posts.length) return;
-
-    // Update cache with fresh data
-    try {
-      const meta = posts.slice(0, 20).map(p => {
-        const {videoData, audioData, ...rest} = p;
-        if (p.imageData && p.imageData.startsWith('data:')) {
-          const {imageData, ...noBlob} = rest;
-          return noBlob;
-        }
-        return rest;
-      });
-      localStorage.setItem('tbl_feed_posts', JSON.stringify(meta));
-    } catch(e) {}
-
-    _renderFeed(posts);
-
-  } catch(e) {
-    console.error('loadHomeFeed error:', e);
-    // Only fall back to cache if Firebase fetch FAILED
-    try {
-      const cached = JSON.parse(localStorage.getItem('tbl_feed_posts') || '[]');
-      if (cached.length) {
-        console.warn('Using cached posts due to network error');
-        _renderFeed(_sortPosts(cached));
-      } else {
-        feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">Unable to load posts. Check your connection.</div>';
-      }
-    } catch(cacheErr) {
-      feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
-    }
   }
 }
 
@@ -3105,7 +3101,7 @@ function dismissBanner() {
     setTimeout(() => {
       const b = document.getElementById('downloadBanner');
       if (b) b.classList.add('show');
-    }, 3200); // show after splash clears
+    }, 4000); // show after splash clears
   }
 })();
 
@@ -3120,9 +3116,9 @@ function dismissBanner() {
     setTimeout(() => { if (s && s.parentNode) s.remove(); }, 700);
   }
   // Dismiss on load (normal case)
-  window.addEventListener('load', () => setTimeout(dismissSplash, 1800));
-  // Hard fallback: always dismiss after 2.8s max (matches CSS animation)
-  setTimeout(dismissSplash, 2800);
+  window.addEventListener('load', () => setTimeout(dismissSplash, 2500));
+  // Hard fallback: always dismiss after 3500ms max (matches CSS animation)
+  setTimeout(dismissSplash, 3500);
 })();
 </script>
 
