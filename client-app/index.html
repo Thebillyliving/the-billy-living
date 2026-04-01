@@ -89,9 +89,9 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 /* FIX 1: overscroll-behavior:contain stops scroll bleeding into nav taps */
 .trending-page{position:fixed;top:0;left:0;right:0;bottom:var(--nav-height);background:#000;z-index:100;display:none}
 .trending-page.active{display:block}
-.trending-container{height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;overscroll-behavior-y:contain}
+.trending-container{height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:auto;overscroll-behavior-y:contain;scroll-behavior:auto}
 .trending-container::-webkit-scrollbar{display:none}
-.tiktok-item{height:100%;scroll-snap-align:start;position:relative;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tiktok-item{height:100%;scroll-snap-align:start;position:relative;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;transform:translateZ(0);touch-action:pan-y}
 .tiktok-item video{width:100%;height:100%;object-fit:cover}.tiktok-item img{width:100%;height:100%;object-fit:contain;background:#000}
 .tiktok-actions{position:absolute;right:12px;bottom:100px;display:flex;flex-direction:column;gap:16px;z-index:20}
 .tiktok-action{display:flex;flex-direction:column;align-items:center;gap:4px;color:white;background:none;border:none;cursor:pointer;font-family:'Jost',sans-serif;text-shadow:0 2px 4px rgba(0,0,0,.8)}
@@ -103,11 +103,13 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .tiktok-action.bookmarked .tiktok-action-icon svg{stroke:#C9A84C;fill:#C9A84C}
 .tiktok-action:active .tiktok-action-icon{transform:scale(.88);background:rgba(255,255,255,.18)}
 .tiktok-action-count{font-size:12px;font-weight:600;letter-spacing:.3px}
-.tiktok-info{position:absolute;bottom:0;left:0;right:0;padding:80px 100px 20px 16px;background:linear-gradient(transparent,rgba(0,0,0,.8));z-index:15}
+.tiktok-info{position:absolute;bottom:0;left:0;right:0;padding:80px 100px 20px 16px;background:linear-gradient(transparent,rgba(0,0,0,.8));z-index:15;pointer-events:none}
+.tiktok-info > *{pointer-events:auto}
 .tiktok-user{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .tiktok-username{font-weight:600;font-size:16px;color:white;text-shadow:0 2px 4px rgba(0,0,0,.8)}
 .tiktok-badge{width:16px;height:16px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#000}
-.tiktok-caption{font-size:14px;color:white;margin-bottom:8px;line-height:1.4;text-shadow:0 2px 4px rgba(0,0,0,.8)}
+.tiktok-caption{font-size:14px;color:white;margin-bottom:8px;line-height:1.4;text-shadow:0 2px 4px rgba(0,0,0,.8);display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;white-space:normal;max-height:1.4em;transition:max-height 0.3s ease;cursor:pointer}
+.tiktok-caption.expanded{-webkit-line-clamp:unset;max-height:500px}
 .tiktok-music{display:flex;align-items:center;gap:8px;color:white;font-size:13px;text-shadow:0 2px 4px rgba(0,0,0,.8)}
 .tiktok-music-icon{animation:spin 3s linear infinite}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
@@ -392,7 +394,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .dl-banner-close{background:none;border:none;color:rgba(168,155,140,.5);font-size:20px;cursor:pointer;padding:4px;flex-shrink:0;line-height:1}
 
 /* ─── SPLASH SCREEN ─────────────────────────────────────────────────────────── */
-#splashScreen{position:fixed;inset:0;background:#120D06;z-index:100002;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .6s ease,visibility .6s ease;animation:splashAutoDismiss .7s ease 3.5s forwards}
+#splashScreen{position:fixed;inset:0;background:#120D06;z-index:100002;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .6s ease,visibility .6s ease;animation:splashAutoDismiss .7s ease 2.8s forwards}
 #splashScreen.hidden{opacity:0;visibility:hidden;pointer-events:none}
 @keyframes splashAutoDismiss{0%{opacity:1;visibility:visible;pointer-events:auto}100%{opacity:0;visibility:hidden;pointer-events:none}}
 .splash-logo{width:140px;height:140px;border-radius:28px;animation:splashPop .7s cubic-bezier(.22,1,.36,1) both}
@@ -1254,7 +1256,8 @@ async function handleAvatarUpload(event) {
 // ─── FIX 3: handleLogout properly signs out ─────────────────────────────────
 function handleLogout() {
   closeProfile();
-  // Detach real-time concierge listener before signing out
+
+  // Detach real-time listeners before signing out
   if (_conciergeListener && currentUser) {
     fbDb.ref(`chats/${currentUser.uid}/messages`).off('value', _conciergeListener);
     _conciergeListener = null;
@@ -1263,57 +1266,66 @@ function handleLogout() {
     fbDb.ref('content/posts').off('value', _feedListener);
     _feedListener = null;
   }
+
+  // Clear non-chat cached content (chat stays in Firebase)
+  try {
+    localStorage.removeItem('tbl_feed_posts');
+    localStorage.removeItem('tbl_trending');
+    localStorage.removeItem('tbl_catalog_boxes');
+    if (currentUser) {
+      localStorage.removeItem('tbl_vault_' + currentUser.uid);
+      localStorage.removeItem('tbl_portfolio_' + currentUser.uid);
+    }
+  } catch(e) {}
+
   fbAuth.signOut().then(() => {
     showToast('Signed out');
-    // Clear all cached content on logout
-    try {
-      localStorage.removeItem('tbl_feed_posts');
-      localStorage.removeItem('tbl_trending');
-      localStorage.removeItem('tbl_catalog_boxes');
-      if (currentUser) {
-        localStorage.removeItem('tbl_vault_' + currentUser.uid);
-        localStorage.removeItem('tbl_portfolio_' + currentUser.uid);
-      }
-    } catch(e) {}
-    // Reset all in-memory state
+
+    // Reset in-memory state
     cgMessages = []; cgHistory = [];
     portfolioItems = []; selectedPortfolioItems = []; portfolioSelectionMode = false;
     currentProfile = null;
     vaultSession = null;
     currentShareItem = null;
-    // Reset concierge UI — re-insert cgEmpty (innerHTML='' destroys it as a child node)
+
+    // Reset concierge UI — show "sign in to view messages" state
     const cgMsgs = document.getElementById('cgMessages');
-    const cgEmptyEl = document.getElementById('cgEmpty');
-    if (cgMsgs && cgEmptyEl) {
-      cgMsgs.innerHTML = cgEmptyEl.outerHTML;
+    if (cgMsgs) {
+      cgMsgs.innerHTML = '<div class="cg-empty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgba(201,169,98,.3);text-align:center;padding:40px;gap:12px"><svg viewBox="0 0 60 60" fill="none" style="width:48px;height:48px;opacity:.3"><rect x="8" y="12" width="30" height="22" rx="6" stroke="var(--gold)" stroke-width="1.5"/><path d="M14 34 L10 40 L20 34" stroke="var(--gold)" stroke-width="1.5" stroke-linejoin="round"/><rect x="22" y="26" width="30" height="22" rx="6" stroke="var(--gold)" stroke-width="1.5" opacity=".5"/></svg><div style="font-family:Cormorant Garamond,serif;font-size:18px;color:rgba(201,169,98,.4)">Sign in to view messages</div></div>';
     }
-    // Reset vault to login screen
-    const vaultLogin = document.getElementById('vaultLogin');
+
+    // Reset vault
     const vaultGallery = document.getElementById('vaultGallery');
+    const vaultLogin = document.getElementById('vaultLogin');
     const vaultLoginForm = document.getElementById('vault-login-form');
     const vaultSuccess = document.getElementById('vault-success-state');
     if (vaultGallery) vaultGallery.style.display = 'none';
     if (vaultLogin) vaultLogin.style.display = '';
     if (vaultLoginForm) vaultLoginForm.style.display = 'flex';
     if (vaultSuccess) vaultSuccess.style.display = 'none';
+
     // Reset vault pin/phone inputs
     const vaultPin = document.getElementById('vault-pin');
     const vaultPhone = document.getElementById('vault-phone');
     if (vaultPin) vaultPin.value = '';
     if (vaultPhone) vaultPhone.value = '';
+
     // Reset signup flow step
     const gateStep2 = document.getElementById('gateStep2');
     const gateStep1 = document.getElementById('gateStep1');
     if (gateStep2) gateStep2.style.display = 'none';
     if (gateStep1) gateStep1.style.display = '';
-    // Reset portfolio grid
+
+    // Reset portfolio
     const grid = document.getElementById('portfolioGrid');
     if (grid) grid.innerHTML = '';
     const dashCount = document.getElementById('dashSavesCount');
     if (dashCount) dashCount.textContent = '0';
+
     // Reset login button
     const loginBtn = document.getElementById('loginBtn');
     if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Enter'; }
+
     showPage('home');
   }).catch(() => showToast('Sign out failed'));
 }
@@ -1326,62 +1338,6 @@ function requestConciergeSupport() {
 // ─── HOME FEED ────────────────────────────────────────────────────────────────
 // Lookup map — keeps base64 blobs OUT of onclick HTML attributes
 const _postsMap = {};
-let _feedListener = null;
-
-function _attachFeedListener() {
-  // Detach any existing listener first
-  if (_feedListener) {
-    fbDb.ref('content/posts').off('value', _feedListener);
-    _feedListener = null;
-  }
-  const feed = document.getElementById('homeFeed');
-  const _sortPosts = arr => arr.filter(p => p.published !== false).sort((a,b) => {
-    const ta = parseInt((a.id||'').replace('post_','')) || 0;
-    const tb = parseInt((b.id||'').replace('post_','')) || 0;
-    return tb - ta;
-  });
-  _feedListener = fbDb.ref('content/posts').on('value', snap => {
-    if (!snap.exists()) {
-      feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
-      return;
-    }
-    const posts = _sortPosts(Object.values(snap.val()));
-    if (!posts.length) {
-      feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
-      return;
-    }
-    // Update cache
-    try {
-      const meta = posts.slice(0, 20).map(p => {
-        const {videoData, audioData, ...rest} = p;
-        if (p.imageData && p.imageData.startsWith('data:')) { const {imageData, ...noBlob} = rest; return noBlob; }
-        return rest;
-      });
-      localStorage.setItem('tbl_feed_posts', JSON.stringify(meta));
-    } catch(e) {}
-    _renderFeed(posts);
-  }, err => {
-    console.error('Feed listener error:', err);
-    feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">Unable to load posts. Check your connection.</div>';
-  });
-}
-
-function loadHomeFeed() {
-  const feed = document.getElementById('homeFeed');
-  // Show shimmer skeleton while waiting for first Firebase push
-  if (!feed.querySelector('.feed-item')) {
-    feed.innerHTML = Array(3).fill(0).map(() => `
-      <div style="padding:14px;border-bottom:1px solid rgba(201,169,98,.08);">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-          <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.12) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;flex-shrink:0;"></div>
-          <div style="flex:1;height:14px;border-radius:6px;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.12) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
-        </div>
-        <div style="width:100%;aspect-ratio:4/5;border-radius:4px;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.1) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;margin-bottom:10px;"></div>
-        <div style="height:12px;width:70%;border-radius:4px;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.1) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
-      </div>`).join('');
-  }
-  _attachFeedListener();
-}
 
 function _renderFeed(posts) {
   const feed = document.getElementById('homeFeed');
@@ -1415,6 +1371,70 @@ function _renderFeed(posts) {
         }
       });
     });
+  }
+}
+
+async function loadHomeFeed() {
+  const feed = document.getElementById('homeFeed');
+  const _sortPosts = arr => arr.filter(p => p.published !== false).sort((a,b) => {
+    const ta = parseInt((a.id||'').replace('post_','')) || 0;
+    const tb = parseInt((b.id||'').replace('post_','')) || 0;
+    return tb - ta;
+  });
+
+  // Show shimmer skeleton immediately
+  if (!feed.querySelector('.feed-item')) {
+    feed.innerHTML = Array(3).fill(0).map(() => `
+      <div style="padding:14px;border-bottom:1px solid rgba(201,169,98,.08);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.12) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;flex-shrink:0;"></div>
+          <div style="flex:1;height:14px;border-radius:6px;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.12) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
+        </div>
+        <div style="width:100%;aspect-ratio:4/5;border-radius:4px;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.1) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;margin-bottom:10px;"></div>
+        <div style="height:12px;width:70%;border-radius:4px;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.1) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
+      </div>`).join('');
+  }
+
+  // 🔥 FIX: ALWAYS fetch from Firebase first, then cache
+  try {
+    const snap = await fbDb.ref('content/posts').get();
+    if (!snap.exists()) {
+      if (!document.querySelector('.feed-item')) feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
+      return;
+    }
+
+    const posts = _sortPosts(Object.values(snap.val()));
+    if (!posts.length) return;
+
+    // Update cache with fresh data
+    try {
+      const meta = posts.slice(0, 20).map(p => {
+        const {videoData, audioData, ...rest} = p;
+        if (p.imageData && p.imageData.startsWith('data:')) {
+          const {imageData, ...noBlob} = rest;
+          return noBlob;
+        }
+        return rest;
+      });
+      localStorage.setItem('tbl_feed_posts', JSON.stringify(meta));
+    } catch(e) {}
+
+    _renderFeed(posts);
+
+  } catch(e) {
+    console.error('loadHomeFeed error:', e);
+    // Only fall back to cache if Firebase fetch FAILED
+    try {
+      const cached = JSON.parse(localStorage.getItem('tbl_feed_posts') || '[]');
+      if (cached.length) {
+        console.warn('Using cached posts due to network error');
+        _renderFeed(_sortPosts(cached));
+      } else {
+        feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">Unable to load posts. Check your connection.</div>';
+      }
+    } catch(cacheErr) {
+      feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
+    }
   }
 }
 
@@ -1689,6 +1709,11 @@ async function loadTrending() {
   } catch(e) {}
   items.forEach(item => { _trendMap[item.id] = item; });
   container.innerHTML = items.map(item => buildTikTokItem(item)).join('');
+  container.style.scrollBehavior = 'auto';
+  container.addEventListener('touchstart', function() {
+    const st = this.scrollTop;
+    this.scrollTop = st;
+  }, {passive: true});
   _initTrendingObservers(container);
   // Restore liked/bookmarked state after fresh load
   if (currentUser) {
@@ -1745,6 +1770,10 @@ function _initTrendingObservers(container) {
   });
 }
 
+function toggleCaption(el) {
+  el.classList.toggle('expanded');
+}
+
 function buildTikTokItem(item) {
   const id = item.id;
   let mediaHtml;
@@ -1790,7 +1819,7 @@ function buildTikTokItem(item) {
     + '</div>'
     + '<div class="tiktok-info">'
     +   '<div class="tiktok-user"><span class="tiktok-username">@billyliving</span><span class="tiktok-badge">✓</span></div>'
-    +   '<div class="tiktok-caption">' + (item.title||'') + ' — ' + (item.caption||'') + '</div>'
+    +   '<div class="tiktok-caption" onclick="toggleCaption(this)">' + (item.title||'') + ' — ' + (item.caption||'') + '</div>'
     +   '<div class="tiktok-music"><span class="tiktok-music-icon">🎵</span><div class="tiktok-music-text"><span>' + (item.audioData ? 'Billy Living · Original Audio' : 'Billy Living · Luxury Interiors') + '</span></div></div>'
     + '</div>'
   + '</div>';
@@ -2943,39 +2972,68 @@ function handleConsultOption(type) {
 let _conciergeListener = null;
 async function loadConciergeHistory() {
   if (!currentUser) return;
-  // If listener already active, don't re-attach
-  if (_conciergeListener) return;
-  // Show cached messages instantly
-  try {
-    const cached = JSON.parse(localStorage.getItem('cg_msgs_' + currentUser.uid) || '[]');
-    if (cached.length && !cgMessages.length) {
-      cgMessages = cached;
-      renderConciergeMessages();
-    }
-  } catch(e) {}
-  // Real-time listener — always sync from Firebase
-  _conciergeListener = fbDb.ref(`chats/${currentUser.uid}/messages`).orderByChild('timestamp').on('value', snap => {
-    const msgs = [];
-    if (snap.exists()) snap.forEach(child => msgs.push(child.val()));
-    // Only update if Firebase has MORE messages or same — don't wipe local optimistic messages
-    if (msgs.length >= cgMessages.length) {
-      cgHistory = msgs.map(m => ({ role: (m.sender === 'client' || (!m.sender && m.role !== 'admin')) ? 'user' : 'assistant', content: m.text }));
+
+  const container = document.getElementById('cgMessages');
+  const emptyEl = document.getElementById('cgEmpty');
+
+  // Detach existing listener before re-attaching
+  if (_conciergeListener) {
+    fbDb.ref(`chats/${currentUser.uid}/messages`).off('value', _conciergeListener);
+    _conciergeListener = null;
+  }
+
+  // Real-time listener — Firebase is the only source of truth, works cross-device
+  _conciergeListener = fbDb.ref(`chats/${currentUser.uid}/messages`)
+    .orderByChild('timestamp')
+    .on('value', snap => {
+      const msgs = [];
+      if (snap.exists()) {
+        snap.forEach(child => {
+          msgs.push({ ...child.val(), _key: child.key });
+        });
+      }
+
       cgMessages = msgs;
-      renderConciergeMessages();
-    }
-  });
+      cgHistory = msgs.map(m => ({ role: (m.sender === 'client' || (!m.sender && m.role !== 'admin')) ? 'user' : 'assistant', content: m.text }));
+
+      if (!msgs.length) {
+        if (emptyEl) emptyEl.style.display = 'flex';
+        const existing = container.querySelectorAll('.cg-msg');
+        existing.forEach(e => e.remove());
+      } else {
+        if (emptyEl) emptyEl.style.display = 'none';
+        const existing = container.querySelectorAll('.cg-msg');
+        existing.forEach(e => e.remove());
+        msgs.forEach(m => {
+          const isClient = m.sender === 'client' || (!m.sender && m.role !== 'admin');
+          const el = document.createElement('div');
+          el.className = 'cg-msg ' + (isClient ? 'sent' : 'recv');
+          const ts = m.timestamp || m.createdAt || 0;
+          const time = ts ? new Date(ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
+          const safeText = (m.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          el.innerHTML = `<div class="cg-bubble">${safeText}</div><div class="cg-msg-time">${time}</div>`;
+          container.appendChild(el);
+        });
+        container.scrollTop = container.scrollHeight;
+      }
+    }, err => {
+      console.error('Concierge listener error:', err);
+      showToast('Unable to load messages');
+    });
 }
 
 function renderConciergeMessages() {
   const container = document.getElementById('cgMessages');
   if (!container) return;
-  if (!cgMessages.length) return;
   const emptyEl = document.getElementById('cgEmpty');
+  if (!cgMessages.length) {
+    if (emptyEl) emptyEl.style.display = 'flex';
+    return;
+  }
   if (emptyEl) emptyEl.style.display = 'none';
   const existing = container.querySelectorAll('.cg-msg');
   existing.forEach(e => e.remove());
   cgMessages.forEach(m => {
-    // Support both sender field and role field for backwards compatibility
     const isClient = m.sender === 'client' || (m.role !== 'admin' && !m.sender);
     const el = document.createElement('div');
     el.className = 'cg-msg ' + (isClient ? 'sent' : 'recv');
@@ -2986,10 +3044,7 @@ function renderConciergeMessages() {
     container.appendChild(el);
   });
   container.scrollTop = container.scrollHeight;
-  // Cache messages to localStorage so they survive page refresh
-  try {
-    if (currentUser) localStorage.setItem('cg_msgs_' + currentUser.uid, JSON.stringify(cgMessages.slice(-50)));
-  } catch(e) {}
+  // Firebase is the source of truth — no localStorage caching needed
 }
 
 async function sendConciergeMessage() {
@@ -2998,27 +3053,26 @@ async function sendConciergeMessage() {
   if (!text) return;
   input.value = '';
   try {
-  const userMsg = { text, sender: 'client', senderName: currentProfile?.name||'Client', timestamp: Date.now(), read: false };
-  cgMessages.push(userMsg);
-  cgHistory.push({ role: 'user', content: text });
-  renderConciergeMessages();
-  if (currentUser) {
-    try {
+    const userMsg = {
+      text,
+      sender: 'client',
+      senderName: currentProfile?.name || 'Client',
+      timestamp: Date.now(),
+      read: false
+    };
+    // Optimistic render
+    cgMessages.push(userMsg);
+    renderConciergeMessages();
+    if (currentUser) {
       await fbDb.ref(`chats/${currentUser.uid}/messages`).push(userMsg);
-      // Ensure clientName is always set so admin conversation list shows real name
       fbDb.ref(`chats/${currentUser.uid}/clientName`).set(currentProfile?.name || userMsg.senderName || 'Client');
       fbDb.ref(`chats/${currentUser.uid}/clientEmail`).set(currentUser.email || '');
-    } catch(fbErr) {
-      console.error('Firebase write failed:', fbErr);
-      showToast('Message failed to send — check connection');
-      // Remove the local message since Firebase failed
-      cgMessages = cgMessages.filter(m => m !== userMsg);
-      renderConciergeMessages();
-      return;
     }
+    await sendAIMessage(text);
+  } catch(e) {
+    console.error('sendConciergeMessage:', e);
+    showToast('Failed to send message');
   }
-  await sendAIMessage(text);
-  } catch(e) { console.error('sendConciergeMessage:', e); }
 }
 
 function sendAIGreeting(type) {
@@ -3101,7 +3155,7 @@ function dismissBanner() {
     setTimeout(() => {
       const b = document.getElementById('downloadBanner');
       if (b) b.classList.add('show');
-    }, 4000); // show after splash clears
+    }, 3200); // show after splash clears
   }
 })();
 
@@ -3116,9 +3170,9 @@ function dismissBanner() {
     setTimeout(() => { if (s && s.parentNode) s.remove(); }, 700);
   }
   // Dismiss on load (normal case)
-  window.addEventListener('load', () => setTimeout(dismissSplash, 2500));
-  // Hard fallback: always dismiss after 3500ms max (matches CSS animation)
-  setTimeout(dismissSplash, 3500);
+  window.addEventListener('load', () => setTimeout(dismissSplash, 1800));
+  // Hard fallback: always dismiss after 2.8s max (matches CSS animation)
+  setTimeout(dismissSplash, 2800);
 })();
 </script>
 
