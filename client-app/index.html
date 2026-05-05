@@ -404,7 +404,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 @keyframes splashPop{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
 @keyframes splashFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 /* ─── LOADING SPLASH (SECOND SCREEN) ────────────────────────────────────────── */
-#loadingSplash{position:fixed;inset:0;background:#120D06;z-index:100001;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .55s ease,visibility .55s ease}
+#loadingSplash{position:fixed;inset:0;background:#120D06;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .55s ease,visibility .55s ease}
 #loadingSplash.active{opacity:1;visibility:visible;pointer-events:auto}
 #loadingSplash.dismissing{opacity:0;visibility:hidden;pointer-events:none}
 .ls-logo{width:72px;height:72px;border-radius:16px;opacity:.9}
@@ -440,7 +440,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     <div class="splash-tagline">Interior Platform</div>
   </div>
 </div>
-<!-- LOADING SPLASH — SECOND SCREEN -->
+<!-- LOADING SPLASH — SECOND SCREEN (auth-gated, never shown on login screen) -->
 <div id="loadingSplash">
   <img class="ls-logo" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23C9A84C' rx='20'/%3E%3Ctext x='50' y='68' font-family='Cormorant Garamond,serif' font-size='42' fill='%23120D06' text-anchor='middle' font-weight='bold'%3EBL%3C/text%3E%3C/svg%3E" alt="">
   <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
@@ -508,7 +508,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       </div>
       <span class="story-label" id="profileStoryLabel">My Profile</span>
     </div>
-    <div class="story-item" onclick="window.open('https://wa.me/' + CONFIG.WHATSAPP_NUMBER + '?text=' + encodeURIComponent('Good day. I am exploring the 2026 Collection on the app and would like to request a private consultation for my residence'), '_blank')">
+    <div class="story-item" onclick="window.open('https://wa.me/' + CONFIG.WHATSAPP_NUMBER + '?text=' + encodeURIComponent('Hi! I'm interested in an interior design consultation for my space. Could you let me know how your process works?'), '_blank')">
       <div class="story-circle" style="background:linear-gradient(135deg,#25D366,#128C7E)">
         <span class="story-circle-icon"><svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.564 4.14 1.548 5.872L0 24l6.336-1.524A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.877 9.877 0 01-5.031-1.378l-.36-.214-3.762.904.944-3.659-.235-.374A9.861 9.861 0 012.118 12C2.118 6.533 6.533 2.118 12 2.118c5.466 0 9.882 4.415 9.882 9.882 0 5.466-4.416 9.882-9.882 9.882z"/></svg></span>
       </div>
@@ -940,6 +940,34 @@ function hideGatekeeper() {
   setTimeout(() => { document.getElementById('gatekeeper').style.display = 'none'; }, 600);
 }
 
+// ─── LOADING SPLASH — auth-gated, timer starts after first splash clears ──────
+function showLoadingSplash() {
+  const FIRST_SPLASH_DONE = 3000; // wait for first splash to fully clear
+  setTimeout(() => {
+    const ls  = document.getElementById('loadingSplash');
+    const bar = document.getElementById('lsBarFill');
+    if (!ls) return;
+    const isNewDevice   = !localStorage.getItem('bl_device_seen');
+    const LOAD_DURATION = isNewDevice ? 9000 : 4000;
+    try { localStorage.setItem('bl_device_seen', '1'); } catch(e) {}
+    // Show
+    ls.classList.add('active');
+    // Animate progress bar across the full duration
+    if (bar) {
+      setTimeout(() => {
+        bar.style.transition = 'width ' + (LOAD_DURATION - 500) + 'ms linear';
+        bar.style.width = '100%';
+      }, 150);
+    }
+    // Dismiss after full duration
+    setTimeout(() => {
+      ls.classList.remove('active');
+      ls.classList.add('dismissing');
+      setTimeout(() => { if (ls && ls.parentNode) ls.remove(); }, 600);
+    }, LOAD_DURATION);
+  }, FIRST_SPLASH_DONE);
+}
+
 // FIX: Always hide gatekeeper after 5s max (guards against Firebase auth delay)
 const gatekeeperTimeout = setTimeout(hideGatekeeper, 5000);
 
@@ -948,6 +976,7 @@ fbAuth.onAuthStateChanged(user => {
   if (user) {
     currentUser = user;
     hideGatekeeper();
+    showLoadingSplash();
     loadUserProfile(user.uid);
     loadHomeFeed();   // immediate — user sees this first
     loadCatalog();    // immediate — cache-first, near-instant
@@ -1099,26 +1128,4 @@ function showPage(pageId) {
   const _ps = document.getElementById('profileScreen');
   if (_ps) { _ps.classList.remove('active'); _ps.style.display = ''; }
   const _sb = document.getElementById('shareBackdrop');
-  if (_sb) { _sb.classList.remove('active'); _sb.style.display = ''; }
-  const _ss = document.querySelector('.share-sheet');
-  if (_ss) { _ss.classList.remove('active'); _ss.style.bottom = ''; }
-  const _co = document.getElementById('consultOverlay');
-  if (_co) { _co.classList.remove('active'); _co.style.display = ''; }
-  const _im = document.getElementById('imageModal');
-  if (_im) { _im.classList.remove('active'); _im.style.display = ''; }
-  const _va = document.getElementById('vaultAssetDetail');
-  if (_va) _va.style.display = 'none';
-  // Hide all standard pages
-  document.querySelectorAll('.page').forEach(p => {
-    p.classList.remove('active');
-    p.style.display = '';  // rely on CSS — .page default is display:none, .page.active overrides
-  });
-  // Handle trending separately (fixed-position)
-  const trendingEl = document.getElementById('trending');
-  trendingEl.classList.remove('active');
-  trendingEl.style.display = 'none';
-
-  // Update nav
-  document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
-  const navBtn = document.getElementById('nav-' + pageId);
-  if (navBtn) navBtn.classList.add('active
+  if (_sb) { _sb.classList.remove('active');
