@@ -369,7 +369,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .gate-input{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(201,169,98,.2);border-radius:8px;padding:13px 16px;color:#F5F0E8;font-size:14px;font-family:'Jost',sans-serif;outline:none;transition:border-color .2s;-webkit-user-select:text;user-select:text}
 .gate-input:focus{border-color:rgba(201,169,98,.6)}
 .gate-input::placeholder{color:rgba(255,255,255,.2)}
-.gate-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--gold),#8B6914);border:none;border-radius:8px;color:#060D18;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-family:'Jost',sans-serif;cursor:pointer;margin-top:8px;transition:opacity .2s}
+.gate-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--gold),#8B6914);border:none;border-radius:8px;color:#060D18;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-family:'Jost',sans-serif;cursor:pointer;margin-top:8px;transition:opacity .2s;touch-action:manipulation;-webkit-tap-highlight-color:rgba(201,169,98,0.15);}
 .gate-btn:active{opacity:.85}
 .gate-btn:disabled{opacity:.5;cursor:not-allowed}
 .gate-error{font-size:13px;color:#ff6b6b;text-align:center;margin-top:14px;font-family:'Jost',sans-serif;background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.35);border-radius:8px;padding:12px 14px;display:none;line-height:1.5;letter-spacing:.2px}
@@ -466,14 +466,14 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     <div id="gateLogin">
       <div class="gate-input-group"><label class="gate-input-label">Email Address</label><input id="loginEmail" class="gate-input" type="email" placeholder="your@email.com" autocomplete="email"></div>
       <div class="gate-input-group"><label class="gate-input-label">Password</label><input id="loginPassword" class="gate-input" type="password" placeholder="••••••••" autocomplete="current-password"></div>
-      <button class="gate-btn" id="loginBtn" onclick="handleLogin()">Enter</button>
+      <button class="gate-btn" id="loginBtn" onclick="handleLogin()" ontouchend="event.preventDefault();handleLogin()">Enter</button>
       <div class="gate-error" id="loginError"></div>
     </div>
     <div id="gateSignup" style="display:none">
       <div class="gate-input-group"><label class="gate-input-label">Full Name</label><input id="signupName" class="gate-input" type="text" placeholder="Your full name" autocomplete="name"></div>
       <div class="gate-input-group"><label class="gate-input-label">Email Address</label><input id="signupEmail" class="gate-input" type="email" placeholder="your@email.com" autocomplete="email"></div>
       <div class="gate-input-group"><label class="gate-input-label">Password</label><input id="signupPassword" class="gate-input" type="password" placeholder="Min. 6 characters" autocomplete="new-password"></div>
-      <button class="gate-btn" id="signupBtn" onclick="handleSignup()">Continue →</button>
+      <button class="gate-btn" id="signupBtn" onclick="handleSignup()" ontouchend="event.preventDefault();handleSignup()">Continue →</button>
       <div class="gate-error" id="signupError"></div>
     </div>
   </div>
@@ -484,7 +484,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       <svg id="gatePhotoIcon" viewBox="0 0 60 60" fill="none" style="width:38px;height:38px"><circle cx="30" cy="22" r="10" stroke="var(--gold)" stroke-width="1.5" fill="rgba(201,169,98,0.1)"/><path d="M10 54c0-11.046 8.954-20 20-20s20 8.954 20 20" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" fill="rgba(201,169,98,0.07)"/></svg>
     </div>
     <div class="gate-photo-prompt">Your account is ready ✦</div>
-    <button class="gate-btn" id="finishBtn" onclick="handleFinishSignup()">Enter The Billy Living</button>
+    <button class="gate-btn" id="finishBtn" onclick="handleFinishSignup()" ontouchend="event.preventDefault();handleFinishSignup()">Enter The Billy Living</button>
     <div class="gate-error" id="photoError"></div>
   </div>
 </div>
@@ -508,7 +508,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       </div>
       <span class="story-label" id="profileStoryLabel">My Profile</span>
     </div>
-    <div class="story-item" onclick="window.open('https://wa.me/' + CONFIG.WHATSAPP_NUMBER + '?text=' + encodeURIComponent('Hi! I'm interested in an interior design consultation for my space. Could you let me know how your process works?'), '_blank')">
+    <div class="story-item" onclick="window.open('https://wa.me/' + CONFIG.WHATSAPP_NUMBER + '?text=' + encodeURIComponent('Hi! I\u2019m interested in an interior design consultation for my space. Could you let me know how your process works?'), '_blank')">
       <div class="story-circle" style="background:linear-gradient(135deg,#25D366,#128C7E)">
         <span class="story-circle-icon"><svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.564 4.14 1.548 5.872L0 24l6.336-1.524A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.877 9.877 0 01-5.031-1.378l-.36-.214-3.762.904.944-3.659-.235-.374A9.861 9.861 0 012.118 12C2.118 6.533 6.533 2.118 12 2.118c5.466 0 9.882 4.415 9.882 9.882 0 5.466-4.416 9.882-9.882 9.882z"/></svg></span>
       </div>
@@ -1124,8 +1124,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
 function showPage(pageId) {
-  // Force-close ALL overlays — class-only, never inline (inline overrides class permanently)
-  const _ps = document.getElementById('profileScreen');
-  if (_ps) { _ps.classList.remove('active'); _ps.style.display = ''; }
-  const _sb = document.getElementById('shareBackdrop');
-  if (_sb) { _sb.classList.remove('active');
+  // Force-close ALL overlays — class-only, never inline (inline overrides class 
