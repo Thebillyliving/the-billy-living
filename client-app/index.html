@@ -91,7 +91,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .trending-page.active{display:block}
 .trending-container{height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:auto;overscroll-behavior-y:contain;scroll-behavior:auto}
 .trending-container::-webkit-scrollbar{display:none}
-.tiktok-item{height:100%;scroll-snap-align:start;position:relative;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;transform:translateZ(0);touch-action:pan-y}
+.tiktok-item{height:100%;scroll-snap-align:start;scroll-snap-stop:always;position:relative;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;transform:translateZ(0);touch-action:pan-y}
 .tiktok-item video{width:100%;height:100%;object-fit:cover}.tiktok-item img{width:100%;height:100%;object-fit:contain;background:#000}
 .tiktok-actions{position:absolute;right:12px;bottom:100px;display:flex;flex-direction:column;gap:16px;z-index:20}
 .tiktok-action{display:flex;flex-direction:column;align-items:center;gap:4px;color:white;background:none;border:none;cursor:pointer;font-family:'Jost',sans-serif;text-shadow:0 2px 4px rgba(0,0,0,.8)}
@@ -455,7 +455,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
   </div>
 </div>
 <!-- GATEKEEPER -->
-<div id="gatekeeper">
+<div id="gatekeeper" class="hidden" style="display:none">
   <div class="gate-logo">THE BILLY LIVING</div>
   <div class="gate-tagline">Luxury Interiors · Lagos &amp; Abuja</div>
   <div class="gate-panel" id="gateStep1">
@@ -557,7 +557,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       </div>
     </div>
     <div class="profile-dashboard">
-      <div class="dash-card"><div class="dash-card-eyebrow">Active Projects</div><div class="dash-card-value">0</div><div class="dash-card-label">No active<br>projects</div></div>
+      <div class="dash-card"><div class="dash-card-eyebrow">Active Projects</div><div class="dash-card-value" id="dashProjectsCount">0</div><div class="dash-card-label" id="dashProjectsLabel">No active<br>projects</div></div>
       <div class="dash-card"><div class="dash-card-eyebrow">Portfolio Saves</div><div class="dash-card-value" id="dashSavesCount">0</div><div class="dash-card-label">Catalog designs<br>saved</div></div>
     </div>
     <div class="profile-section-header">Account Details</div>
@@ -584,7 +584,6 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     </div>
     <div class="profile-actions">
       <button class="profile-btn-primary" id="saveProfileBtn" onclick="saveProfileUpdates()" style="display:none">Save Profile Updates</button>
-      <button class="profile-btn-ghost" onclick="requestConciergeSupport()">Request Concierge Support</button>
       <!-- FIX 3: handleLogout now calls fbAuth.signOut() properly -->
       <button class="profile-btn-text" onclick="handleLogout()">Log Out</button>
     </div>
@@ -603,7 +602,6 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     <div class="consult-options">
       <button class="consult-option" onclick="handleConsultOption('call')"><div class="consult-option-icon">📞</div><div class="consult-option-body"><div class="consult-option-title">Book a Free Call</div><div class="consult-option-desc">30-minute discovery session with a senior designer.</div></div><span class="consult-option-arrow">›</span></button>
       <button class="consult-option" onclick="handleConsultOption('quote')"><div class="consult-option-icon">📋</div><div class="consult-option-body"><div class="consult-option-title">Request a Consultation</div><div class="consult-option-desc">Share your space details and receive a bespoke proposal within 24 hours.</div></div><span class="consult-option-arrow">›</span></button>
-      <button class="consult-option" onclick="handleConsultOption('whatsapp')"><div class="consult-option-icon">💬</div><div class="consult-option-body"><div class="consult-option-title">Chat on WhatsApp</div><div class="consult-option-desc">Reach us directly for a quick conversation about your vision.</div></div><span class="consult-option-arrow">›</span></button>
     </div>
     <button class="consult-dismiss" onclick="closeConsultSheet()">Dismiss</button>
   </div>
@@ -729,7 +727,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       </div>
 
       <!-- Unreleased Overseas Card -->
-      <div onclick="openVaultSection('overseas')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,#060D18,#0D1E3A);border:1px solid rgba(212,175,55,.2);border-radius:16px;cursor:pointer;transition:border-color .2s;" ontouchstart="this.style.borderColor='rgba(212,175,55,.5)'" ontouchend="this.style.borderColor='rgba(212,175,55,.2)'">
+      <div onclick="openVaultSection('overseas')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,.2);border-radius:16px;cursor:pointer;transition:border-color .2s;" ontouchstart="this.style.borderColor='rgba(212,175,55,.5)'" ontouchend="this.style.borderColor='rgba(212,175,55,.2)'">
         <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.08);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">✈️</div>
         <div style="flex:1;">
           <div style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--gold-light);font-weight:600;margin-bottom:3px;">Unreleased Overseas Exclusives</div>
@@ -739,7 +737,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       </div>
 
       <!-- Preservation Protocol Card -->
-      <div onclick="openVaultSection('preservation')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,#06100A,#0A1810);border:1px solid rgba(212,175,55,.2);border-radius:16px;cursor:pointer;transition:border-color .2s;" ontouchstart="this.style.borderColor='rgba(212,175,55,.5)'" ontouchend="this.style.borderColor='rgba(212,175,55,.2)'">
+      <div onclick="openVaultSection('preservation')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,.2);border-radius:16px;cursor:pointer;transition:border-color .2s;" ontouchstart="this.style.borderColor='rgba(212,175,55,.5)'" ontouchend="this.style.borderColor='rgba(212,175,55,.2)'">
         <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.08);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">📋</div>
         <div style="flex:1;">
           <div style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--gold-light);font-weight:600;margin-bottom:3px;">The Preservation Protocol</div>
@@ -749,7 +747,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       </div>
 
       <!-- Priority Concierge Card -->
-      <div onclick="openVaultSection('concierge')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,#1A0F00,#2A1A00);border:1px solid rgba(212,175,55,.2);border-radius:16px;cursor:pointer;transition:border-color .2s;" ontouchstart="this.style.borderColor='rgba(212,175,55,.5)'" ontouchend="this.style.borderColor='rgba(212,175,55,.2)'">
+      <div onclick="openVaultSection('concierge')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,.2);border-radius:16px;cursor:pointer;transition:border-color .2s;" ontouchstart="this.style.borderColor='rgba(212,175,55,.5)'" ontouchend="this.style.borderColor='rgba(212,175,55,.2)'">
         <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.08);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">⭐</div>
         <div style="flex:1;">
           <div style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--gold-light);font-weight:600;margin-bottom:3px;">Priority Concierge Access</div>
@@ -759,11 +757,6 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       </div>
 
     </div>
-    <!-- VAULT ASSETS GRID -->
-    <div style="padding:20px 20px 10px;">
-      <div style="font-size:10px;letter-spacing:3px;color:rgba(212,175,55,.4);text-transform:uppercase;margin-bottom:12px;">Your Collection</div>
-    </div>
-    <div id="vaultGalleryGrid" style="padding:0 20px 20px;display:grid;grid-template-columns:repeat(2,1fr);gap:14px;"></div>
     <!-- Exit Button -->
     <div style="padding:20px;text-align:center">
       <button onclick="handleVaultLogout()" style="background:none;border:1px solid rgba(201,168,76,.15);color:rgba(201,168,76,.4);border-radius:8px;padding:12px 28px;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer">Exit Vault</button>
@@ -942,37 +935,40 @@ function hideGatekeeper() {
 
 // ─── LOADING SPLASH — auth-gated, timer starts after first splash clears ──────
 function showLoadingSplash() {
-  const FIRST_SPLASH_DONE = 3000; // wait for first splash to fully clear
-  setTimeout(() => {
+  const isNewDevice   = !localStorage.getItem('bl_device_seen');
+  const LOAD_DURATION = isNewDevice ? 9000 : 4000;
+  try { localStorage.setItem('bl_device_seen', '1'); } catch(e) {}
+
+  function _show() {
     const ls  = document.getElementById('loadingSplash');
     const bar = document.getElementById('lsBarFill');
     if (!ls) return;
-    const isNewDevice   = !localStorage.getItem('bl_device_seen');
-    const LOAD_DURATION = isNewDevice ? 9000 : 4000;
-    try { localStorage.setItem('bl_device_seen', '1'); } catch(e) {}
-    // Show
     ls.classList.add('active');
-    // Animate progress bar across the full duration
     if (bar) {
       setTimeout(() => {
         bar.style.transition = 'width ' + (LOAD_DURATION - 500) + 'ms linear';
         bar.style.width = '100%';
       }, 150);
     }
-    // Dismiss after full duration
     setTimeout(() => {
       ls.classList.remove('active');
       ls.classList.add('dismissing');
       setTimeout(() => { if (ls && ls.parentNode) ls.remove(); }, 600);
     }, LOAD_DURATION);
-  }, FIRST_SPLASH_DONE);
+  }
+
+  // If first splash is already gone, show loading splash immediately
+  // Otherwise wait for it to clear first
+  const firstSplash = document.getElementById('splashScreen');
+  if (!firstSplash || firstSplash.classList.contains('hidden')) {
+    _show();
+  } else {
+    const FIRST_SPLASH_DONE = 3000;
+    setTimeout(_show, FIRST_SPLASH_DONE);
+  }
 }
 
-// FIX: Always hide gatekeeper after 5s max (guards against Firebase auth delay)
-const gatekeeperTimeout = setTimeout(hideGatekeeper, 5000);
-
 fbAuth.onAuthStateChanged(user => {
-  clearTimeout(gatekeeperTimeout);
   if (user) {
     currentUser = user;
     hideGatekeeper();
@@ -991,8 +987,10 @@ fbAuth.onAuthStateChanged(user => {
       .catch(() => {}); // silently ignore if profile not yet created
   } else {
     currentUser = null;
-    document.getElementById('gatekeeper').classList.remove('hidden');
-    document.getElementById('gatekeeper').style.display = 'flex';
+    const gk = document.getElementById('gatekeeper');
+    gk.style.transition = 'none';
+    gk.style.display = 'flex';
+    gk.classList.remove('hidden');
   }
 });
 
@@ -1124,4 +1122,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
 function showPage(pageId) {
-  // Force-close ALL overlays — class-only, never inline (inline overrides class 
+  // Force-close ALL overlays — class-only, never inline (inline overrides class permanently)
+  const _ps = document.getElementById('profileScreen');
+  if (_ps) { _ps.classList.remove('active'); _ps.style.display = ''; }
+  const _sb = document.getElementById('shareBackdrop');
+  if (_sb) { _sb.classList.remove('active'); _sb.style.display = ''; }
+  const _ss = document.querySelector('.share-sheet');
+  if (_ss) { _ss.classList.remove('active'); _ss.style.bottom = ''; }
+  const _co = document.getElementById('consultOverlay');
+  if (_co) { _co.classList.remove('active'); _co.style.display = ''; }
+  const _im = document.getElementById('imageModal');
+  if (_im) { _im.classList.remove('active'); _im.style.display = ''; }
+  const _va = document.getElementById('vaultAssetDetail');
+  if (_va) _va.style.display = 'none'
