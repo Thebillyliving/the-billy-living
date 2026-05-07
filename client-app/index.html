@@ -404,7 +404,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 @keyframes splashPop{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
 @keyframes splashFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 /* ─── LOADING SPLASH (SECOND SCREEN) ────────────────────────────────────────── */
-#loadingSplash{position:fixed;inset:0;background:#120D06;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .55s ease,visibility .55s ease}
+#loadingSplash{position:fixed;top:0;left:0;right:0;bottom:80px;background:#120D06;z-index:100003;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .55s ease,visibility .55s ease}
 #loadingSplash.active{opacity:1;visibility:visible;pointer-events:auto}
 #loadingSplash.dismissing{opacity:0;visibility:hidden;pointer-events:none}
 .ls-logo{width:72px;height:72px;border-radius:16px;opacity:.9}
@@ -857,33 +857,34 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
-  <button class="bottom-nav-item active" id="nav-home" aria-label="Home" onclick="showPage('home')">
+  <button class="bottom-nav-item active" id="nav-home" aria-label="Home" onclick="showPage('home')" ontouchend="event.preventDefault();showPage('home')">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H15v-5h-6v5H4a1 1 0 01-1-1V10.5z"/></svg></span>
     <span>Home</span>
   </button>
-  <button class="bottom-nav-item" id="nav-trending" aria-label="Trending" onclick="showPage('trending')">
+  <button class="bottom-nav-item" id="nav-trending" aria-label="Trending" onclick="showPage('trending')" ontouchend="event.preventDefault();showPage('trending')">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><path d="M12 2C12 2 7 8 7 13a5 5 0 0010 0c0-5-5-11-5-11z"/><path d="M9.5 15.5c.5-1.5 2-2.5 2.5-4"/></svg></span>
     <span>Trending</span>
   </button>
-  <button class="bottom-nav-item" id="nav-catalog" aria-label="Catalog" onclick="showPage('catalog')">
+  <button class="bottom-nav-item" id="nav-catalog" aria-label="Catalog" onclick="showPage('catalog')" ontouchend="event.preventDefault();showPage('catalog')">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx=".5"/><rect x="14" y="3" width="7" height="7" rx=".5"/><rect x="3" y="14" width="7" height="7" rx=".5"/><rect x="14" y="14" width="7" height="7" rx=".5"/></svg></span>
     <span>Catalog</span>
   </button>
-  <button class="bottom-nav-item" id="nav-vault" onclick="showPage('vault')">
+  <button class="bottom-nav-item" id="nav-vault" onclick="showPage('vault')" ontouchend="event.preventDefault();showPage('vault')">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="11" rx="1"/><path d="M8 11V7a4 4 0 018 0v4"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/></svg></span>
     <span>Vault</span>
   </button>
-  <button class="bottom-nav-item" id="nav-concierge" onclick="showPage('concierge')">
+  <button class="bottom-nav-item" id="nav-concierge" onclick="showPage('concierge')" ontouchend="event.preventDefault();showPage('concierge')">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span>
     <span>Concierge</span>
   </button>
-  <button class="bottom-nav-item" id="nav-portfolio" onclick="showPage('portfolio')">
+  <button class="bottom-nav-item" id="nav-portfolio" onclick="showPage('portfolio')" ontouchend="event.preventDefault();showPage('portfolio')">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx=".5"/><rect x="14" y="3" width="7" height="7" rx=".5"/><rect x="3" y="14" width="7" height="7" rx=".5"/><rect x="14" y="14" width="7" height="7" rx=".5"/></svg></span>
     <span>Portfolio</span>
   </button>
 </nav>
 
 <script>
+window._pageLoadTime = Date.now();
 // ─── FIREBASE ───────────────────────────────────────────────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyBbs6k7PInHUnv1x9FzHB31kUwrCcoGG7c",
@@ -939,33 +940,33 @@ function showLoadingSplash() {
   const LOAD_DURATION = isNewDevice ? 9000 : 4000;
   try { localStorage.setItem('bl_device_seen', '1'); } catch(e) {}
 
-  function _show() {
+  // How long until the first splash is gone (it auto-dismisses at 2.8s via CSS animation)
+  // pageLoadTime tracks when the page started loading
+  const elapsed = Date.now() - window._pageLoadTime;
+  const firstSplashGone = 3000; // 2.8s animation + 0.2s buffer
+  const delay = Math.max(0, firstSplashGone - elapsed);
+
+  setTimeout(function() {
     const ls  = document.getElementById('loadingSplash');
     const bar = document.getElementById('lsBarFill');
     if (!ls) return;
+    // Force remove any lingering first splash so nothing blocks us
+    const s = document.getElementById('splashScreen');
+    if (s) { s.style.opacity = '0'; s.style.visibility = 'hidden'; }
+    // Show loading splash
     ls.classList.add('active');
     if (bar) {
-      setTimeout(() => {
+      setTimeout(function() {
         bar.style.transition = 'width ' + (LOAD_DURATION - 500) + 'ms linear';
         bar.style.width = '100%';
       }, 150);
     }
-    setTimeout(() => {
+    setTimeout(function() {
       ls.classList.remove('active');
       ls.classList.add('dismissing');
-      setTimeout(() => { if (ls && ls.parentNode) ls.remove(); }, 600);
+      setTimeout(function() { if (ls && ls.parentNode) ls.remove(); }, 600);
     }, LOAD_DURATION);
-  }
-
-  // If first splash is already gone, show loading splash immediately
-  // Otherwise wait for it to clear first
-  const firstSplash = document.getElementById('splashScreen');
-  if (!firstSplash || firstSplash.classList.contains('hidden')) {
-    _show();
-  } else {
-    const FIRST_SPLASH_DONE = 3000;
-    setTimeout(_show, FIRST_SPLASH_DONE);
-  }
+  }, delay);
 }
 
 fbAuth.onAuthStateChanged(user => {
@@ -1121,17 +1122,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
-function showPage(pageId) {
-  // Force-close ALL overlays — class-only, never inline (inline overrides class permanently)
-  const _ps = document.getElementById('profileScreen');
-  if (_ps) { _ps.classList.remove('active'); _ps.style.display = ''; }
-  const _sb = document.getElementById('shareBackdrop');
-  if (_sb) { _sb.classList.remove('active'); _sb.style.display = ''; }
-  const _ss = document.querySelector('.share-sheet');
-  if (_ss) { _ss.classList.remove('active'); _ss.style.bottom = ''; }
-  const _co = document.getElementById('consultOverlay');
-  if (_co) { _co.classList.remove('active'); _co.style.display = ''; }
-  const _im = document.getElementById('imageModal');
-  if (_im) { _im.classList.remove('active'); _im.style.display = ''; }
-  const _va = document.getElementById('vaultAssetDetail');
-  if (_va) _va.style.display = 'none'
+function dismissLoadingSplash() {
+  const ls = document.getElementById('loadingSplash');
+  if (!ls) return;
+  ls.classList.remove('active');
+  ls.classList.add('dismissing');
+  setTimeout(function() { if (ls && ls.parentNode) ls.re
