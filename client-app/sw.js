@@ -1,4 +1,4 @@
-const CACHE = 'billyliving-v1';
+const CACHE = 'billyliving-v3';
 const ASSETS = ['/'];
 
 self.addEventListener('install', e => {
