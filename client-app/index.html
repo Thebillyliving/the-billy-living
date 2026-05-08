@@ -356,7 +356,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .share-action-item-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .share-action-item-icon svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .share-action-item-label{font-size:15px;color:#E5E5E5}
-#gatekeeper{position:fixed;inset:0;z-index:100001;background:var(--bg-navy);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 28px;transition:opacity .6s ease}
+#gatekeeper{position:fixed;top:0;left:0;right:0;bottom:80px;z-index:100001;background:var(--bg-navy);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 28px;transition:opacity .6s ease}
 #gatekeeper.hidden{opacity:0;pointer-events:none}
 .gate-logo{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--gold);letter-spacing:2px;text-align:center;margin-bottom:6px}
 .gate-tagline{font-size:11px;color:rgba(201,169,98,.5);letter-spacing:2.5px;text-transform:uppercase;text-align:center;margin-bottom:44px}
@@ -394,7 +394,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .dl-banner-close{background:none;border:none;color:rgba(168,155,140,.5);font-size:20px;cursor:pointer;padding:4px;flex-shrink:0;line-height:1}
 
 /* ─── SPLASH SCREEN ─────────────────────────────────────────────────────────── */
-#splashScreen{position:fixed;inset:0;background:#120D06;z-index:100002;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .6s ease,visibility .6s ease;animation:splashAutoDismiss .7s ease 2.8s forwards}
+#splashScreen{position:fixed;top:0;left:0;right:0;bottom:80px;background:#120D06;z-index:100002;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .6s ease,visibility .6s ease;animation:splashAutoDismiss .7s ease 2.8s forwards}
 #splashScreen.hidden{opacity:0;visibility:hidden;pointer-events:none}
 @keyframes splashAutoDismiss{0%{opacity:1;visibility:visible;pointer-events:auto}100%{opacity:0;visibility:hidden;pointer-events:none}}
 .splash-logo{width:140px;height:140px;border-radius:28px;animation:splashPop .7s cubic-bezier(.22,1,.36,1) both}
@@ -857,27 +857,27 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
-  <button class="bottom-nav-item active" id="nav-home" aria-label="Home" onclick="showPage('home')" ontouchend="event.preventDefault();showPage('home')">
+  <button class="bottom-nav-item active" id="nav-home" aria-label="Home" onclick="showPage('home')">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H15v-5h-6v5H4a1 1 0 01-1-1V10.5z"/></svg></span>
     <span>Home</span>
   </button>
-  <button class="bottom-nav-item" id="nav-trending" aria-label="Trending" onclick="showPage('trending')" ontouchend="event.preventDefault();showPage('trending')">
+  <button class="bottom-nav-item" id="nav-trending" aria-label="Trending" onclick="showPage('trending')">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><path d="M12 2C12 2 7 8 7 13a5 5 0 0010 0c0-5-5-11-5-11z"/><path d="M9.5 15.5c.5-1.5 2-2.5 2.5-4"/></svg></span>
     <span>Trending</span>
   </button>
-  <button class="bottom-nav-item" id="nav-catalog" aria-label="Catalog" onclick="showPage('catalog')" ontouchend="event.preventDefault();showPage('catalog')">
+  <button class="bottom-nav-item" id="nav-catalog" aria-label="Catalog" onclick="showPage('catalog')">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx=".5"/><rect x="14" y="3" width="7" height="7" rx=".5"/><rect x="3" y="14" width="7" height="7" rx=".5"/><rect x="14" y="14" width="7" height="7" rx=".5"/></svg></span>
     <span>Catalog</span>
   </button>
-  <button class="bottom-nav-item" id="nav-vault" onclick="showPage('vault')" ontouchend="event.preventDefault();showPage('vault')">
+  <button class="bottom-nav-item" id="nav-vault" onclick="showPage('vault')">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="11" rx="1"/><path d="M8 11V7a4 4 0 018 0v4"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/></svg></span>
     <span>Vault</span>
   </button>
-  <button class="bottom-nav-item" id="nav-concierge" onclick="showPage('concierge')" ontouchend="event.preventDefault();showPage('concierge')">
+  <button class="bottom-nav-item" id="nav-concierge" onclick="showPage('concierge')">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span>
     <span>Concierge</span>
   </button>
-  <button class="bottom-nav-item" id="nav-portfolio" onclick="showPage('portfolio')" ontouchend="event.preventDefault();showPage('portfolio')">
+  <button class="bottom-nav-item" id="nav-portfolio" onclick="showPage('portfolio')">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx=".5"/><rect x="14" y="3" width="7" height="7" rx=".5"/><rect x="3" y="14" width="7" height="7" rx=".5"/><rect x="14" y="14" width="7" height="7" rx=".5"/></svg></span>
     <span>Portfolio</span>
   </button>
@@ -1119,6 +1119,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (e.key === 'Enter') handleSignup();
   });
   // onclick attributes already handle clicks — no duplicate listeners needed
+  // Belt-and-suspenders: also wire nav via addEventListener for Android reliability
+  ['home','trending','catalog','vault','concierge','portfolio'].forEach(function(page) {
+    const btn = document.getElementById('nav-' + page);
+    if (btn) btn.addEventListener('click', function() { showPage(page); });
+  });
 });
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
