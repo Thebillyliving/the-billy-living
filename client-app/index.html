@@ -1137,63 +1137,69 @@ function dismissLoadingSplash() {
 
 function showPage(pageId) {
   dismissLoadingSplash();
-  // Force-close ALL overlays — class-only, never inline (inline overrides class permanently)
+
+  // Close all overlays
   const _ps = document.getElementById('profileScreen');
-  if (_ps) { _ps.classList.remove('active'); _ps.style.display = ''; }
+  if (_ps) { _ps.classList.remove('active'); _ps.style.display = 'none'; }
   const _sb = document.getElementById('shareBackdrop');
-  if (_sb) { _sb.classList.remove('active'); _sb.style.display = ''; }
+  if (_sb) { _sb.classList.remove('active'); _sb.style.display = 'none'; }
   const _ss = document.querySelector('.share-sheet');
   if (_ss) { _ss.classList.remove('active'); _ss.style.bottom = ''; }
   const _co = document.getElementById('consultOverlay');
-  if (_co) { _co.classList.remove('active'); _co.style.display = ''; }
+  if (_co) { _co.classList.remove('active'); _co.style.display = 'none'; }
   const _im = document.getElementById('imageModal');
-  if (_im) { _im.classList.remove('active'); _im.style.display = ''; }
+  if (_im) { _im.classList.remove('active'); _im.style.display = 'none'; }
   const _va = document.getElementById('vaultAssetDetail');
   if (_va) _va.style.display = 'none';
-  // Hide all standard pages
-  document.querySelectorAll('.page').forEach(p => {
-    p.classList.remove('active');
-    p.style.display = '';  // rely on CSS — .page default is display:none, .page.active overrides
-  });
-  // Handle trending separately (fixed-position)
-  const trendingEl = document.getElementById('trending');
-  trendingEl.classList.remove('active');
-  trendingEl.style.display = 'none';
 
-  // Update nav
-  document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
-  const navBtn = document.getElementById('nav-' + pageId);
+  // Hide every page explicitly
+  var allPages = ['home','catalog','catalogInner','catalogRooms','vault','portfolio','concierge'];
+  allPages.forEach(function(p) {
+    var el = document.getElementById(p);
+    if (el) { el.classList.remove('active'); el.style.display = 'none'; }
+  });
+
+  // Hide trending explicitly
+  var trendingEl = document.getElementById('trending');
+  if (trendingEl) { trendingEl.classList.remove('active'); trendingEl.style.display = 'none'; }
+  // Pause all trending audio
+  document.querySelectorAll('audio[id^="taudio_"]').forEach(function(a) { a.pause(); });
+
+  // Update nav active state
+  document.querySelectorAll('.bottom-nav-item').forEach(function(b) { b.classList.remove('active'); });
+  var navBtn = document.getElementById('nav-' + pageId);
   if (navBtn) navBtn.classList.add('active');
 
+  // Show the requested page
   if (pageId === 'trending') {
-    trendingEl.style.display = 'block';
-    trendingEl.classList.add('active');
-    // Resume audio for currently visible tiktok item
-    const visibleItem = document.querySelector('.tiktok-item');
+    if (trendingEl) { trendingEl.style.display = 'block'; trendingEl.classList.add('active'); }
+    var visibleItem = document.querySelector('.tiktok-item');
     if (visibleItem) {
-      const a = visibleItem.querySelector('audio[id^="taudio_"]');
-      if (a) a.play().catch(()=>{});
+      var a = visibleItem.querySelector('audio[id^="taudio_"]');
+      if (a) a.play().catch(function(){});
     }
   } else {
-    // Pause all trending audio when leaving
-    document.querySelectorAll('audio[id^="taudio_"]').forEach(a => a.pause());
-    const el = document.getElementById(pageId);
+    var el = document.getElementById(pageId);
     if (el) {
-      el.style.display = '';  // clear inline — let CSS .active class control display
+      el.style.display = pageId === 'concierge' ? 'flex' : 'block';
       el.classList.add('active');
     }
-    // Hide catalog sub-pages unless explicitly going there
-    if (pageId !== 'catalogInner') { document.getElementById('catalogInner').style.display = 'none'; }
-    if (pageId !== 'catalogRooms') { document.getElementById('catalogRooms').style.display = 'none'; }
-  }
-  // Reset concierge keyboard offset when navigating away
-  const cgEl = document.getElementById('concierge');
-  if (cgEl) {
-    if (pageId !== 'concierge') cgEl.style.bottom = 'var(--nav-height)';
-    // Never set inline display — CSS .active class controls visibility
+    // Keep catalog sub-pages hidden unless navigating there
+    if (pageId !== 'catalogInner') {
+      var ci = document.getElementById('catalogInner');
+      if (ci) ci.style.display = 'none';
+    }
+    if (pageId !== 'catalogRooms') {
+      var cr = document.getElementById('catalogRooms');
+      if (cr) cr.style.display = 'none';
+    }
   }
 
-  // On-demand loads — only fire once on first visit, or on explicit refresh
+  // Concierge bottom offset
+  var cgEl = document.getElementById('concierge');
+  if (cgEl && pageId !== 'concierge') cgEl.style.bottom = 'var(--nav-height)';
+
+  // On-demand loads
   if (pageId === 'portfolio') loadPortfolio();
   if (pageId === 'trending' && !document.querySelector('.tiktok-item')) loadTrending();
   if (pageId === 'concierge' && _conciergeListener === null) loadConciergeHistory();
