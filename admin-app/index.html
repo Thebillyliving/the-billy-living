@@ -11,10 +11,10 @@
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"></noscript>
-    <!-- Firebase: defer so scripts don't block rendering -->
-    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <!-- Firebase: load synchronously so inline script can use firebase.* immediately -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -1824,7 +1824,6 @@
             console.error("ERROR: " + msg + " at line " + line);
             return false;
         };
-        console.log("App starting...");
 
         // Global variables
         let currentForm = null;
@@ -1889,7 +1888,6 @@
 
         // Vault Manager Init
         function vmInit() {
-            console.log('vmInit');
             vmShowView('main');
             vmLoadClientList();
         }
@@ -2032,7 +2030,6 @@
         }
 
         function vmOpenProgressTracker(assetId) {
-            console.log('Opening progress tracker for client:', vmCurrentClientUID);
             
             if (!vmCurrentClientUID) {
                 showToast('No client selected');
@@ -2078,7 +2075,6 @@
 
         // Projects & Workflows
         function vmLoadProjectsList() {
-            console.log('Loading projects for client:', vmCurrentClientUID);
             
             if (!vmCurrentClientUID) {
                 console.error('No client selected');
@@ -2096,7 +2092,6 @@
             const projectsRef = adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects');
             
             projectsRef.once('value').then(snapshot => {
-                console.log('Projects snapshot:', snapshot.val());
                 
                 if (!snapshot.exists()) {
                     list.innerHTML = `
@@ -2153,7 +2148,6 @@
         }
 
         function vmOpenProject(id, name) {
-            console.log('Opening project:', id, name);
             
             if (!id || !name) {
                 console.error('Invalid project data');
@@ -2176,7 +2170,6 @@
                 newBtn.className = 'progress-create-btn project-context-btn';
                 newBtn.textContent = '+ CREATE WORKFLOW';
                 newBtn.onclick = function() { 
-                    console.log('Create workflow clicked');
                     vmPromptNewWorkflow(); 
                 };
                 header.appendChild(newBtn);
@@ -2187,18 +2180,15 @@
 
         function vmLoadWorkflowsForProject() {
             if (!vmCurrentClientUID || !vmCurrentProjectId) {
-                console.log('Cannot load workflows - missing client or project');
                 return;
             }
             
-            console.log('Loading workflows for project:', vmCurrentProjectId);
             
             const list = document.getElementById('vmWorkflowList');
             list.innerHTML = '<div style="text-align:center; padding:20px;">Loading workflows...</div>';
             
             adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects/' + vmCurrentProjectId + '/workflows').once('value')
                 .then(snapshot => {
-                    console.log('Workflows data:', snapshot.val());
                     
                     const workflows = snapshot.val() || {};
                     const workflowEntries = Object.entries(workflows);
@@ -2270,7 +2260,6 @@
 
         // Project creation
         function vmPromptNewProject() {
-            console.log('Opening project modal');
             document.getElementById('vmPTModal').style.display = 'flex';
             setTimeout(() => document.getElementById('vmPTProjectNameInput').focus(), 100);
         }
@@ -2281,9 +2270,7 @@
         }
         
         function vmSaveNewProject() {
-            console.log('Save project clicked');
             const name = document.getElementById('vmPTProjectNameInput').value.trim();
-            console.log('Project name:', name);
             
             if (!name) { 
                 showToast('Please enter a project name'); 
@@ -2298,7 +2285,6 @@
             
             const id = 'proj_' + Date.now();
             const projectPath = 'timelines/' + vmCurrentClientUID + '/projects/' + id;
-            console.log('Saving to path:', projectPath);
             
             // Show loading state on button
             const createBtn = document.querySelector('#vmPTModal .gold-modal-btn-primary');
@@ -2310,7 +2296,6 @@
                 name: name, 
                 createdAt: Date.now() 
             }).then(() => {
-                console.log('Save successful');
                 showToast('✓ Project created');
                 vmClosePTModal();
                 
@@ -2680,8 +2665,7 @@
           // content/.read is true — no auth needed
           // Use the REST API as fallback if Firebase SDK returns empty
           const doLoad = () => {
-            adminFbDB.ref('content/posts').once('value').then(snap => {
-              console.log('Posts snap exists:', snap.exists(), 'val:', snap.val() ? Object.keys(snap.val()).length + ' posts' : 'null');
+            adminFbDB.ref('content/posts').limitToLast(50).once('value').then(snap => {
               if (!snap.exists() || !snap.val()) {
                 el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><div>No posts yet</div><div style="font-size:11px;color:rgba(201,168,76,.3);margin-top:8px;">Posts added from client app will appear here</div></div>';
                 return;
@@ -2898,7 +2882,6 @@
                         // Get the first matching user's UID
                         const users = snapshot.val();
                         userId = Object.keys(users)[0];
-                        console.log('✅ Found user with UID:', userId);
                     }
 
                     // Save VIP data with phone as the KEY
@@ -3280,14 +3263,12 @@
                 return;
             }
             
-            console.log('Deleting project:', projectId, 'for client:', clientUID);
             showToast('Deleting project...');
             
             const wasCurrentProject = (vmCurrentProjectId === projectId);
             
             adminFbDB.ref('timelines/' + clientUID + '/projects/' + projectId).remove()
                 .then(() => {
-                    console.log('Project deleted successfully');
                     showToast('✓ Project deleted');
                     
                     if (wasCurrentProject) {
@@ -3324,12 +3305,10 @@
                 return;
             }
             
-            console.log('Deleting workflow:', workflowId);
             showToast('Deleting...');
             
             adminFbDB.ref('timelines/' + clientUID + '/projects/' + projectId + '/workflows/' + workflowId).remove()
                 .then(() => {
-                    console.log('Workflow deleted successfully');
                     showToast('✓ Workflow deleted');
                     setTimeout(() => {
                         vmLoadWorkflowsForProject();
@@ -3753,17 +3732,34 @@
 
         // Initialization
         document.addEventListener('DOMContentLoaded', () => {
-            showPanel('dashboard', document.querySelector('.nav-item.active'));
-            // onAuthStateChanged reuses existing session instantly (no round-trip on reload)
+            // Show layout immediately — nav, sidebar, empty stat cards
+            const activeNav = document.querySelector('.nav-item.active');
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('panel-dashboard')?.classList.add('active');
+            if (activeNav) activeNav.classList.add('active');
+
+            // Auth fires near-instantly on warm sessions (cached token, no network round-trip)
             adminFbAuth.onAuthStateChanged(user => {
                 if (user) {
-                    loadDashboardStats();
+                    // Auth ready — safe to fetch data now
+                    if (!_panelFetched.dashboard) {
+                        _panelFetched.dashboard = true;
+                        loadDashboardStats();
+                    }
                 } else {
                     adminFbAuth.signInWithEmailAndPassword('admin@billyliving.com', '147414')
-                        .then(cred => { adminFbDB.ref('admins/' + cred.user.uid).set(true); loadDashboardStats(); })
+                        .then(cred => {
+                            adminFbDB.ref('admins/' + cred.user.uid).set(true);
+                            _panelFetched.dashboard = true;
+                            loadDashboardStats();
+                        })
                         .catch(() => {
                             adminFbAuth.createUserWithEmailAndPassword('admin@billyliving.com', '147414')
-                                .then(cred => { adminFbDB.ref('admins/' + cred.user.uid).set(true); loadDashboardStats(); })
+                                .then(cred => {
+                                    adminFbDB.ref('admins/' + cred.user.uid).set(true);
+                                    _panelFetched.dashboard = true;
+                                    loadDashboardStats();
+                                })
                                 .catch(e => console.error('Auth error:', e));
                         });
                 }
@@ -3771,4 +3767,4 @@
         });
     </script>
 </body>
-</html>
+</html>I 
