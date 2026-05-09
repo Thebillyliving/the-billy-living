@@ -947,14 +947,7 @@ function showLoadingSplash() {
   setTimeout(function() {
     const ls  = document.getElementById('loadingSplash');
     const bar = document.getElementById('lsBarFill');
-    const nav = document.querySelector('.bottom-nav');
     if (!ls) return;
-
-    // Lock out all app chrome before showing
-    if (nav) { nav.style.opacity = '0'; nav.style.pointerEvents = 'none'; nav.style.transition = 'none'; }
-    document.querySelectorAll('.page.active, .trending-page.active').forEach(function(el) {
-      el.style.display = 'none'; el.classList.remove('active');
-    });
 
     // Force clear first splash
     const s = document.getElementById('splashScreen');
@@ -972,8 +965,6 @@ function showLoadingSplash() {
     setTimeout(function() {
       ls.classList.remove('active');
       ls.classList.add('dismissing');
-      // Restore nav and reveal home once loading is done
-      if (nav) { nav.style.transition = 'opacity .4s ease .1s'; nav.style.opacity = '1'; nav.style.pointerEvents = ''; }
       showPage('home');
       setTimeout(function() { if (ls && ls.parentNode) ls.remove(); }, 600);
     }, LOAD_DURATION);
@@ -1140,9 +1131,6 @@ function dismissLoadingSplash() {
   if (!ls) return;
   ls.classList.remove('active');
   ls.classList.add('dismissing');
-  // Restore nav in case showLoadingSplash locked it out
-  const nav = document.querySelector('.bottom-nav');
-  if (nav) { nav.style.transition = 'opacity .4s ease .1s'; nav.style.opacity = '1'; nav.style.pointerEvents = ''; }
   setTimeout(function() { if (ls && ls.parentNode) ls.remove(); }, 600);
 }
 
@@ -1251,6 +1239,10 @@ function showPage(pageId) {
       enterBespokeVault();
     }
   }
+
+  // ── Reveal nav — only shown once a real page is active ──
+  const _nav = document.querySelector('.bottom-nav');
+  if (_nav) { _nav.style.transition = 'opacity .4s ease'; _nav.style.opacity = '1'; _nav.style.pointerEvents = ''; }
 
   window.scrollTo(0, 0);
 }
@@ -3270,9 +3262,7 @@ function dismissBanner() {
     const s = document.getElementById('splashScreen');
     if (s) s.classList.add('hidden');
     setTimeout(() => { if (s && s.parentNode) s.remove(); }, 700);
-    // Reveal bottom nav now that splash is gone
-    const nav = document.querySelector('.bottom-nav');
-    if (nav) { nav.style.opacity = '1'; nav.style.pointerEvents = ''; }
+    // Nav stays hidden — showPage() is the sole authority for revealing it
   }
   // Dismiss on load (normal case)
   window.addEventListener('load', () => setTimeout(dismissSplash, 1800));
