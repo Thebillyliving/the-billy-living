@@ -940,19 +940,26 @@ function showLoadingSplash() {
   const LOAD_DURATION = isNewDevice ? 9000 : 4000;
   try { localStorage.setItem('bl_device_seen', '1'); } catch(e) {}
 
-  // How long until the first splash is gone (it auto-dismisses at 2.8s via CSS animation)
-  // pageLoadTime tracks when the page started loading
   const elapsed = Date.now() - window._pageLoadTime;
-  const firstSplashGone = 3000; // 2.8s animation + 0.2s buffer
+  const firstSplashGone = 3000;
   const delay = Math.max(0, firstSplashGone - elapsed);
 
   setTimeout(function() {
     const ls  = document.getElementById('loadingSplash');
     const bar = document.getElementById('lsBarFill');
+    const nav = document.querySelector('.bottom-nav');
     if (!ls) return;
-    // Force remove any lingering first splash so nothing blocks us
+
+    // Lock out all app chrome before showing
+    if (nav) { nav.style.opacity = '0'; nav.style.pointerEvents = 'none'; nav.style.transition = 'none'; }
+    document.querySelectorAll('.page.active, .trending-page.active').forEach(function(el) {
+      el.style.display = 'none'; el.classList.remove('active');
+    });
+
+    // Force clear first splash
     const s = document.getElementById('splashScreen');
-    if (s) { s.style.opacity = '0'; s.style.visibility = 'hidden'; }
+    if (s) { s.style.opacity = '0'; s.style.visibility = 'hidden'; s.classList.add('hidden'); }
+
     // Show loading splash
     ls.classList.add('active');
     if (bar) {
@@ -961,13 +968,18 @@ function showLoadingSplash() {
         bar.style.width = '100%';
       }, 150);
     }
+
     setTimeout(function() {
       ls.classList.remove('active');
       ls.classList.add('dismissing');
+      // Restore nav and reveal home once loading is done
+      if (nav) { nav.style.transition = 'opacity .4s ease .1s'; nav.style.opacity = '1'; nav.style.pointerEvents = ''; }
+      showPage('home');
       setTimeout(function() { if (ls && ls.parentNode) ls.remove(); }, 600);
     }, LOAD_DURATION);
   }, delay);
 }
+
 
 fbAuth.onAuthStateChanged(user => {
   if (user) {
@@ -1128,6 +1140,9 @@ function dismissLoadingSplash() {
   if (!ls) return;
   ls.classList.remove('active');
   ls.classList.add('dismissing');
+  // Restore nav in case showLoadingSplash locked it out
+  const nav = document.querySelector('.bottom-nav');
+  if (nav) { nav.style.transition = 'opacity .4s ease .1s'; nav.style.opacity = '1'; nav.style.pointerEvents = ''; }
   setTimeout(function() { if (ls && ls.parentNode) ls.remove(); }, 600);
 }
 
