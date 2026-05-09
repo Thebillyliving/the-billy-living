@@ -1572,7 +1572,7 @@
         </div>
 
         <!-- Home Panel -->
-        <div class="panel" id="panel-home"><div class="page-header"><h1 class="page-title">Home Posts</h1><button class="btn btn-primary" onclick="openForm('post')">+ Add Post</button></div><div class="list-container" id="homeList"></div></div>
+        <div class="panel" id="panel-home"><div class="page-header"><h1 class="page-title">Home Posts</h1><div style="display:flex;gap:8px;"><button class="btn btn-secondary" onclick="_panelFetched.home=false;renderHomeList()" style="padding:10px 16px;font-size:12px;">&#x21BB; Refresh</button><button class="btn btn-primary" onclick="openForm('post')">+ Add Post</button></div></div><div class="list-container" id="homeList"></div></div>
 
         <!-- Catalog Panel -->
         <div class="panel" id="panel-catalog">
@@ -1589,7 +1589,7 @@
         <!-- Portfolio Panel -->
         <div class="panel" id="panel-portfolio">
             <div id="portfolioUsersView">
-                <div class="page-header"><div><div class="page-eyebrow">Billy Living</div><h1 class="page-title">Portfolio Analytics</h1></div><div id="portfolioUserCount" style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);border-radius:8px;padding:8px 16px;text-align:center;"><div style="font-size:22px;font-weight:700;color:#C9A84C;" id="portfolioUserTotal">0</div><div style="font-size:10px;letter-spacing:2px;color:rgba(201,168,76,0.5);text-transform:uppercase;">Users</div></div></div>
+                <div class="page-header"><div><div class="page-eyebrow">Billy Living</div><h1 class="page-title">Portfolio Analytics</h1></div><div style="display:flex;align-items:center;gap:8px;"><button class="btn btn-secondary" onclick="_panelFetched.portfolio=false;loadPortfolioUsers();" style="padding:10px 16px;font-size:12px;">&#x21BB; Refresh</button><div id="portfolioUserCount" style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);border-radius:8px;padding:8px 16px;text-align:center;"><div style="font-size:22px;font-weight:700;color:#C9A84C;" id="portfolioUserTotal">0</div><div style="font-size:10px;letter-spacing:2px;color:rgba(201,168,76,0.5);text-transform:uppercase;">Users</div></div></div></div>
                 <div id="portfolioUsersList" style="display:flex;flex-direction:column;gap:10px;"></div>
             </div>
             <div id="portfolioClientView" style="display:none;height:100%;flex-direction:column;">
@@ -1606,7 +1606,7 @@
 
         <!-- VIP Manager Panel -->
         <div class="panel" id="panel-vip">
-            <div class="page-header"><h1 class="page-title">VIP Manager</h1></div>
+            <div class="page-header"><h1 class="page-title">VIP Manager</h1><button class="btn btn-secondary" onclick="_panelFetched.vip=false;renderVIPList();loadVIPRequests();" style="padding:10px 16px;font-size:12px;">&#x21BB; Refresh</button></div>
             <div class="vip-form"><h3 style="margin-bottom:16px;color:var(--gold);">Register New VIP</h3><div class="form-row"><div class="form-group"><label class="form-label">Phone Number (10 digits)</label><input type="tel" class="form-input" id="vipPhone" placeholder="08012345678" maxlength="10"></div><div class="form-group"><label class="form-label">4-Digit Code</label><input type="text" class="form-input" id="vipCode" placeholder="4521" maxlength="4"></div><div class="form-group"><label class="form-label">Full Name</label><input type="text" class="form-input" id="vipName" placeholder="Mr. Adeyemi"></div></div><button class="btn btn-primary" onclick="addVIP()" style="margin-top:16px;">Add VIP Member</button></div>
             <h3 style="margin:32px 0 16px;color:var(--gold);">VIP Requests <span id="vipRequestCount" style="font-size:14px;font-weight:400;color:rgba(201,168,76,.5);margin-left:8px;"></span></h3>
             <div id="vipRequestsList" style="margin-bottom:32px;"></div>
@@ -1878,11 +1878,11 @@
             if (name === 'dashboard') { if (!_panelFetched.dashboard) { _panelFetched.dashboard = true; loadDashboardStats(); } }
             if (name === 'vaultmgr') vmInit();
             if (name === 'catalog') { if (!_panelFetched.catalog) { _panelFetched.catalog = true; renderCatalogList(); } }
-            if (name === 'home') { _panelFetched['home'] = false; renderHomeList(); }
+            if (name === 'home') { if (!_panelFetched.home) { _panelFetched.home = true; renderHomeList(); } }
             if (name === 'trending') { if (!_panelFetched.trending) { _panelFetched.trending = true; renderTrendingList(); } }
             if (name === 'designers') { if (!_panelFetched.designers) { _panelFetched.designers = true; renderDesignersList(); } }
-            if (name === 'vip') { renderVIPList(); loadVIPRequests(); }
-            if (name === 'portfolio') loadPortfolioUsers();
+            if (name === 'vip') { if (!_panelFetched.vip) { _panelFetched.vip = true; renderVIPList(); loadVIPRequests(); } }
+            if (name === 'portfolio') { if (!_panelFetched.portfolio) { _panelFetched.portfolio = true; loadPortfolioUsers(); } }
             if (name === 'messages') { if (!_panelFetched.messages) { _panelFetched.messages = true; initAdminMessagesListener(); } }
         }
 
@@ -2677,7 +2677,7 @@
                 return `<div class="list-item">
                   <div class="list-image">${thumb}</div>
                   <div class="list-info"><div class="list-title">${p.caption||p.title||p.description||'Post'}</div><div class="list-meta">${p.location||''} · ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div></div>
-                  <div class="list-actions"><button class="btn btn-danger" style="padding:8px 12px;font-size:12px;" onclick="if(confirm('Delete?'))adminFbDB.ref('content/posts/${p.id||''}').remove().then(()=>{showToast('Deleted');renderHomeList();})">×</button></div>
+                  <div class="list-actions"><button class="btn btn-danger" style="padding:8px 12px;font-size:12px;" onclick="if(confirm('Delete?'))adminFbDB.ref('content/posts/${p.id||''}').remove().then(()=>{showToast('Deleted');_panelFetched.home=false;renderHomeList();})">×</button></div>
                 </div>`;
               }).join('');
             }).catch(e => {
@@ -2800,7 +2800,7 @@
               <div class="vip-phone">📱 ${v.phone||'—'} &nbsp;·&nbsp; 🔑 ${v.password||v.code||'—'}</div>
               <div class="vip-phone" style="font-size:11px;color:rgba(201,168,76,.4);">${v.id ? '✓ Linked to account' : '⏳ No account yet'}</div>
               <div class="vip-actions" style="margin-top:12px;">
-                <button class="vip-btn btn-danger" onclick="if(confirm('Remove VIP?'))adminFbDB.ref('vip/${v.phone}').remove().then(()=>{showToast('VIP removed');renderVIPList();})">Remove</button>
+                <button class="vip-btn btn-danger" onclick="if(confirm('Remove VIP?'))adminFbDB.ref('vip/${v.phone}').remove().then(()=>{showToast('VIP removed');_panelFetched.vip=false;renderVIPList();})">Remove</button>
               </div>
             </div>`).join('');
           }).catch(e => { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#ef4444;">Error: '+e.message+'</div>'; });
@@ -2810,7 +2810,7 @@
           el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
           // Fetch portfolios + userProfiles in parallel (2 reads instead of N+1)
           Promise.all([
-            adminFbDB.ref('portfolios').once('value'),
+            adminFbDB.ref('portfolios').limitToFirst(50).once('value'),
             adminFbDB.ref('userProfiles').limitToFirst(100).once('value')
           ]).then(([portSnap, usersSnap]) => {
             if (!usersSnap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🖼</div>No users yet</div>'; return; }
@@ -2990,7 +2990,7 @@
           document.getElementById('adminChatAv').textContent = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
           const msgs = document.getElementById('adminChatMsgs');
           msgs.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(201,168,76,.4);">Loading...</div>';
-          adminFbDB.ref('chats/'+uid+'/messages').orderByChild('timestamp').once('value').then(snap => {
+          adminFbDB.ref('chats/'+uid+'/messages').orderByChild('timestamp').limitToLast(50).once('value').then(snap => {
             if (!snap.exists()) { msgs.innerHTML = '<div style="text-align:center;padding:20px;">No messages</div>'; return; }
             msgs.innerHTML = Object.values(snap.val()).map(m => `
               <div class="admin-msg ${(m.role==='admin'||m.sender==='admin') ? 'from-admin' : 'from-client'}">
@@ -2998,12 +2998,10 @@
                 <div class="admin-msg-time">${(m.timestamp||m.createdAt) ? new Date(m.timestamp||m.createdAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : ''}</div>
               </div>`).join('');
             msgs.scrollTop = msgs.scrollHeight;
-            // Mark as read
-            adminFbDB.ref('chats/'+uid+'/messages').once('value').then(s => {
-              const updates = {};
-              Object.entries(s.val()||{}).forEach(([k,v]) => { if(!v.read && v.sender!=='admin') updates[k+'/read'] = true; });
-              if (Object.keys(updates).length) adminFbDB.ref('chats/'+uid+'/messages').update(updates);
-            });
+            // Mark unread client messages as read — reuse existing snap, no second fetch
+            const updates = {};
+            Object.entries(snap.val()).forEach(([k,v]) => { if(!v.read && v.sender!=='admin') updates[k+'/read'] = true; });
+            if (Object.keys(updates).length) adminFbDB.ref('chats/'+uid+'/messages').update(updates);
           });
           // Store current uid for sending
           window._adminChatUID = uid;
@@ -3767,4 +3765,4 @@
         });
     </script>
 </body>
-</html>I 
+</html>
