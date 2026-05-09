@@ -949,7 +949,7 @@
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
             background: #080808;
-            z-index: 2000;
+            z-index: 10000;
             overflow-y: auto;
             flex-direction: column;
             scroll-padding-bottom: 320px;
@@ -2689,40 +2689,50 @@
           doLoad();
         }
         const _adminCatalogMap = {};
+        let _catalogCache = null;
+        let _catalogCacheTime = 0;
+        const CATALOG_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+        function _renderCatalogFromData(data) {
+          const grid = document.getElementById('catalogList');
+          const boxes = Object.values(data).sort((a,b) => {
+            const n = s => parseInt((s.id||'').replace(/\D/g,'')) || 0;
+            return n(a) - n(b);
+          });
+          boxes.forEach(b => { _adminCatalogMap[b.id] = b; });
+          grid.innerHTML = boxes.map(box => {
+            const imgs = box.images ? (Array.isArray(box.images) ? box.images : Object.values(box.images)) : [];
+            const thumb = imgs.find(i => i) || null;
+            // Use native loading="lazy" — no IntersectionObserver, no data-src, no shimmer animation
+            return '<div class="elite-collection-cell-admin" onclick="openAdminCatalogInner(_adminCatalogMap[\'' + box.id + '\'])">'
+              + '<div class="elite-cell-meta-admin"><div class="elite-cell-topic-admin">' + (box.value||box.topic||'Collection') + '</div>'
+              + '<div class="elite-cell-feeling-admin">' + (box.description||box.feeling||'') + '</div></div>'
+              + '<div class="elite-cell-box-admin" style="position:relative;overflow:hidden;">'
+              + (thumb
+                  ? '<img src="' + thumb + '" loading="lazy" decoding="async" alt="" style="width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .35s;" onload="this.style.opacity=1" onerror="this.style.display=\'none\'">'
+                  : '<div style="width:100%;height:100%;background:rgba(201,168,76,0.06);"></div>')
+              + '<div class="elite-cell-grain-admin"></div>'
+              + '</div>'
+              + '<div class="elite-cell-actions-admin">'
+              + '<button class="btn btn-secondary" style="font-size:11px;padding:8px 6px;" onclick="event.stopPropagation();openAdminCatalogInner(_adminCatalogMap[\'' + box.id + '\'])">Edit</button>'
+              + '<button class="btn btn-danger" style="flex:0 0 36px;padding:8px;font-size:14px;" onclick="event.stopPropagation();if(confirm(\'Delete?\'))adminFbDB.ref(\'content/catalog/' + box.id + '\').remove().then(()=>{_catalogCache=null;showToast(\'Deleted\');renderCatalogList();})">×</button>'
+              + '</div></div>';
+          }).join('');
+        }
+
         function renderCatalogList() {
           const grid = document.getElementById('catalogList');
+          // Serve from cache if fresh
+          if (_catalogCache && (Date.now() - _catalogCacheTime < CATALOG_CACHE_TTL)) {
+            _renderCatalogFromData(_catalogCache);
+            return;
+          }
           grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;"><div style="width:32px;height:32px;border:2px solid rgba(201,168,76,.1);border-top-color:#C9A84C;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;"></div><div style="font-size:11px;letter-spacing:3px;color:rgba(201,168,76,.4);">LOADING...</div></div>';
           adminFbDB.ref('content/catalog').limitToFirst(50).once('value').then(snap => {
             if (!snap.exists()) { grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:rgba(201,168,76,.3);">No catalog collections yet</div>'; return; }
-            const boxes = Object.values(snap.val()).sort((a,b) => { const n=s=>parseInt((s.id||'').replace(/\D/g,''))||0; return n(a)-n(b); });
-            boxes.forEach(b => { _adminCatalogMap[b.id] = b; });
-            grid.innerHTML = boxes.map(box => {
-              const imgs = box.images ? (Array.isArray(box.images) ? box.images : Object.values(box.images)) : [];
-              const thumb = imgs.find(i=>i) || null;
-              return '<div class="elite-collection-cell-admin" onclick="openAdminCatalogInner(_adminCatalogMap[\'' + box.id + '\'])">'
-                + '<div class="elite-cell-meta-admin"><div class="elite-cell-topic-admin">' + (box.value||box.topic||'Collection') + '</div>'
-                + '<div class="elite-cell-feeling-admin">' + (box.description||box.feeling||'') + '</div></div>'
-                + '<div class="elite-cell-box-admin" style="position:relative;overflow:hidden;">'
-                + (thumb ? '<img data-src="' + thumb + '" alt="" style="width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .35s;position:relative;z-index:1;">' : '')
-                + '<div class="elite-cell-grain-admin"></div>'
-                + '<div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(201,168,76,.04) 25%,rgba(201,168,76,.12) 50%,rgba(201,168,76,.04) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;z-index:0;" class="cat-skel"></div>'
-                + '</div>'
-                + '<div class="elite-cell-actions-admin">'
-                + '<button class="btn btn-secondary" style="font-size:11px;padding:8px 6px;" onclick="event.stopPropagation();openAdminCatalogInner(_adminCatalogMap[\'' + box.id + '\'])">Edit</button>'
-                + '<button class="btn btn-danger" style="flex:0 0 36px;padding:8px;font-size:14px;" onclick="event.stopPropagation();if(confirm(\'Delete?\'))adminFbDB.ref(\'content/catalog/' + box.id + '\').remove().then(()=>{showToast(\'Deleted\');renderCatalogList();})">×</button>'
-                + '</div></div>';
-            }).join('');
-            const obs = new IntersectionObserver(entries => {
-              entries.forEach(entry => {
-                if (!entry.isIntersecting) return;
-                const img = entry.target.querySelector('img[data-src]');
-                const skel = entry.target.querySelector('.cat-skel');
-                if (img) { img.src = img.getAttribute('data-src'); img.removeAttribute('data-src'); img.onload = () => { img.style.opacity='1'; if(skel)skel.remove(); }; img.onerror = () => { if(skel)skel.remove(); }; }
-                else { if(skel)skel.remove(); }
-                obs.unobserve(entry.target);
-              });
-            }, { rootMargin: '150px' });
-            grid.querySelectorAll('.elite-collection-cell-admin').forEach(c => obs.observe(c));
+            _catalogCache = snap.val();
+            _catalogCacheTime = Date.now();
+            _renderCatalogFromData(_catalogCache);
           }).catch(err => { grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:#ef4444;">Error: ' + err.message + '</div>'; });
         }
         function renderTrendingList() {
