@@ -1876,7 +1876,7 @@
             target.classList.add('active');
             if (el) el.classList.add('active');
             if (name === 'dashboard') { if (!_panelFetched.dashboard) { _panelFetched.dashboard = true; loadDashboardStats(); } }
-            if (name === 'vaultmgr') vmInit();
+            if (name === 'vaultmgr') { if (!_panelFetched.vaultmgr) { _panelFetched.vaultmgr = true; vmInit(); } }
             if (name === 'catalog') { if (!_panelFetched.catalog) { _panelFetched.catalog = true; renderCatalogList(); } }
             if (name === 'home') { if (!_panelFetched.home) { _panelFetched.home = true; renderHomeList(); } }
             if (name === 'trending') { if (!_panelFetched.trending) { _panelFetched.trending = true; renderTrendingList(); } }
@@ -2692,7 +2692,7 @@
         function renderCatalogList() {
           const grid = document.getElementById('catalogList');
           grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;"><div style="width:32px;height:32px;border:2px solid rgba(201,168,76,.1);border-top-color:#C9A84C;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;"></div><div style="font-size:11px;letter-spacing:3px;color:rgba(201,168,76,.4);">LOADING...</div></div>';
-          adminFbDB.ref('content/catalog').once('value').then(snap => {
+          adminFbDB.ref('content/catalog').limitToFirst(50).once('value').then(snap => {
             if (!snap.exists()) { grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:rgba(201,168,76,.3);">No catalog collections yet</div>'; return; }
             const boxes = Object.values(snap.val()).sort((a,b) => { const n=s=>parseInt((s.id||'').replace(/\D/g,''))||0; return n(a)-n(b); });
             boxes.forEach(b => { _adminCatalogMap[b.id] = b; });
@@ -3728,35 +3728,57 @@
           });
         }
 
+        // After auth: preload every panel at once so nav clicks are instant
+        function preloadAllPanels() {
+            renderHomeList();
+            renderCatalogList();
+            renderTrendingList();
+            renderDesignersList();
+            renderVIPList();
+            loadVIPRequests();
+            loadPortfolioUsers();
+            initAdminMessagesListener();
+            vmLoadClientList();
+            Object.assign(_panelFetched, {
+                home: true, catalog: true, trending: true,
+                designers: true, vip: true, portfolio: true, messages: true, vaultmgr: true
+            });
+        }
+
+        function initApp() {
+            loadDashboardStats();
+            preloadAllPanels();
+        }
+
         // Initialization
         document.addEventListener('DOMContentLoaded', () => {
-            // Show layout immediately — nav, sidebar, empty stat cards
-            const activeNav = document.querySelector('.nav-item.active');
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             document.getElementById('panel-dashboard')?.classList.add('active');
+            const activeNav = document.querySelector('.nav-item.active');
             if (activeNav) activeNav.classList.add('active');
 
-            // Auth fires near-instantly on warm sessions (cached token, no network round-trip)
+            let appStarted = false;
             adminFbAuth.onAuthStateChanged(user => {
+                if (appStarted) return;
                 if (user) {
-                    // Auth ready — safe to fetch data now
-                    if (!_panelFetched.dashboard) {
-                        _panelFetched.dashboard = true;
-                        loadDashboardStats();
-                    }
+                    appStarted = true;
+                    _panelFetched.dashboard = true;
+                    initApp();
                 } else {
                     adminFbAuth.signInWithEmailAndPassword('admin@billyliving.com', '147414')
                         .then(cred => {
                             adminFbDB.ref('admins/' + cred.user.uid).set(true);
+                            appStarted = true;
                             _panelFetched.dashboard = true;
-                            loadDashboardStats();
+                            initApp();
                         })
                         .catch(() => {
                             adminFbAuth.createUserWithEmailAndPassword('admin@billyliving.com', '147414')
                                 .then(cred => {
                                     adminFbDB.ref('admins/' + cred.user.uid).set(true);
+                                    appStarted = true;
                                     _panelFetched.dashboard = true;
-                                    loadDashboardStats();
+                                    initApp();
                                 })
                                 .catch(e => console.error('Auth error:', e));
                         });
