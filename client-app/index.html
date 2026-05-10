@@ -16,7 +16,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 :root{--bg-primary:#120D06;--bg-card:#1E160C;--bg-secondary:#2A1F14;--bg-navy:#060D18;--text-primary:#F5F0E8;--text-secondary:#A89B8C;--gold:#C9A84C;--gold-light:#E8D5A3;--gold-dark:#8B6914;--nav-height:80px}
-body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow-x:hidden;min-height:100vh;padding-bottom:var(--nav-height);overscroll-behavior-y:contain}
+body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow-x:hidden;min-height:100vh;padding-bottom:calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));overscroll-behavior-y:contain}
 .page{display:none;min-height:calc(100vh - var(--nav-height));overscroll-behavior-y:contain}
 .page.active{display:block;animation:fadeIn 0.3s ease;pointer-events:auto}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -258,8 +258,9 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .cg-send svg{width:18px;height:18px;stroke:#060D18;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .cg-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgba(201,169,98,.3);text-align:center;padding:40px;gap:12px}
 /* FIX 2: touch-action:manipulation kills 300ms delay on Android nav taps */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-height);background:rgba(18,13,6,.98);display:flex;justify-content:space-around;align-items:center;z-index:99000;border-top:1px solid rgba(201,169,98,.1);padding:0 2px;opacity:0;pointer-events:none;transition:opacity .4s ease .1s;}
-.bottom-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text-secondary);font-size:8px;cursor:pointer;padding:5px 2px;border:none;background:none;flex:1;min-width:0;letter-spacing:.1px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));padding-bottom:env(safe-area-inset-bottom, 0px);background:rgba(18,13,6,.98);display:flex;justify-content:space-around;align-items:flex-start;z-index:99000;border-top:1px solid rgba(201,169,98,.1);padding-left:2px;padding-right:2px;}
+.bottom-nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-secondary);font-size:8px;cursor:pointer;padding:8px 4px;border:none;background:none;flex:1;min-width:0;min-height:56px;letter-spacing:.1px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;position:relative;}
+.bottom-nav-item::before{content:'';position:absolute;top:-10px;left:0;right:0;bottom:0;}
 .bottom-nav-item.active{color:var(--gold)}
 .bottom-nav-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center}
 .bottom-nav-icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s ease,filter .2s ease}
@@ -499,7 +500,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 </div>
 
 <!-- HOME -->
-<div id="home" class="page">
+<div id="home" class="page active">
   <div class="stories-row">
     <div class="story-item" onclick="openProfile()">
       <div class="story-circle" id="profileStoryCircle">
@@ -857,27 +858,27 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
-  <button class="bottom-nav-item active" id="nav-home" aria-label="Home" onclick="showPage('home')">
+  <button class="bottom-nav-item active" id="nav-home" aria-label="Home" data-page="home">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H15v-5h-6v5H4a1 1 0 01-1-1V10.5z"/></svg></span>
     <span>Home</span>
   </button>
-  <button class="bottom-nav-item" id="nav-trending" aria-label="Trending" onclick="showPage('trending')">
+  <button class="bottom-nav-item" id="nav-trending" aria-label="Trending" data-page="trending">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><path d="M12 2C12 2 7 8 7 13a5 5 0 0010 0c0-5-5-11-5-11z"/><path d="M9.5 15.5c.5-1.5 2-2.5 2.5-4"/></svg></span>
     <span>Trending</span>
   </button>
-  <button class="bottom-nav-item" id="nav-catalog" aria-label="Catalog" onclick="showPage('catalog')">
+  <button class="bottom-nav-item" id="nav-catalog" aria-label="Catalog" data-page="catalog">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx=".5"/><rect x="14" y="3" width="7" height="7" rx=".5"/><rect x="3" y="14" width="7" height="7" rx=".5"/><rect x="14" y="14" width="7" height="7" rx=".5"/></svg></span>
     <span>Catalog</span>
   </button>
-  <button class="bottom-nav-item" id="nav-vault" onclick="showPage('vault')">
+  <button class="bottom-nav-item" id="nav-vault" data-page="vault">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="11" rx="1"/><path d="M8 11V7a4 4 0 018 0v4"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/></svg></span>
     <span>Vault</span>
   </button>
-  <button class="bottom-nav-item" id="nav-concierge" onclick="showPage('concierge')">
+  <button class="bottom-nav-item" id="nav-concierge" data-page="concierge">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span>
     <span>Concierge</span>
   </button>
-  <button class="bottom-nav-item" id="nav-portfolio" onclick="showPage('portfolio')">
+  <button class="bottom-nav-item" id="nav-portfolio" data-page="portfolio">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx=".5"/><rect x="14" y="3" width="7" height="7" rx=".5"/><rect x="3" y="14" width="7" height="7" rx=".5"/><rect x="14" y="14" width="7" height="7" rx=".5"/></svg></span>
     <span>Portfolio</span>
   </button>
@@ -940,19 +941,19 @@ function showLoadingSplash() {
   const LOAD_DURATION = isNewDevice ? 9000 : 4000;
   try { localStorage.setItem('bl_device_seen', '1'); } catch(e) {}
 
+  // How long until the first splash is gone (it auto-dismisses at 2.8s via CSS animation)
+  // pageLoadTime tracks when the page started loading
   const elapsed = Date.now() - window._pageLoadTime;
-  const firstSplashGone = 3000;
+  const firstSplashGone = 3000; // 2.8s animation + 0.2s buffer
   const delay = Math.max(0, firstSplashGone - elapsed);
 
   setTimeout(function() {
     const ls  = document.getElementById('loadingSplash');
     const bar = document.getElementById('lsBarFill');
     if (!ls) return;
-
-    // Force clear first splash
+    // Force remove any lingering first splash so nothing blocks us
     const s = document.getElementById('splashScreen');
-    if (s) { s.style.opacity = '0'; s.style.visibility = 'hidden'; s.classList.add('hidden'); }
-
+    if (s) { s.style.opacity = '0'; s.style.visibility = 'hidden'; }
     // Show loading splash
     ls.classList.add('active');
     if (bar) {
@@ -961,16 +962,13 @@ function showLoadingSplash() {
         bar.style.width = '100%';
       }, 150);
     }
-
     setTimeout(function() {
       ls.classList.remove('active');
       ls.classList.add('dismissing');
-      showPage('home');
       setTimeout(function() { if (ls && ls.parentNode) ls.remove(); }, 600);
     }, LOAD_DURATION);
   }, delay);
 }
-
 
 fbAuth.onAuthStateChanged(user => {
   if (user) {
@@ -1121,8 +1119,22 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('signupPassword').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') handleSignup();
   });
-  // onclick attributes on nav buttons already handle navigation
-  // No duplicate addEventListener needed
+  // Single delegated handler — no inline onclick, no per-button listeners
+  var nav = document.querySelector('.bottom-nav');
+  if (nav) {
+    nav.addEventListener('click', function(e) {
+      var btn = e.target.closest('.bottom-nav-item');
+      if (!btn) return;
+      var page = btn.getAttribute('data-page');
+      if (page) { e.preventDefault(); showPage(page); }
+    });
+    nav.addEventListener('touchend', function(e) {
+      var btn = e.target.closest('.bottom-nav-item');
+      if (!btn) return;
+      var page = btn.getAttribute('data-page');
+      if (page) { e.preventDefault(); showPage(page); }
+    }, {passive: false});
+  }
 });
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
@@ -1137,83 +1149,77 @@ function dismissLoadingSplash() {
 function showPage(pageId) {
   dismissLoadingSplash();
 
-  // ── Close all overlays ──
+  // Close all overlays
   const _ps = document.getElementById('profileScreen');
-  if (_ps) _ps.classList.remove('active');
+  if (_ps) { _ps.classList.remove('active'); _ps.style.display = 'none'; }
   const _sb = document.getElementById('shareBackdrop');
-  if (_sb) _sb.classList.remove('active');
+  if (_sb) { _sb.classList.remove('active'); _sb.style.display = 'none'; }
   const _ss = document.querySelector('.share-sheet');
   if (_ss) { _ss.classList.remove('active'); _ss.style.bottom = ''; }
   const _co = document.getElementById('consultOverlay');
-  if (_co) _co.classList.remove('active');
+  if (_co) { _co.classList.remove('active'); _co.style.display = 'none'; }
   const _im = document.getElementById('imageModal');
-  if (_im) _im.classList.remove('active');
+  if (_im) { _im.classList.remove('active'); _im.style.display = 'none'; }
   const _va = document.getElementById('vaultAssetDetail');
   if (_va) _va.style.display = 'none';
 
-  // ── Pause all trending audio ──
-  document.querySelectorAll('audio[id^="taudio_"]').forEach(function(a) { a.pause(); });
-
-  // ── Hide EVERY page completely (including sub-pages) ──
-  var allPageIds = ['home','catalog','catalogInner','catalogRooms','vault','portfolio','concierge','trending'];
-  allPageIds.forEach(function(pid) {
-    var el = document.getElementById(pid);
+  // Hide every page explicitly
+  var allPages = ['home','catalog','catalogInner','catalogRooms','vault','portfolio','concierge'];
+  allPages.forEach(function(p) {
+    var el = document.getElementById(p);
     if (el) { el.classList.remove('active'); el.style.display = 'none'; }
   });
 
-  // ── Update nav active state — catalog sub-pages keep catalog tab highlighted ──
+  // Hide trending explicitly
+  var trendingEl = document.getElementById('trending');
+  if (trendingEl) { trendingEl.classList.remove('active'); trendingEl.style.display = 'none'; }
+  // Pause all trending audio
+  document.querySelectorAll('audio[id^="taudio_"]').forEach(function(a) { a.pause(); });
+
+  // Update nav active state
   document.querySelectorAll('.bottom-nav-item').forEach(function(b) { b.classList.remove('active'); });
-  var navMap = {
-    'home': 'nav-home',
-    'trending': 'nav-trending',
-    'catalog': 'nav-catalog',
-    'catalogInner': 'nav-catalog',
-    'catalogRooms': 'nav-catalog',
-    'vault': 'nav-vault',
-    'concierge': 'nav-concierge',
-    'portfolio': 'nav-portfolio'
-  };
-  var navBtn = document.getElementById(navMap[pageId] || ('nav-' + pageId));
+  var navBtn = document.getElementById('nav-' + pageId);
   if (navBtn) navBtn.classList.add('active');
 
-  // ── Show requested page ──
-  var targetEl = document.getElementById(pageId);
-  if (!targetEl) { console.warn('showPage: element not found for', pageId); return; }
-
+  // Show the requested page
   if (pageId === 'trending') {
-    targetEl.style.display = 'block';
-    targetEl.classList.add('active');
-    setTimeout(function() {
-      var firstItem = document.querySelector('.tiktok-item');
-      if (firstItem) {
-        var v = firstItem.querySelector('video');
-        if (v) v.play().catch(function(){});
-        var a = firstItem.querySelector('audio[id^="taudio_"]');
-        if (a) a.play().catch(function(){});
-      }
-    }, 100);
-  } else if (pageId === 'concierge') {
-    targetEl.style.display = 'flex';
-    targetEl.classList.add('active');
+    if (trendingEl) { trendingEl.style.display = 'block'; trendingEl.classList.add('active'); }
+    var visibleItem = document.querySelector('.tiktok-item');
+    if (visibleItem) {
+      var a = visibleItem.querySelector('audio[id^="taudio_"]');
+      if (a) a.play().catch(function(){});
+    }
   } else {
-    targetEl.style.display = 'block';
-    targetEl.classList.add('active');
+    var el = document.getElementById(pageId);
+    if (el) {
+      el.style.display = pageId === 'concierge' ? 'flex' : 'block';
+      el.classList.add('active');
+    }
+    // Keep catalog sub-pages hidden unless navigating there
+    if (pageId !== 'catalogInner') {
+      var ci = document.getElementById('catalogInner');
+      if (ci) ci.style.display = 'none';
+    }
+    if (pageId !== 'catalogRooms') {
+      var cr = document.getElementById('catalogRooms');
+      if (cr) cr.style.display = 'none';
+    }
   }
 
-  // ── Concierge bottom offset ──
+  // Concierge bottom offset
   var cgEl = document.getElementById('concierge');
   if (cgEl && pageId !== 'concierge') cgEl.style.bottom = 'var(--nav-height)';
 
-  // ── On-demand loads ──
+  // On-demand loads
   if (pageId === 'portfolio') loadPortfolio();
   if (pageId === 'trending' && !document.querySelector('.tiktok-item')) loadTrending();
   if (pageId === 'concierge' && _conciergeListener === null) loadConciergeHistory();
-  if (pageId === 'catalog') loadCatalog();
 
-  // ── Vault page handling ──
+  // Vault page — always reset button to clean state on every visit
   if (pageId === 'vault') {
     const _vb = document.getElementById('vault-btn');
     if (_vb) { _vb.textContent = 'UNLOCK'; _vb.disabled = false; }
+    // Auto-enter if valid session within 24hrs
     if (!vaultSession) {
       const saved = localStorage.getItem('vaultSession');
       if (saved) {
@@ -1236,13 +1242,10 @@ function showPage(pageId) {
         } catch(e) { localStorage.removeItem('vaultSession'); }
       }
     } else {
+      // Already have a session — go straight in
       enterBespokeVault();
     }
   }
-
-  // ── Reveal nav — only shown once a real page is active ──
-  const _nav = document.querySelector('.bottom-nav');
-  if (_nav) { _nav.style.transition = 'opacity .4s ease'; _nav.style.opacity = '1'; _nav.style.pointerEvents = ''; }
 
   window.scrollTo(0, 0);
 }
@@ -2089,7 +2092,10 @@ function openCatalogInner(box) {
 }
 
 function closeCatalogInner() {
-  showPage('catalog');
+  document.getElementById('catalogInner').style.display = 'none';
+  document.getElementById('catalogInner').classList.remove('active');
+  document.getElementById('catalog').style.display = 'block';
+  document.getElementById('catalog').classList.add('active');
 }
 
 const ROOM_NAMES = ['Living Room','Dining Room','Bed Room','Kitchen','Toilet','Passage Way','Rest Room'];
@@ -2165,7 +2171,13 @@ function openCatalogRooms(box, paletteIndex) {
 }
 
 function closeCatalogRooms() {
-  showPage('catalogInner');
+  document.getElementById('catalogRooms').style.display = 'none';
+  document.getElementById('catalogRooms').classList.remove('active');
+  const _ci2 = document.getElementById('catalogInner');
+  _ci2.classList.remove('active');
+  _ci2.style.display = 'block';
+  void _ci2.offsetWidth;
+  _ci2.classList.add('active');
 }
 
 function viewRoomImage(name, idx) {
@@ -3262,7 +3274,6 @@ function dismissBanner() {
     const s = document.getElementById('splashScreen');
     if (s) s.classList.add('hidden');
     setTimeout(() => { if (s && s.parentNode) s.remove(); }, 700);
-    // Nav stays hidden — showPage() is the sole authority for revealing it
   }
   // Dismiss on load (normal case)
   window.addEventListener('load', () => setTimeout(dismissSplash, 1800));
