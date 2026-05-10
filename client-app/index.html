@@ -1153,10 +1153,11 @@ function revealNav() {
 function dismissLoadingSplash() {
   const ls = document.getElementById('loadingSplash');
   if (!ls) return;
+  const wasActive = ls.classList.contains('active');
   ls.classList.remove('active');
   ls.classList.add('dismissing');
   setTimeout(function() { if (ls && ls.parentNode) ls.remove(); }, 600);
-  revealNav();
+  if (wasActive) revealNav();
 }
 
 function showPage(pageId) {
