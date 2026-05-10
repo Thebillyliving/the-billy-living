@@ -259,7 +259,8 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .cg-send svg{width:18px;height:18px;stroke:#060D18;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .cg-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgba(201,169,98,.3);text-align:center;padding:40px;gap:12px}
 /* FIX 2: touch-action:manipulation kills 300ms delay on Android nav taps */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));padding-bottom:env(safe-area-inset-bottom, 0px);background:rgba(18,13,6,.98);display:flex;justify-content:space-around;align-items:flex-start;z-index:99000;border-top:1px solid rgba(201,169,98,.1);padding-left:2px;padding-right:2px;}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));padding-bottom:env(safe-area-inset-bottom, 0px);background:rgba(18,13,6,.98);display:flex;justify-content:space-around;align-items:flex-start;z-index:99000;border-top:1px solid rgba(201,169,98,.1);padding-left:2px;padding-right:2px;opacity:0;pointer-events:none;transition:opacity 0.4s ease;}
+.bottom-nav.nav-ready{opacity:1;pointer-events:auto;}
 .bottom-nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-secondary);font-size:8px;cursor:pointer;padding:8px 4px;border:none;background:none;flex:1;min-width:0;min-height:56px;letter-spacing:.1px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;position:relative;}
 .bottom-nav-item::before{content:'';position:absolute;top:-10px;left:0;right:0;bottom:0;pointer-events:none;}
 .bottom-nav-item.active{color:var(--gold)}
@@ -967,6 +968,7 @@ function showLoadingSplash() {
       ls.classList.remove('active');
       ls.classList.add('dismissing');
       setTimeout(function() { if (ls && ls.parentNode) ls.remove(); }, 600);
+      revealNav();
     }, LOAD_DURATION);
   }, delay);
 }
@@ -1143,12 +1145,18 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
+function revealNav() {
+  var nav = document.querySelector('.bottom-nav');
+  if (nav && !nav.classList.contains('nav-ready')) nav.classList.add('nav-ready');
+}
+
 function dismissLoadingSplash() {
   const ls = document.getElementById('loadingSplash');
   if (!ls) return;
   ls.classList.remove('active');
   ls.classList.add('dismissing');
   setTimeout(function() { if (ls && ls.parentNode) ls.remove(); }, 600);
+  revealNav();
 }
 
 function showPage(pageId) {
