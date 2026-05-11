@@ -943,20 +943,20 @@ function showLoadingSplash() {
   const LOAD_DURATION = isNewDevice ? 9000 : 4000;
   try { localStorage.setItem('bl_device_seen', '1'); } catch(e) {}
 
-  // How long until the first splash is gone (it auto-dismisses at 2.8s via CSS animation)
-  // pageLoadTime tracks when the page started loading
+  // Ensure nav is hidden at the start of every splash sequence
+  var nav = document.querySelector('.bottom-nav');
+  if (nav) nav.classList.remove('nav-ready');
+
   const elapsed = Date.now() - window._pageLoadTime;
-  const firstSplashGone = 3000; // 2.8s animation + 0.2s buffer
+  const firstSplashGone = 3000;
   const delay = Math.max(0, firstSplashGone - elapsed);
 
   setTimeout(function() {
     const ls  = document.getElementById('loadingSplash');
     const bar = document.getElementById('lsBarFill');
     if (!ls) return;
-    // Force remove any lingering first splash so nothing blocks us
     const s = document.getElementById('splashScreen');
     if (s) { s.style.opacity = '0'; s.style.visibility = 'hidden'; }
-    // Show loading splash
     ls.classList.add('active');
     if (bar) {
       setTimeout(function() {
@@ -967,8 +967,11 @@ function showLoadingSplash() {
     setTimeout(function() {
       ls.classList.remove('active');
       ls.classList.add('dismissing');
-      setTimeout(function() { if (ls && ls.parentNode) ls.remove(); }, 600);
-      revealNav();
+      // Reveal nav AFTER fade-out completes, not before
+      setTimeout(function() {
+        if (ls && ls.parentNode) ls.remove();
+        revealNav();
+      }, 600);
     }, LOAD_DURATION);
   }, delay);
 }
@@ -996,6 +999,9 @@ fbAuth.onAuthStateChanged(user => {
     gk.style.transition = 'none';
     gk.style.display = 'flex';
     gk.classList.remove('hidden');
+    // Hide nav on logout
+    var nav = document.querySelector('.bottom-nav');
+    if (nav) nav.classList.remove('nav-ready');
   }
 });
 
@@ -1156,8 +1162,11 @@ function dismissLoadingSplash() {
   const wasActive = ls.classList.contains('active');
   ls.classList.remove('active');
   ls.classList.add('dismissing');
-  setTimeout(function() { if (ls && ls.parentNode) ls.remove(); }, 600);
-  if (wasActive) revealNav();
+  // Reveal nav AFTER fade-out completes, not before
+  setTimeout(function() {
+    if (ls && ls.parentNode) ls.remove();
+    if (wasActive) revealNav();
+  }, 600);
 }
 
 function showPage(pageId) {
