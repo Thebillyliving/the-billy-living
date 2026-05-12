@@ -1272,7 +1272,6 @@ function showPage(pageId) {
               const titleEl = document.getElementById('vaultWelcomeTitle');
               const subEl   = document.getElementById('vaultWelcomeSub');
               if (titleEl) titleEl.innerHTML = 'Welcome back, ' + _savedName + '.<br><span style="font-size:22px;opacity:.75">Your Inner Circle awaits.</span>';
-              if (subEl)   subEl.textContent  = 'Your private archive is ready.';
             }
             enterBespokeVault();
           } else {
@@ -2277,7 +2276,6 @@ async function handleVaultUnlock() {
         const titleEl = document.getElementById('vaultWelcomeTitle');
         const subEl = document.getElementById('vaultWelcomeSub');
         if (titleEl) titleEl.innerHTML = 'Welcome back, ' + _vipFirstName + '.<br><span style="font-size:22px;opacity:.75">Your Inner Circle awaits.</span>';
-        if (subEl) subEl.textContent = 'Your private archive is ready.';
         document.getElementById('vault-login-form').style.display = 'none';
         document.getElementById('vault-success-state').style.display = 'flex';
         return;
