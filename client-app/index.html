@@ -398,7 +398,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .dl-banner-close{background:none;border:none;color:rgba(168,155,140,.5);font-size:20px;cursor:pointer;padding:4px;flex-shrink:0;line-height:1}
 
 /* ─── SPLASH SCREEN ─────────────────────────────────────────────────────────── */
-#splashScreen{position:fixed;top:0;left:0;right:0;bottom:0;background:#120D06;z-index:100002;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .6s ease,visibility .6s ease;animation:splashAutoDismiss .7s ease 2.8s forwards}
+#splashScreen{position:fixed;top:0;left:0;right:0;bottom:0;background:#120D06;z-index:100002;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .6s ease,visibility .6s ease;}
 #splashScreen.hidden{opacity:0;visibility:hidden;pointer-events:none}
 @keyframes splashAutoDismiss{0%{opacity:1;visibility:visible;pointer-events:auto}100%{opacity:0;visibility:hidden;pointer-events:none}}
 .splash-logo{width:140px;height:140px;border-radius:28px;animation:splashPop .7s cubic-bezier(.22,1,.36,1) both}
@@ -949,19 +949,23 @@ function showLoadingSplash() {
   if (nav) nav.classList.remove('nav-ready');
 
   const elapsed = Date.now() - window._pageLoadTime;
-  const firstSplashGone = 3000;
+  const firstSplashGone = 2500; // Start 500ms early so splashes overlap — no gap
   const delay = Math.max(0, firstSplashGone - elapsed);
 
   setTimeout(function() {
     const ls  = document.getElementById('loadingSplash');
     const bar = document.getElementById('lsBarFill');
     if (!ls) return;
-    const s = document.getElementById('splashScreen');
-    if (s) { s.style.opacity = '0'; s.style.visibility = 'hidden'; s.style.pointerEvents = 'none'; }
     // Re-enforce: nav must still be hidden when loading splash activates
     var nav2 = document.querySelector('.bottom-nav');
     if (nav2) nav2.classList.remove('nav-ready');
+    // Activate loading splash FIRST — it's z-index:100003, fully covers viewport
     ls.classList.add('active');
+    // THEN fade out first splash (already covered by loading splash above it)
+    setTimeout(function() {
+      const s = document.getElementById('splashScreen');
+      if (s) { s.style.opacity = '0'; s.style.visibility = 'hidden'; s.style.pointerEvents = 'none'; }
+    }, 100);
     if (bar) {
       setTimeout(function() {
         bar.style.transition = 'width ' + (LOAD_DURATION - 500) + 'ms linear';
@@ -3301,6 +3305,7 @@ function dismissBanner() {
 })();
 
 // ─── SPLASH DISMISS ──────────────────────────────────────────────────────────
+// Safety fallback only — showLoadingSplash handles the real handoff at 2.5s
 (function() {
   let dismissed = false;
   function dismissSplash() {
@@ -3317,10 +3322,8 @@ function dismissBanner() {
     var nav = document.querySelector('.bottom-nav');
     if (nav) nav.classList.remove('nav-ready');
   }
-  // Dismiss on load (normal case)
-  window.addEventListener('load', () => setTimeout(dismissSplash, 1800));
-  // Hard fallback: always dismiss after 2.8s max (matches CSS animation)
-  setTimeout(dismissSplash, 2800);
+  // Hard fallback at 3.5s — only fires if showLoadingSplash didn't run
+  setTimeout(dismissSplash, 3500);
 })();
 </script>
 
