@@ -956,7 +956,10 @@ function showLoadingSplash() {
     const bar = document.getElementById('lsBarFill');
     if (!ls) return;
     const s = document.getElementById('splashScreen');
-    if (s) { s.style.opacity = '0'; s.style.visibility = 'hidden'; }
+    if (s) { s.style.opacity = '0'; s.style.visibility = 'hidden'; s.style.pointerEvents = 'none'; }
+    // Re-enforce: nav must still be hidden when loading splash activates
+    var nav2 = document.querySelector('.bottom-nav');
+    if (nav2) { nav2.classList.remove('nav-ready'); nav2.style.display = 'none'; }
     ls.classList.add('active');
     if (bar) {
       setTimeout(function() {
@@ -1152,11 +1155,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
 function revealNav() {
+  // Guard: don't reveal if either splash is still in the DOM and visible
+  var splash  = document.getElementById('splashScreen');
+  var loading = document.getElementById('loadingSplash');
+  if (splash  && splash.style.visibility  !== 'hidden' && !splash.classList.contains('hidden'))  return;
+  if (loading && loading.classList.contains('active')) return;
+
   var nav = document.querySelector('.bottom-nav');
   if (nav && !nav.classList.contains('nav-ready')) {
     nav.style.display = 'flex';
-    // rAF ensures display:flex is painted before opacity transition starts
-    requestAnimationFrame(function() { nav.classList.add('nav-ready'); });
+    // Double rAF: first frame registers display:flex, second starts the opacity transition
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() { nav.classList.add('nav-ready'); });
+    });
   }
 }
 
@@ -3299,8 +3310,15 @@ function dismissBanner() {
     if (dismissed) return;
     dismissed = true;
     const s = document.getElementById('splashScreen');
-    if (s) s.classList.add('hidden');
+    if (s) {
+      s.classList.add('hidden');
+      s.style.visibility = 'hidden';
+      s.style.pointerEvents = 'none';
+    }
     setTimeout(() => { if (s && s.parentNode) s.remove(); }, 700);
+    // Ensure nav stays locked — loading splash will handle the reveal
+    var nav = document.querySelector('.bottom-nav');
+    if (nav) { nav.classList.remove('nav-ready'); nav.style.display = 'none'; }
   }
   // Dismiss on load (normal case)
   window.addEventListener('load', () => setTimeout(dismissSplash, 1800));
