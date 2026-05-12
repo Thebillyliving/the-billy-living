@@ -259,8 +259,9 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .cg-send svg{width:18px;height:18px;stroke:#060D18;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .cg-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgba(201,169,98,.3);text-align:center;padding:40px;gap:12px}
 /* FIX 2: touch-action:manipulation kills 300ms delay on Android nav taps */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));padding-bottom:env(safe-area-inset-bottom, 0px);background:rgba(18,13,6,.98);display:flex;justify-content:space-around;align-items:flex-start;z-index:99000;border-top:1px solid rgba(201,169,98,.1);padding-left:2px;padding-right:2px;opacity:0;pointer-events:none;transition:opacity 0.4s ease;}
-.bottom-nav.nav-ready{opacity:1;pointer-events:auto;}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));padding-bottom:env(safe-area-inset-bottom, 0px);background:rgba(18,13,6,.98);display:none;justify-content:space-around;align-items:flex-start;z-index:99000;border-top:1px solid rgba(201,169,98,.1);padding-left:2px;padding-right:2px;}
+.bottom-nav.nav-ready{display:flex;opacity:1;pointer-events:auto;animation:navFadeIn 0.4s ease forwards;}
+@keyframes navFadeIn{from{opacity:0}to{opacity:1}}
 .bottom-nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-secondary);font-size:8px;cursor:pointer;padding:8px 4px;border:none;background:none;flex:1;min-width:0;min-height:56px;letter-spacing:.1px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;position:relative;}
 .bottom-nav-item::before{content:'';position:absolute;top:-10px;left:0;right:0;bottom:0;pointer-events:none;}
 .bottom-nav-item.active{color:var(--gold)}
@@ -859,7 +860,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 <div class="toast" id="toast"></div>
 
 <!-- BOTTOM NAV -->
-<nav class="bottom-nav" style="display:none">
+<nav class="bottom-nav">
   <button class="bottom-nav-item active" id="nav-home" aria-label="Home" data-page="home">
     <span class="bottom-nav-icon"><svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H15v-5h-6v5H4a1 1 0 01-1-1V10.5z"/></svg></span>
     <span>Home</span>
@@ -945,7 +946,7 @@ function showLoadingSplash() {
 
   // Ensure nav is hidden at the start of every splash sequence
   var nav = document.querySelector('.bottom-nav');
-  if (nav) { nav.classList.remove('nav-ready'); nav.style.display = 'none'; }
+  if (nav) nav.classList.remove('nav-ready');
 
   const elapsed = Date.now() - window._pageLoadTime;
   const firstSplashGone = 3000;
@@ -959,7 +960,7 @@ function showLoadingSplash() {
     if (s) { s.style.opacity = '0'; s.style.visibility = 'hidden'; s.style.pointerEvents = 'none'; }
     // Re-enforce: nav must still be hidden when loading splash activates
     var nav2 = document.querySelector('.bottom-nav');
-    if (nav2) { nav2.classList.remove('nav-ready'); nav2.style.display = 'none'; }
+    if (nav2) nav2.classList.remove('nav-ready');
     ls.classList.add('active');
     if (bar) {
       setTimeout(function() {
@@ -1004,7 +1005,7 @@ fbAuth.onAuthStateChanged(user => {
     gk.classList.remove('hidden');
     // Hide nav on logout
     var nav = document.querySelector('.bottom-nav');
-    if (nav) { nav.classList.remove('nav-ready'); nav.style.display = 'none'; }
+    if (nav) nav.classList.remove('nav-ready');
   }
 });
 
@@ -1155,19 +1156,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
 function revealNav() {
-  // Guard: don't reveal if either splash is still in the DOM and visible
+  // Guard: don't reveal if either splash is still present and visible
   var splash  = document.getElementById('splashScreen');
   var loading = document.getElementById('loadingSplash');
-  if (splash  && splash.style.visibility  !== 'hidden' && !splash.classList.contains('hidden'))  return;
+  if (splash  && !splash.classList.contains('hidden') && splash.style.visibility !== 'hidden') return;
   if (loading && loading.classList.contains('active')) return;
 
   var nav = document.querySelector('.bottom-nav');
   if (nav && !nav.classList.contains('nav-ready')) {
-    nav.style.display = 'flex';
-    // Double rAF: first frame registers display:flex, second starts the opacity transition
-    requestAnimationFrame(function() {
-      requestAnimationFrame(function() { nav.classList.add('nav-ready'); });
-    });
+    nav.classList.add('nav-ready');
   }
 }
 
@@ -3318,7 +3315,7 @@ function dismissBanner() {
     setTimeout(() => { if (s && s.parentNode) s.remove(); }, 700);
     // Ensure nav stays locked — loading splash will handle the reveal
     var nav = document.querySelector('.bottom-nav');
-    if (nav) { nav.classList.remove('nav-ready'); nav.style.display = 'none'; }
+    if (nav) nav.classList.remove('nav-ready');
   }
   // Dismiss on load (normal case)
   window.addEventListener('load', () => setTimeout(dismissSplash, 1800));
