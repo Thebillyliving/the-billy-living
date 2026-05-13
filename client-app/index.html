@@ -27,7 +27,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 #vaultGlint::after{content:'';position:absolute;top:0;left:0;width:40%;height:100%;background:linear-gradient(105deg,transparent 20%,rgba(201,168,76,.18) 50%,rgba(255,235,160,.12) 60%,transparent 80%);animation:vaultShimmer 1.1s ease forwards}
 .stories-row{display:flex;gap:14px;padding:20px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid rgba(201,169,98,.1);align-items:flex-start;justify-content:center}
 .stories-row::-webkit-scrollbar{display:none}
-.story-item{display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:transform .2s;min-width:60px;flex-shrink:0}
+.story-item{display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:transform .2s;min-width:60px;flex-shrink:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent;background:none;border:none;padding:0;font:inherit;color:inherit}
 .story-item:active{transform:scale(.95)}
 .story-circle{width:60px;height:60px;border-radius:50%;border:1px solid var(--gold);background:transparent;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
 .story-circle img{width:100%;height:100%;border-radius:50%;object-fit:cover}
@@ -174,16 +174,16 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .selection-actions{display:flex;gap:12px}
 .selection-btn{padding:8px 16px;background:transparent;border:1px solid #C9A84C;color:#C9A84C;font-size:12px;letter-spacing:1px;cursor:pointer;border-radius:4px}
 .selection-btn.primary{background:#C9A84C;color:#0A0A0A}
-.view-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.95);z-index:2000;align-items:center;justify-content:center;flex-direction:column}
+.view-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#000;z-index:2000;align-items:center;justify-content:center;flex-direction:column}
 .view-modal.active{display:flex}
-.view-modal-content{width:90%;max-width:400px;background:#0E0E0E;border:1px solid #C9A84C;border-radius:8px;overflow:hidden}
-.view-modal-image{width:100%;aspect-ratio:1;background:#1A1A1A;display:flex;align-items:center;justify-content:center;position:relative}
-.view-modal-image img{width:100%;height:100%;object-fit:cover}
+.view-modal-content{width:100%;height:100%;background:#000;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.view-modal-image{width:100%;flex:1;background:#000;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.view-modal-image img{width:100%;height:100%;object-fit:contain;display:block}
 .view-modal-placeholder{display:flex;flex-direction:column;align-items:center;gap:12px;color:rgba(201,168,76,.4)}
-.view-modal-info{padding:20px}
-.view-modal-title{font-family:'Cormorant Garamond',serif;font-size:20px;color:#C9A84C;margin-bottom:8px}
-.view-modal-meta{font-size:12px;color:rgba(201,168,76,.6);letter-spacing:1px}
-.view-modal-close{position:absolute;top:20px;right:20px;width:44px;height:44px;background:rgba(201,168,76,.1);border:1px solid #C9A84C;border-radius:50%;color:#C9A84C;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.view-modal-info{position:absolute;bottom:0;left:0;right:0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(0,0,0,.85));z-index:5}
+.view-modal-title{font-family:'Cormorant Garamond',serif;font-size:22px;color:#E8D5A3;margin-bottom:4px}
+.view-modal-meta{font-size:11px;color:rgba(201,168,76,.6);letter-spacing:1px}
+
 .vault-login-container{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;background:#0A1628}
 .vault-logo{width:100px;height:100px;background:linear-gradient(135deg,var(--gold),#B8860B);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:32px;box-shadow:0 20px 60px rgba(201,169,98,.3)}
 .vault-title{font-family:'Cormorant Garamond',serif;font-size:36px;color:var(--gold);margin-bottom:8px;text-align:center}
@@ -257,11 +257,15 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .cg-input:focus{border-color:rgba(201,169,98,.5)}
 .cg-send{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#8B6914);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .cg-send svg{width:18px;height:18px;stroke:#060D18;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cg-attach{width:40px;height:40px;border-radius:50%;background:rgba(201,169,98,.1);border:1px solid rgba(201,169,98,.25);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:manipulation;}
+.cg-attach svg{width:20px;height:20px;stroke:rgba(201,169,98,.7);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.cg-attach:active{background:rgba(201,169,98,.2)}
 .cg-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgba(201,169,98,.3);text-align:center;padding:40px;gap:12px}
 /* FIX 2: touch-action:manipulation kills 300ms delay on Android nav taps */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));padding-bottom:env(safe-area-inset-bottom, 0px);background:rgba(18,13,6,.98);display:none;justify-content:space-around;align-items:flex-start;z-index:99000;border-top:1px solid rgba(201,169,98,.1);padding-left:2px;padding-right:2px;}
 .bottom-nav.nav-ready{display:flex;opacity:1;pointer-events:auto;animation:navFadeIn 0.4s ease forwards;}
 @keyframes navFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes blPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.88)}}
 .bottom-nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-secondary);font-size:8px;cursor:pointer;padding:8px 4px;border:none;background:none;flex:1;min-width:0;min-height:56px;letter-spacing:.1px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;position:relative;}
 .bottom-nav-item::before{content:'';position:absolute;top:-10px;left:0;right:0;bottom:0;pointer-events:none;}
 .bottom-nav-item.active{color:var(--gold)}
@@ -505,25 +509,25 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 <!-- HOME -->
 <div id="home" class="page active">
   <div class="stories-row">
-    <div class="story-item" onclick="openProfile()">
+    <button class="story-item" onclick="openProfile()">
       <div class="story-circle" id="profileStoryCircle">
         <svg id="profileStoryDefault" viewBox="0 0 60 60" fill="none" style="width:38px;height:38px"><circle cx="30" cy="22" r="10" fill="rgba(201,168,76,0.18)" stroke="#C9A84C" stroke-width="1.5"/><path d="M10 54c0-11.046 8.954-20 20-20s20 8.954 20 20" fill="rgba(201,168,76,0.15)" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round"/></svg>
         <img id="profileStoryPhoto" class="story-circle-photo" src="" alt="" style="display:none">
       </div>
       <span class="story-label" id="profileStoryLabel">My Profile</span>
-    </div>
-    <div class="story-item" onclick="window.open('https://wa.me/' + CONFIG.WHATSAPP_NUMBER + '?text=' + encodeURIComponent('Hi! I\u2019m interested in an interior design consultation for my space. Could you let me know how your process works?'), '_blank')">
+    </button>
+    <button class="story-item" onclick="window.open('https://wa.me/' + CONFIG.WHATSAPP_NUMBER + '?text=' + encodeURIComponent('Hi! I\u2019m interested in an interior design consultation for my space. Could you let me know how your process works?'), '_blank')">
       <div class="story-circle" style="background:linear-gradient(135deg,#25D366,#128C7E)">
         <span class="story-circle-icon"><svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.564 4.14 1.548 5.872L0 24l6.336-1.524A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.877 9.877 0 01-5.031-1.378l-.36-.214-3.762.904.944-3.659-.235-.374A9.861 9.861 0 012.118 12C2.118 6.533 6.533 2.118 12 2.118c5.466 0 9.882 4.415 9.882 9.882 0 5.466-4.416 9.882-9.882 9.882z"/></svg></span>
       </div>
       <span class="story-label">WhatsApp</span>
-    </div>
-    <div class="story-item" onclick="openConsultSheet()">
+    </button>
+    <button class="story-item" onclick="openConsultSheet()">
       <div class="story-circle">
         <span class="story-circle-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 16l2 2 4-4"/></svg></span>
       </div>
       <span class="story-label">Book</span>
-    </div>
+    </button>
   </div>
   <div class="feed-container" id="homeFeed"></div>
 
@@ -648,16 +652,19 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 
 <!-- VIEW MODAL -->
 <div class="view-modal" id="viewModal">
-  <button class="view-modal-close" onclick="closeViewModal()">×</button>
   <div class="view-modal-content">
     <div class="view-modal-image" id="viewModalImage" style="position:relative">
-      <div id="viewModalWatermark" style="position:absolute;bottom:0;left:0;right:0;z-index:10;padding:10px 0 10px;text-align:center;pointer-events:none;background:linear-gradient(transparent,rgba(0,0,0,0.35))">
-        <div style="font-family:'Jost',sans-serif;font-size:9px;font-weight:500;letter-spacing:4px;color:rgba(255,255,255,0.55);text-transform:uppercase;line-height:1">THE BILLY LIVING INTERIOR PLATFORM</div>
+      <!-- close button top-right -->
+      <button onclick="closeViewModal()" style="position:absolute;top:16px;right:16px;z-index:20;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.6);border:1px solid rgba(201,168,76,.35);color:#C9A84C;font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">×</button>
+      <!-- watermark -->
+      <div id="viewModalWatermark" style="position:absolute;bottom:80px;left:0;right:0;z-index:10;padding:10px 0;text-align:center;pointer-events:none;">
+        <div style="font-family:'Jost',sans-serif;font-size:9px;font-weight:500;letter-spacing:4px;color:rgba(255,255,255,0.3);text-transform:uppercase;line-height:1">THE BILLY LIVING INTERIOR PLATFORM</div>
       </div>
-    </div>
-    <div class="view-modal-info">
-      <div class="view-modal-title" id="viewModalTitle">Room Design</div>
-      <div class="view-modal-meta" id="viewModalMeta">Collection • Room</div>
+      <!-- info overlay at bottom -->
+      <div class="view-modal-info">
+        <div class="view-modal-title" id="viewModalTitle">Room Design</div>
+        <div class="view-modal-meta" id="viewModalMeta">Collection • Room</div>
+      </div>
     </div>
   </div>
 </div>
@@ -679,7 +686,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
           <p id="vault-error" style="display:none;color:#ff5555;font-size:12px;text-align:center;margin-top:10px;letter-spacing:.3px;line-height:1.6">Access Denied. Please contact the Concierge<br>for VIP consideration.</p>
         </div>
         <button id="vault-btn" class="vault-btn" onclick="handleVaultUnlock()">UNLOCK</button>
-        <button onclick="requestVIPAccess()" style="margin-top:16px;background:none;border:none;color:rgba(201,168,76,.5);font-family:'Jost',sans-serif;font-size:13px;letter-spacing:1px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;">Request VIP Access</button>
+        <button id="vault-request-vip-btn" onclick="requestVIPAccess()" style="margin-top:16px;background:none;border:none;color:rgba(201,168,76,.5);font-family:'Jost',sans-serif;font-size:13px;letter-spacing:1px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;">Request VIP Access</button>
       </div>
     </div>
     <div id="vault-success-state">
@@ -711,53 +718,53 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px;">
 
       <!-- Progress Tracker Card -->
-      <div onclick="openVaultSection('progress')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,.2);border-radius:16px;cursor:pointer;transition:border-color .2s;" ontouchstart="this.style.borderColor='rgba(212,175,55,.5)'" ontouchend="this.style.borderColor='rgba(212,175,55,.2)'">
-        <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.08);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">📊</div>
+      <div onclick="openVaultSection('progress')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,rgba(212,175,55,.18),rgba(212,175,55,.10));border:1px solid rgba(212,175,55,.45);border-radius:16px;cursor:pointer;transition:background .2s,border-color .2s;" ontouchstart="this.style.background='linear-gradient(145deg,rgba(212,175,55,.28),rgba(212,175,55,.18))'" ontouchend="this.style.background='linear-gradient(145deg,rgba(212,175,55,.18),rgba(212,175,55,.10))'">
+        <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.2);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">📊</div>
         <div style="flex:1;">
           <div style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--gold-light);font-weight:600;margin-bottom:3px;">Progress Tracker</div>
-          <div style="font-size:11px;color:rgba(212,175,55,.4);letter-spacing:.5px;" id="ptCardSub">Loading projects…</div>
+          <div style="font-size:11px;color:rgba(212,175,55,.6);letter-spacing:.5px;" id="ptCardSub">Loading projects…</div>
         </div>
-        <div style="color:rgba(212,175,55,.3);font-size:22px;">›</div>
+        <div style="color:rgba(212,175,55,.7);font-size:22px;">›</div>
       </div>
 
       <!-- Material Samples Card -->
-      <div onclick="openVaultSection('textures')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,.2);border-radius:16px;cursor:pointer;transition:border-color .2s;" ontouchstart="this.style.borderColor='rgba(212,175,55,.5)'" ontouchend="this.style.borderColor='rgba(212,175,55,.2)'">
-        <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.08);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">🎨</div>
+      <div onclick="openVaultSection('textures')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,rgba(212,175,55,.18),rgba(212,175,55,.10));border:1px solid rgba(212,175,55,.45);border-radius:16px;cursor:pointer;transition:background .2s,border-color .2s;" ontouchstart="this.style.background='linear-gradient(145deg,rgba(212,175,55,.28),rgba(212,175,55,.18))'" ontouchend="this.style.background='linear-gradient(145deg,rgba(212,175,55,.18),rgba(212,175,55,.10))'">
+        <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.2);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">🎨</div>
         <div style="flex:1;">
           <div style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--gold-light);font-weight:600;margin-bottom:3px;">Material Samples</div>
-          <div style="font-size:11px;color:rgba(212,175,55,.4);letter-spacing:.5px;" id="tgCardSub">Loading samples…</div>
+          <div style="font-size:11px;color:rgba(212,175,55,.6);letter-spacing:.5px;" id="tgCardSub">Loading samples…</div>
         </div>
-        <div style="color:rgba(212,175,55,.3);font-size:22px;">›</div>
+        <div style="color:rgba(212,175,55,.7);font-size:22px;">›</div>
       </div>
 
       <!-- Unreleased Overseas Card -->
-      <div onclick="openVaultSection('overseas')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,.2);border-radius:16px;cursor:pointer;transition:border-color .2s;" ontouchstart="this.style.borderColor='rgba(212,175,55,.5)'" ontouchend="this.style.borderColor='rgba(212,175,55,.2)'">
-        <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.08);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">✈️</div>
+      <div onclick="openVaultSection('overseas')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,rgba(212,175,55,.18),rgba(212,175,55,.10));border:1px solid rgba(212,175,55,.45);border-radius:16px;cursor:pointer;transition:background .2s,border-color .2s;" ontouchstart="this.style.background='linear-gradient(145deg,rgba(212,175,55,.28),rgba(212,175,55,.18))'" ontouchend="this.style.background='linear-gradient(145deg,rgba(212,175,55,.18),rgba(212,175,55,.10))'">
+        <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.2);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">✈️</div>
         <div style="flex:1;">
           <div style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--gold-light);font-weight:600;margin-bottom:3px;">Unreleased Overseas Exclusives</div>
-          <div style="font-size:11px;color:rgba(212,175,55,.4);letter-spacing:.5px;" id="oeCardSub">Loading exclusives…</div>
+          <div style="font-size:11px;color:rgba(212,175,55,.6);letter-spacing:.5px;" id="oeCardSub">Loading exclusives…</div>
         </div>
-        <div style="color:rgba(212,175,55,.3);font-size:22px;">›</div>
+        <div style="color:rgba(212,175,55,.7);font-size:22px;">›</div>
       </div>
 
       <!-- Preservation Protocol Card -->
-      <div onclick="openVaultSection('preservation')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,.2);border-radius:16px;cursor:pointer;transition:border-color .2s;" ontouchstart="this.style.borderColor='rgba(212,175,55,.5)'" ontouchend="this.style.borderColor='rgba(212,175,55,.2)'">
-        <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.08);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">📋</div>
+      <div onclick="openVaultSection('preservation')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,rgba(212,175,55,.18),rgba(212,175,55,.10));border:1px solid rgba(212,175,55,.45);border-radius:16px;cursor:pointer;transition:background .2s,border-color .2s;" ontouchstart="this.style.background='linear-gradient(145deg,rgba(212,175,55,.28),rgba(212,175,55,.18))'" ontouchend="this.style.background='linear-gradient(145deg,rgba(212,175,55,.18),rgba(212,175,55,.10))'">
+        <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.2);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">📋</div>
         <div style="flex:1;">
           <div style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--gold-light);font-weight:600;margin-bottom:3px;">The Preservation Protocol</div>
-          <div style="font-size:11px;color:rgba(212,175,55,.4);letter-spacing:.5px;" id="ppCardSub">Loading sheets…</div>
+          <div style="font-size:11px;color:rgba(212,175,55,.6);letter-spacing:.5px;" id="ppCardSub">Loading sheets…</div>
         </div>
-        <div style="color:rgba(212,175,55,.3);font-size:22px;">›</div>
+        <div style="color:rgba(212,175,55,.7);font-size:22px;">›</div>
       </div>
 
       <!-- Priority Concierge Card -->
-      <div onclick="openVaultSection('concierge')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,#0E0B06,#151008);border:1px solid rgba(212,175,55,.2);border-radius:16px;cursor:pointer;transition:border-color .2s;" ontouchstart="this.style.borderColor='rgba(212,175,55,.5)'" ontouchend="this.style.borderColor='rgba(212,175,55,.2)'">
-        <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.08);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">⭐</div>
+      <div onclick="openVaultSection('concierge')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,rgba(212,175,55,.18),rgba(212,175,55,.10));border:1px solid rgba(212,175,55,.45);border-radius:16px;cursor:pointer;transition:background .2s,border-color .2s;" ontouchstart="this.style.background='linear-gradient(145deg,rgba(212,175,55,.28),rgba(212,175,55,.18))'" ontouchend="this.style.background='linear-gradient(145deg,rgba(212,175,55,.18),rgba(212,175,55,.10))'">
+        <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.2);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">⭐</div>
         <div style="flex:1;">
           <div style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--gold-light);font-weight:600;margin-bottom:3px;">Priority Concierge Access</div>
-          <div style="font-size:11px;color:rgba(212,175,55,.4);letter-spacing:.5px;">Apply for a VIP Partnership</div>
+          <div style="font-size:11px;color:rgba(212,175,55,.6);letter-spacing:.5px;">Apply for a VIP Partnership</div>
         </div>
-        <div style="color:rgba(212,175,55,.3);font-size:22px;">›</div>
+        <div style="color:rgba(212,175,55,.7);font-size:22px;">›</div>
       </div>
 
     </div>
@@ -813,6 +820,10 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
   <div class="cg-typing" id="cgTyping">Concierge is typing…</div>
   <div class="cg-input-row">
     <input class="cg-input" id="cgInput" placeholder="Message your concierge…" onkeypress="if(event.key==='Enter')sendConciergeMessage()">
+    <input type="file" id="cgFileInput" accept="image/*,video/*,.pdf,.doc,.docx" style="display:none" onchange="handleConciergeFile(this)">
+    <button class="cg-attach" onclick="document.getElementById('cgFileInput').click()" aria-label="Attach file">
+      <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+    </button>
     <button class="cg-send" onclick="sendConciergeMessage()"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
   </div>
 </div>
@@ -941,7 +952,7 @@ function hideGatekeeper() {
 // ─── LOADING SPLASH — auth-gated, timer starts after first splash clears ──────
 function showLoadingSplash() {
   const isNewDevice   = !localStorage.getItem('bl_device_seen');
-  const LOAD_DURATION = isNewDevice ? 9000 : 4000;
+  const LOAD_DURATION = isNewDevice ? 11000 : 6000;
   try { localStorage.setItem('bl_device_seen', '1'); } catch(e) {}
 
   // Ensure nav is hidden at the start of every splash sequence
@@ -1258,6 +1269,13 @@ function showPage(pageId) {
   if (pageId === 'vault') {
     const _vb = document.getElementById('vault-btn');
     if (_vb) { _vb.textContent = 'UNLOCK'; _vb.disabled = false; }
+    // Hide "Request VIP Access" for users already confirmed as VIP
+    const _rvBtn = document.getElementById('vault-request-vip-btn');
+    if (_rvBtn) {
+      const isVip = (currentProfile && currentProfile.isVip) ||
+                    document.getElementById('profileContainer').classList.contains('is-vip');
+      _rvBtn.style.display = isVip ? 'none' : '';
+    }
     // Auto-enter if valid session within 24hrs
     if (!vaultSession) {
       const saved = localStorage.getItem('vaultSession');
@@ -1808,9 +1826,9 @@ async function loadTrending() {
   const container = document.getElementById('trendingContainer');
   const EMPTY_HTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-family:Cormorant Garamond,serif;font-size:22px">No trending yet</div>';
 
-  // Show shimmer immediately
+  // Show BL logo pulse immediately
   if (!container.querySelector('.tiktok-item')) {
-    container.innerHTML = '<div style="width:100%;height:100%;background:linear-gradient(90deg,rgba(255,255,255,.02) 25%,rgba(255,255,255,.06) 50%,rgba(255,255,255,.02) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;display:flex;align-items:center;justify-content:center;"><div style="text-align:center;color:rgba(255,255,255,.2);font-family:Cormorant Garamond,serif;font-size:18px;letter-spacing:2px;">Loading...</div></div>';
+    container.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"><div style="width:72px;height:72px;border-radius:18px;background:linear-gradient(145deg,#C9A84C,#8B6914);display:flex;align-items:center;justify-content:center;animation:blPulse 1.8s ease-in-out infinite;box-shadow:0 0 32px rgba(201,168,76,.25);"><span style="font-family:\'Cormorant Garamond\',serif;font-size:28px;font-weight:700;color:#120D06;letter-spacing:1px;">BL</span></div></div>';
   }
 
   // ── CACHE-FIRST ──
@@ -2188,13 +2206,13 @@ function openCatalogRooms(box, paletteIndex) {
     }).join('');
   };
 
-  // Show loading shimmer first — don't show "No Image" until Firebase responds
+  // Show BL logo pulse first — consistent with trending feed loader
   area.innerHTML = ROOM_NAMES.map(name => `
     <div class="room-category-block">
       <div class="room-category-header"><span class="room-category-name">${name}</span></div>
       <div class="room-single-slot" style="background:#0A0A0A;">
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;height:100%;position:absolute;inset:0;">
-          <div style="width:100%;height:100%;background:linear-gradient(90deg,rgba(201,168,76,.03) 25%,rgba(201,168,76,.08) 50%,rgba(201,168,76,.03) 75%);background-size:200% 100%;animation:skelShimmer 1.4s infinite;"></div>
+        <div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;position:absolute;inset:0;">
+          <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(145deg,#C9A84C,#8B6914);display:flex;align-items:center;justify-content:center;animation:blPulse 1.8s ease-in-out infinite;box-shadow:0 0 20px rgba(201,168,76,.2);"><span style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:#120D06;letter-spacing:1px;">BL</span></div>
         </div>
       </div>
     </div>`).join('');
@@ -3183,7 +3201,17 @@ function renderConciergeMessages() {
     const ts = m.timestamp || m.createdAt || 0;
     const time = ts ? new Date(ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
     const safeText = (m.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    el.innerHTML = `<div class="cg-bubble">${safeText}</div><div class="cg-msg-time">${time}</div>`;
+    let bubbleContent;
+    if (m.fileType === 'image' && m.fileData) {
+      bubbleContent = `<img src="${m.fileData}" style="max-width:220px;max-height:260px;border-radius:10px;display:block;cursor:pointer" onclick="window.open(this.src,'_blank')">`;
+    } else if (m.fileType === 'video' && m.fileData) {
+      bubbleContent = `<video src="${m.fileData}" controls style="max-width:220px;border-radius:10px;display:block;"></video>`;
+    } else if (m.fileType === 'file' && m.fileData) {
+      bubbleContent = `<a href="${m.fileData}" download="${m.fileName||'file'}" style="display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none;"><svg viewBox="0 0 24 24" width="20" height="20" style="flex-shrink:0" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span style="font-size:13px;word-break:break-all">${m.fileName||'Attachment'}</span></a>`;
+    } else {
+      bubbleContent = safeText;
+    }
+    el.innerHTML = `<div class="cg-bubble">${bubbleContent}</div><div class="cg-msg-time">${time}</div>`;
     container.appendChild(el);
   });
   container.scrollTop = container.scrollHeight;
@@ -3215,6 +3243,44 @@ async function sendConciergeMessage() {
   } catch(e) {
     console.error('sendConciergeMessage:', e);
     showToast('Failed to send message');
+  }
+}
+
+async function handleConciergeFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = ''; // reset so same file can be re-selected
+  const isImage = file.type.startsWith('image/');
+  const isVideo = file.type.startsWith('video/');
+  const MAX_MB = 5;
+  if (file.size > MAX_MB * 1024 * 1024) { showToast('File too large (max 5 MB)'); return; }
+  try {
+    // Convert to base64 for storage in Firebase
+    const base64 = await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload  = () => res(r.result);
+      r.onerror = () => rej(new Error('Read failed'));
+      r.readAsDataURL(file);
+    });
+    const userMsg = {
+      sender:     'client',
+      senderName: currentProfile?.name || 'Client',
+      timestamp:  Date.now(),
+      read:       false,
+      fileType:   isImage ? 'image' : isVideo ? 'video' : 'file',
+      fileName:   file.name,
+      fileData:   base64
+    };
+    cgMessages.push(userMsg);
+    renderConciergeMessages();
+    if (currentUser) {
+      await fbDb.ref(`chats/${currentUser.uid}/messages`).push(userMsg);
+      fbDb.ref(`chats/${currentUser.uid}/clientName`).set(currentProfile?.name || 'Client');
+      fbDb.ref(`chats/${currentUser.uid}/clientEmail`).set(currentUser.email || '');
+    }
+  } catch(e) {
+    console.error('handleConciergeFile:', e);
+    showToast('Failed to send file');
   }
 }
 
