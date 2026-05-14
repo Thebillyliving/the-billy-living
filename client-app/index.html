@@ -266,6 +266,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .bottom-nav.nav-ready{display:flex;opacity:1;pointer-events:auto;animation:navFadeIn 0.4s ease forwards;}
 @keyframes navFadeIn{from{opacity:0}to{opacity:1}}
 @keyframes blPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.88)}}
+@keyframes blSpin{to{transform:rotate(360deg)}}
 .bottom-nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-secondary);font-size:8px;cursor:pointer;padding:8px 4px;border:none;background:none;flex:1;min-width:0;min-height:56px;letter-spacing:.1px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;position:relative;}
 .bottom-nav-item::before{content:'';position:absolute;top:-10px;left:0;right:0;bottom:0;pointer-events:none;}
 .bottom-nav-item.active{color:var(--gold)}
@@ -278,7 +279,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .image-modal.active{display:flex}
 .image-modal img{max-width:90%;max-height:90%;object-fit:contain}
 .image-modal-close{position:absolute;top:20px;right:20px;background:none;border:none;color:white;font-size:32px;cursor:pointer}
-.profile-screen{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:3000;flex-direction:column;overflow-y:auto;scrollbar-width:none;padding-bottom:calc(var(--nav-height) + 20px);background:#0A0804}
+.profile-screen{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;flex-direction:column;overflow-y:auto;scrollbar-width:none;padding-bottom:calc(var(--nav-height) + 20px);background:#0A0804}
 .profile-screen::-webkit-scrollbar{display:none}
 .profile-screen.active{display:flex;animation:fadeIn .3s ease}
 .profile-topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid rgba(201,168,76,.15);position:sticky;top:0;background:#0A0804;z-index:10;flex-shrink:0}
@@ -381,6 +382,16 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .gate-btn:active{opacity:.85}
 .gate-btn:disabled{opacity:.5;cursor:not-allowed}
 .gate-error{font-size:13px;color:#ff6b6b;text-align:center;margin-top:14px;font-family:'Jost',sans-serif;background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.35);border-radius:8px;padding:12px 14px;display:none;line-height:1.5;letter-spacing:.2px}
+.gate-input-pw-wrap{position:relative;display:block}
+.gate-input-pw-wrap .gate-input{padding-right:46px;width:100%}
+.pw-toggle{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(201,169,98,.4);padding:4px;display:flex;align-items:center;justify-content:center;transition:color .2s;-webkit-tap-highlight-color:transparent}
+.pw-toggle:active{color:rgba(201,169,98,.8)}
+.pw-toggle svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.vault-pin-input-wrapper{position:relative}
+.vault-pin-input-wrapper .vault-input{padding-right:46px;width:100%}
+.vault-pw-toggle{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(201,168,76,.35);padding:4px;display:flex;align-items:center;justify-content:center;transition:color .2s;-webkit-tap-highlight-color:transparent;margin-top:-10px}
+.vault-pw-toggle:active{color:rgba(201,168,76,.75)}
+.vault-pw-toggle svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .gate-error.visible{display:block;animation:gateShake .35s ease}
 @keyframes gateShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 #gateStep2{display:none;text-align:center}
@@ -473,14 +484,14 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     </div>
     <div id="gateLogin">
       <div class="gate-input-group"><label class="gate-input-label">Email Address</label><input id="loginEmail" class="gate-input" type="email" placeholder="your@email.com" autocomplete="email"></div>
-      <div class="gate-input-group"><label class="gate-input-label">Password</label><input id="loginPassword" class="gate-input" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+      <div class="gate-input-group"><label class="gate-input-label">Password</label><div class="gate-input-pw-wrap"><input id="loginPassword" class="gate-input" type="password" placeholder="••••••••" autocomplete="current-password"><button type="button" class="pw-toggle" onclick="togglePw('loginPassword',this)" aria-label="Show password"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
       <button class="gate-btn" id="loginBtn" onclick="handleLogin()" ontouchend="event.preventDefault();handleLogin()">Enter</button>
       <div class="gate-error" id="loginError"></div>
     </div>
     <div id="gateSignup" style="display:none">
       <div class="gate-input-group"><label class="gate-input-label">Full Name</label><input id="signupName" class="gate-input" type="text" placeholder="Your full name" autocomplete="name"></div>
       <div class="gate-input-group"><label class="gate-input-label">Email Address</label><input id="signupEmail" class="gate-input" type="email" placeholder="your@email.com" autocomplete="email"></div>
-      <div class="gate-input-group"><label class="gate-input-label">Password</label><input id="signupPassword" class="gate-input" type="password" placeholder="Min. 6 characters" autocomplete="new-password"></div>
+      <div class="gate-input-group"><label class="gate-input-label">Password</label><div class="gate-input-pw-wrap"><input id="signupPassword" class="gate-input" type="password" placeholder="Min. 6 characters" autocomplete="new-password"><button type="button" class="pw-toggle" onclick="togglePw('signupPassword',this)" aria-label="Show password"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
       <button class="gate-btn" id="signupBtn" onclick="handleSignup()" ontouchend="event.preventDefault();handleSignup()">Continue →</button>
       <div class="gate-error" id="signupError"></div>
     </div>
@@ -683,6 +694,9 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
         </div>
         <div class="vault-pin-input-wrapper">
           <input type="password" class="vault-input" id="vault-pin" placeholder="4-Digit VIP PIN" maxlength="4" oninput="clearVaultError()" style="transition:border-color .2s,box-shadow .2s">
+          <button type="button" class="vault-pw-toggle" onclick="togglePw('vault-pin',this)" aria-label="Show PIN">
+            <svg id="vault-pin-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
           <p id="vault-error" style="display:none;color:#ff5555;font-size:12px;text-align:center;margin-top:10px;letter-spacing:.3px;line-height:1.6">Access Denied. Please contact the Concierge<br>for VIP consideration.</p>
         </div>
         <button id="vault-btn" class="vault-btn" onclick="handleVaultUnlock()">UNLOCK</button>
@@ -1828,7 +1842,7 @@ async function loadTrending() {
 
   // Show BL logo pulse immediately
   if (!container.querySelector('.tiktok-item')) {
-    container.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"><div style="width:72px;height:72px;border-radius:18px;background:linear-gradient(145deg,#C9A84C,#8B6914);display:flex;align-items:center;justify-content:center;animation:blPulse 1.8s ease-in-out infinite;box-shadow:0 0 32px rgba(201,168,76,.25);"><span style="font-family:\'Cormorant Garamond\',serif;font-size:28px;font-weight:700;color:#120D06;letter-spacing:1px;">BL</span></div></div>';
+    container.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"><div style="position:relative;width:72px;height:72px;"><div style="position:absolute;inset:0;border-radius:50%;border:2px solid rgba(255,255,255,.06);border-top-color:rgba(168,155,140,.45);animation:blSpin .9s linear infinite;"></div><div style="position:absolute;inset:4px;border-radius:50%;background:rgba(201,168,76,.10);border:1px solid rgba(201,168,76,.18);display:flex;align-items:center;justify-content:center;"><span style="font-family:\'Cormorant Garamond\',serif;font-size:22px;font-weight:700;color:rgba(201,168,76,.5);letter-spacing:1px;">BL</span></div></div></div>';
   }
 
   // ── CACHE-FIRST ──
@@ -1934,6 +1948,8 @@ function buildTikTokItem(item) {
     mediaHtml = '<video src="' + item.videoUrl + '" loop muted playsinline style="width:100%;height:100%;object-fit:cover"></video>';
   } else if (item.imageData) {
     mediaHtml = '<img src="' + item.imageData + '" alt="" style="width:100%;height:100%;object-fit:contain">';
+  } else if (item.imageUrl) {
+    mediaHtml = '<img src="' + item.imageUrl + '" alt="" style="width:100%;height:100%;object-fit:cover">';
   } else {
     mediaHtml = '<div style="width:100%;height:100%;background:linear-gradient(135deg,#1a0f00,#2a1a00);display:flex;align-items:center;justify-content:center;font-size:64px">🛋️</div>';
   }
@@ -2212,7 +2228,7 @@ function openCatalogRooms(box, paletteIndex) {
       <div class="room-category-header"><span class="room-category-name">${name}</span></div>
       <div class="room-single-slot" style="background:#0A0A0A;">
         <div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;position:absolute;inset:0;">
-          <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(145deg,#C9A84C,#8B6914);display:flex;align-items:center;justify-content:center;animation:blPulse 1.8s ease-in-out infinite;box-shadow:0 0 20px rgba(201,168,76,.2);"><span style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:#120D06;letter-spacing:1px;">BL</span></div>
+          <div style="position:relative;width:52px;height:52px;"><div style="position:absolute;inset:0;border-radius:50%;border:2px solid rgba(255,255,255,.06);border-top-color:rgba(168,155,140,.45);animation:blSpin .9s linear infinite;"></div><div style="position:absolute;inset:4px;border-radius:50%;background:rgba(201,168,76,.10);border:1px solid rgba(201,168,76,.18);display:flex;align-items:center;justify-content:center;"><span style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:rgba(201,168,76,.5);letter-spacing:1px;">BL</span></div></div>
         </div>
       </div>
     </div>`).join('');
@@ -2248,7 +2264,7 @@ function viewRoomImage(name, idx) {
   let imgTag = imgEl.querySelector('img');
   if (!imgTag) {
     imgTag = document.createElement('img');
-    imgTag.style.cssText = 'width:100%;height:100%;object-fit:cover';
+    imgTag.style.cssText = 'width:100%;height:100%;object-fit:contain;display:block';
     imgEl.insertBefore(imgTag, imgEl.firstChild);
   }
   imgTag.src = imgSrc;
@@ -3720,6 +3736,21 @@ function addRefreshButton() {
 setTimeout(addRefreshButton, 2000);
 
 window.loadProjectsUniversal = loadProjectsUniversal;
+
+// ===========================================
+// PASSWORD VISIBILITY TOGGLE
+// ===========================================
+function togglePw(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const isHidden = input.type === 'password';
+  input.type = isHidden ? 'text' : 'password';
+  // Swap eye icon: open eye when hidden (show action), crossed eye when visible (hide action)
+  btn.innerHTML = isHidden
+    ? '<svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+    : '<svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+}
 
 // ===========================================
 // FIREBASE CONNECTION TEST + DEBUG BUTTON
