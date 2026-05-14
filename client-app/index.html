@@ -59,7 +59,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .feed-carousel-track{display:flex;transition:transform .3s ease;will-change:transform;}
 .feed-carousel-track img,.feed-carousel-track video{width:100%;flex-shrink:0;object-fit:cover;display:block;}
 .feed-carousel-dots{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:2;}
-.feed-carousel-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.45);transition:background .2s;}
+.feed-carousel-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.75);transition:background .2s;}
 .feed-carousel-dot.active{background:#fff;}
 .feed-multi-icon{position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.55);border-radius:4px;padding:3px 5px;display:flex;gap:3px;}
 .feed-multi-icon span{width:4px;height:4px;border-radius:1px;background:#fff;display:inline-block;}
@@ -1199,17 +1199,17 @@ function dismissLoadingSplash() {
 function showPage(pageId) {
   dismissLoadingSplash();
 
-  // Close all overlays
+  // Close all overlays — remove active class only, let CSS handle display
   const _ps = document.getElementById('profileScreen');
-  if (_ps) { _ps.classList.remove('active'); _ps.style.display = 'none'; }
+  if (_ps) { _ps.classList.remove('active'); _ps.style.display = ''; }
   const _sb = document.getElementById('shareBackdrop');
-  if (_sb) { _sb.classList.remove('active'); _sb.style.display = 'none'; }
+  if (_sb) { _sb.classList.remove('active'); _sb.style.display = ''; }
   const _ss = document.querySelector('.share-sheet');
   if (_ss) { _ss.classList.remove('active'); _ss.style.bottom = ''; }
   const _co = document.getElementById('consultOverlay');
-  if (_co) { _co.classList.remove('active'); _co.style.display = 'none'; }
+  if (_co) { _co.classList.remove('active'); _co.style.display = ''; }
   const _im = document.getElementById('imageModal');
-  if (_im) { _im.classList.remove('active'); _im.style.display = 'none'; }
+  if (_im) { _im.classList.remove('active'); _im.style.display = ''; }
   const _va = document.getElementById('vaultAssetDetail');
   if (_va) _va.style.display = 'none';
 
