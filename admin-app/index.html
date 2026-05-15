@@ -1080,6 +1080,14 @@
         .admin-msg.from-admin .admin-bubble { background:linear-gradient(135deg,#C9A84C,#8B6914); color:#0A0804; font-weight:500; border-radius:18px 4px 18px 18px; }
         .admin-msg.from-client .admin-bubble { background:rgba(255,255,255,0.06); color:#E8D5A3; border:1px solid rgba(201,168,76,0.12); border-radius:4px 18px 18px 18px; }
         .admin-msg-time { font-size:10px; color:rgba(255,255,255,0.2); margin-top:4px; padding:0 4px; }
+        .admin-img-bubble { width:220px; overflow:hidden; cursor:pointer; display:block; flex-shrink:0; }
+        .admin-msg.from-admin .admin-img-bubble { border-radius:18px 4px 18px 18px; box-shadow:0 2px 14px rgba(201,169,98,.25); }
+        .admin-msg.from-client .admin-img-bubble { border-radius:4px 18px 18px 18px; box-shadow:0 2px 14px rgba(0,0,0,.4); }
+        .admin-img-bubble img { width:100%; height:auto; display:block; border-radius:inherit; }
+        #adminImgLightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,.92); z-index:99999; align-items:center; justify-content:center; cursor:zoom-out; }
+        #adminImgLightbox.active { display:flex; }
+        #adminImgLightbox img { max-width:92%; max-height:88vh; object-fit:contain; border-radius:8px; box-shadow:0 8px 48px rgba(0,0,0,.8); }
+        #adminImgLightbox .lb-close { position:absolute; top:18px; right:22px; color:rgba(255,255,255,.7); font-size:30px; line-height:1; cursor:pointer; background:none; border:none; }
         .admin-chat-input-row { padding:14px 20px; border-top:1px solid rgba(201,168,76,0.1); display:flex; gap:10px; align-items:center; }
         .admin-chat-input { flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(201,168,76,0.2); border-radius:24px; padding:12px 18px; color:#F5F0E8; font-size:14px; outline:none; }
         .admin-chat-input:focus { border-color:rgba(201,168,76,0.5); }
@@ -2973,7 +2981,7 @@
             const convos = Object.entries(snap.val());
             el.innerHTML = convos.map(([uid, convo]) => {
               const rawMsgs = convo.messages ? convo.messages : convo;
-              const msgList = typeof rawMsgs === 'object' ? Object.values(rawMsgs).filter(v => v && v.text) : [];
+              const msgList = typeof rawMsgs === 'object' ? Object.values(rawMsgs).filter(v => v && (v.text || v.fileData)) : [];
               if (!msgList.length) return '';
               const last = msgList[msgList.length - 1];
               const unread = msgList.filter(m => !m.read && m.sender !== 'admin').length;
@@ -3002,11 +3010,24 @@
           msgs.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(201,168,76,.4);">Loading...</div>';
           adminFbDB.ref('chats/'+uid+'/messages').orderByChild('timestamp').limitToLast(50).once('value').then(snap => {
             if (!snap.exists()) { msgs.innerHTML = '<div style="text-align:center;padding:20px;">No messages</div>'; return; }
-            msgs.innerHTML = Object.values(snap.val()).map(m => `
-              <div class="admin-msg ${(m.role==='admin'||m.sender==='admin') ? 'from-admin' : 'from-client'}">
-                <div class="admin-bubble">${m.text||''}</div>
-                <div class="admin-msg-time">${(m.timestamp||m.createdAt) ? new Date(m.timestamp||m.createdAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : ''}</div>
-              </div>`).join('');
+          msgs.innerHTML = Object.values(snap.val()).map(m => {
+            const isAdmin = m.role === 'admin' || m.sender === 'admin';
+            const time = (m.timestamp || m.createdAt) ? new Date(m.timestamp || m.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
+            const safeText = (m.text || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            let bubbleHTML;
+            if (m.fileType === 'image' && m.fileData) {
+              const safeSrc = m.fileData.replace(/'/g, "\\'");
+              bubbleHTML = `<div class="admin-img-bubble" onclick="adminOpenImage('${safeSrc}')"><img src="${m.fileData}" alt="Image" loading="lazy"></div>`;
+            } else if (m.fileType === 'video' && m.fileData) {
+              bubbleHTML = `<div class="admin-bubble" style="padding:6px"><video src="${m.fileData}" controls style="width:220px;border-radius:10px;display:block;"></video></div>`;
+            } else if (m.fileType === 'file' && m.fileData) {
+              const safeName = (m.fileName || 'Attachment').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+              bubbleHTML = `<div class="admin-bubble"><a href="${m.fileData}" download="${safeName}" style="display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none;"><svg viewBox="0 0 24 24" width="20" height="20" style="flex-shrink:0" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span style="font-size:13px;word-break:break-all">${safeName}</span></a></div>`;
+            } else {
+              bubbleHTML = `<div class="admin-bubble">${safeText}</div>`;
+            }
+            return `<div class="admin-msg ${isAdmin ? 'from-admin' : 'from-client'}">${bubbleHTML}<div class="admin-msg-time">${time}</div></div>`;
+          }).join('');
             msgs.scrollTop = msgs.scrollHeight;
             // Mark unread client messages as read — reuse existing snap, no second fetch
             const updates = {};
@@ -3798,5 +3819,16 @@
             });
         });
     </script>
+<!-- ── Admin Image Lightbox ─────────────────────────────────────────── -->
+<div id="adminImgLightbox" onclick="this.classList.remove('active')">
+  <button class="lb-close" onclick="event.stopPropagation();document.getElementById('adminImgLightbox').classList.remove('active')">✕</button>
+  <img id="adminImgLightboxImg" src="" alt="">
+</div>
+<script>
+function adminOpenImage(src) {
+  document.getElementById('adminImgLightboxImg').src = src;
+  document.getElementById('adminImgLightbox').classList.add('active');
+}
+</script>
 </body>
 </html>
