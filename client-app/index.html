@@ -251,6 +251,10 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .cg-msg.recv .cg-bubble{background:linear-gradient(135deg,#0B1E35,#0D2140);color:#E9EDF0;border:1px solid rgba(201,169,98,.15);border-radius:4px 18px 18px 18px;box-shadow:0 2px 12px rgba(0,0,0,.3)}
 .cg-msg.sent .cg-bubble{background:linear-gradient(135deg,var(--gold),#8B6914);color:#060D18;font-weight:500;border-radius:18px 4px 18px 18px;box-shadow:0 2px 12px rgba(201,169,98,.2)}
 .cg-msg-time{font-size:10px;color:rgba(255,255,255,.25);padding:0 4px}
+.cg-img-bubble{width:220px;overflow:hidden;cursor:pointer;display:block;flex-shrink:0}
+.cg-msg.sent .cg-img-bubble{border-radius:18px 4px 18px 18px;box-shadow:0 2px 14px rgba(201,169,98,.25)}
+.cg-msg.recv .cg-img-bubble{border-radius:4px 18px 18px 18px;box-shadow:0 2px 14px rgba(0,0,0,.4)}
+.cg-img-bubble img{width:100%;height:auto;display:block;border-radius:inherit}
 .cg-typing{padding:0 16px 8px;color:#8696A0;font-size:12px;font-style:italic;letter-spacing:.5px;display:none}
 .cg-input-row{padding:12px 16px;border-top:1px solid rgba(201,169,98,.1);background:var(--bg-navy);display:flex;gap:10px;align-items:center;flex-shrink:0}
 .cg-input{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(201,169,98,.2);border-radius:24px;padding:12px 18px;color:#F5F0E8;font-size:14px;font-family:'Jost',sans-serif;outline:none;-webkit-user-select:text;user-select:text}
@@ -3182,14 +3186,7 @@ async function loadConciergeHistory() {
         const existing = container.querySelectorAll('.cg-msg');
         existing.forEach(e => e.remove());
         msgs.forEach(m => {
-          const isClient = m.sender === 'client' || (!m.sender && m.role !== 'admin');
-          const el = document.createElement('div');
-          el.className = 'cg-msg ' + (isClient ? 'sent' : 'recv');
-          const ts = m.timestamp || m.createdAt || 0;
-          const time = ts ? new Date(ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
-          const safeText = (m.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-          el.innerHTML = `<div class="cg-bubble">${safeText}</div><div class="cg-msg-time">${time}</div>`;
-          container.appendChild(el);
+          container.appendChild(buildCgMsgEl(m));
         });
         container.scrollTop = container.scrollHeight;
       }
@@ -3197,6 +3194,28 @@ async function loadConciergeHistory() {
       console.error('Concierge listener error:', err);
       showToast('Unable to load messages');
     });
+}
+
+// ─── CONCIERGE MESSAGE RENDERER (shared) ─────────────────────────────────────
+function buildCgMsgEl(m) {
+  const isClient = m.sender === 'client' || (m.role !== 'admin' && !m.sender);
+  const el = document.createElement('div');
+  el.className = 'cg-msg ' + (isClient ? 'sent' : 'recv');
+  const ts = m.timestamp || m.createdAt || 0;
+  const time = ts ? new Date(ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
+  const safeText = (m.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  if (m.fileType === 'image' && m.fileData) {
+    // WhatsApp-style: image IS the bubble — no background wrapper
+    el.innerHTML = `<div class="cg-img-bubble" onclick="openImageModal('${m.fileData.replace(/'/g,"\\'")}')"><img src="${m.fileData}" alt="Image" loading="lazy"></div><div class="cg-msg-time">${time}</div>`;
+  } else if (m.fileType === 'video' && m.fileData) {
+    el.innerHTML = `<div class="cg-bubble" style="padding:6px"><video src="${m.fileData}" controls style="width:220px;border-radius:10px;display:block;"></video></div><div class="cg-msg-time">${time}</div>`;
+  } else if (m.fileType === 'file' && m.fileData) {
+    el.innerHTML = `<div class="cg-bubble"><a href="${m.fileData}" download="${(m.fileName||'file').replace(/"/g,'&quot;')}" style="display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none;"><svg viewBox="0 0 24 24" width="20" height="20" style="flex-shrink:0" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span style="font-size:13px;word-break:break-all">${(m.fileName||'Attachment').replace(/</g,'&lt;')}</span></a></div><div class="cg-msg-time">${time}</div>`;
+  } else {
+    el.innerHTML = `<div class="cg-bubble">${safeText}</div><div class="cg-msg-time">${time}</div>`;
+  }
+  return el;
 }
 
 function renderConciergeMessages() {
@@ -3208,30 +3227,9 @@ function renderConciergeMessages() {
     return;
   }
   if (emptyEl) emptyEl.style.display = 'none';
-  const existing = container.querySelectorAll('.cg-msg');
-  existing.forEach(e => e.remove());
-  cgMessages.forEach(m => {
-    const isClient = m.sender === 'client' || (m.role !== 'admin' && !m.sender);
-    const el = document.createElement('div');
-    el.className = 'cg-msg ' + (isClient ? 'sent' : 'recv');
-    const ts = m.timestamp || m.createdAt || 0;
-    const time = ts ? new Date(ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
-    const safeText = (m.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    let bubbleContent;
-    if (m.fileType === 'image' && m.fileData) {
-      bubbleContent = `<img src="${m.fileData}" style="max-width:220px;max-height:260px;border-radius:10px;display:block;cursor:pointer" onclick="window.open(this.src,'_blank')">`;
-    } else if (m.fileType === 'video' && m.fileData) {
-      bubbleContent = `<video src="${m.fileData}" controls style="max-width:220px;border-radius:10px;display:block;"></video>`;
-    } else if (m.fileType === 'file' && m.fileData) {
-      bubbleContent = `<a href="${m.fileData}" download="${m.fileName||'file'}" style="display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none;"><svg viewBox="0 0 24 24" width="20" height="20" style="flex-shrink:0" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span style="font-size:13px;word-break:break-all">${m.fileName||'Attachment'}</span></a>`;
-    } else {
-      bubbleContent = safeText;
-    }
-    el.innerHTML = `<div class="cg-bubble">${bubbleContent}</div><div class="cg-msg-time">${time}</div>`;
-    container.appendChild(el);
-  });
+  container.querySelectorAll('.cg-msg').forEach(e => e.remove());
+  cgMessages.forEach(m => container.appendChild(buildCgMsgEl(m)));
   container.scrollTop = container.scrollHeight;
-  // Firebase is the source of truth — no localStorage caching needed
 }
 
 async function sendConciergeMessage() {
