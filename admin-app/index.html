@@ -445,7 +445,7 @@
             display: none;
             position: fixed;
             top: 0;
-            left: 0;
+            left: 280px;
             right: 0;
             bottom: 0;
             background: rgba(0,0,0,0.8);
@@ -453,6 +453,10 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
+        }
+        @media (max-width: 768px) {
+            .form-modal { left: 0; }
+            #analyticsModal { left: 0 !important; }
         }
 
         .form-modal.active {
@@ -543,6 +547,9 @@
             margin-bottom: 24px;
             border: 1px solid rgba(201, 169, 98, 0.1);
         }
+
+        #vipSearchInput::placeholder, #vmClientSearchInput::placeholder { color: rgba(201,168,76,0.3); }
+        #vipSearchInput:focus, #vmClientSearchInput:focus { box-shadow: 0 0 0 2px rgba(201,168,76,0.08); }
 
         .vip-grid {
             display: grid;
@@ -1067,7 +1074,7 @@
 
         /* Admin Chat View */
         .admin-chat-panel { display:flex; flex-direction:column; height:100%; }
-        .admin-chat-hdr { display:flex; align-items:center; gap:14px; padding:18px 20px; border-bottom:1px solid rgba(201,168,76,0.12); }
+        .admin-chat-hdr { display:flex; align-items:center; gap:14px; padding:18px 20px; border-bottom:1px solid rgba(201,168,76,0.12); position:sticky; top:0; z-index:10; background:#0A0804; flex-shrink:0; }
         .admin-chat-hdr .back-link { background:none; border:1px solid rgba(201,168,76,0.2); color:rgba(201,168,76,0.6); border-radius:8px; padding:8px 12px; font-size:13px; cursor:pointer; transition:all 0.2s; }
         .admin-chat-hdr .back-link:hover { border-color:#C9A84C; color:#C9A84C; }
         .admin-chat-av { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#C9A84C,#7A5C10); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0A0804; font-family:'Cormorant Garamond',serif; font-size:15px; flex-shrink:0; }
@@ -1436,12 +1443,18 @@
         .gold-modal {
             display: none;
             position: fixed;
-            inset: 0;
+            top: 0;
+            left: 280px;
+            right: 0;
+            bottom: 0;
             background: rgba(0,0,0,0.8);
             z-index: 11000;
             align-items: center;
             justify-content: center;
             padding: 20px;
+        }
+        @media (max-width: 768px) {
+            .gold-modal { left: 0; }
         }
         .gold-modal-content {
             background: #0E0B06;
@@ -1542,7 +1555,6 @@
             <div class="nav-item" onclick="showPanel('catalog', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="0.5"/><rect x="14" y="3" width="7" height="7" rx="0.5"/><rect x="3" y="14" width="7" height="7" rx="0.5"/><rect x="14" y="14" width="7" height="7" rx="0.5"/></svg></span><span>Catalog</span></div>
             <div class="nav-item" onclick="showPanel('trending', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 2C12 2 7 8 7 13a5 5 0 0010 0c0-5-5-11-5-11z"/><path d="M9.5 15.5c.5-1.5 2-2.5 2.5-4"/></svg></span><span>Trending</span></div>
             <div class="nav-item" onclick="showPanel('portfolio', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"/></svg></span><span>Portfolio</span></div>
-            <div class="nav-item" onclick="showPanel('designers', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span><span>Designers</span></div>
         </div>
         <div class="nav-section">
             <div class="nav-section-title">Clients</div>
@@ -1568,7 +1580,7 @@
             <div class="stats-grid">
                 <div class="stat-card"><div class="stat-value" id="statPosts"><span class="skel" style="display:inline-block;width:48px;height:48px;">&nbsp;</span></div><div class="stat-label">Total Posts</div></div>
                 <div class="stat-card"><div class="stat-value" id="statTrending"><span class="skel" style="display:inline-block;width:48px;height:48px;">&nbsp;</span></div><div class="stat-label">Total Trending</div></div>
-                <div class="stat-card"><div class="stat-value" id="statDesigners"><span class="skel" style="display:inline-block;width:48px;height:48px;">&nbsp;</span></div><div class="stat-label">Total Designers</div></div>
+                
                 <div class="stat-card"><div class="stat-value" id="statPendingVIP"><span class="skel" style="display:inline-block;width:48px;height:48px;">&nbsp;</span></div><div class="stat-label">Pending VIP Requests</div></div>
             </div>
             <div class="quick-actions">
@@ -1607,18 +1619,21 @@
                 </div>
                 <div id="portfolioClientGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 20px 20px;overflow-y:auto;"></div>
             </div>
-        </div>
-
-        <!-- Designers Panel -->
-        <div class="panel" id="panel-designers"><div class="page-header"><h1 class="page-title">Designers</h1><button class="btn btn-primary" onclick="openForm('designer')">+ Add Designer</button></div><div class="list-container" id="designersList"></div></div>
-
-        <!-- VIP Manager Panel -->
+        </div><!-- VIP Manager Panel -->
         <div class="panel" id="panel-vip">
             <div class="page-header"><h1 class="page-title">VIP Manager</h1><button class="btn btn-secondary" onclick="_panelFetched.vip=false;renderVIPList();loadVIPRequests();" style="padding:10px 16px;font-size:12px;">&#x21BB; Refresh</button></div>
             <div class="vip-form"><h3 style="margin-bottom:16px;color:var(--gold);">Register New VIP</h3><div class="form-row"><div class="form-group"><label class="form-label">Phone Number (10 digits)</label><input type="tel" class="form-input" id="vipPhone" placeholder="08012345678" maxlength="10"></div><div class="form-group"><label class="form-label">4-Digit Code</label><input type="text" class="form-input" id="vipCode" placeholder="4521" maxlength="4"></div><div class="form-group"><label class="form-label">Full Name</label><input type="text" class="form-input" id="vipName" placeholder="Mr. Adeyemi"></div></div><button class="btn btn-primary" onclick="addVIP()" style="margin-top:16px;">Add VIP Member</button></div>
             <h3 style="margin:32px 0 16px;color:var(--gold);">VIP Requests <span id="vipRequestCount" style="font-size:14px;font-weight:400;color:rgba(201,168,76,.5);margin-left:8px;"></span></h3>
             <div id="vipRequestsList" style="margin-bottom:32px;"></div>
-            <h3 style="margin:32px 0 16px;color:var(--gold);">Registered VIPs <span id="vipCount" style="font-size:14px;font-weight:400;color:rgba(201,168,76,0.5);margin-left:8px;"></span></h3>
+            <h3 style="margin:32px 0 12px;color:var(--gold);">Registered VIPs <span id="vipCount" style="font-size:14px;font-weight:400;color:rgba(201,168,76,0.5);margin-left:8px;"></span></h3>
+            <!-- TikTok-style search -->
+            <div style="position:relative;margin-bottom:16px;">
+                <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:rgba(201,168,76,0.5);fill:none;stroke-width:2;stroke-linecap:round;" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                <input type="text" id="vipSearchInput" placeholder="Search by name or phone…" oninput="filterVIPList(this.value)"
+                    style="width:100%;padding:12px 16px 12px 42px;background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);border-radius:30px;color:#F5F0E8;font-family:'Jost',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s;box-sizing:border-box;"
+                    onfocus="this.style.borderColor='rgba(201,168,76,0.5)'" onblur="this.style.borderColor='rgba(201,168,76,0.15)'">
+                <button id="vipSearchClear" onclick="clearVIPSearch()" style="display:none;position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(201,168,76,0.5);font-size:18px;cursor:pointer;line-height:1;">×</button>
+            </div>
             <div class="vip-grid" id="vipGrid"></div>
         </div>
 
@@ -1628,6 +1643,14 @@
             <div id="vmMainView" style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
                 <div class="vm-header"><div class="vm-eyebrow">Billy Living · Private</div><div class="vm-title">Vault Control Centre</div></div>
                 <div class="vm-section-title">VIP Client Vaults</div>
+                <!-- TikTok-style search -->
+                <div style="position:relative;padding:10px 16px;">
+                    <svg style="position:absolute;left:28px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:rgba(212,175,55,0.5);fill:none;stroke-width:2;stroke-linecap:round;" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                    <input type="text" id="vmClientSearchInput" placeholder="Search clients by name or phone…" oninput="filterVaultClients(this.value)"
+                        style="width:100%;padding:12px 16px 12px 42px;background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.15);border-radius:30px;color:#E8D9B5;font-family:'Jost',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s;box-sizing:border-box;"
+                        onfocus="this.style.borderColor='rgba(212,175,55,0.5)'" onblur="this.style.borderColor='rgba(212,175,55,0.15)'">
+                    <button id="vmSearchClear" onclick="clearVaultSearch()" style="display:none;position:absolute;right:28px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(212,175,55,0.5);font-size:18px;cursor:pointer;line-height:1;">×</button>
+                </div>
                 <div id="vmClientList" style="overflow-y:auto;flex:1;"></div>
             </div>
 
@@ -1889,7 +1912,6 @@
             if (name === 'catalog') { if (!_panelFetched.catalog) { _panelFetched.catalog = true; renderCatalogList(); } }
             if (name === 'home') { if (!_panelFetched.home) { _panelFetched.home = true; renderHomeList(); } }
             if (name === 'trending') { if (!_panelFetched.trending) { _panelFetched.trending = true; renderTrendingList(); } }
-            if (name === 'designers') { if (!_panelFetched.designers) { _panelFetched.designers = true; renderDesignersList(); } }
             if (name === 'vip') { if (!_panelFetched.vip) { _panelFetched.vip = true; renderVIPList(); loadVIPRequests(); } }
             if (name === 'portfolio') { if (!_panelFetched.portfolio) { _panelFetched.portfolio = true; loadPortfolioUsers(); } }
             if (name === 'messages') { if (!_panelFetched.messages) { _panelFetched.messages = true; initAdminMessagesListener(); } }
@@ -1924,17 +1946,15 @@
         function vmLoadClientList() {
             const list = document.getElementById('vmClientList');
             list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">Loading clients…</div></div>';
-            adminFbDB.ref('vip').limitToFirst(20).once('value').then(snap => {
-                const vips = Object.values(snap.val() || {});
-                if (!vips.length) {
+            adminFbDB.ref('vip').limitToFirst(100).once('value').then(snap => {
+                _allVaultClients = Object.values(snap.val() || {});
+                if (!_allVaultClients.length) {
                     list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">No VIP clients registered yet</div><div class="vm-empty-sub">Add clients in VIP Manager first</div></div>';
                     return;
                 }
-                list.innerHTML = vips.map(v => {
-                    const name = v.name || 'Client';
-                    const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-                    return `<div class="vm-client-item" onclick="vmOpenClientPOV('${v.id||v.phone}','${name}','${v.phone}')"><div class="vm-client-av">${initials}</div><div class="vm-client-info"><div class="vm-client-name">${name}</div><div class="vm-client-sub">+234 ${v.phone} · VIP</div></div><span class="vm-client-chevron">›</span></div>`;
-                }).join('');
+                const si = document.getElementById('vmClientSearchInput'); if (si) si.value = '';
+                const sc = document.getElementById('vmSearchClear'); if (sc) sc.style.display = 'none';
+                _renderVaultClientList(_allVaultClients);
             });
         }
 
@@ -2428,31 +2448,32 @@
                     const pcVis = vis.priorityConcierge !== false;
 
                     const makeVisBtn = (key, isVis) => `<button class="vm-asset-btn ${isVis ? 'vm-asset-btn-move' : 'vm-asset-btn-del'}" style="font-size:10px;" onclick="event.stopPropagation();vmToggleVaultSection('${uid}','${key}',${isVis})">${isVis ? '👁 VISIBLE' : '🚫 INVISIBLE'}</button>`;
-                    const makeCover = (emoji, bg, key) => `<div class="vm-asset-thumb" style="background:${bg};display:flex;align-items:center;justify-content:center;font-size:42px;position:relative;cursor:pointer;" oncontextmenu="event.preventDefault();vmSetCardCover('${uid}','${key}')" ontouchstart="vmStartLongPress(event,'${uid}','${key}')" ontouchend="vmCancelLongPress()" ontouchmove="vmCancelLongPress()">${emoji}<div style="position:absolute;bottom:4px;right:4px;font-size:9px;color:rgba(255,255,255,.3);letter-spacing:1px;">HOLD</div></div>`;
+                    const makeCoverBtn = (uid, key) => `<button onclick="event.stopPropagation();vmSetCardCover('${uid}','${key}')" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.3);border-radius:6px;color:rgba(212,175,55,0.7);font-size:10px;padding:4px 8px;cursor:pointer;z-index:5;">🖼 Cover</button>`;
+                    const makeThumb = (emoji, bg, uid, key) => `<div class="vm-asset-thumb" style="background:${bg};display:flex;align-items:center;justify-content:center;font-size:42px;position:relative;">${emoji}${makeCoverBtn(uid, key)}</div>`;
 
-                    const ptCard = `<div class="vm-asset-card" style="border-color:rgba(212,175,55,.4);">
-                        ${makeCover('📊','linear-gradient(135deg,#0E0B06,#1A1408)','pt')}
+                    const ptCard = `<div class="vm-asset-card" style="border-color:rgba(212,175,55,.4);cursor:pointer;" onclick="vmOpenProgressTracker(null)">
+                        ${makeThumb('📊','linear-gradient(135deg,#0E0B06,#1A1408)',uid,'pt')}
                         <div class="vm-asset-body"><div class="vm-asset-cat">Progress Tracker</div><div class="vm-asset-title">Project Progress</div></div>
                         <div class="vm-asset-actions">${makeVisBtn('progressTracker', ptVis)}</div>
                     </div>`;
                     const tgCard = `<div class="vm-asset-card" style="border-color:rgba(212,175,55,.3);cursor:pointer;" onclick="vmOpenTextureEditor()">
-                        ${makeCover('🎨','linear-gradient(135deg,#0E0B06,#1A1408)','tg')}
-                        <div class="vm-asset-body"><div class="vm-asset-cat">Texture Gallery</div><div class="vm-asset-title">Material Samples</div><div class="vm-asset-desc" style="font-size:10px;color:rgba(212,175,55,.4);">Tap to manage · Hold to set cover</div></div>
+                        ${makeThumb('🎨','linear-gradient(135deg,#0E0B06,#1A1408)',uid,'tg')}
+                        <div class="vm-asset-body"><div class="vm-asset-cat">Texture Gallery</div><div class="vm-asset-title">Material Samples</div></div>
                         <div class="vm-asset-actions">${makeVisBtn('textureGallery', tgVis)}</div>
                     </div>`;
                     const oeCard = `<div class="vm-asset-card" style="border-color:rgba(212,175,55,.3);cursor:pointer;" onclick="vmOpenOverseasEditor()">
-                        ${makeCover('✈️','linear-gradient(135deg,#060D18,#0D1E3A)','oe')}
-                        <div class="vm-asset-body"><div class="vm-asset-cat">Unreleased Overseas Exclusives</div><div class="vm-asset-title">Global Properties</div><div class="vm-asset-desc" style="font-size:10px;color:rgba(212,175,55,.4);">Tap to manage · Hold to set cover</div></div>
+                        ${makeThumb('✈️','linear-gradient(135deg,#060D18,#0D1E3A)',uid,'oe')}
+                        <div class="vm-asset-body"><div class="vm-asset-cat">Unreleased Overseas Exclusives</div><div class="vm-asset-title">Global Properties</div></div>
                         <div class="vm-asset-actions">${makeVisBtn('overseasExclusives', oeVis)}</div>
                     </div>`;
                     const pcCard = `<div class="vm-asset-card" style="border-color:rgba(212,175,55,.3);cursor:pointer;" onclick="vmEditPriorityConcierge()">
-                        ${makeCover('⭐','linear-gradient(135deg,#1A0F00,#2A1A00)','pc')}
+                        ${makeThumb('⭐','linear-gradient(135deg,#1A0F00,#2A1A00)',uid,'pc')}
                         <div class="vm-asset-body"><div class="vm-asset-cat">Priority Concierge Access</div><div class="vm-asset-title">VIP Partnership</div></div>
                         <div class="vm-asset-actions">${makeVisBtn('priorityConcierge', pcVis)}</div>
                     </div>`;
                     const ppVis = vis.preservationProtocol !== false;
                     const ppCard = `<div class="vm-asset-card" style="border-color:rgba(80,200,120,.25);cursor:pointer;" onclick="vmShowView('library')">
-                        ${makeCover('📋','linear-gradient(135deg,#06100A,#0A1810)','pp')}
+                        ${makeThumb('📋','linear-gradient(135deg,#06100A,#0A1810)',uid,'pp')}
                         <div class="vm-asset-body"><div class="vm-asset-cat">Preservation Protocol</div><div class="vm-asset-title">The Preservation Protocol</div></div>
                         <div class="vm-asset-actions">${makeVisBtn('preservationProtocol', ppVis)}</div>
                     </div>`;
@@ -2663,12 +2684,12 @@
           Promise.all([
             adminFbDB.ref('content/posts').once('value'),
             adminFbDB.ref('content/trending').once('value'),
-            adminFbDB.ref('designers').once('value'),
+            
             adminFbDB.ref('vip').once('value')
-          ]).then(([posts, trending, designers, vip]) => {
+          ]).then(([posts, trending, vip]) => {
             document.getElementById('statPosts').textContent = posts.exists() ? Object.keys(posts.val()).length : 0;
             document.getElementById('statTrending').textContent = trending.exists() ? Object.keys(trending.val()).length : 0;
-            document.getElementById('statDesigners').textContent = designers.exists() ? Object.keys(designers.val()).length : 0;
+
             const vips = vip.val() ? Object.values(vip.val()) : [];
             document.getElementById('statPendingVIP').textContent = vips.filter(v => !v.id).length;
           }).catch(e => console.warn('Stats error:', e));
@@ -2676,30 +2697,29 @@
         function renderHomeList() {
           const el = document.getElementById('homeList');
           el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
-          // content/.read is true — no auth needed
-          // Use the REST API as fallback if Firebase SDK returns empty
           const doLoad = () => {
             adminFbDB.ref('content/posts').limitToLast(50).once('value').then(snap => {
               if (!snap.exists() || !snap.val()) {
-                el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><div>No posts yet</div><div style="font-size:11px;color:rgba(201,168,76,.3);margin-top:8px;">Posts added from client app will appear here</div></div>';
+                el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><div>No posts yet</div></div>';
                 return;
               }
               const posts = Object.entries(snap.val()).map(([k,v]) => ({...v, id: v.id||k})).sort((a,b) => (b.createdAt||0)-(a.createdAt||0));
               el.innerHTML = posts.map(p => {
                 const imgSrc = p.imageData || p.imageUrl || p.image || null;
                 const thumb = imgSrc ? '<img src="'+imgSrc+'" loading="lazy" onerror="this.style.display=\'none\'">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">🏠</div>';
-                return `<div class="list-item">
+                return `<div class="list-item" style="cursor:pointer;" onclick="openPostAnalytics('posts','${p.id}','${(p.caption||p.title||'Post').replace(/'/g,"\\'")}')">
                   <div class="list-image">${thumb}</div>
                   <div class="list-info"><div class="list-title">${p.caption||p.title||p.description||'Post'}</div><div class="list-meta">${p.location||''} · ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div></div>
-                  <div class="list-actions"><button class="btn btn-danger" style="padding:8px 12px;font-size:12px;" onclick="if(confirm('Delete?'))adminFbDB.ref('content/posts/${p.id||''}').remove().then(()=>{showToast('Deleted');_panelFetched.home=false;renderHomeList();})">×</button></div>
+                  <div class="list-actions" style="gap:6px;">
+                    <button class="btn btn-secondary" style="padding:8px 10px;font-size:11px;" onclick="event.stopPropagation();openPostAnalytics('posts','${p.id}','${(p.caption||p.title||'Post').replace(/'/g,"\\'")}')">👁 Views</button>
+                    <button class="btn btn-danger" style="padding:8px 12px;font-size:12px;" onclick="event.stopPropagation();if(confirm('Delete?'))adminFbDB.ref('content/posts/${p.id||''}').remove().then(()=>{showToast('Deleted');_panelFetched.home=false;renderHomeList();})">×</button>
+                  </div>
                 </div>`;
               }).join('');
             }).catch(e => {
-              console.error('renderHomeList error:', e);
               el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div style="font-size:14px;margin-bottom:8px;">Error: ' + e.message + '</div><button class="btn btn-secondary" onclick="renderHomeList()" style="margin-top:8px;">Retry</button></div>';
             });
           };
-          // content/.read is true so no auth needed — just load directly
           doLoad();
         }
         const _adminCatalogMap = {};
@@ -2717,8 +2737,10 @@
           grid.innerHTML = boxes.map(box => {
             const imgs = box.images ? (Array.isArray(box.images) ? box.images : Object.values(box.images)) : [];
             const thumb = imgs.find(i => i) || null;
-            // Use native loading="lazy" — no IntersectionObserver, no data-src, no shimmer animation
-            return '<div class="elite-collection-cell-admin" onclick="openAdminCatalogInner(_adminCatalogMap[\'' + box.id + '\'])">'
+            return '<div class="elite-collection-cell-admin"'
+              + ' ontouchstart="startCellPress(event,\'' + box.id + '\')" ontouchend="cancelCellPress()" ontouchmove="cancelCellPress()"'
+              + ' onmousedown="startCellPress(event,\'' + box.id + '\')" onmouseup="cancelCellPress()" onmouseleave="cancelCellPress()"'
+              + ' onclick="openAdminCatalogInner(_adminCatalogMap[\'' + box.id + '\'])">'
               + '<div class="elite-cell-meta-admin"><div class="elite-cell-topic-admin">' + (box.value||box.topic||'Collection') + '</div>'
               + '<div class="elite-cell-feeling-admin">' + (box.description||box.feeling||'') + '</div></div>'
               + '<div class="elite-cell-box-admin" style="position:relative;overflow:hidden;">'
@@ -2728,7 +2750,8 @@
               + '<div class="elite-cell-grain-admin"></div>'
               + '</div>'
               + '<div class="elite-cell-actions-admin">'
-              + '<button class="btn btn-secondary" style="font-size:11px;padding:8px 6px;" onclick="event.stopPropagation();openAdminCatalogInner(_adminCatalogMap[\'' + box.id + '\'])">Edit</button>'
+              + '<button class="btn btn-secondary" style="font-size:11px;padding:8px 6px;flex:1;" onclick="event.stopPropagation();openAdminCatalogInner(_adminCatalogMap[\'' + box.id + '\'])">Edit</button>'
+              + '<button class="btn btn-secondary" style="font-size:11px;padding:8px 4px;flex:1;background:rgba(201,168,76,0.08);" onclick="event.stopPropagation();openPostAnalytics(\'catalog\',\'' + box.id + '\',\'' + (box.value||'Collection').replace(/'/g,"\\'") + '\')">👁</button>'
               + '<button class="btn btn-danger" style="flex:0 0 36px;padding:8px;font-size:14px;" onclick="event.stopPropagation();if(confirm(\'Delete?\'))adminFbDB.ref(\'content/catalog/' + box.id + '\').remove().then(()=>{_catalogCache=null;showToast(\'Deleted\');renderCatalogList();})">×</button>'
               + '</div></div>';
           }).join('');
@@ -2755,10 +2778,13 @@
           adminFbDB.ref('content/trending').limitToLast(30).once('value').then(snap => {
             if (!snap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔥</div>No trending items yet</div>'; return; }
             const items = Object.values(snap.val()).reverse();
-            el.innerHTML = items.map(p => `<div class="list-item">
+            el.innerHTML = items.map(p => `<div class="list-item" style="cursor:pointer;" onclick="openPostAnalytics('trending','${p.id||''}','${(p.caption||p.title||'Trending').replace(/'/g,"\\'")}')">
               <div class="list-image">${p.imageData||p.imageUrl ? '<img src="'+(p.imageData||p.imageUrl)+'" loading="lazy" decoding="async">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">🔥</div>'}</div>
               <div class="list-info"><div class="list-title">${p.caption||p.title||'Trending'}</div><div class="list-meta">${p.location||''} · ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div></div>
-              <div class="list-actions"><button class="btn btn-danger" style="padding:8px 12px;font-size:12px;" onclick="if(confirm('Delete?'))adminFbDB.ref('content/trending/${p.id||''}').remove().then(()=>{showToast('Deleted');renderTrendingList();})">×</button></div>
+              <div class="list-actions" style="gap:6px;">
+                <button class="btn btn-secondary" style="padding:8px 10px;font-size:11px;" onclick="event.stopPropagation();openPostAnalytics('trending','${p.id||''}','${(p.caption||p.title||'Trending').replace(/'/g,"\\'")}')">👁 Views</button>
+                <button class="btn btn-danger" style="padding:8px 12px;font-size:12px;" onclick="event.stopPropagation();if(confirm('Delete?'))adminFbDB.ref('content/trending/${p.id||''}').remove().then(()=>{showToast('Deleted');renderTrendingList();})">×</button>
+              </div>
             </div>`).join('');
           }).catch(e => { el.innerHTML = '<div class="empty-state">Error: '+e.message+'</div>'; });
         }
@@ -2781,52 +2807,101 @@
           if (!el) return;
           el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(201,168,76,.4);">Loading requests...</div>';
           adminFbDB.ref('vipRequests').once('value').then(snap => {
-            const requests = snap.val() ? Object.values(snap.val()) : [];
+            const raw = snap.val() || {};
+            const requests = Object.entries(raw).map(([k, v]) => ({ ...v, _key: k }));
             if (countEl) countEl.textContent = requests.length + ' request' + (requests.length !== 1 ? 's' : '');
-            if (!requests.length) { el.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(201,168,76,.3);border:1px solid rgba(201,168,76,.1);border-radius:12px;">No VIP requests yet</div>'; return; }
-            el.innerHTML = requests.map(r => `<div style="background:var(--bg-card);border:1px solid rgba(201,168,76,.2);border-left:4px solid var(--gold);border-radius:12px;padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;gap:16px;">
-              <div style="flex:1;">
-                <div style="font-weight:600;color:var(--gold);margin-bottom:4px;">${r.name||'Unknown'}</div>
-                <div style="font-size:12px;color:var(--text-secondary);">📱 ${r.phone||'—'} · ${r.email||'—'}</div>
-                <div style="font-size:11px;color:rgba(201,168,76,.4);margin-top:4px;">${r.createdAt ? new Date(r.createdAt).toLocaleString() : ''}</div>
-              </div>
-              <div style="display:flex;gap:8px;">
-                <button onclick="approveVIPRequest('${r.phone||r.id}')" style="padding:8px 14px;background:var(--success);border:none;border-radius:8px;color:white;font-size:12px;cursor:pointer;font-weight:600;">Approve</button>
-                <button onclick="adminFbDB.ref('vipRequests/${r.phone||r.id}').remove().then(()=>{showToast('Request removed');loadVIPRequests();})" style="padding:8px 14px;background:var(--danger);border:none;border-radius:8px;color:white;font-size:12px;cursor:pointer;">✕</button>
-              </div>
-            </div>`).join('');
+            if (!requests.length) {
+              el.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(201,168,76,.3);border:1px solid rgba(201,168,76,.1);border-radius:12px;">No VIP requests yet</div>';
+              return;
+            }
+            el.innerHTML = '';
+            requests.forEach(r => {
+              const key = r._key;
+              const div = document.createElement('div');
+              div.style.cssText = 'background:var(--bg-card);border:1px solid rgba(201,168,76,.2);border-left:4px solid var(--gold);border-radius:12px;padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;gap:16px;';
+              div.innerHTML = `
+                <div style="flex:1;">
+                  <div style="font-weight:600;color:var(--gold);margin-bottom:4px;">${r.name||'Unknown'}</div>
+                  <div style="font-size:12px;color:var(--text-secondary);">📱 ${r.phone||'—'} · ${r.email||'—'}</div>
+                  <div style="font-size:11px;color:rgba(201,168,76,.4);margin-top:4px;">${r.createdAt ? new Date(r.createdAt).toLocaleString() : ''}</div>
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <button style="padding:8px 14px;background:var(--success);border:none;border-radius:8px;color:white;font-size:12px;cursor:pointer;font-weight:600;">Approve</button>
+                  <button style="padding:8px 14px;background:var(--danger);border:none;border-radius:8px;color:white;font-size:12px;cursor:pointer;">✕</button>
+                </div>`;
+              const [approveBtn, cancelBtn] = div.querySelectorAll('button');
+              approveBtn.onclick = () => approveVIPRequest(key, r);
+              cancelBtn.onclick = () => {
+                adminFbDB.ref('vipRequests/' + key).remove().then(() => {
+                  showToast('Request declined');
+                  loadVIPRequests();
+                });
+              };
+              el.appendChild(div);
+            });
           }).catch(() => { el.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(201,168,76,.3);">No requests yet</div>'; });
         }
-        function approveVIPRequest(phone) {
-          adminFbDB.ref('vipRequests/' + phone).once('value').then(snap => {
-            if (!snap.exists()) return;
-            const r = snap.val();
-            document.getElementById('vipPhone').value = r.phone || '';
-            document.getElementById('vipName').value = r.name || '';
-            document.getElementById('vipCode').value = '0000';
-            showToast('Fill in the PIN and tap Add VIP Member');
-            adminFbDB.ref('vipRequests/' + phone).remove();
+
+        function approveVIPRequest(key, r) {
+          if (!r) {
+            // Legacy call with just phone key — fetch data first
+            adminFbDB.ref('vipRequests/' + key).once('value').then(snap => {
+              if (snap.exists()) approveVIPRequest(key, snap.val());
+            });
+            return;
+          }
+
+          const name = r.name || 'VIP Member';
+          const phone = r.phone || key;
+          const uid = r.uid || null; // Firebase UID if client was logged in when they requested
+
+          // 1. Write to vip/{phone} — registers them
+          const vipData = {
+            name, phone,
+            password: '', // client will set their own
+            status: 'approved',
+            createdAt: Date.now(),
+            id: uid,
+            awaitingSetup: true
+          };
+
+          const tasks = [
+            adminFbDB.ref('vip/' + phone).set(vipData),
+            adminFbDB.ref('vipRequests/' + key).remove()
+          ];
+
+          // 2. If we have their UID, write a vault notification so the client app shows the setup prompt
+          if (uid) {
+            tasks.push(
+              adminFbDB.ref('vaultNotifications/' + uid).set({
+                type: 'vip_approved',
+                message: 'Congratulations! Your VIP access has been approved. Please set your preferred phone number and password to activate your vault.',
+                createdAt: Date.now(),
+                read: false,
+                requiresSetup: true
+              })
+            );
+          }
+
+          Promise.all(tasks).then(() => {
+            showToast('✓ ' + name + ' approved — notified to set up vault access');
             loadVIPRequests();
-          });
+            renderVIPList();
+          }).catch(e => showToast('Error: ' + e.message));
         }
         function renderVIPList() {
           const grid = document.getElementById('vipGrid');
           grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(201,168,76,.4);">Loading VIPs...</div>';
           adminFbDB.ref('vip').once('value').then(snap => {
-            const vips = snap.val() ? Object.values(snap.val()) : [];
+            _allVIPs = snap.val() ? Object.values(snap.val()) : [];
             const countEl = document.getElementById('vipCount');
-            if (countEl) countEl.textContent = vips.length + ' member' + (vips.length !== 1 ? 's' : '');
+            if (countEl) countEl.textContent = _allVIPs.length + ' member' + (_allVIPs.length !== 1 ? 's' : '');
             const badge = document.getElementById('vipBadge');
-            if (badge) { badge.textContent = vips.length; badge.style.display = vips.length > 0 ? 'inline-block' : 'none'; }
-            if (!vips.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(201,168,76,.3);">No VIP members yet</div>'; return; }
-            grid.innerHTML = vips.map(v => `<div class="vip-card status-active">
-              <div class="vip-name">${v.name||'VIP Member'}</div>
-              <div class="vip-phone">📱 ${v.phone||'—'} &nbsp;·&nbsp; 🔑 ${v.password||v.code||'—'}</div>
-              <div class="vip-phone" style="font-size:11px;color:rgba(201,168,76,.4);">${v.id ? '✓ Linked to account' : '⏳ No account yet'}</div>
-              <div class="vip-actions" style="margin-top:12px;">
-                <button class="vip-btn btn-danger" onclick="if(confirm('Remove VIP?'))adminFbDB.ref('vip/${v.phone}').remove().then(()=>{showToast('VIP removed');_panelFetched.vip=false;renderVIPList();})">Remove</button>
-              </div>
-            </div>`).join('');
+            if (badge) { badge.textContent = _allVIPs.length; badge.style.display = _allVIPs.length > 0 ? 'inline-block' : 'none'; }
+            if (!_allVIPs.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(201,168,76,.3);">No VIP members yet</div>'; return; }
+            const si = document.getElementById('vipSearchInput'); if (si) si.value = '';
+            const sc = document.getElementById('vipSearchClear'); if (sc) sc.style.display = 'none';
+            _renderVIPCards(_allVIPs);
           }).catch(e => { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#ef4444;">Error: '+e.message+'</div>'; });
         }
         function loadPortfolioUsers() {
@@ -2944,13 +3019,11 @@
         function openForm(t) {
             currentForm = t;
             document.getElementById('formModal').classList.add('active');
-            const titles = { post: 'Add Home Post', trending: 'Add Trending Item', designer: 'Add Designer', category: 'Add Catalog Category' };
+            const titles = { post: 'Add Home Post', trending: 'Add Trending Item', category: 'Add Catalog Category' };
             document.getElementById('formTitle').textContent = titles[t] || (('Add ') + t);
             const fc = document.getElementById('formContent');
             if (t === 'post' || t === 'trending') {
                 fc.innerHTML = '<div class="form-group"><label class="form-label">Caption / Title</label><input class="form-input" id="fCaption" placeholder="e.g. Modern Living Room"></div><div class="form-group"><label class="form-label">Location</label><input class="form-input" id="fLocation" placeholder="e.g. Lagos, Nigeria"></div><div class="form-group"><label class="form-label">Image URL</label><input class="form-input" id="fImageUrl" placeholder="https://..."></div>';
-            } else if (t === 'designer') {
-                fc.innerHTML = '<div class="form-group"><label class="form-label">Designer Name</label><input class="form-input" id="fName" placeholder="e.g. Adaeze Williams"></div><div class="form-group"><label class="form-label">Specialty</label><input class="form-input" id="fSpecialty" placeholder="e.g. Interior Design"></div><div class="form-group"><label class="form-label">Photo URL</label><input class="form-input" id="fImageUrl" placeholder="https://..."></div>';
             } else if (t === 'category') {
                 fc.innerHTML = '<div class="form-group"><label class="form-label">Collection Name</label><input class="form-input" id="fName" placeholder="e.g. Minimalist Luxury"></div><div class="form-group"><label class="form-label">Description</label><input class="form-input" id="fSpecialty" placeholder="e.g. Calm, Refined"></div>';
             }
@@ -2965,9 +3038,6 @@
             } else if (t === 'trending') {
                 const data = { id, caption: (document.getElementById('fCaption').value||'Untitled'), location: (document.getElementById('fLocation').value||''), imageUrl: (document.getElementById('fImageUrl').value||''), createdAt: Date.now() };
                 adminFbDB.ref('content/trending/' + id).set(data).then(() => { closeForm(); showToast('✓ Trending item saved'); renderTrendingList(); });
-            } else if (t === 'designer') {
-                const data = { id, name: (document.getElementById('fName').value||'Designer'), specialty: (document.getElementById('fSpecialty').value||''), imageUrl: (document.getElementById('fImageUrl').value||''), createdAt: Date.now() };
-                adminFbDB.ref('designers/' + id).set(data).then(() => { closeForm(); showToast('✓ Designer saved'); renderDesignersList(); });
             } else if (t === 'category') {
                 const n = document.getElementById('fName').value||'Collection'; const sid = n.toLowerCase().replace(/[^a-z0-9]/g,'_');
                 const data = { id: sid, value: n, description: (document.getElementById('fSpecialty').value||''), createdAt: Date.now() };
@@ -3053,18 +3123,284 @@
             .then(() => { input.value = ''; openAdminChat(uid, document.getElementById('adminChatClientName').textContent); })
             .catch(e => showToast('Error: '+e.message));
         }
-        function forceSyncAllCatalog() {}
-        function handleContextImageUpload() {}
-        function handleCoverReplaceUpload() {}
-        function handlePalettePhotoUpload() {}
-        function handleRoomImageUpload() {}
-        function startCellPress() {}
-        function cancelCellPress() {}
-        function closeContextMenu() {}
-        function contextReplaceCover() {}
-        function contextManageImages() {}
-        function contextDeleteBox() {}
-        function contextUploadPalettePhoto() {}
+        function forceSyncAllCatalog() { showToast('Synced to live'); }
+
+        // ── VIP SEARCH ────────────────────────────────────────────────────────────
+        let _allVIPs = [];
+        function filterVIPList(query) {
+            const clear = document.getElementById('vipSearchClear');
+            if (clear) clear.style.display = query ? 'block' : 'none';
+            const q = query.toLowerCase().trim();
+            const filtered = q ? _allVIPs.filter(v => (v.name||'').toLowerCase().includes(q) || (v.phone||'').includes(q)) : _allVIPs;
+            _renderVIPCards(filtered);
+        }
+        function clearVIPSearch() {
+            const input = document.getElementById('vipSearchInput');
+            if (input) { input.value = ''; filterVIPList(''); input.focus(); }
+        }
+        function _renderVIPCards(vips) {
+            const grid = document.getElementById('vipGrid');
+            if (!vips.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(201,168,76,.3);">No results found</div>'; return; }
+            grid.innerHTML = vips.map(v => `<div class="vip-card status-active">
+              <div class="vip-name">${v.name||'VIP Member'}</div>
+              <div class="vip-phone">📱 ${v.phone||'—'} &nbsp;·&nbsp; 🔑 ${v.password||v.code||'—'}</div>
+              <div class="vip-phone" style="font-size:11px;color:rgba(201,168,76,.4);">${v.id ? '✓ Linked to account' : '⏳ No account yet'}</div>
+              <div class="vip-actions" style="margin-top:12px;">
+                <button class="vip-btn btn-danger" onclick="if(confirm('Remove VIP?'))adminFbDB.ref('vip/${v.phone}').remove().then(()=>{showToast('VIP removed');_panelFetched.vip=false;renderVIPList();})">Remove</button>
+              </div>
+            </div>`).join('');
+        }
+
+        // ── VAULT CLIENT SEARCH ───────────────────────────────────────────────────
+        let _allVaultClients = [];
+        function filterVaultClients(query) {
+            const clear = document.getElementById('vmSearchClear');
+            if (clear) clear.style.display = query ? 'block' : 'none';
+            const q = query.toLowerCase().trim();
+            const filtered = q ? _allVaultClients.filter(v => (v.name||'').toLowerCase().includes(q) || (v.phone||'').includes(q)) : _allVaultClients;
+            _renderVaultClientList(filtered);
+        }
+        function clearVaultSearch() {
+            const input = document.getElementById('vmClientSearchInput');
+            if (input) { input.value = ''; filterVaultClients(''); input.focus(); }
+        }
+        function _renderVaultClientList(vips) {
+            const list = document.getElementById('vmClientList');
+            if (!vips.length) { list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">No clients found</div></div>'; return; }
+            list.innerHTML = vips.map(v => {
+                const name = v.name || 'Client';
+                const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+                return `<div class="vm-client-item" onclick="vmOpenClientPOV('${v.id||v.phone}','${name}','${v.phone}')"><div class="vm-client-av">${initials}</div><div class="vm-client-info"><div class="vm-client-name">${name}</div><div class="vm-client-sub">+234 ${v.phone} · VIP</div></div><span class="vm-client-chevron">›</span></div>`;
+            }).join('');
+        }
+        let _cellPressTimer = null;
+        let _cellPressEl = null;
+        let _cellPressBoxId = null;
+        let _cellPressEvent = null;
+        const CELL_PRESS_MS = 600;
+
+        function startCellPress(e, boxId) {
+            cancelCellPress();
+            _cellPressBoxId = boxId;
+            _cellPressEl = e.currentTarget;
+            _cellPressEvent = e;
+            _cellPressEl.classList.add('pressing');
+            _cellPressTimer = setTimeout(() => {
+                _cellPressEl && _cellPressEl.classList.remove('pressing');
+                _showContextMenu(_cellPressEvent || e, boxId, 'cell');
+                _cellPressEl = null;
+            }, CELL_PRESS_MS);
+        }
+
+        function cancelCellPress() {
+            if (_cellPressTimer) { clearTimeout(_cellPressTimer); _cellPressTimer = null; }
+            if (_cellPressEl) { _cellPressEl.classList.remove('pressing'); _cellPressEl = null; }
+        }
+
+        let _mixPressTimer = null;
+        let _mixPressEl = null;
+        let _mixPressIdx = null;
+
+        function startMixPress(e, idx) {
+            if (_mixPressTimer) clearTimeout(_mixPressTimer);
+            _mixPressIdx = idx;
+            _mixPressEl = e.currentTarget;
+            _mixPressEl.classList.add('pressing');
+            _mixPressTimer = setTimeout(() => {
+                _mixPressEl && _mixPressEl.classList.remove('pressing');
+                _showContextMenu(e, idx, 'palette');
+                _mixPressEl = null;
+            }, CELL_PRESS_MS);
+        }
+
+        function cancelMixPress() {
+            if (_mixPressTimer) { clearTimeout(_mixPressTimer); _mixPressTimer = null; }
+            if (_mixPressEl) { _mixPressEl.classList.remove('pressing'); _mixPressEl = null; }
+        }
+
+        let _roomPressTimer = null;
+        let _roomPressEl = null;
+        let _roomPressIdx = null;
+
+        function startRoomPress(e, roomIdx) {
+            if (_roomPressTimer) clearTimeout(_roomPressTimer);
+            _roomPressIdx = roomIdx;
+            _roomPressEl = e.currentTarget;
+            _roomPressEl.classList.add('pressing');
+            _roomPressTimer = setTimeout(() => {
+                _roomPressEl && _roomPressEl.classList.remove('pressing');
+                _showContextMenu(e, roomIdx, 'room');
+                _roomPressEl = null;
+            }, CELL_PRESS_MS);
+        }
+
+        function cancelRoomPress() {
+            if (_roomPressTimer) { clearTimeout(_roomPressTimer); _roomPressTimer = null; }
+            if (_roomPressEl) { _roomPressEl.classList.remove('pressing'); _roomPressEl = null; }
+        }
+
+        function _showContextMenu(e, id, type) {
+            const menu = document.getElementById('cellContextMenu');
+            const backdrop = document.getElementById('contextBackdrop');
+            const titleEl = document.getElementById('contextMenuTitle');
+            const optsEl = document.getElementById('contextMenuOptions');
+
+            // Position near touch point
+            const touch = e.touches ? e.touches[0] : e.changedTouches ? e.changedTouches[0] : e;
+            const cx = Math.min((touch.clientX || 0), window.innerWidth - 240);
+            const cy = Math.min((touch.clientY || 120), window.innerHeight - 220);
+            menu.style.left = cx + 'px';
+            menu.style.top = cy + 'px';
+
+            if (type === 'cell') {
+                const box = _adminCatalogMap[id] || {};
+                titleEl.textContent = box.value || box.topic || 'Collection';
+                optsEl.innerHTML = `
+                    <button class="context-menu-option" onclick="contextReplaceCover('${id}')">
+                        <div class="context-menu-icon gold">🖼</div>Replace Cover Image
+                    </button>
+                    <button class="context-menu-option" onclick="openAdminCatalogInner(_adminCatalogMap['${id}']);closeContextMenu()">
+                        <div class="context-menu-icon gold">✏️</div>Edit Collection
+                    </button>
+                    <button class="context-menu-option danger" onclick="contextDeleteBox('${id}')">
+                        <div class="context-menu-icon red">🗑</div>Delete Collection
+                    </button>`;
+            } else if (type === 'palette') {
+                titleEl.textContent = 'Color Palette';
+                optsEl.innerHTML = `
+                    <button class="context-menu-option" onclick="contextUploadPalettePhoto()">
+                        <div class="context-menu-icon gold">📷</div>Upload Palette Photo
+                    </button>`;
+            } else if (type === 'room') {
+                const ROOM_NAMES = ['Living Room','Dining Room','Bed Room','Kitchen','Toilet','Passage Way','Rest Room'];
+                titleEl.textContent = ROOM_NAMES[id] || 'Room';
+                optsEl.innerHTML = `
+                    <button class="context-menu-option" onclick="contextRoomAddImage(${id})">
+                        <div class="context-menu-icon gold">📷</div>Add / Replace Image
+                    </button>
+                    <button class="context-menu-option danger" onclick="contextRoomRemoveImage(${id})">
+                        <div class="context-menu-icon red">🗑</div>Remove Image
+                    </button>`;
+            }
+
+            backdrop.classList.add('active');
+            menu.classList.add('active');
+        }
+
+        function closeContextMenu() {
+            document.getElementById('cellContextMenu').classList.remove('active');
+            document.getElementById('contextBackdrop').classList.remove('active');
+        }
+
+        // ── CONTEXT ACTIONS ──────────────────────────────────────────────────────
+        function contextReplaceCover(boxId) {
+            closeContextMenu();
+            _cellPressBoxId = boxId;
+            document.getElementById('coverReplaceInput').click();
+        }
+
+        function contextDeleteBox(boxId) {
+            closeContextMenu();
+            if (!confirm('Delete this collection permanently?')) return;
+            adminFbDB.ref('content/catalog/' + boxId).remove().then(() => {
+                _catalogCache = null;
+                showToast('Collection deleted');
+                renderCatalogList();
+            });
+        }
+
+        function contextUploadPalettePhoto() {
+            closeContextMenu();
+            document.getElementById('palettePhotoInput').click();
+        }
+
+        function contextRoomAddImage(roomIdx) {
+            closeContextMenu();
+            _roomPressIdx = roomIdx;
+            document.getElementById('contextRoomImgInput').click();
+        }
+
+        function contextRoomRemoveImage(roomIdx) {
+            closeContextMenu();
+            if (!currentCatalogBox) return;
+            if (!confirm('Remove this room image?')) return;
+            const path = 'content/catalog/' + currentCatalogBox.id + '/mixtureImages/0/' + roomIdx;
+            adminFbDB.ref(path).remove().then(() => {
+                showToast('Image removed');
+                openAdminCatalogRooms();
+            });
+        }
+
+        // ── FILE UPLOAD HANDLERS ─────────────────────────────────────────────────
+        function _fileToBase64(file) {
+            return new Promise((res, rej) => {
+                const r = new FileReader();
+                r.onload = () => res(r.result);
+                r.onerror = rej;
+                r.readAsDataURL(file);
+            });
+        }
+
+        function handleCoverReplaceUpload(input) {
+            const file = input.files[0];
+            if (!file || !_cellPressBoxId) return;
+            showToast('Uploading cover…');
+            _fileToBase64(file).then(b64 => {
+                // Store as first image in the images array
+                return adminFbDB.ref('content/catalog/' + _cellPressBoxId + '/images/0').set(b64);
+            }).then(() => {
+                _catalogCache = null;
+                showToast('✓ Cover updated');
+                renderCatalogList();
+                input.value = '';
+            }).catch(e => showToast('Error: ' + e.message));
+        }
+
+        function handlePalettePhotoUpload(input) {
+            const file = input.files[0];
+            if (!file || !currentCatalogBox) return;
+            showToast('Uploading palette photo…');
+            _fileToBase64(file).then(b64 => {
+                return adminFbDB.ref('content/catalog/' + currentCatalogBox.id + '/paletteImage').set(b64);
+            }).then(() => {
+                showToast('✓ Palette photo updated');
+                openAdminCatalogInner(currentCatalogBox);
+                input.value = '';
+            }).catch(e => showToast('Error: ' + e.message));
+        }
+
+        function handleRoomImageUpload(input) {
+            const file = input.files[0];
+            if (!file || !currentCatalogBox || _roomPressIdx === null) return;
+            showToast('Uploading room image…');
+            _fileToBase64(file).then(b64 => {
+                const path = 'content/catalog/' + currentCatalogBox.id + '/mixtureImages/0/' + _roomPressIdx;
+                return adminFbDB.ref(path).set(b64);
+            }).then(() => {
+                showToast('✓ Room image updated');
+                openAdminCatalogRooms();
+                input.value = '';
+                _roomPressIdx = null;
+            }).catch(e => showToast('Error: ' + e.message));
+        }
+
+        function handleContextImageUpload(input) {
+            // Multi-image upload for a cell — saves each as images/N
+            const files = Array.from(input.files);
+            if (!files.length || !_cellPressBoxId) return;
+            showToast('Uploading ' + files.length + ' image(s)…');
+            Promise.all(files.map(f => _fileToBase64(f))).then(b64s => {
+                const updates = {};
+                b64s.forEach((b, i) => { updates['content/catalog/' + _cellPressBoxId + '/images/' + i] = b; });
+                return adminFbDB.ref().update(updates);
+            }).then(() => {
+                _catalogCache = null;
+                showToast('✓ Images updated');
+                renderCatalogList();
+                input.value = '';
+            }).catch(e => showToast('Error: ' + e.message));
+        }
+
         function openAdminCatalogInner(box) {
           if (!box) return;
           currentCatalogBox = box;
@@ -3080,7 +3416,10 @@
             const houseHtml = img
               ? '<div class="house-layout" style="overflow:hidden"><img src="' + img + '" style="width:100%;height:100%;object-fit:cover;border-radius:2px;display:block;"></div>'
               : '<div class="house-layout">' + svgHouse + '</div>';
-            mixRow.innerHTML = '<div class="color-mixture-card" onclick="openAdminCatalogRooms()">' + houseHtml
+            mixRow.innerHTML = '<div class="color-mixture-card"'
+              + ' ontouchstart="startMixPress(event,0)" ontouchend="cancelMixPress()" ontouchmove="cancelMixPress()"'
+              + ' onmousedown="startMixPress(event,0)" onmouseup="cancelMixPress()" onmouseleave="cancelMixPress()"'
+              + ' onclick="openAdminCatalogRooms()">' + houseHtml
               + '<div style="font-family:Cormorant Garamond,serif;font-size:15px;font-weight:700;letter-spacing:1.5px;color:#C9A84C;padding:10px 0 2px;border-bottom:1px solid rgba(201,168,76,0.25);">' + label + '</div></div>';
           });
           document.getElementById('catalogInnerOverlay').classList.add('active');
@@ -3113,8 +3452,10 @@
               const img = imgs[i] || null;
               return '<div class="room-category-block">'
                 + '<div class="room-category-header"><span class="room-category-name">' + name + '</span></div>'
-                + '<div class="room-single-slot">'
-                + (img ? '<img src="' + img + '" alt="' + name + '">' : '<div class="elite-slot-placeholder"><div class="elite-slot-icon"><svg viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" stroke="#C9A84C" stroke-width="1"/></svg></div><span class="elite-slot-num">No Image</span></div>')
+                + '<div class="room-single-slot"'
+                + ' ontouchstart="startRoomPress(event,' + i + ')" ontouchend="cancelRoomPress()" ontouchmove="cancelRoomPress()"'
+                + ' onmousedown="startRoomPress(event,' + i + ')" onmouseup="cancelRoomPress()" onmouseleave="cancelRoomPress()">'
+                + (img ? '<img src="' + img + '" alt="' + name + '">' : '<div class="elite-slot-placeholder"><div class="elite-slot-icon"><svg viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" stroke="#C9A84C" stroke-width="1"/></svg></div><span class="elite-slot-num">Hold to add</span></div>')
                 + '</div></div>';
             }).join('');
             document.getElementById('catalogInnerOverlay').classList.remove('active');
@@ -3126,12 +3467,7 @@
           document.getElementById('catalogInnerOverlay').classList.add('active');
         }
         function openAdminPaletteRooms() {}
-        function startMixPress() {}
-        function startRoomPress() {}
         function handleInlineRoomUpload() {}
-        function removeRoomImage() {}
-        function contextRoomAddImage() {}
-        function contextRoomRemoveImage() {}
         function buildAdminHouseSVG() { return ''; }
         function buildAdminPalette() { return {q:[]}; }
         function _renderAdminPaletteCard() {}
@@ -3807,6 +4143,100 @@
             });
         });
     </script>
+<!-- ── Post Analytics Modal ──────────────────────────────────────────── -->
+<div id="analyticsModal" style="display:none;position:fixed;top:0;left:280px;right:0;bottom:0;background:rgba(0,0,0,0.88);z-index:5000;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
+    <div style="background:#111009;border:1px solid rgba(201,168,76,0.25);border-radius:16px;width:100%;max-width:480px;max-height:82vh;overflow:hidden;display:flex;flex-direction:column;">
+        <div style="padding:20px 24px 16px;border-bottom:1px solid rgba(201,168,76,0.1);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+            <div>
+                <div style="font-size:10px;letter-spacing:3px;color:rgba(201,168,76,0.5);margin-bottom:4px;">POST ANALYTICS</div>
+                <div id="analyticsTitle" style="font-family:'Cormorant Garamond',serif;font-size:18px;color:#F5F0E8;max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+            </div>
+            <button onclick="closeAnalyticsModal()" style="background:none;border:none;color:rgba(201,168,76,0.5);font-size:26px;cursor:pointer;line-height:1;padding:4px;">×</button>
+        </div>
+        <div style="display:flex;border-bottom:1px solid rgba(201,168,76,0.1);flex-shrink:0;">
+            <div style="flex:1;padding:16px;text-align:center;border-right:1px solid rgba(201,168,76,0.1);">
+                <div id="analyticsTotalViews" style="font-family:'Cormorant Garamond',serif;font-size:36px;color:#C9A84C;font-weight:600;line-height:1;">—</div>
+                <div style="font-size:9px;letter-spacing:2px;color:rgba(201,168,76,0.4);margin-top:4px;">TOTAL VIEWS</div>
+            </div>
+            <div style="flex:1;padding:16px;text-align:center;border-right:1px solid rgba(201,168,76,0.1);">
+                <div id="analyticsUniqueViewers" style="font-family:'Cormorant Garamond',serif;font-size:36px;color:#C9A84C;font-weight:600;line-height:1;">—</div>
+                <div style="font-size:9px;letter-spacing:2px;color:rgba(201,168,76,0.4);margin-top:4px;">CLIENTS</div>
+            </div>
+            <div style="flex:1;padding:16px;text-align:center;">
+                <div id="analyticsLastViewed" style="font-family:'Cormorant Garamond',serif;font-size:16px;color:#C9A84C;font-weight:600;line-height:1.2;">—</div>
+                <div style="font-size:9px;letter-spacing:2px;color:rgba(201,168,76,0.4);margin-top:4px;">LAST SEEN</div>
+            </div>
+        </div>
+        <div style="padding:14px 20px 6px;font-size:9px;letter-spacing:3px;color:rgba(201,168,76,0.4);flex-shrink:0;">CLIENT BREAKDOWN</div>
+        <div id="analyticsClientList" style="overflow-y:auto;flex:1;padding:0 20px 20px;"></div>
+    </div>
+</div>
+<script>
+function openPostAnalytics(section, postId, title) {
+    const modal = document.getElementById('analyticsModal');
+    const titleEl = document.getElementById('analyticsTitle');
+    const totalEl = document.getElementById('analyticsTotalViews');
+    const uniqueEl = document.getElementById('analyticsUniqueViewers');
+    const lastEl = document.getElementById('analyticsLastViewed');
+    const clientListEl = document.getElementById('analyticsClientList');
+
+    titleEl.textContent = title;
+    totalEl.textContent = '…';
+    uniqueEl.textContent = '…';
+    lastEl.textContent = '…';
+    clientListEl.innerHTML = '<div style="text-align:center;padding:24px;color:rgba(201,168,76,0.3);font-size:13px;">Loading…</div>';
+    modal.style.display = 'flex';
+
+    // Views stored at: postViews/{section}/{postId}/{uid} = { name, count, lastViewed }
+    adminFbDB.ref('postViews/' + section + '/' + postId).once('value').then(snap => {
+        if (!snap.exists()) {
+            totalEl.textContent = '0';
+            uniqueEl.textContent = '0';
+            lastEl.textContent = 'Never';
+            clientListEl.innerHTML = '<div style="text-align:center;padding:32px;color:rgba(201,168,76,0.25);font-size:13px;">No views recorded yet</div>';
+            return;
+        }
+        const viewers = Object.values(snap.val());
+        const total = viewers.reduce((s, v) => s + (v.count || 1), 0);
+        const latest = viewers.reduce((max, v) => Math.max(max, v.lastViewed || 0), 0);
+
+        totalEl.textContent = total;
+        uniqueEl.textContent = viewers.length;
+        lastEl.textContent = latest ? new Date(latest).toLocaleDateString('en-GB', { day:'numeric', month:'short' }) : 'Never';
+
+        // Sort by most views desc
+        viewers.sort((a, b) => (b.count || 1) - (a.count || 1));
+
+        clientListEl.innerHTML = viewers.map(v => {
+            const name = v.name || v.uid || 'Unknown Client';
+            const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            const date = v.lastViewed ? new Date(v.lastViewed).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'2-digit' }) : '';
+            const pct = Math.round(((v.count || 1) / total) * 100);
+            return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(201,168,76,0.07);">
+                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#C9A84C,#7A5C10);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#0A0804;flex-shrink:0;">${initials}</div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:13px;color:#F5F0E8;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
+                    <div style="height:4px;background:rgba(201,168,76,0.1);border-radius:2px;margin-top:6px;"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#C9A84C,#E8C97A);border-radius:2px;"></div></div>
+                </div>
+                <div style="text-align:right;flex-shrink:0;">
+                    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:#C9A84C;font-weight:600;line-height:1;">${v.count || 1}</div>
+                    <div style="font-size:10px;color:rgba(201,168,76,0.35);margin-top:2px;">${date}</div>
+                </div>
+            </div>`;
+        }).join('');
+    }).catch(e => {
+        clientListEl.innerHTML = '<div style="text-align:center;padding:24px;color:#ef4444;font-size:13px;">Error: ' + e.message + '</div>';
+    });
+}
+function closeAnalyticsModal() {
+    document.getElementById('analyticsModal').style.display = 'none';
+}
+// Close on backdrop tap
+document.getElementById('analyticsModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAnalyticsModal();
+});
+</script>
+
 <!-- ── Admin Image Lightbox ─────────────────────────────────────────── -->
 <div id="adminImgLightbox" onclick="this.classList.remove('active')">
   <button class="lb-close" onclick="event.stopPropagation();document.getElementById('adminImgLightbox').classList.remove('active')">✕</button>
