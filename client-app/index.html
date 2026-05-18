@@ -1533,6 +1533,18 @@ function _renderFeed(posts) {
         }
       });
     });
+    // ── View tracking: fire once per post per session when 60% visible ──
+    const _viewedThisSession = new Set();
+    const _viewObs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        const pid = e.target.dataset.id;
+        if (!pid || _viewedThisSession.has(pid)) return;
+        _viewedThisSession.add(pid);
+        trackPostView('posts', pid);
+      });
+    }, { threshold: 0.6 });
+    document.querySelectorAll('.feed-item[data-id]').forEach(el => _viewObs.observe(el));
   }
 }
 
@@ -1900,15 +1912,44 @@ async function loadTrending() {
   }
 }
 
+// ── POST VIEW TRACKING ────────────────────────────────────────────────────────
+// Writes to: postViews/{section}/{postId}/{uid} → { name, count, lastViewed }
+function trackPostView(section, postId) {
+  if (!currentUser || !postId) return;
+  const uid = currentUser.uid;
+  const ref = fbDb.ref(`postViews/${section}/${postId}/${uid}`);
+  ref.once('value').then(snap => {
+    const existing = snap.val() || {};
+    const name = (currentProfile && (currentProfile.name || currentProfile.fullName))
+      || (currentUser.displayName)
+      || 'Client';
+    ref.set({
+      uid,
+      name,
+      count: (existing.count || 0) + 1,
+      lastViewed: Date.now()
+    });
+  }).catch(() => {}); // silent — never block the UI
+}
+
 function _initTrendingObservers(container) {
   const firstVideo = container.querySelector('video');
   if (firstVideo) firstVideo.play().catch(()=>{});
+  const _trendViewedThisSession = new Set();
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       const v = e.target.querySelector('video');
       if (v) { if (e.isIntersecting) v.play().catch(()=>{}); else v.pause(); }
       const audioEl = e.target.querySelector('audio[id^="taudio_"]');
       if (audioEl) { if (e.isIntersecting) audioEl.play().catch(()=>{}); else audioEl.pause(); }
+      // Track view once per item per session
+      if (e.isIntersecting && currentUser) {
+        const pid = e.target.dataset.id;
+        if (pid && !_trendViewedThisSession.has(pid)) {
+          _trendViewedThisSession.add(pid);
+          trackPostView('trending', pid);
+        }
+      }
     });
   }, { threshold: 0.6 });
   container.querySelectorAll('.tiktok-item').forEach(el => observer.observe(el));
@@ -2133,6 +2174,9 @@ function _buildPaletteCard(box, paletteImage) {
 
 function openCatalogInner(box) {
   currentCatalogBox = box;
+  // Track this catalog view
+  if (currentUser && box.id) trackPostView('catalog', box.id);
+
   document.getElementById('innerCollectionTitle').textContent   = box.value || box.topic || 'Collection';
   document.getElementById('innerCollectionFeeling').textContent = box.description || box.feeling || '';
 
