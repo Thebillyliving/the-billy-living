@@ -70,6 +70,12 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .feed-header-loc{display:flex;align-items:center;gap:3px;font-family:'Jost',sans-serif;font-size:10px;color:rgba(168,155,140,.7);letter-spacing:.2px}
 .feed-header-loc svg{width:9px;height:9px;stroke:rgba(168,155,140,.6);fill:none;stroke-width:2;flex-shrink:0}
 .feed-header-more{background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer;padding:0 4px;letter-spacing:1px}
+/* ─── TAP TO PAUSE OVERLAY ───────────────────────────────────────────────────── */
+.tap-pause-overlay{position:absolute;inset:0;z-index:10;cursor:pointer;}
+.tap-pause-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);width:64px;height:64px;background:rgba(0,0,0,0.55);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform .15s cubic-bezier(.22,1,.36,1),opacity .25s ease;opacity:0;pointer-events:none;}
+.tap-pause-icon.show{transform:translate(-50%,-50%) scale(1);opacity:1;}
+.tap-pause-icon.hide{transform:translate(-50%,-50%) scale(0.7);opacity:0;}
+.tap-pause-icon svg{width:28px;height:28px;fill:white;}
 .feed-image{width:100%;aspect-ratio:4/5;background:var(--bg-secondary);position:relative;overflow:hidden}
 .feed-image img{width:100%;height:100%;object-fit:cover;display:block}
 .feed-image-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-secondary);font-size:64px}
@@ -342,7 +348,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .profile-btn-ghost:active{background:rgba(201,168,76,.06);transform:scale(.99)}
 .profile-btn-text{width:100%;padding:14px;background:none;border:none;color:rgba(168,155,140,.35);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:2.5px;text-transform:uppercase;cursor:pointer;transition:color .2s;margin-top:4px;margin-bottom:36px}
 .profile-btn-text:active{color:rgba(168,155,140,.7)}
-.share-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:4000}
+.share-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99600}
 .share-preview{display:none;align-items:center;gap:12px;margin:0 16px 16px;padding:12px;background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.15);border-radius:12px}
 .share-preview.visible{display:flex}
 .share-preview-thumb{width:52px;height:52px;border-radius:8px;object-fit:cover;flex-shrink:0;background:#111}
@@ -351,7 +357,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .share-preview-title{font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .share-preview-sub{font-family:'Jost',sans-serif;font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,.3);text-transform:uppercase;margin-top:3px}
 .share-backdrop.active{display:block}
-.share-sheet{position:fixed;bottom:-100%;left:0;right:0;background:#1C1C1E;border-radius:22px 22px 0 0;z-index:4001;padding-bottom:env(safe-area-inset-bottom,20px);transition:bottom .32s cubic-bezier(.4,0,.2,1)}
+.share-sheet{position:fixed;bottom:-100%;left:0;right:0;background:#1C1C1E;border-radius:22px 22px 0 0;z-index:99601;padding-bottom:env(safe-area-inset-bottom,20px);transition:bottom .32s cubic-bezier(.4,0,.2,1)}
 .share-sheet.active{bottom:0}
 .share-handle{width:36px;height:4px;background:rgba(255,255,255,.18);border-radius:2px;margin:10px auto 0}
 .share-quick-item{flex:0 0 76px;display:flex;flex-direction:column;align-items:center;gap:7px;padding:6px 0 10px;cursor:pointer}
@@ -426,6 +432,45 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 @keyframes skelShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 @keyframes splashPop{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
 @keyframes splashFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+/* ─── LOGIN SPLASH (shown after login, before logo splash) ──────────────────── */
+#loginSplash{position:fixed;top:0;left:0;right:0;bottom:0;background:#120D06;z-index:100005;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .6s ease,visibility .6s ease}
+#loginSplash.active{opacity:1;visibility:visible;pointer-events:auto}
+#loginSplash.dismissing{opacity:0;visibility:hidden;pointer-events:none}
+.ls2-ornament{font-family:'Cormorant Garamond',serif;font-size:11px;letter-spacing:6px;color:rgba(201,168,76,.3);text-transform:uppercase;margin-bottom:32px;animation:lsFadeUp .8s ease both}
+.ls2-greeting{font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:300;color:#F5F0E8;letter-spacing:2px;line-height:1.1;text-align:center;animation:lsFadeUp .8s .15s ease both}
+.ls2-name{font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:600;color:#C9A84C;letter-spacing:2px;text-align:center;animation:lsFadeUp .8s .25s ease both}
+.ls2-divider{width:40px;height:1px;background:linear-gradient(to right,transparent,rgba(201,168,76,.4),transparent);margin:24px auto;animation:lsFadeUp .8s .35s ease both}
+.ls2-sub{font-family:'Jost',sans-serif;font-size:9px;letter-spacing:5px;color:rgba(201,168,76,.4);text-transform:uppercase;text-align:center;animation:lsFadeUp .8s .45s ease both}
+@keyframes lsFadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── CREATING ACCOUNT SPLASH (7s) ──────────────────────────────────────────── */
+#creatingAccountSplash{position:fixed;top:0;left:0;right:0;bottom:0;background:#120D06;z-index:100006;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .6s ease,visibility .6s ease}
+#creatingAccountSplash.active{opacity:1;visibility:visible;pointer-events:auto}
+#creatingAccountSplash.dismissing{opacity:0;visibility:hidden;pointer-events:none}
+.ca-ring{width:72px;height:72px;border-radius:50%;border:1.5px solid rgba(201,168,76,.15);border-top-color:#C9A84C;animation:caRingSpin 1.1s linear infinite;margin-bottom:36px}
+@keyframes caRingSpin{to{transform:rotate(360deg)}}
+.ca-label{font-family:'Jost',sans-serif;font-size:8px;letter-spacing:6px;color:rgba(201,168,76,.35);text-transform:uppercase;margin-bottom:10px;animation:lsFadeUp .7s ease both}
+.ca-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:#C9A84C;letter-spacing:3px;text-align:center;animation:lsFadeUp .7s .1s ease both}
+.ca-steps{display:flex;flex-direction:column;gap:10px;margin-top:36px;width:220px}
+.ca-step{display:flex;align-items:center;gap:12px;opacity:0;transition:opacity .5s ease}
+.ca-step.visible{opacity:1}
+.ca-step-dot{width:6px;height:6px;border-radius:50%;background:rgba(201,168,76,.2);flex-shrink:0;transition:background .4s ease}
+.ca-step.done .ca-step-dot{background:#C9A84C}
+.ca-step-text{font-family:'Jost',sans-serif;font-size:10px;letter-spacing:2px;color:rgba(201,168,76,.4);text-transform:uppercase;transition:color .4s ease}
+.ca-step.done .ca-step-text{color:rgba(201,168,76,.7)}
+
+/* ─── WELCOME SPLASH (3s, new users only) ────────────────────────────────────── */
+#welcomeSplash{position:fixed;top:0;left:0;right:0;bottom:0;background:#120D06;z-index:100005;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .6s ease,visibility .6s ease}
+#welcomeSplash.active{opacity:1;visibility:visible;pointer-events:auto}
+#welcomeSplash.dismissing{opacity:0;visibility:hidden;pointer-events:none}
+.wc-crown{font-size:36px;margin-bottom:28px;animation:wcPop .7s cubic-bezier(.22,1,.36,1) both}
+.wc-eyebrow{font-family:'Jost',sans-serif;font-size:8px;letter-spacing:6px;color:rgba(201,168,76,.35);text-transform:uppercase;margin-bottom:12px;animation:lsFadeUp .7s .1s ease both}
+.wc-title{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:300;color:#F5F0E8;letter-spacing:2px;text-align:center;line-height:1.1;animation:lsFadeUp .7s .2s ease both}
+.wc-name{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:700;color:#C9A84C;letter-spacing:2px;text-align:center;animation:lsFadeUp .7s .3s ease both}
+.wc-tagline{font-family:'Jost',sans-serif;font-size:9px;letter-spacing:5px;color:rgba(201,168,76,.35);text-transform:uppercase;margin-top:24px;animation:lsFadeUp .7s .5s ease both}
+.wc-divider{width:60px;height:1px;background:linear-gradient(to right,transparent,rgba(201,168,76,.35),transparent);margin:20px auto 0;animation:lsFadeUp .7s .45s ease both}
+@keyframes wcPop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+
 /* ─── LOADING SPLASH (SECOND SCREEN) ────────────────────────────────────────── */
 #loadingSplash{position:fixed;top:0;left:0;right:0;bottom:0;background:#120D06;z-index:100003;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .55s ease,visibility .55s ease}
 #loadingSplash.active{opacity:1;visibility:visible;pointer-events:auto}
@@ -463,6 +508,38 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     <div class="splash-tagline">Interior Platform</div>
   </div>
 </div>
+<!-- LOGIN SPLASH — shown after login for 3s before logo splash -->
+<div id="loginSplash">
+  <div class="ls2-ornament">The Billy Living</div>
+  <div class="ls2-greeting">Welcome back,</div>
+  <div class="ls2-name" id="loginSplashName">Designer</div>
+  <div class="ls2-divider"></div>
+  <div class="ls2-sub">Luxury Interiors · Lagos &amp; Abuja</div>
+</div>
+
+<!-- CREATING ACCOUNT SPLASH — shown during new account creation for 7s -->
+<div id="creatingAccountSplash">
+  <div class="ca-ring"></div>
+  <div class="ca-label">Please wait</div>
+  <div class="ca-title">Creating Your Space</div>
+  <div class="ca-steps">
+    <div class="ca-step" id="caStep1"><div class="ca-step-dot"></div><div class="ca-step-text">Setting up your profile</div></div>
+    <div class="ca-step" id="caStep2"><div class="ca-step-dot"></div><div class="ca-step-text">Curating your experience</div></div>
+    <div class="ca-step" id="caStep3"><div class="ca-step-dot"></div><div class="ca-step-text">Preparing your vault</div></div>
+    <div class="ca-step" id="caStep4"><div class="ca-step-dot"></div><div class="ca-step-text">Finalising your access</div></div>
+  </div>
+</div>
+
+<!-- WELCOME SPLASH — shown after creating account splash for 3s -->
+<div id="welcomeSplash">
+  <div class="wc-crown">♛</div>
+  <div class="wc-eyebrow">Member Since Today</div>
+  <div class="wc-title">Welcome to</div>
+  <div class="wc-name" id="welcomeSplashName">The Billy Living</div>
+  <div class="wc-divider"></div>
+  <div class="wc-tagline">Your luxury interior journey begins</div>
+</div>
+
 <!-- LOADING SPLASH — SECOND SCREEN (auth-gated, never shown on login screen) -->
 <div id="loadingSplash">
   <img class="ls-logo" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23C9A84C' rx='20'/%3E%3Ctext x='50' y='68' font-family='Cormorant Garamond,serif' font-size='42' fill='%23120D06' text-anchor='middle' font-weight='bold'%3EBL%3C/text%3E%3C/svg%3E" alt="">
@@ -690,20 +767,27 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     <div id="vault-login-form">
       <div class="vault-logo">🔒</div>
       <h1 class="vault-title">THE VAULT</h1>
-      <p class="vault-subtitle">Exclusive Access for VIP Members</p>
-      <div class="vault-form">
-        <div class="vault-phone-wrapper">
+      <p class="vault-subtitle" id="vaultSubtitle">Exclusive Access for VIP Members</p>
+
+      <!-- Phone field — only shown when user's phone is unknown -->
+      <div class="vault-form" id="vaultFormFull">
+        <div class="vault-phone-wrapper" id="vaultPhoneWrapper">
           <span class="vault-phone-prefix">+234</span>
           <input type="tel" class="vault-phone-input" id="vault-phone" placeholder="8012345678" maxlength="10">
         </div>
         <div class="vault-pin-input-wrapper">
-          <input type="password" class="vault-input" id="vault-pin" placeholder="4-Digit VIP PIN" maxlength="4" oninput="clearVaultError()" style="transition:border-color .2s,box-shadow .2s">
+          <input type="password" class="vault-input" id="vault-pin" placeholder="4-Digit VIP PIN" maxlength="4" oninput="clearVaultError()" onkeydown="if(event.key==='Enter')handleVaultUnlock()">
           <button type="button" class="vault-pw-toggle" onclick="togglePw('vault-pin',this)" aria-label="Show PIN">
             <svg id="vault-pin-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
           <p id="vault-error" style="display:none;color:#ff5555;font-size:12px;text-align:center;margin-top:10px;letter-spacing:.3px;line-height:1.6">Access Denied. Please contact the Concierge<br>for VIP consideration.</p>
         </div>
         <button id="vault-btn" class="vault-btn" onclick="handleVaultUnlock()">UNLOCK</button>
+        <!-- Biometrics button -->
+        <button id="vault-bio-btn" onclick="handleVaultBiometric()" style="display:none;margin-top:12px;width:100%;max-width:320px;padding:14px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);border-radius:12px;color:#C9A84C;font-family:'Jost',sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#C9A84C" stroke-width="1.5"><path d="M12 2C8.5 2 5.5 4.5 5.5 8v1M12 2c3.5 0 6.5 2.5 6.5 6v1M9 21h6M12 17v4M7 11c0 2.8 2.2 5 5 5s5-2.2 5-5V8c0-2.8-2.2-5-5-5S7 5.2 7 8"/></svg>
+          Use Biometrics
+        </button>
         <button id="vault-request-vip-btn" onclick="requestVIPAccess()" style="margin-top:16px;background:none;border:none;color:rgba(201,168,76,.5);font-family:'Jost',sans-serif;font-size:13px;letter-spacing:1px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;">Request VIP Access</button>
       </div>
     </div>
@@ -967,49 +1051,146 @@ function hideGatekeeper() {
   setTimeout(() => { document.getElementById('gatekeeper').style.display = 'none'; }, 600);
 }
 
-// ─── LOADING SPLASH — auth-gated, timer starts after first splash clears ──────
-function showLoadingSplash() {
-  const isNewDevice   = !localStorage.getItem('bl_device_seen');
-  const LOAD_DURATION = isNewDevice ? 11000 : 6000;
-  try { localStorage.setItem('bl_device_seen', '1'); } catch(e) {}
+// ─── SPLASH HELPERS ───────────────────────────────────────────────────────────
+const BL_LOGO_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23C9A84C' rx='20'/%3E%3Ctext x='50' y='68' font-family='Cormorant Garamond,serif' font-size='42' fill='%23120D06' text-anchor='middle' font-weight='bold'%3EBL%3C/text%3E%3C/svg%3E";
 
-  // Ensure nav is hidden at the start of every splash sequence
-  var nav = document.querySelector('.bottom-nav');
+function _hideSplash(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('active');
+  el.classList.add('dismissing');
+  setTimeout(() => { if (el.parentNode) el.remove(); }, 700);
+}
+
+function _showLogoSplash() {
+  const s = document.getElementById('splashScreen');
+  if (!s) return;
+  s.style.opacity = '1';
+  s.style.visibility = 'visible';
+  s.style.pointerEvents = 'auto';
+  s.classList.remove('hidden');
+}
+
+function _hideLogoSplash() {
+  const s = document.getElementById('splashScreen');
+  if (s) { s.style.opacity = '0'; s.style.visibility = 'hidden'; s.style.pointerEvents = 'none'; }
+}
+
+function _runLoadingSplash(onDone) {
+  const ls  = document.getElementById('loadingSplash');
+  const bar = document.getElementById('lsBarFill');
+  const DURATION = 4000;
+  if (!ls) { onDone && onDone(); return; }
+  ls.classList.add('active');
+  if (bar) {
+    setTimeout(() => {
+      bar.style.transition = 'width ' + (DURATION - 400) + 'ms linear';
+      bar.style.width = '100%';
+    }, 150);
+  }
+  setTimeout(() => {
+    ls.classList.remove('active');
+    ls.classList.add('dismissing');
+    setTimeout(() => {
+      if (ls.parentNode) ls.remove();
+      onDone && onDone();
+    }, 650);
+  }, DURATION);
+}
+
+// ─── LOGIN SPLASH SEQUENCE ────────────────────────────────────────────────────
+// Login splash (3s) → Logo splash (3s) → Loading splash (4s) → App
+function showLoginSplashSequence(userName) {
+  const nav = document.querySelector('.bottom-nav');
   if (nav) nav.classList.remove('nav-ready');
 
-  const elapsed = Date.now() - window._pageLoadTime;
-  const firstSplashGone = 2500; // Start 500ms early so splashes overlap — no gap
-  const delay = Math.max(0, firstSplashGone - elapsed);
+  // Set name on login splash
+  const nameEl = document.getElementById('loginSplashName');
+  if (nameEl) nameEl.textContent = (userName || 'Designer').split(' ')[0];
 
-  setTimeout(function() {
-    const ls  = document.getElementById('loadingSplash');
-    const bar = document.getElementById('lsBarFill');
-    if (!ls) return;
-    // Re-enforce: nav must still be hidden when loading splash activates
-    var nav2 = document.querySelector('.bottom-nav');
-    if (nav2) nav2.classList.remove('nav-ready');
-    // Activate loading splash FIRST — it's z-index:100003, fully covers viewport
-    ls.classList.add('active');
-    // THEN fade out first splash (already covered by loading splash above it)
-    setTimeout(function() {
-      const s = document.getElementById('splashScreen');
-      if (s) { s.style.opacity = '0'; s.style.visibility = 'hidden'; s.style.pointerEvents = 'none'; }
-    }, 100);
-    if (bar) {
-      setTimeout(function() {
-        bar.style.transition = 'width ' + (LOAD_DURATION - 500) + 'ms linear';
-        bar.style.width = '100%';
-      }, 150);
-    }
-    setTimeout(function() {
-      ls.classList.remove('active');
-      ls.classList.add('dismissing');
-      // Reveal nav AFTER fade-out completes, not before
-      setTimeout(function() {
-        if (ls && ls.parentNode) ls.remove();
-        revealNav();
-      }, 600);
-    }, LOAD_DURATION);
+  // 1. Show login splash
+  const ls = document.getElementById('loginSplash');
+  if (ls) ls.classList.add('active');
+
+  // 2. After 3s → fade login splash, show logo splash
+  setTimeout(() => {
+    _hideSplash('loginSplash');
+    setTimeout(() => {
+      _showLogoSplash();
+      // 3. After 3s on logo → fade logo, run loading splash
+      setTimeout(() => {
+        _hideLogoSplash();
+        setTimeout(() => {
+          _runLoadingSplash(() => revealNav());
+        }, 400);
+      }, 3000);
+    }, 400);
+  }, 3000);
+}
+
+// ─── NEW ACCOUNT SPLASH SEQUENCE ─────────────────────────────────────────────
+// Creating account splash (7s, animated steps) → Welcome splash (3s) → Logo splash (3s) → Loading splash (4s) → App
+function showNewAccountSplashSequence(userName) {
+  const nav = document.querySelector('.bottom-nav');
+  if (nav) nav.classList.remove('nav-ready');
+
+  // Set name on welcome splash
+  const wNameEl = document.getElementById('welcomeSplashName');
+  if (wNameEl) wNameEl.textContent = (userName || 'The Billy Living');
+
+  // 1. Show creating account splash
+  const cas = document.getElementById('creatingAccountSplash');
+  if (cas) cas.classList.add('active');
+
+  // Animate steps in sequence during the 7s
+  const steps = ['caStep1','caStep2','caStep3','caStep4'];
+  const stepDelay = [600, 2000, 3800, 5500];
+  steps.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.add('visible');
+        setTimeout(() => el.classList.add('done'), 400);
+      }
+    }, stepDelay[i]);
+  });
+
+  // 2. After 7s → fade creating splash, show welcome splash
+  setTimeout(() => {
+    _hideSplash('creatingAccountSplash');
+    setTimeout(() => {
+      const ws = document.getElementById('welcomeSplash');
+      if (ws) ws.classList.add('active');
+      // 3. After 3s → fade welcome splash, show logo splash
+      setTimeout(() => {
+        _hideSplash('welcomeSplash');
+        setTimeout(() => {
+          _showLogoSplash();
+          // 4. After 3s on logo → fade logo, run loading splash
+          setTimeout(() => {
+            _hideLogoSplash();
+            setTimeout(() => {
+              _runLoadingSplash(() => revealNav());
+            }, 400);
+          }, 3000);
+        }, 400);
+      }, 3000);
+    }, 400);
+  }, 7000);
+}
+
+// ─── LEGACY showLoadingSplash — kept for onAuthStateChanged (existing users) ──
+function showLoadingSplash() {
+  // For returning users already logged in (page reload) —
+  // just do: Logo splash (already visible) → Loading splash → App
+  const nav = document.querySelector('.bottom-nav');
+  if (nav) nav.classList.remove('nav-ready');
+  const elapsed = Date.now() - window._pageLoadTime;
+  const firstSplashGone = 2500;
+  const delay = Math.max(0, firstSplashGone - elapsed);
+  setTimeout(() => {
+    _runLoadingSplash(() => revealNav());
+    setTimeout(_hideLogoSplash, 100);
   }, delay);
 }
 
@@ -1095,7 +1276,6 @@ async function handleLogin() {
   if (!email)        { showGateError('loginError', 'Please enter your email address.'); return; }
   if (!pw)           { showGateError('loginError', 'Please enter your password.'); return; }
   btn.disabled = true; btn.textContent = 'Signing in…';
-  // Safety net: re-enable after 12s if stuck
   const resetTimer = setTimeout(() => {
     btn.disabled = false; btn.textContent = 'Enter';
   }, 12000);
@@ -1103,10 +1283,14 @@ async function handleLogin() {
     await fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     const cred = await fbAuth.signInWithEmailAndPassword(email, pw);
     clearTimeout(resetTimer);
-    // Navigate immediately — don't wait solely on onAuthStateChanged
     currentUser = cred.user;
     hideGatekeeper();
     showPage('home');
+    // Fetch name for the splash then kick off sequence
+    fbDb.ref('userProfiles/' + cred.user.uid + '/name').once('value').then(snap => {
+      const name = snap.val() || cred.user.displayName || 'Designer';
+      showLoginSplashSequence(name);
+    }).catch(() => showLoginSplashSequence('Designer'));
     loadUserProfile(cred.user.uid);
   } catch(e) {
     clearTimeout(resetTimer);
@@ -1148,6 +1332,12 @@ async function handleFinishSignup() {
       name: pendingSignupName, email: pendingSignupEmail,
       avatar: '', residence: '', mobile: '', measure: '', createdAt: Date.now()
     });
+    currentUser = cred.user;
+    hideGatekeeper();
+    showPage('home');
+    // Trigger new account splash sequence
+    showNewAccountSplashSequence(pendingSignupName);
+    loadUserProfile(cred.user.uid);
   } catch(e) {
     showGateError('photoError', gateAuthError(e.code || '', 'signup'));
     btn.disabled = false; btn.textContent = 'Enter The Billy Living';
@@ -1172,7 +1362,15 @@ document.addEventListener('DOMContentLoaded', function() {
       var btn = e.target.closest('.bottom-nav-item');
       if (!btn) return;
       var page = btn.getAttribute('data-page');
-      if (page) { e.preventDefault(); showPage(page); }
+      if (!page) return;
+      e.preventDefault();
+      // Already on this page — refresh it
+      var activePage = document.querySelector('.bottom-nav-item.active');
+      if (activePage && activePage.getAttribute('data-page') === page) {
+        refreshPage(page);
+      } else {
+        showPage(page);
+      }
     });
   }
   // Visual Viewport API — keeps concierge input above keyboard on iOS/Android
@@ -1212,6 +1410,72 @@ function dismissLoadingSplash() {
     if (ls && ls.parentNode) ls.remove();
     if (wasActive) revealNav();
   }, 600);
+}
+
+// ── PAGE REFRESH ─────────────────────────────────────────────────────────────
+const BL_REFRESH_SPINNER = '<div style="position:fixed;top:0;left:0;right:0;bottom:var(--nav-height);background:rgba(10,8,4,0.75);z-index:9000;display:flex;align-items:center;justify-content:center;pointer-events:none;" id="blRefreshOverlay"><div style="position:relative;width:72px;height:72px;"><div style="position:absolute;inset:0;border-radius:50%;border:2px solid rgba(255,255,255,.06);border-top-color:rgba(168,155,140,.45);animation:blSpin .9s linear infinite;"></div><div style="position:absolute;inset:4px;border-radius:50%;background:rgba(201,168,76,.10);border:1px solid rgba(201,168,76,.18);display:flex;align-items:center;justify-content:center;"><span style="font-family:\'Cormorant Garamond\',serif;font-size:22px;font-weight:700;color:rgba(201,168,76,.5);letter-spacing:1px;">BL</span></div></div></div>';
+
+function _showRefreshSpinner() {
+  const existing = document.getElementById('blRefreshOverlay');
+  if (existing) existing.remove();
+  document.body.insertAdjacentHTML('beforeend', BL_REFRESH_SPINNER);
+}
+function _hideRefreshSpinner() {
+  const el = document.getElementById('blRefreshOverlay');
+  if (el) { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 320); }
+}
+
+function refreshPage(pageId) {
+  _showRefreshSpinner();
+
+  // Bust panel caches so data re-fetches
+  if (pageId === 'home') {
+    _panelFetched && (_panelFetched.home = false);
+    // Scroll home feed to top
+    const feed = document.getElementById('homeFeed');
+    if (feed) feed.scrollTo({ top: 0, behavior: 'smooth' });
+    loadHomeFeed().finally ? loadHomeFeed().finally(_hideRefreshSpinner) : loadHomeFeed();
+    setTimeout(_hideRefreshSpinner, 2500);
+
+  } else if (pageId === 'trending') {
+    const container = document.getElementById('trendingContainer');
+    if (container) {
+      container.scrollTo({ top: 0, behavior: 'instant' });
+      container.innerHTML = '';
+    }
+    loadTrending().finally ? loadTrending().finally(_hideRefreshSpinner) : loadTrending();
+    setTimeout(_hideRefreshSpinner, 3000);
+
+  } else if (pageId === 'catalog') {
+    _catalogCache = [];
+    const grid = document.getElementById('eliteCatalogGrid');
+    if (grid) grid.innerHTML = '';
+    loadCatalog().finally ? loadCatalog().finally(_hideRefreshSpinner) : loadCatalog();
+    setTimeout(_hideRefreshSpinner, 2500);
+
+  } else if (pageId === 'vault') {
+    // Reset vault to login screen and re-init
+    if (vaultSession) {
+      // Already unlocked — just re-load vault content
+      loadBespokeVault(true);
+      setTimeout(_hideRefreshSpinner, 2000);
+    } else {
+      initVaultLogin();
+      setTimeout(_hideRefreshSpinner, 800);
+    }
+
+  } else if (pageId === 'concierge') {
+    loadConciergeHistory();
+    setTimeout(_hideRefreshSpinner, 1500);
+
+  } else if (pageId === 'portfolio') {
+    _panelFetched && (_panelFetched.portfolio = false);
+    loadPortfolio && loadPortfolio();
+    setTimeout(_hideRefreshSpinner, 2000);
+
+  } else {
+    setTimeout(_hideRefreshSpinner, 800);
+  }
 }
 
 function showPage(pageId) {
@@ -1282,6 +1546,13 @@ function showPage(pageId) {
   if (pageId === 'portfolio') loadPortfolio();
   if (pageId === 'trending' && !document.querySelector('.tiktok-item')) loadTrending();
   if (pageId === 'concierge' && _conciergeListener === null) loadConciergeHistory();
+  // Always scroll to latest message when opening concierge
+  if (pageId === 'concierge') {
+    setTimeout(() => {
+      const c = document.getElementById('cgMessages');
+      if (c) c.scrollTop = c.scrollHeight;
+    }, 80);
+  }
 
   // Vault page — always reset button to clean state on every visit
   if (pageId === 'vault') {
@@ -1294,6 +1565,8 @@ function showPage(pageId) {
                     document.getElementById('profileContainer').classList.contains('is-vip');
       _rvBtn.style.display = isVip ? 'none' : '';
     }
+    // Init vault login — hides phone field if we already know it
+    initVaultLogin();
     // Auto-enter if valid session within 24hrs
     if (!vaultSession) {
       const saved = localStorage.getItem('vaultSession');
@@ -1668,7 +1941,7 @@ function buildFeedItem(p) {
     +   '<div class="feed-header-info"><span class="feed-header-name">The Billy Living</span>' + headerLocHtml + '</div>'
     +   '<button class="feed-header-more" onclick="openShareSheetNoCount(_postsMap[\'' + id + '\'])">···</button>'
     + '</div>'
-    + '<div class="feed-image">' + mediaHtml + '</div>'
+    + '<div class="feed-image"><div class="tap-pause-overlay" onclick="tapToToggleMedia(this)"><div class="tap-pause-icon"></div></div>' + mediaHtml + '</div>'
     + '<div class="feed-actions">'
     +   '<button class="feed-action-btn" onclick="toggleLike(this,\'' + id + '\',\'posts\')">'
     +     '<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>'
@@ -1936,14 +2209,39 @@ function _initTrendingObservers(container) {
   const firstVideo = container.querySelector('video');
   if (firstVideo) firstVideo.play().catch(()=>{});
   const _trendViewedThisSession = new Set();
+
+  // ── Helper: stop everything except the given element ─────────────────────
+  function _stopAllTrendingMedia(exceptEl) {
+    container.querySelectorAll('.tiktok-item').forEach(item => {
+      if (item === exceptEl) return;
+      const v = item.querySelector('video');
+      if (v && !v.paused) v.pause();
+      const a = item.querySelector('audio[id^="taudio_"]');
+      if (a && !a.paused) a.pause();
+    });
+  }
+
   const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
+    // Process exits first, then entries — prevents brief overlap
+    const exits   = entries.filter(e => !e.isIntersecting);
+    const enters  = entries.filter(e => e.isIntersecting);
+
+    exits.forEach(e => {
       const v = e.target.querySelector('video');
-      if (v) { if (e.isIntersecting) v.play().catch(()=>{}); else v.pause(); }
-      const audioEl = e.target.querySelector('audio[id^="taudio_"]');
-      if (audioEl) { if (e.isIntersecting) audioEl.play().catch(()=>{}); else audioEl.pause(); }
-      // Track view once per item per session
-      if (e.isIntersecting && currentUser) {
+      if (v) v.pause();
+      const a = e.target.querySelector('audio[id^="taudio_"]');
+      if (a) a.pause();
+    });
+
+    enters.forEach(e => {
+      // Kill ALL other media first — no bleed-through
+      _stopAllTrendingMedia(e.target);
+      const v = e.target.querySelector('video');
+      if (v) v.play().catch(()=>{});
+      const a = e.target.querySelector('audio[id^="taudio_"]');
+      if (a) a.play().catch(()=>{});
+      // View tracking
+      if (currentUser) {
         const pid = e.target.dataset.id;
         if (pid && !_trendViewedThisSession.has(pid)) {
           _trendViewedThisSession.add(pid);
@@ -1969,6 +2267,29 @@ function _initTrendingObservers(container) {
     car.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, {passive:true});
     car.addEventListener('touchend',   e => { const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx)>40) goTo(dx<0?cur+1:cur-1); }, {passive:true});
   });
+}
+
+function tapToToggleMedia(el) {
+  // Find video or audio in this post
+  const item = el.closest('.tiktok-item') || el.closest('.feed-item');
+  if (!item) return;
+  const video = item.querySelector('video');
+  const audio = item.querySelector('audio');
+  const icon  = item.querySelector('.tap-pause-icon');
+  const isPaused = (video && video.paused) || (!video && audio && audio.paused);
+
+  if (video) { isPaused ? video.play().catch(()=>{}) : video.pause(); }
+  if (audio) { isPaused ? audio.play().catch(()=>{}) : audio.pause(); }
+
+  if (!icon) return;
+  // Show icon briefly
+  icon.innerHTML = isPaused
+    ? '<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" fill="white"/></svg>'   // play
+    : '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" fill="white"/><rect x="14" y="4" width="4" height="16" fill="white"/></svg>'; // pause
+  icon.classList.remove('hide');
+  icon.classList.add('show');
+  clearTimeout(icon._t);
+  icon._t = setTimeout(() => { icon.classList.remove('show'); icon.classList.add('hide'); }, 800);
 }
 
 function toggleCaption(el) {
@@ -2005,6 +2326,7 @@ function buildTikTokItem(item) {
   return '<div class="tiktok-item" data-id="' + id + '">'
     + audioEl
     + mediaHtml
+    + '<div class="tap-pause-overlay" onclick="tapToToggleMedia(this)"><div class="tap-pause-icon"></div></div>'
     + '<div class="tiktok-actions">'
     +   '<button class="tiktok-action" onclick="toggleTikTokLike(this,\'' + id + '\')">'
     +     '<div class="tiktok-action-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>'
@@ -2033,6 +2355,16 @@ function toggleTikTokAudio(btn, id) {
   const icon  = btn.querySelector('.tiktok-action-icon');
   if (!audio) return;
   if (audio.paused) {
+    // Stop every other trending audio/video before playing this one
+    document.querySelectorAll('audio[id^="taudio_"]').forEach(a => {
+      if (a.id !== 'taudio_' + id && !a.paused) {
+        a.pause();
+        // Reset its mute button icon too
+        const otherId = a.id.replace('taudio_', '');
+        const otherBtn = document.querySelector('[onclick*="toggleTikTokAudio"][onclick*="' + otherId + '"] .tiktok-action-icon');
+        if (otherBtn) otherBtn.textContent = '🔇';
+      }
+    });
     audio.play().catch(()=>{});
     if (icon) icon.textContent = '🔊';
   } else {
@@ -2335,40 +2667,113 @@ function requestVIPAccess() {
 function clearVaultError() { document.getElementById('vault-error').style.display = 'none'; document.getElementById('vault-pin').classList.remove('input-error'); }
 
 async function handleVaultUnlock() {
-  const phone = document.getElementById('vault-phone').value.trim();
+  // Use known phone from profile, or fall back to the input field
+  const knownPhone = window._vaultKnownPhone || '';
+  const phone = knownPhone || document.getElementById('vault-phone').value.trim();
   const pin   = document.getElementById('vault-pin').value.trim();
-  if (!phone || !pin) { showToast('Enter phone and PIN'); return; }
+  if (!phone) { showToast('Phone number required'); return; }
+  if (!pin)   { showToast('Enter your VIP PIN'); return; }
   const btn = document.getElementById('vault-btn');
   btn.textContent = 'Verifying…'; btn.disabled = true;
   try {
     const snap = await fbDb.ref('vip/' + phone).get();
     if (snap.exists()) {
       const vip = snap.val();
-      if (vip.password === pin && vip.status === 'active') {
-        vaultSession = { phone, ...vip, unlockedAt: Date.now() };
-        // Persist vault session for 24hrs
-        localStorage.setItem('vaultSession', JSON.stringify(vaultSession));
-        // Write permanent VIP flag to user profile in Firebase
-        if (currentUser) {
-          fbDb.ref('userProfiles/' + currentUser.uid).update({ isVip: true, vipName: vip.name || '' });
-          document.getElementById('profileContainer').classList.add('is-vip');
-        }
-        // Personalized greeting
-        const _vipFirstName = (vip.name || '').split(' ')[0] || 'VIP Member';
-        const titleEl = document.getElementById('vaultWelcomeTitle');
-        const subEl = document.getElementById('vaultWelcomeSub');
-        if (titleEl) titleEl.innerHTML = 'Welcome back, ' + _vipFirstName + '.<br><span style="font-size:22px;opacity:.75">Your Inner Circle awaits.</span>';
-        document.getElementById('vault-login-form').style.display = 'none';
-        document.getElementById('vault-success-state').style.display = 'flex';
+      if ((vip.password === pin || vip.code === pin) && (vip.status === 'active' || vip.status === 'approved')) {
+        _completeVaultUnlock(phone, vip);
         return;
       }
     }
     document.getElementById('vault-error').style.display = 'block';
     document.getElementById('vault-pin').classList.add('input-error');
   } catch(e) { showToast('Error verifying access'); console.error(e); }
-  finally {
-    // ALWAYS reset button state regardless of outcome
-    btn.textContent = 'UNLOCK'; btn.disabled = false;
+  finally { btn.textContent = 'UNLOCK'; btn.disabled = false; }
+}
+
+async function handleVaultBiometric() {
+  if (!window.PublicKeyCredential) { showToast('Biometrics not supported on this device'); return; }
+  try {
+    // Use a simple platform authenticator check — if passes, treat as PIN bypass
+    const result = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    if (!result) { showToast('No biometrics set up on this device'); return; }
+    // Create a credential get request (fingerprint/face ID challenge)
+    const challenge = new Uint8Array(32);
+    window.crypto.getRandomValues(challenge);
+    await navigator.credentials.get({
+      publicKey: {
+        challenge,
+        timeout: 60000,
+        userVerification: 'required',
+        rpId: window.location.hostname
+      }
+    });
+    // If we reach here, biometric passed — unlock using saved session phone
+    const phone = window._vaultKnownPhone;
+    if (!phone) { showToast('Phone not found — enter PIN instead'); return; }
+    const snap = await fbDb.ref('vip/' + phone).get();
+    if (snap.exists()) {
+      _completeVaultUnlock(phone, snap.val());
+    } else {
+      showToast('VIP record not found');
+    }
+  } catch(e) {
+    if (e.name === 'NotAllowedError') showToast('Biometric cancelled');
+    else showToast('Biometric failed — use PIN instead');
+  }
+}
+
+function _completeVaultUnlock(phone, vip) {
+  vaultSession = { phone, ...vip, unlockedAt: Date.now() };
+  localStorage.setItem('vaultSession', JSON.stringify(vaultSession));
+  // Save biometric key for future quick unlock
+  localStorage.setItem('bl_vault_phone', phone);
+  if (currentUser) {
+    fbDb.ref('userProfiles/' + currentUser.uid).update({ isVip: true, vipName: vip.name || '' });
+    document.getElementById('profileContainer').classList.add('is-vip');
+  }
+  const _vipFirstName = (vip.name || '').split(' ')[0] || 'VIP Member';
+  const titleEl = document.getElementById('vaultWelcomeTitle');
+  if (titleEl) titleEl.innerHTML = 'Welcome back, ' + _vipFirstName + '.<br><span style="font-size:22px;opacity:.75">Your Inner Circle awaits.</span>';
+  document.getElementById('vault-login-form').style.display = 'none';
+  document.getElementById('vault-success-state').style.display = 'flex';
+}
+
+// Called when vault tab is opened — pre-fills/hides phone if we know it
+async function initVaultLogin() {
+  window._vaultKnownPhone = null;
+  const phoneWrapper = document.getElementById('vaultPhoneWrapper');
+  const subtitle = document.getElementById('vaultSubtitle');
+  const bioBt = document.getElementById('vault-bio-btn');
+
+  // 1. Try from user's Firebase profile
+  let phone = null;
+  if (currentUser) {
+    try {
+      const snap = await fbDb.ref('userProfiles/' + currentUser.uid + '/mobile').get();
+      if (snap.exists() && snap.val()) phone = snap.val().replace(/^(\+234|0)/, '');
+    } catch(e) {}
+  }
+
+  // 2. Try from localStorage (saved after previous vault unlock)
+  if (!phone) {
+    const saved = localStorage.getItem('bl_vault_phone');
+    if (saved) phone = saved.replace(/^(\+234|0)/, '');
+  }
+
+  if (phone) {
+    window._vaultKnownPhone = phone;
+    if (phoneWrapper) phoneWrapper.style.display = 'none';
+    if (subtitle) subtitle.textContent = 'Enter your PIN to access your vault';
+    // Show biometrics if supported
+    if (window.PublicKeyCredential) {
+      PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(ok => {
+        if (ok && bioBt) bioBt.style.display = 'flex';
+      }).catch(()=>{});
+    }
+  } else {
+    if (phoneWrapper) phoneWrapper.style.display = 'flex';
+    if (subtitle) subtitle.textContent = 'Exclusive Access for VIP Members';
+    if (bioBt) bioBt.style.display = 'none';
   }
 }
 
@@ -2830,10 +3235,10 @@ function handleVaultLogout() {
   document.getElementById('vault-success-state').style.display = 'none';
   document.getElementById('vault-phone').value = '';
   document.getElementById('vault-pin').value = '';
-  // Always reset button — it may be stuck as "Verifying…" from previous session
   const vaultBtn = document.getElementById('vault-btn');
   if (vaultBtn) { vaultBtn.textContent = 'UNLOCK'; vaultBtn.disabled = false; }
   clearVaultError();
+  initVaultLogin();
 }
 
 // ─── PORTFOLIO ────────────────────────────────────────────────────────────────
@@ -3232,7 +3637,8 @@ async function loadConciergeHistory() {
         msgs.forEach(m => {
           container.appendChild(buildCgMsgEl(m));
         });
-        container.scrollTop = container.scrollHeight;
+        // Use setTimeout so browser paints all messages before scrolling
+        setTimeout(() => { container.scrollTop = container.scrollHeight; }, 0);
       }
     }, err => {
       console.error('Concierge listener error:', err);
