@@ -3023,21 +3023,32 @@
             document.getElementById('formTitle').textContent = titles[t] || (('Add ') + t);
             const fc = document.getElementById('formContent');
             if (t === 'post' || t === 'trending') {
-                fc.innerHTML = '<div class="form-group"><label class="form-label">Caption / Title</label><input class="form-input" id="fCaption" placeholder="e.g. Modern Living Room"></div><div class="form-group"><label class="form-label">Location</label><input class="form-input" id="fLocation" placeholder="e.g. Lagos, Nigeria"></div><div class="form-group"><label class="form-label">Image URL</label><input class="form-input" id="fImageUrl" placeholder="https://..."></div>';
+                fc.innerHTML = '<div class="form-group"><label class="form-label">Caption / Title</label><input class="form-input" id="fCaption" placeholder="e.g. Modern Living Room"></div><div class="form-group"><label class="form-label">Location</label><input class="form-input" id="fLocation" placeholder="e.g. Lagos, Nigeria"></div><div class="form-group"><label class="form-label">Image</label><input type="file" accept="image/*" id="fImageFile" style="display:none;" onchange="handleFormImagePick(this)"><div id="fImagePreviewWrap" onclick="document.getElementById(\'fImageFile\').click()" style="border:2px dashed rgba(201,168,76,0.3);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor=\'#C9A84C\'" onmouseout="this.style.borderColor=\'rgba(201,168,76,0.3)\'"><div id="fImagePreviewInner"><div style="font-size:32px;margin-bottom:8px;">🖼</div><div style="font-size:13px;color:rgba(201,168,76,0.6);">Tap to pick from gallery</div></div></div></div>';
             } else if (t === 'category') {
                 fc.innerHTML = '<div class="form-group"><label class="form-label">Collection Name</label><input class="form-input" id="fName" placeholder="e.g. Minimalist Luxury"></div><div class="form-group"><label class="form-label">Description</label><input class="form-input" id="fSpecialty" placeholder="e.g. Calm, Refined"></div>';
             }
         }
-        function closeForm() { document.getElementById('formModal').classList.remove('active'); }
+        function closeForm() { window._fImageBase64 = ''; document.getElementById('formModal').classList.remove('active'); }
+        function handleFormImagePick(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                window._fImageBase64 = e.target.result;
+                const wrap = document.getElementById('fImagePreviewInner');
+                if (wrap) wrap.innerHTML = '<img src="'+e.target.result+'" style="max-width:100%;max-height:180px;border-radius:8px;object-fit:cover;">';
+            };
+            reader.readAsDataURL(file);
+        }
         function submitForm() {
             const t = currentForm;
             const id = t + '_' + Date.now();
             if (t === 'post') {
-                const data = { id, caption: (document.getElementById('fCaption').value||'Untitled'), location: (document.getElementById('fLocation').value||''), imageUrl: (document.getElementById('fImageUrl').value||''), createdAt: Date.now() };
-                adminFbDB.ref('content/posts/' + id).set(data).then(() => { closeForm(); showToast('✓ Post saved'); renderHomeList(); });
+                const data = { id, caption: (document.getElementById('fCaption').value||'Untitled'), location: (document.getElementById('fLocation').value||''), imageData: (window._fImageBase64||''), createdAt: Date.now() };
+                adminFbDB.ref('content/posts/' + id).set(data).then(() => { window._fImageBase64=''; closeForm(); showToast('✓ Post saved'); renderHomeList(); });
             } else if (t === 'trending') {
-                const data = { id, caption: (document.getElementById('fCaption').value||'Untitled'), location: (document.getElementById('fLocation').value||''), imageUrl: (document.getElementById('fImageUrl').value||''), createdAt: Date.now() };
-                adminFbDB.ref('content/trending/' + id).set(data).then(() => { closeForm(); showToast('✓ Trending item saved'); renderTrendingList(); });
+                const data = { id, caption: (document.getElementById('fCaption').value||'Untitled'), location: (document.getElementById('fLocation').value||''), imageData: (window._fImageBase64||''), createdAt: Date.now() };
+                adminFbDB.ref('content/trending/' + id).set(data).then(() => { window._fImageBase64=''; closeForm(); showToast('✓ Trending item saved'); renderTrendingList(); });
             } else if (t === 'category') {
                 const n = document.getElementById('fName').value||'Collection'; const sid = n.toLowerCase().replace(/[^a-z0-9]/g,'_');
                 const data = { id: sid, value: n, description: (document.getElementById('fSpecialty').value||''), createdAt: Date.now() };
