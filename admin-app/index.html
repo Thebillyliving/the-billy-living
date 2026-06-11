@@ -1906,7 +1906,13 @@
             const target = document.getElementById('panel-' + name);
             if (!target) return;
             target.classList.add('active');
-            if (el) el.classList.add('active');
+            // Reliably highlight nav: match by onclick text (works on Android where `this` can be unreliable)
+            const matchingNav = Array.from(document.querySelectorAll('.nav-item')).find(n => {
+                const oc = n.getAttribute('onclick') || '';
+                return oc.includes("'" + name + "'") || oc.includes('"' + name + '"');
+            });
+            if (matchingNav) matchingNav.classList.add('active');
+            else if (el) el.classList.add('active');
             if (name === 'dashboard') { if (!_panelFetched.dashboard) { _panelFetched.dashboard = true; loadDashboardStats(); } }
             if (name === 'vaultmgr') { if (!_panelFetched.vaultmgr) { _panelFetched.vaultmgr = true; vmInit(); } }
             if (name === 'catalog') { if (!_panelFetched.catalog) { _panelFetched.catalog = true; renderCatalogList(); } }
@@ -2680,19 +2686,31 @@
 
         // Stubs for other functions
         function loadDashboardStats() {
-          // Run all 4 reads in parallel — 4x faster than sequential
+          // Set a timeout so if Firebase is slow, stats retry automatically
+          const statIds = ['statPosts','statTrending','statPendingVIP'];
+          let settled = false;
+          const timeout = setTimeout(() => {
+            if (!settled) {
+              statIds.forEach(id => { const el = document.getElementById(id); if (el && el.querySelector('.skel')) el.textContent = '—'; });
+            }
+          }, 8000);
           Promise.all([
             adminFbDB.ref('content/posts').once('value'),
             adminFbDB.ref('content/trending').once('value'),
-            
             adminFbDB.ref('vip').once('value')
           ]).then(([posts, trending, vip]) => {
+            settled = true;
+            clearTimeout(timeout);
             document.getElementById('statPosts').textContent = posts.exists() ? Object.keys(posts.val()).length : 0;
             document.getElementById('statTrending').textContent = trending.exists() ? Object.keys(trending.val()).length : 0;
-
             const vips = vip.val() ? Object.values(vip.val()) : [];
             document.getElementById('statPendingVIP').textContent = vips.filter(v => !v.id).length;
-          }).catch(e => console.warn('Stats error:', e));
+          }).catch(e => {
+            settled = true;
+            clearTimeout(timeout);
+            statIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '!'; });
+            console.warn('Stats error:', e);
+          });
         }
         function renderHomeList() {
           const el = document.getElementById('homeList');
@@ -4126,31 +4144,35 @@
         }
 
         function initApp() {
-            // Only load what's visible: the dashboard.
-            // Every other panel loads on first visit via the _panelFetched guard in showPanel().
+            // Load dashboard stats immediately, mark as fetched so showPanel doesn't re-fetch
             loadDashboardStats();
+            _panelFetched.dashboard = true;
         }
 
         // Initialization
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             document.getElementById('panel-dashboard')?.classList.add('active');
-            const activeNav = document.querySelector('.nav-item.active');
-            if (activeNav) activeNav.classList.add('active');
+
+            // Ensure nav items fire reliably on Android (prevent ghost-click suppression)
+            document.querySelectorAll('.nav-item').forEach(navEl => {
+                navEl.addEventListener('touchend', function(e) {
+                    e.stopPropagation();
+                    // Let the onclick handler fire naturally — don't preventDefault
+                }, { passive: true });
+            });
 
             let appStarted = false;
             adminFbAuth.onAuthStateChanged(user => {
                 if (appStarted) return;
                 if (user) {
                     appStarted = true;
-                    _panelFetched.dashboard = true;
                     initApp();
                 } else {
                     adminFbAuth.signInWithEmailAndPassword('admin@billyliving.com', '147414')
                         .then(cred => {
                             adminFbDB.ref('admins/' + cred.user.uid).set(true);
                             appStarted = true;
-                            _panelFetched.dashboard = true;
                             initApp();
                         })
                         .catch(() => {
@@ -4158,7 +4180,6 @@
                                 .then(cred => {
                                     adminFbDB.ref('admins/' + cred.user.uid).set(true);
                                     appStarted = true;
-                                    _panelFetched.dashboard = true;
                                     initApp();
                                 })
                                 .catch(e => console.error('Auth error:', e));
