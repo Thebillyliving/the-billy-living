@@ -11,6 +11,42 @@
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"></noscript>
+    <!-- Instant splash — renders before any JS loads -->
+    <style>
+        #bl-splash {
+            position: fixed; inset: 0; z-index: 99999;
+            background: #120D06;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 24px;
+            transition: opacity 0.4s ease;
+        }
+        #bl-splash.fade-out { opacity: 0; pointer-events: none; }
+        #bl-splash-logo {
+            width: 64px; height: 64px;
+            background: linear-gradient(135deg, #C9A84C, #B8860B);
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px;
+        }
+        #bl-splash-title {
+            font-family: Georgia, serif;
+            font-size: 28px; font-weight: 600;
+            color: #C9A84C; letter-spacing: 1px;
+        }
+        #bl-splash-ring {
+            width: 36px; height: 36px;
+            border: 2px solid rgba(201,168,76,0.15);
+            border-top-color: #C9A84C;
+            border-radius: 50%;
+            animation: splashSpin 0.8s linear infinite;
+        }
+        @keyframes splashSpin { to { transform: rotate(360deg); } }
+    </style>
+    <div id="bl-splash">
+        <div id="bl-splash-logo">👑</div>
+        <div id="bl-splash-title">Billy Living</div>
+        <div id="bl-splash-ring"></div>
+    </div>
     <!-- Firebase: load synchronously so inline script can use firebase.* immediately -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -4143,10 +4179,18 @@
           });
         }
 
+        function dismissSplash() {
+            const splash = document.getElementById('bl-splash');
+            if (!splash) return;
+            splash.classList.add('fade-out');
+            setTimeout(() => splash.remove(), 450);
+        }
+
         function initApp() {
             // Load dashboard stats immediately, mark as fetched so showPanel doesn't re-fetch
             loadDashboardStats();
             _panelFetched.dashboard = true;
+            dismissSplash();
         }
 
         // Initialization
@@ -4163,9 +4207,13 @@
             });
 
             let appStarted = false;
+            // Set LOCAL persistence so the auth session survives page reloads
+            // — avoids a full signIn round-trip on every visit
+            adminFbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
             adminFbAuth.onAuthStateChanged(user => {
                 if (appStarted) return;
                 if (user) {
+                    // Cached session — app boots instantly
                     appStarted = true;
                     initApp();
                 } else {
