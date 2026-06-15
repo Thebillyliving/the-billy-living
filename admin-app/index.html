@@ -47,10 +47,7 @@
         <div id="bl-splash-title">Billy Living</div>
         <div id="bl-splash-ring"></div>
     </div>
-    <!-- Firebase: load synchronously so inline script can use firebase.* immediately -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <!-- Firebase SDKs are loaded dynamically after first paint — see bottom of body -->
     <style>
         * {
             margin: 0;
@@ -1902,19 +1899,11 @@
         const _panelFetched = {};
         const _vmViewFetched = {}; // tracks which vault sub-views have already loaded their data
 
-        // Firebase config
-        const adminFirebaseConfig = {
-            apiKey: "AIzaSyBbs6k7PInHUnv1x9FzHB31kUwrCcoGG7c",
-            authDomain: "the-billy-living.firebaseapp.com",
-            databaseURL: "https://the-billy-living-default-rtdb.firebaseio.com",
-            projectId: "the-billy-living",
-            storageBucket: "the-billy-living.firebasestorage.app",
-            messagingSenderId: "808519759419",
-            appId: "1:808519759419:web:5578b49e27079039dc4e1e"
-        };
-        if (!firebase.apps.length) firebase.initializeApp(adminFirebaseConfig);
-        const adminFbDB = firebase.database();
-        const adminFbAuth = firebase.auth();
+        // Firebase config — actual init happens in the deferred loader at bottom of body
+        // adminFbDB and adminFbAuth are set as window globals by the loader before initApp() is called
+        // Placeholder refs so code that references them before initApp doesn't throw
+        var adminFbDB = null;
+        var adminFbAuth = null;
 
         // Toast
         function showToast(msg) {
@@ -4193,48 +4182,7 @@
             dismissSplash();
         }
 
-        // Initialization
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-            document.getElementById('panel-dashboard')?.classList.add('active');
-
-            // Ensure nav items fire reliably on Android (prevent ghost-click suppression)
-            document.querySelectorAll('.nav-item').forEach(navEl => {
-                navEl.addEventListener('touchend', function(e) {
-                    e.stopPropagation();
-                    // Let the onclick handler fire naturally — don't preventDefault
-                }, { passive: true });
-            });
-
-            let appStarted = false;
-            // Set LOCAL persistence so the auth session survives page reloads
-            // — avoids a full signIn round-trip on every visit
-            adminFbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
-            adminFbAuth.onAuthStateChanged(user => {
-                if (appStarted) return;
-                if (user) {
-                    // Cached session — app boots instantly
-                    appStarted = true;
-                    initApp();
-                } else {
-                    adminFbAuth.signInWithEmailAndPassword('admin@billyliving.com', '147414')
-                        .then(cred => {
-                            adminFbDB.ref('admins/' + cred.user.uid).set(true);
-                            appStarted = true;
-                            initApp();
-                        })
-                        .catch(() => {
-                            adminFbAuth.createUserWithEmailAndPassword('admin@billyliving.com', '147414')
-                                .then(cred => {
-                                    adminFbDB.ref('admins/' + cred.user.uid).set(true);
-                                    appStarted = true;
-                                    initApp();
-                                })
-                                .catch(e => console.error('Auth error:', e));
-                        });
-                }
-            });
-        });
+        // Auth and initApp() are now triggered by the deferred Firebase loader at the bottom of the body.
     </script>
 <!-- ── Post Analytics Modal ──────────────────────────────────────────── -->
 <div id="analyticsModal" style="display:none;position:fixed;top:0;left:280px;right:0;bottom:0;background:rgba(0,0,0,0.88);z-index:5000;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
@@ -4340,6 +4288,90 @@ function adminOpenImage(src) {
   document.getElementById('adminImgLightboxImg').src = src;
   document.getElementById('adminImgLightbox').classList.add('active');
 }
+</script>
+<!-- ── Deferred Firebase Bootstrap ─────────────────────────────────── -->
+<script>
+(function() {
+    var FB_VER = '9.23.0';
+    var FB_BASE = 'https://www.gstatic.com/firebasejs/' + FB_VER + '/';
+    var loaded = 0;
+    var SCRIPTS = [
+        FB_BASE + 'firebase-app-compat.js',
+        FB_BASE + 'firebase-auth-compat.js',
+        FB_BASE + 'firebase-database-compat.js'
+    ];
+
+    function onAllLoaded() {
+        // Firebase SDKs are ready — now init and authenticate
+        var adminFirebaseConfig = {
+            apiKey: "AIzaSyBbs6k7PInHUnv1x9FzHB31kUwrCcoGG7c",
+            authDomain: "the-billy-living.firebaseapp.com",
+            databaseURL: "https://the-billy-living-default-rtdb.firebaseio.com",
+            projectId: "the-billy-living",
+            storageBucket: "the-billy-living.firebasestorage.app",
+            messagingSenderId: "808519759419",
+            appId: "1:808519759419:web:5578b49e27079039dc4e1e"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(adminFirebaseConfig);
+        // Overwrite the placeholders set by the inline script block
+        window.adminFbDB = firebase.database();
+        window.adminFbAuth = firebase.auth();
+
+        // Touch all nav items for Android reliability
+        document.querySelectorAll('.nav-item').forEach(function(navEl) {
+            navEl.addEventListener('touchend', function(e) { e.stopPropagation(); }, { passive: true });
+        });
+
+        var appStarted = false;
+        window.adminFbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(){});
+        window.adminFbAuth.onAuthStateChanged(function(user) {
+            if (appStarted) return;
+            if (user) {
+                appStarted = true;
+                initApp();
+            } else {
+                window.adminFbAuth.signInWithEmailAndPassword('admin@billyliving.com', '147414')
+                    .then(function(cred) {
+                        window.adminFbDB.ref('admins/' + cred.user.uid).set(true);
+                        appStarted = true;
+                        initApp();
+                    })
+                    .catch(function() {
+                        window.adminFbAuth.createUserWithEmailAndPassword('admin@billyliving.com', '147414')
+                            .then(function(cred) {
+                                window.adminFbDB.ref('admins/' + cred.user.uid).set(true);
+                                appStarted = true;
+                                initApp();
+                            })
+                            .catch(function(e) { console.error('Auth error:', e); });
+                    });
+            }
+        });
+    }
+
+    function loadScript(src, cb) {
+        var s = document.createElement('script');
+        s.src = src;
+        s.onload = cb;
+        document.head.appendChild(s);
+    }
+
+    // Chain-load: app → auth → database → boot
+    // Must be sequential since auth/database depend on app-compat
+    function loadChain(index) {
+        if (index >= SCRIPTS.length) { onAllLoaded(); return; }
+        loadScript(SCRIPTS[index], function() { loadChain(index + 1); });
+    }
+
+    // Kick off after first paint so the splash + sidebar render instantly
+    if (document.readyState === 'complete') {
+        requestAnimationFrame(function() { loadChain(0); });
+    } else {
+        window.addEventListener('load', function() {
+            requestAnimationFrame(function() { loadChain(0); });
+        });
+    }
+})();
 </script>
 </body>
 </html>
