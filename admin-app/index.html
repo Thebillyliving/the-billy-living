@@ -47,7 +47,10 @@
         <div id="bl-splash-title">Billy Living</div>
         <div id="bl-splash-ring"></div>
     </div>
-    <!-- Firebase SDKs are loaded dynamically after first paint — see bottom of body -->
+    <!-- Firebase: defer = parallel download, executes after HTML parsed, in order -->
+    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -4289,88 +4292,60 @@ function adminOpenImage(src) {
   document.getElementById('adminImgLightbox').classList.add('active');
 }
 </script>
-<!-- ── Deferred Firebase Bootstrap ─────────────────────────────────── -->
-<script>
+<!-- ── Firebase Bootstrap (runs after defer scripts execute) ─────────── -->
+<script defer>
 (function() {
-    var FB_VER = '9.23.0';
-    var FB_BASE = 'https://www.gstatic.com/firebasejs/' + FB_VER + '/';
-    var loaded = 0;
-    var SCRIPTS = [
-        FB_BASE + 'firebase-app-compat.js',
-        FB_BASE + 'firebase-auth-compat.js',
-        FB_BASE + 'firebase-database-compat.js'
-    ];
+    var adminFirebaseConfig = {
+        apiKey: "AIzaSyBbs6k7PInHUnv1x9FzHB31kUwrCcoGG7c",
+        authDomain: "the-billy-living.firebaseapp.com",
+        databaseURL: "https://the-billy-living-default-rtdb.firebaseio.com",
+        projectId: "the-billy-living",
+        storageBucket: "the-billy-living.firebasestorage.app",
+        messagingSenderId: "808519759419",
+        appId: "1:808519759419:web:5578b49e27079039dc4e1e"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(adminFirebaseConfig);
+    window.adminFbDB = firebase.database();
+    window.adminFbAuth = firebase.auth();
 
-    function onAllLoaded() {
-        // Firebase SDKs are ready — now init and authenticate
-        var adminFirebaseConfig = {
-            apiKey: "AIzaSyBbs6k7PInHUnv1x9FzHB31kUwrCcoGG7c",
-            authDomain: "the-billy-living.firebaseapp.com",
-            databaseURL: "https://the-billy-living-default-rtdb.firebaseio.com",
-            projectId: "the-billy-living",
-            storageBucket: "the-billy-living.firebasestorage.app",
-            messagingSenderId: "808519759419",
-            appId: "1:808519759419:web:5578b49e27079039dc4e1e"
-        };
-        if (!firebase.apps.length) firebase.initializeApp(adminFirebaseConfig);
-        // Overwrite the placeholders set by the inline script block
-        window.adminFbDB = firebase.database();
-        window.adminFbAuth = firebase.auth();
-
-        // Touch all nav items for Android reliability
-        document.querySelectorAll('.nav-item').forEach(function(navEl) {
-            navEl.addEventListener('touchend', function(e) { e.stopPropagation(); }, { passive: true });
-        });
-
-        var appStarted = false;
-        window.adminFbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(){});
-        window.adminFbAuth.onAuthStateChanged(function(user) {
-            if (appStarted) return;
-            if (user) {
-                appStarted = true;
-                initApp();
-            } else {
-                window.adminFbAuth.signInWithEmailAndPassword('admin@billyliving.com', '147414')
-                    .then(function(cred) {
-                        window.adminFbDB.ref('admins/' + cred.user.uid).set(true);
-                        appStarted = true;
-                        initApp();
-                    })
-                    .catch(function() {
-                        window.adminFbAuth.createUserWithEmailAndPassword('admin@billyliving.com', '147414')
-                            .then(function(cred) {
-                                window.adminFbDB.ref('admins/' + cred.user.uid).set(true);
-                                appStarted = true;
-                                initApp();
-                            })
-                            .catch(function(e) { console.error('Auth error:', e); });
-                    });
-            }
-        });
+    var appStarted = false;
+    function boot(user) {
+        if (appStarted) return;
+        appStarted = true;
+        if (user) {
+            initApp();
+        } else {
+            // Not signed in — do sign-in once, create account if needed
+            window.adminFbAuth.signInWithEmailAndPassword('admin@billyliving.com', '147414')
+                .then(function(cred) {
+                    window.adminFbDB.ref('admins/' + cred.user.uid).set(true);
+                    initApp();
+                })
+                .catch(function() {
+                    window.adminFbAuth.createUserWithEmailAndPassword('admin@billyliving.com', '147414')
+                        .then(function(cred) {
+                            window.adminFbDB.ref('admins/' + cred.user.uid).set(true);
+                            initApp();
+                        })
+                        .catch(function(e) { console.error('Auth error:', e); });
+                });
+        }
     }
 
-    function loadScript(src, cb) {
-        var s = document.createElement('script');
-        s.src = src;
-        s.onload = cb;
-        document.head.appendChild(s);
-    }
+    // 5-second timeout: if Firebase auth hangs (bad network), force init anyway
+    var authTimer = setTimeout(function() {
+        if (!appStarted) {
+            console.warn('Auth timeout — forcing initApp');
+            appStarted = true;
+            initApp();
+        }
+    }, 5000);
 
-    // Chain-load: app → auth → database → boot
-    // Must be sequential since auth/database depend on app-compat
-    function loadChain(index) {
-        if (index >= SCRIPTS.length) { onAllLoaded(); return; }
-        loadScript(SCRIPTS[index], function() { loadChain(index + 1); });
-    }
-
-    // Kick off after first paint so the splash + sidebar render instantly
-    if (document.readyState === 'complete') {
-        requestAnimationFrame(function() { loadChain(0); });
-    } else {
-        window.addEventListener('load', function() {
-            requestAnimationFrame(function() { loadChain(0); });
-        });
-    }
+    window.adminFbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(){});
+    window.adminFbAuth.onAuthStateChanged(function(user) {
+        clearTimeout(authTimer);
+        boot(user);
+    });
 })();
 </script>
 </body>
