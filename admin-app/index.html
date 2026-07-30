@@ -4248,10 +4248,11 @@
             requestAnimationFrame(dismissSplash);
         }
 
-        // The order sections load in, one at a time, after login — matches the
-        // nav order Billy asked for. Each section only starts fetching once the
-        // one before it has fully finished, so they never compete for bandwidth.
-        const SECTION_LOAD_ORDER = ['dashboard','home','catalog','trending','portfolio','vip','vaultmgr','messages','settings','security'];
+        // The order sections load in, one at a time, after login. Dashboard
+        // loads last; the rest follow the nav order. Each section only starts
+        // fetching once the one before it has fully finished, so they never
+        // compete for bandwidth.
+        const SECTION_LOAD_ORDER = ['home','catalog','trending','portfolio','vip','vaultmgr','messages','settings','security','dashboard'];
 
         function _loadSectionData(name) {
             switch (name) {
