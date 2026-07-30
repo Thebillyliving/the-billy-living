@@ -51,7 +51,6 @@
     <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -1658,7 +1657,7 @@
             </div>
         </div><!-- VIP Manager Panel -->
         <div class="panel" id="panel-vip">
-            <div class="page-header"><h1 class="page-title">VIP Manager</h1><button class="btn btn-secondary" onclick="_panelFetched.vip=false;renderVIPList();loadVIPRequests();" style="padding:10px 16px;font-size:12px;">&#x21BB; Refresh</button></div>
+            <div class="page-header"><h1 class="page-title">VIP Manager</h1><button class="btn btn-secondary" onclick="_panelFetched.vip=false;renderVIPList().then(loadVIPRequests);" style="padding:10px 16px;font-size:12px;">&#x21BB; Refresh</button></div>
             <div class="vip-form"><h3 style="margin-bottom:16px;color:var(--gold);">Register New VIP</h3><div class="form-row"><div class="form-group"><label class="form-label">Phone Number (10 digits)</label><input type="tel" class="form-input" id="vipPhone" placeholder="08012345678" maxlength="10"></div><div class="form-group"><label class="form-label">4-Digit Code</label><input type="text" class="form-input" id="vipCode" placeholder="4521" maxlength="4"></div><div class="form-group"><label class="form-label">Full Name</label><input type="text" class="form-input" id="vipName" placeholder="Mr. Adeyemi"></div></div><button class="btn btn-primary" onclick="addVIP()" style="margin-top:16px;">Add VIP Member</button></div>
             <h3 style="margin:32px 0 16px;color:var(--gold);">VIP Requests <span id="vipRequestCount" style="font-size:14px;font-weight:400;color:rgba(201,168,76,.5);margin-left:8px;"></span></h3>
             <div id="vipRequestsList" style="margin-bottom:32px;"></div>
@@ -1947,7 +1946,7 @@
             if (name === 'catalog') { if (!_panelFetched.catalog) { _panelFetched.catalog = true; renderCatalogList(); } }
             if (name === 'home') { if (!_panelFetched.home) { _panelFetched.home = true; renderHomeList(); } }
             if (name === 'trending') { if (!_panelFetched.trending) { _panelFetched.trending = true; renderTrendingList(); } }
-            if (name === 'vip') { if (!_panelFetched.vip) { _panelFetched.vip = true; renderVIPList(); loadVIPRequests(); } }
+            if (name === 'vip') { if (!_panelFetched.vip) { _panelFetched.vip = true; renderVIPList().then(loadVIPRequests); } }
             if (name === 'portfolio') { if (!_panelFetched.portfolio) { _panelFetched.portfolio = true; loadPortfolioUsers(); } }
             if (name === 'messages') { if (!_panelFetched.messages) { _panelFetched.messages = true; initAdminMessagesListener(); } }
         }
@@ -1955,7 +1954,7 @@
         // Vault Manager Init
         function vmInit() {
             vmShowView('main');
-            vmLoadClientList();
+            return vmLoadClientList();
         }
 
         function vmShowView(view) {
@@ -1981,7 +1980,7 @@
         function vmLoadClientList() {
             const list = document.getElementById('vmClientList');
             list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">Loading clients…</div></div>';
-            adminFbDB.ref('vip').limitToFirst(100).once('value').then(snap => {
+            return adminFbDB.ref('vip').limitToFirst(100).once('value').then(snap => {
                 _allVaultClients = Object.values(snap.val() || {});
                 if (!_allVaultClients.length) {
                     list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">No VIP clients registered yet</div><div class="vm-empty-sub">Add clients in VIP Manager first</div></div>';
@@ -2723,29 +2722,33 @@
               statIds.forEach(id => { const el = document.getElementById(id); if (el && el.querySelector('.skel')) el.textContent = '—'; });
             }
           }, 8000);
-          Promise.all([
-            adminFbDB.ref('content/posts').once('value'),
-            adminFbDB.ref('content/trending').once('value'),
-            adminFbDB.ref('vip').once('value')
-          ]).then(([posts, trending, vip]) => {
-            settled = true;
-            clearTimeout(timeout);
-            document.getElementById('statPosts').textContent = posts.exists() ? Object.keys(posts.val()).length : 0;
-            document.getElementById('statTrending').textContent = trending.exists() ? Object.keys(trending.val()).length : 0;
-            const vips = vip.val() ? Object.values(vip.val()) : [];
-            document.getElementById('statPendingVIP').textContent = vips.filter(v => !v.id).length;
-          }).catch(e => {
-            settled = true;
-            clearTimeout(timeout);
-            statIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '!'; });
-            console.warn('Stats error:', e);
-          });
+          return adminFbDB.ref('content/posts').once('value')
+            .then(posts => {
+              document.getElementById('statPosts').textContent = posts.exists() ? Object.keys(posts.val()).length : 0;
+              return adminFbDB.ref('content/trending').once('value');
+            })
+            .then(trending => {
+              document.getElementById('statTrending').textContent = trending.exists() ? Object.keys(trending.val()).length : 0;
+              return adminFbDB.ref('vip').once('value');
+            })
+            .then(vip => {
+              const vips = vip.val() ? Object.values(vip.val()) : [];
+              document.getElementById('statPendingVIP').textContent = vips.filter(v => !v.id).length;
+              settled = true;
+              clearTimeout(timeout);
+            })
+            .catch(e => {
+              settled = true;
+              clearTimeout(timeout);
+              statIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '!'; });
+              console.warn('Stats error:', e);
+            });
         }
         function renderHomeList() {
           const el = document.getElementById('homeList');
           el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
           const doLoad = () => {
-            adminFbDB.ref('content/posts').limitToLast(20).once('value').then(snap => {
+            return adminFbDB.ref('content/posts').limitToLast(20).once('value').then(snap => {
               if (!snap.exists() || !snap.val()) {
                 el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><div>No posts yet</div></div>';
                 return;
@@ -2767,7 +2770,7 @@
               el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div style="font-size:14px;margin-bottom:8px;">Error: ' + e.message + '</div><button class="btn btn-secondary" onclick="renderHomeList()" style="margin-top:8px;">Retry</button></div>';
             });
           };
-          doLoad();
+          return doLoad();
         }
         const _adminCatalogMap = {};
         let _catalogCache = null;
@@ -2809,10 +2812,10 @@
           // Serve from cache if fresh
           if (_catalogCache && (Date.now() - _catalogCacheTime < CATALOG_CACHE_TTL)) {
             _renderCatalogFromData(_catalogCache);
-            return;
+            return Promise.resolve();
           }
           grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;"><div style="width:32px;height:32px;border:2px solid rgba(201,168,76,.1);border-top-color:#C9A84C;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;"></div><div style="font-size:11px;letter-spacing:3px;color:rgba(201,168,76,.4);">LOADING...</div></div>';
-          adminFbDB.ref('content/catalog').limitToFirst(25).once('value').then(snap => {
+          return adminFbDB.ref('content/catalog').limitToFirst(25).once('value').then(snap => {
             if (!snap.exists()) { grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:rgba(201,168,76,.3);">No catalog collections yet</div>'; return; }
             _catalogCache = snap.val();
             _catalogCacheTime = Date.now();
@@ -2822,7 +2825,7 @@
         function renderTrendingList() {
           const el = document.getElementById('trendingList');
           el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
-          adminFbDB.ref('content/trending').limitToLast(15).once('value').then(snap => {
+          return adminFbDB.ref('content/trending').limitToLast(15).once('value').then(snap => {
             if (!snap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔥</div>No trending items yet</div>'; return; }
             const items = Object.values(snap.val()).reverse();
             el.innerHTML = items.map(p => `<div class="list-item" style="cursor:pointer;" onclick="openPostAnalytics('trending','${p.id||''}','${(p.caption||p.title||'Trending').replace(/'/g,"\\'")}')">
@@ -2851,9 +2854,9 @@
         function loadVIPRequests() {
           const el = document.getElementById('vipRequestsList');
           const countEl = document.getElementById('vipRequestCount');
-          if (!el) return;
+          if (!el) return Promise.resolve();
           el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(201,168,76,.4);">Loading requests...</div>';
-          adminFbDB.ref('vipRequests').once('value').then(snap => {
+          return adminFbDB.ref('vipRequests').once('value').then(snap => {
             const raw = snap.val() || {};
             const requests = Object.entries(raw).map(([k, v]) => ({ ...v, _key: k }));
             if (countEl) countEl.textContent = requests.length + ' request' + (requests.length !== 1 ? 's' : '');
@@ -2939,7 +2942,7 @@
         function renderVIPList() {
           const grid = document.getElementById('vipGrid');
           grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(201,168,76,.4);">Loading VIPs...</div>';
-          adminFbDB.ref('vip').once('value').then(snap => {
+          return adminFbDB.ref('vip').once('value').then(snap => {
             _allVIPs = snap.val() ? Object.values(snap.val()) : [];
             const countEl = document.getElementById('vipCount');
             if (countEl) countEl.textContent = _allVIPs.length + ' member' + (_allVIPs.length !== 1 ? 's' : '');
@@ -2954,13 +2957,16 @@
         function loadPortfolioUsers() {
           const el = document.getElementById('portfolioUsersList');
           el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
-          // Fetch portfolios + userProfiles in parallel (2 reads instead of N+1)
-          Promise.all([
-            adminFbDB.ref('portfolios').limitToFirst(50).once('value'),
-            adminFbDB.ref('userProfiles').limitToFirst(100).once('value')
-          ]).then(([portSnap, usersSnap]) => {
+          // Fetch portfolios, then userProfiles — one ref at a time, not in parallel
+          let _lpPortfolios = {};
+          return adminFbDB.ref('portfolios').limitToFirst(50).once('value')
+            .then(portSnap => {
+              _lpPortfolios = portSnap.val() || {};
+              return adminFbDB.ref('userProfiles').limitToFirst(100).once('value');
+            })
+            .then(usersSnap => {
             if (!usersSnap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🖼</div>No users yet</div>'; return; }
-            const portfolios = portSnap.val() || {};
+            const portfolios = _lpPortfolios;
             const users = usersSnap.val() || {};
             const results = Object.entries(users).map(([uid, u]) => {
               const items = portfolios[uid] && portfolios[uid].items;
@@ -3075,54 +3081,42 @@
                 fc.innerHTML = '<div class="form-group"><label class="form-label">Collection Name</label><input class="form-input" id="fName" placeholder="e.g. Minimalist Luxury"></div><div class="form-group"><label class="form-label">Description</label><input class="form-input" id="fSpecialty" placeholder="e.g. Calm, Refined"></div>';
             }
         }
-        function closeForm() { window._fImageFile = null; window._fAudioFile = null; window._fAudioName = ''; document.getElementById('formModal').classList.remove('active'); }
+        function closeForm() { window._fImageBase64 = ''; window._fAudioBase64 = ''; window._fAudioName = ''; document.getElementById('formModal').classList.remove('active'); }
         function handleFormImagePick(input) {
             const file = input.files[0];
             if (!file) return;
-            // Hold onto the raw file — it's compressed and uploaded to Storage
-            // at Save time, not here. Preview uses a cheap local object URL
-            // instead of encoding the whole file to base64 just to show it.
-            window._fImageFile = file;
             const wrap = document.getElementById('fImagePreviewInner');
-            if (wrap) wrap.innerHTML = '<img src="'+URL.createObjectURL(file)+'" style="max-width:100%;max-height:180px;border-radius:8px;object-fit:cover;">';
+            if (wrap) wrap.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(201,168,76,0.5);font-size:13px;">Compressing…</div>';
+            _fileToCompressedBase64(file).then(result => {
+                window._fImageBase64 = result;
+                if (wrap) wrap.innerHTML = '<img src="'+result+'" style="max-width:100%;max-height:180px;border-radius:8px;object-fit:cover;">';
+            }).catch(() => {
+                if (wrap) wrap.innerHTML = '<div style="padding:20px;text-align:center;color:#ef4444;font-size:13px;">Failed to process image</div>';
+            });
         }
         function handleFormAudioPick(input) {
             const file = input.files[0];
             if (!file) return;
-            window._fAudioFile = file;
             window._fAudioName = file.name;
-            const lbl = document.getElementById('fAudioPickerLabel');
-            if (lbl) lbl.innerHTML = '<span style="color:#C9A84C;font-weight:500;">&#x2713; ' + file.name + '</span><span style="display:block;font-size:11px;color:rgba(201,168,76,0.45);margin-top:2px;">Tap to change</span>';
-            const wrap = document.getElementById('fAudioPickerWrap');
-            if (wrap) wrap.style.borderColor = '#C9A84C';
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                window._fAudioBase64 = e.target.result;
+                const lbl = document.getElementById('fAudioPickerLabel');
+                if (lbl) lbl.innerHTML = '<span style="color:#C9A84C;font-weight:500;">&#x2713; ' + file.name + '</span><span style="display:block;font-size:11px;color:rgba(201,168,76,0.45);margin-top:2px;">Tap to change</span>';
+                const wrap = document.getElementById('fAudioPickerWrap');
+                if (wrap) wrap.style.borderColor = '#C9A84C';
+            };
+            reader.readAsDataURL(file);
         }
-        // NOTE: this function's declaration was previously missing — the block
-        // below was orphaned dead code at the top level of the script, meaning
-        // clicking "Save" on Add Post / Add Trending / Add Category silently
-        // did nothing (submitForm was undefined). Restored here, and now
-        // uploads files to Storage instead of writing base64 into the database.
         function submitForm() {
             const t = currentForm;
             const id = t + '_' + Date.now();
-            if (t === 'post' || t === 'trending') {
-                const caption = document.getElementById('fCaption').value||'Untitled';
-                const location = document.getElementById('fLocation').value||'';
-                const imgFile = window._fImageFile;
-                const audFile = window._fAudioFile;
-                const audioName = window._fAudioName||'';
-                const node = t === 'post' ? 'content/posts/' : 'content/trending/';
-                showToast('Saving…');
-                Promise.all([
-                    imgFile ? _uploadFileToStorage(imgFile, node + id + '/image_' + Date.now() + '.jpg') : Promise.resolve(''),
-                    audFile ? _uploadFileToStorage(audFile, node + id + '/audio_' + Date.now() + '_' + audFile.name) : Promise.resolve('')
-                ]).then(([imageUrl, audioUrl]) => {
-                    const data = { id, caption, location, imageData: imageUrl, audioData: audioUrl, audioName, createdAt: Date.now() };
-                    return adminFbDB.ref(node + id).set(data);
-                }).then(() => {
-                    closeForm();
-                    showToast('✓ ' + (t === 'post' ? 'Post' : 'Trending item') + ' saved');
-                    if (t === 'post') renderHomeList(); else renderTrendingList();
-                }).catch(e => showToast('Error: ' + e.message));
+            if (t === 'post') {
+                const data = { id, caption: (document.getElementById('fCaption').value||'Untitled'), location: (document.getElementById('fLocation').value||''), imageData: (window._fImageBase64||''), audioData: (window._fAudioBase64||''), audioName: (window._fAudioName||''), createdAt: Date.now() };
+                adminFbDB.ref('content/posts/' + id).set(data).then(() => { window._fImageBase64=''; window._fAudioBase64=''; window._fAudioName=''; closeForm(); showToast('✓ Post saved'); renderHomeList(); });
+            } else if (t === 'trending') {
+                const data = { id, caption: (document.getElementById('fCaption').value||'Untitled'), location: (document.getElementById('fLocation').value||''), imageData: (window._fImageBase64||''), audioData: (window._fAudioBase64||''), audioName: (window._fAudioName||''), createdAt: Date.now() };
+                adminFbDB.ref('content/trending/' + id).set(data).then(() => { window._fImageBase64=''; window._fAudioBase64=''; window._fAudioName=''; closeForm(); showToast('✓ Trending item saved'); renderTrendingList(); });
             } else if (t === 'category') {
                 const n = document.getElementById('fName').value||'Collection'; const sid = n.toLowerCase().replace(/[^a-z0-9]/g,'_');
                 const data = { id: sid, value: n, description: (document.getElementById('fSpecialty').value||''), createdAt: Date.now() };
@@ -3137,7 +3131,7 @@
         function initAdminMessagesListener() {
           const el = document.getElementById('msgsConversationsList');
           el.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(201,168,76,.4);">Loading messages...</div>';
-          adminFbDB.ref('chats').limitToFirst(30).once('value').then(snap => {
+          return adminFbDB.ref('chats').limitToFirst(30).once('value').then(snap => {
             if (!snap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💬</div>No messages yet</div>'; return; }
             const convos = Object.entries(snap.val());
             el.innerHTML = convos.map(([uid, convo]) => {
@@ -3477,25 +3471,13 @@
             return _compressImageFile(file).then(compressed => _fileToBase64(compressed));
         }
 
-        // ── Firebase Storage upload — use this instead of _fileToCompressedBase64
-        // for anything that gets saved to the database. Compresses images first,
-        // uploads to Storage, and resolves with the download URL (a short string)
-        // instead of a multi-hundred-KB base64 blob. Keeps the Realtime Database
-        // small and fast to read; the actual bytes are served from Storage's CDN.
-        function _uploadFileToStorage(file, storagePath) {
-            return _compressImageFile(file).then(compressed => {
-                const ref = adminFbStorage.ref(storagePath);
-                return ref.put(compressed).then(snapshot => snapshot.ref.getDownloadURL());
-            });
-        }
-
         function handleCoverReplaceUpload(input) {
             const file = input.files[0];
             if (!file || !_cellPressBoxId) return;
             showToast('Uploading cover…');
-            _uploadFileToStorage(file, 'catalog/' + _cellPressBoxId + '/cover_' + Date.now() + '.jpg').then(url => {
+            _fileToCompressedBase64(file).then(b64 => {
                 // Store as first image in the images array
-                return adminFbDB.ref('content/catalog/' + _cellPressBoxId + '/images/0').set(url);
+                return adminFbDB.ref('content/catalog/' + _cellPressBoxId + '/images/0').set(b64);
             }).then(() => {
                 _catalogCache = null;
                 showToast('✓ Cover updated');
@@ -3508,8 +3490,8 @@
             const file = input.files[0];
             if (!file || !currentCatalogBox) return;
             showToast('Uploading palette photo…');
-            _uploadFileToStorage(file, 'catalog/' + currentCatalogBox.id + '/palette_' + Date.now() + '.jpg').then(url => {
-                return adminFbDB.ref('content/catalog/' + currentCatalogBox.id + '/paletteImage').set(url);
+            _fileToCompressedBase64(file).then(b64 => {
+                return adminFbDB.ref('content/catalog/' + currentCatalogBox.id + '/paletteImage').set(b64);
             }).then(() => {
                 showToast('✓ Palette photo updated');
                 openAdminCatalogInner(currentCatalogBox);
@@ -3521,9 +3503,9 @@
             const file = input.files[0];
             if (!file || !currentCatalogBox || _roomPressIdx === null) return;
             showToast('Uploading room image…');
-            _uploadFileToStorage(file, 'catalog/' + currentCatalogBox.id + '/room_' + _roomPressIdx + '_' + Date.now() + '.jpg').then(url => {
+            _fileToCompressedBase64(file).then(b64 => {
                 const path = 'content/catalog/' + currentCatalogBox.id + '/mixtureImages/0/' + _roomPressIdx;
-                return adminFbDB.ref(path).set(url);
+                return adminFbDB.ref(path).set(b64);
             }).then(() => {
                 showToast('✓ Room image updated');
                 openAdminCatalogRooms();
@@ -3537,9 +3519,9 @@
             const files = Array.from(input.files);
             if (!files.length || !_cellPressBoxId) return;
             showToast('Uploading ' + files.length + ' image(s)…');
-            Promise.all(files.map((f, i) => _uploadFileToStorage(f, 'catalog/' + _cellPressBoxId + '/img_' + Date.now() + '_' + i + '.jpg'))).then(urls => {
+            Promise.all(files.map(f => _fileToCompressedBase64(f))).then(b64s => {
                 const updates = {};
-                urls.forEach((u, i) => { updates['content/catalog/' + _cellPressBoxId + '/images/' + i] = u; });
+                b64s.forEach((b, i) => { updates['content/catalog/' + _cellPressBoxId + '/images/' + i] = b; });
                 return adminFbDB.ref().update(updates);
             }).then(() => {
                 _catalogCache = null;
@@ -4266,12 +4248,51 @@
             requestAnimationFrame(dismissSplash);
         }
 
-        function initApp() {
-            // Called after Firebase auth resolves — just load dashboard data
-            if (!_panelFetched.dashboard) {
-                _panelFetched.dashboard = true;
-                loadDashboardStats();
+        // The order sections load in, one at a time, after login — matches the
+        // nav order Billy asked for. Each section only starts fetching once the
+        // one before it has fully finished, so they never compete for bandwidth.
+        const SECTION_LOAD_ORDER = ['dashboard','home','catalog','trending','portfolio','vip','vaultmgr','messages','settings','security'];
+
+        function _loadSectionData(name) {
+            switch (name) {
+                case 'dashboard': return loadDashboardStats();
+                case 'home':      return renderHomeList();
+                case 'catalog':   return renderCatalogList();
+                case 'trending':  return renderTrendingList();
+                case 'portfolio': return loadPortfolioUsers();
+                case 'vip':       return renderVIPList().then(loadVIPRequests);
+                case 'vaultmgr':  return vmInit();
+                case 'messages':  return initAdminMessagesListener();
+                // Settings and Security are static forms with no Firebase data to fetch.
+                case 'settings':
+                case 'security':
+                default:          return Promise.resolve();
             }
+        }
+
+        // Walks SECTION_LOAD_ORDER and loads each section's data step by step —
+        // never two sections at once. If the person has already opened a panel
+        // manually (showPanel sets _panelFetched[name] first), that section is
+        // skipped here since it's already loaded.
+        function preloadSectionsInOrder() {
+            let chain = Promise.resolve();
+            SECTION_LOAD_ORDER.forEach(name => {
+                chain = chain.then(() => {
+                    if (_panelFetched[name]) return;
+                    _panelFetched[name] = true;
+                    return Promise.resolve(_loadSectionData(name)).catch(e => {
+                        console.warn('Preload error for section "' + name + '":', e);
+                    });
+                });
+            });
+            return chain;
+        }
+
+        function initApp() {
+            // Called after Firebase auth resolves — load every section's data
+            // one section at a time, in order, instead of all sections firing
+            // their Firebase reads simultaneously.
+            preloadSectionsInOrder();
         }
 
         // Auth and initApp() are now triggered by the deferred Firebase loader at the bottom of the body.
@@ -4396,7 +4417,6 @@ function adminOpenImage(src) {
     if (!firebase.apps.length) firebase.initializeApp(adminFirebaseConfig);
     window.adminFbDB = firebase.database();
     window.adminFbAuth = firebase.auth();
-    window.adminFbStorage = firebase.storage();
 
     var appStarted = false;
     function boot(user) {
