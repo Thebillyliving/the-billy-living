@@ -51,6 +51,7 @@
     <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -3074,41 +3075,54 @@
                 fc.innerHTML = '<div class="form-group"><label class="form-label">Collection Name</label><input class="form-input" id="fName" placeholder="e.g. Minimalist Luxury"></div><div class="form-group"><label class="form-label">Description</label><input class="form-input" id="fSpecialty" placeholder="e.g. Calm, Refined"></div>';
             }
         }
-        function closeForm() { window._fImageBase64 = ''; window._fAudioBase64 = ''; window._fAudioName = ''; document.getElementById('formModal').classList.remove('active'); }
+        function closeForm() { window._fImageFile = null; window._fAudioFile = null; window._fAudioName = ''; document.getElementById('formModal').classList.remove('active'); }
         function handleFormImagePick(input) {
             const file = input.files[0];
             if (!file) return;
+            // Hold onto the raw file — it's compressed and uploaded to Storage
+            // at Save time, not here. Preview uses a cheap local object URL
+            // instead of encoding the whole file to base64 just to show it.
+            window._fImageFile = file;
             const wrap = document.getElementById('fImagePreviewInner');
-            if (wrap) wrap.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(201,168,76,0.5);font-size:13px;">Compressing…</div>';
-            _fileToCompressedBase64(file).then(result => {
-                window._fImageBase64 = result;
-                if (wrap) wrap.innerHTML = '<img src="'+result+'" style="max-width:100%;max-height:180px;border-radius:8px;object-fit:cover;">';
-            }).catch(() => {
-                if (wrap) wrap.innerHTML = '<div style="padding:20px;text-align:center;color:#ef4444;font-size:13px;">Failed to process image</div>';
-            });
+            if (wrap) wrap.innerHTML = '<img src="'+URL.createObjectURL(file)+'" style="max-width:100%;max-height:180px;border-radius:8px;object-fit:cover;">';
         }
         function handleFormAudioPick(input) {
             const file = input.files[0];
             if (!file) return;
+            window._fAudioFile = file;
             window._fAudioName = file.name;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                window._fAudioBase64 = e.target.result;
-                const lbl = document.getElementById('fAudioPickerLabel');
-                if (lbl) lbl.innerHTML = '<span style="color:#C9A84C;font-weight:500;">&#x2713; ' + file.name + '</span><span style="display:block;font-size:11px;color:rgba(201,168,76,0.45);margin-top:2px;">Tap to change</span>';
-                const wrap = document.getElementById('fAudioPickerWrap');
-                if (wrap) wrap.style.borderColor = '#C9A84C';
-            };
-            reader.readAsDataURL(file);
+            const lbl = document.getElementById('fAudioPickerLabel');
+            if (lbl) lbl.innerHTML = '<span style="color:#C9A84C;font-weight:500;">&#x2713; ' + file.name + '</span><span style="display:block;font-size:11px;color:rgba(201,168,76,0.45);margin-top:2px;">Tap to change</span>';
+            const wrap = document.getElementById('fAudioPickerWrap');
+            if (wrap) wrap.style.borderColor = '#C9A84C';
         }
+        // NOTE: this function's declaration was previously missing — the block
+        // below was orphaned dead code at the top level of the script, meaning
+        // clicking "Save" on Add Post / Add Trending / Add Category silently
+        // did nothing (submitForm was undefined). Restored here, and now
+        // uploads files to Storage instead of writing base64 into the database.
+        function submitForm() {
             const t = currentForm;
             const id = t + '_' + Date.now();
-            if (t === 'post') {
-                const data = { id, caption: (document.getElementById('fCaption').value||'Untitled'), location: (document.getElementById('fLocation').value||''), imageData: (window._fImageBase64||''), audioData: (window._fAudioBase64||''), audioName: (window._fAudioName||''), createdAt: Date.now() };
-                adminFbDB.ref('content/posts/' + id).set(data).then(() => { window._fImageBase64=''; window._fAudioBase64=''; window._fAudioName=''; closeForm(); showToast('✓ Post saved'); renderHomeList(); });
-            } else if (t === 'trending') {
-                const data = { id, caption: (document.getElementById('fCaption').value||'Untitled'), location: (document.getElementById('fLocation').value||''), imageData: (window._fImageBase64||''), audioData: (window._fAudioBase64||''), audioName: (window._fAudioName||''), createdAt: Date.now() };
-                adminFbDB.ref('content/trending/' + id).set(data).then(() => { window._fImageBase64=''; window._fAudioBase64=''; window._fAudioName=''; closeForm(); showToast('✓ Trending item saved'); renderTrendingList(); });
+            if (t === 'post' || t === 'trending') {
+                const caption = document.getElementById('fCaption').value||'Untitled';
+                const location = document.getElementById('fLocation').value||'';
+                const imgFile = window._fImageFile;
+                const audFile = window._fAudioFile;
+                const audioName = window._fAudioName||'';
+                const node = t === 'post' ? 'content/posts/' : 'content/trending/';
+                showToast('Saving…');
+                Promise.all([
+                    imgFile ? _uploadFileToStorage(imgFile, node + id + '/image_' + Date.now() + '.jpg') : Promise.resolve(''),
+                    audFile ? _uploadFileToStorage(audFile, node + id + '/audio_' + Date.now() + '_' + audFile.name) : Promise.resolve('')
+                ]).then(([imageUrl, audioUrl]) => {
+                    const data = { id, caption, location, imageData: imageUrl, audioData: audioUrl, audioName, createdAt: Date.now() };
+                    return adminFbDB.ref(node + id).set(data);
+                }).then(() => {
+                    closeForm();
+                    showToast('✓ ' + (t === 'post' ? 'Post' : 'Trending item') + ' saved');
+                    if (t === 'post') renderHomeList(); else renderTrendingList();
+                }).catch(e => showToast('Error: ' + e.message));
             } else if (t === 'category') {
                 const n = document.getElementById('fName').value||'Collection'; const sid = n.toLowerCase().replace(/[^a-z0-9]/g,'_');
                 const data = { id: sid, value: n, description: (document.getElementById('fSpecialty').value||''), createdAt: Date.now() };
@@ -3463,13 +3477,25 @@
             return _compressImageFile(file).then(compressed => _fileToBase64(compressed));
         }
 
+        // ── Firebase Storage upload — use this instead of _fileToCompressedBase64
+        // for anything that gets saved to the database. Compresses images first,
+        // uploads to Storage, and resolves with the download URL (a short string)
+        // instead of a multi-hundred-KB base64 blob. Keeps the Realtime Database
+        // small and fast to read; the actual bytes are served from Storage's CDN.
+        function _uploadFileToStorage(file, storagePath) {
+            return _compressImageFile(file).then(compressed => {
+                const ref = adminFbStorage.ref(storagePath);
+                return ref.put(compressed).then(snapshot => snapshot.ref.getDownloadURL());
+            });
+        }
+
         function handleCoverReplaceUpload(input) {
             const file = input.files[0];
             if (!file || !_cellPressBoxId) return;
             showToast('Uploading cover…');
-            _fileToCompressedBase64(file).then(b64 => {
+            _uploadFileToStorage(file, 'catalog/' + _cellPressBoxId + '/cover_' + Date.now() + '.jpg').then(url => {
                 // Store as first image in the images array
-                return adminFbDB.ref('content/catalog/' + _cellPressBoxId + '/images/0').set(b64);
+                return adminFbDB.ref('content/catalog/' + _cellPressBoxId + '/images/0').set(url);
             }).then(() => {
                 _catalogCache = null;
                 showToast('✓ Cover updated');
@@ -3482,8 +3508,8 @@
             const file = input.files[0];
             if (!file || !currentCatalogBox) return;
             showToast('Uploading palette photo…');
-            _fileToCompressedBase64(file).then(b64 => {
-                return adminFbDB.ref('content/catalog/' + currentCatalogBox.id + '/paletteImage').set(b64);
+            _uploadFileToStorage(file, 'catalog/' + currentCatalogBox.id + '/palette_' + Date.now() + '.jpg').then(url => {
+                return adminFbDB.ref('content/catalog/' + currentCatalogBox.id + '/paletteImage').set(url);
             }).then(() => {
                 showToast('✓ Palette photo updated');
                 openAdminCatalogInner(currentCatalogBox);
@@ -3495,9 +3521,9 @@
             const file = input.files[0];
             if (!file || !currentCatalogBox || _roomPressIdx === null) return;
             showToast('Uploading room image…');
-            _fileToCompressedBase64(file).then(b64 => {
+            _uploadFileToStorage(file, 'catalog/' + currentCatalogBox.id + '/room_' + _roomPressIdx + '_' + Date.now() + '.jpg').then(url => {
                 const path = 'content/catalog/' + currentCatalogBox.id + '/mixtureImages/0/' + _roomPressIdx;
-                return adminFbDB.ref(path).set(b64);
+                return adminFbDB.ref(path).set(url);
             }).then(() => {
                 showToast('✓ Room image updated');
                 openAdminCatalogRooms();
@@ -3511,9 +3537,9 @@
             const files = Array.from(input.files);
             if (!files.length || !_cellPressBoxId) return;
             showToast('Uploading ' + files.length + ' image(s)…');
-            Promise.all(files.map(f => _fileToCompressedBase64(f))).then(b64s => {
+            Promise.all(files.map((f, i) => _uploadFileToStorage(f, 'catalog/' + _cellPressBoxId + '/img_' + Date.now() + '_' + i + '.jpg'))).then(urls => {
                 const updates = {};
-                b64s.forEach((b, i) => { updates['content/catalog/' + _cellPressBoxId + '/images/' + i] = b; });
+                urls.forEach((u, i) => { updates['content/catalog/' + _cellPressBoxId + '/images/' + i] = u; });
                 return adminFbDB.ref().update(updates);
             }).then(() => {
                 _catalogCache = null;
@@ -4370,6 +4396,7 @@ function adminOpenImage(src) {
     if (!firebase.apps.length) firebase.initializeApp(adminFirebaseConfig);
     window.adminFbDB = firebase.database();
     window.adminFbAuth = firebase.auth();
+    window.adminFbStorage = firebase.storage();
 
     var appStarted = false;
     function boot(user) {
