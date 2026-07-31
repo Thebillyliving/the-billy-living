@@ -1980,7 +1980,12 @@
         function vmLoadClientList() {
             const list = document.getElementById('vmClientList');
             list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">Loading clients…</div></div>';
+            let settled = false;
+            const watchdog = setTimeout(() => {
+                if (!settled) list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">⚠</div><div class="vm-empty-title">Taking longer than expected</div><div class="vm-empty-sub"><a href="#" onclick="vmLoadClientList();return false;" style="color:var(--vault-gold);">Retry</a></div></div>';
+            }, 10000);
             return adminFbDB.ref('vip').limitToFirst(100).once('value').then(snap => {
+                settled = true; clearTimeout(watchdog);
                 _allVaultClients = Object.values(snap.val() || {});
                 if (!_allVaultClients.length) {
                     list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">No VIP clients registered yet</div><div class="vm-empty-sub">Add clients in VIP Manager first</div></div>';
@@ -1989,7 +1994,7 @@
                 const si = document.getElementById('vmClientSearchInput'); if (si) si.value = '';
                 const sc = document.getElementById('vmSearchClear'); if (sc) sc.style.display = 'none';
                 _renderVaultClientList(_allVaultClients);
-            });
+            }).catch(e => { settled = true; clearTimeout(watchdog); list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">⚠</div><div class="vm-empty-title">Error loading clients</div><div class="vm-empty-sub">' + e.message + '</div></div>'; });
         }
 
         // Asset management
@@ -2714,26 +2719,35 @@
 
         // Stubs for other functions
         function loadDashboardStats() {
-          // Set a timeout so if Firebase is slow, stats retry automatically
+          // Realtime Database has no disk-persistence API on web (that's a
+          // Firestore-only method), so we roll our own instant-paint: show
+          // last-known numbers from localStorage immediately, then overwrite
+          // with fresh data once the Firebase read completes.
           const statIds = ['statPosts','statTrending','statPendingVIP'];
+          try {
+            const cached = JSON.parse(localStorage.getItem('tbl_dash_cache') || 'null');
+            if (cached) statIds.forEach(id => { const el = document.getElementById(id); if (el && cached[id] != null) el.textContent = cached[id]; });
+          } catch (e) {}
           let settled = false;
           const timeout = setTimeout(() => {
             if (!settled) {
               statIds.forEach(id => { const el = document.getElementById(id); if (el && el.querySelector('.skel')) el.textContent = '—'; });
             }
           }, 8000);
-          return adminFbDB.ref('content/posts').once('value')
-            .then(posts => {
-              document.getElementById('statPosts').textContent = posts.exists() ? Object.keys(posts.val()).length : 0;
-              return adminFbDB.ref('content/trending').once('value');
-            })
-            .then(trending => {
-              document.getElementById('statTrending').textContent = trending.exists() ? Object.keys(trending.val()).length : 0;
-              return adminFbDB.ref('vip').once('value');
-            })
-            .then(vip => {
+          return Promise.all([
+              adminFbDB.ref('content/posts').once('value'),
+              adminFbDB.ref('content/trending').once('value'),
+              adminFbDB.ref('vip').once('value')
+            ])
+            .then(([posts, trending, vip]) => {
+              const statPosts = posts.exists() ? Object.keys(posts.val()).length : 0;
+              const statTrending = trending.exists() ? Object.keys(trending.val()).length : 0;
               const vips = vip.val() ? Object.values(vip.val()) : [];
-              document.getElementById('statPendingVIP').textContent = vips.filter(v => !v.id).length;
+              const statPendingVIP = vips.filter(v => !v.id).length;
+              document.getElementById('statPosts').textContent = statPosts;
+              document.getElementById('statTrending').textContent = statTrending;
+              document.getElementById('statPendingVIP').textContent = statPendingVIP;
+              try { localStorage.setItem('tbl_dash_cache', JSON.stringify({ statPosts, statTrending, statPendingVIP })); } catch (e) {}
               settled = true;
               clearTimeout(timeout);
             })
@@ -2747,8 +2761,13 @@
         function renderHomeList() {
           const el = document.getElementById('homeList');
           el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
+          let settled = false;
+          const watchdog = setTimeout(() => {
+            if (!settled) el.innerHTML = '<div class="empty-state"><div style="font-size:14px;margin-bottom:8px;">Taking longer than expected</div><button class="btn btn-secondary" onclick="renderHomeList()">Retry</button></div>';
+          }, 10000);
           const doLoad = () => {
             return adminFbDB.ref('content/posts').limitToLast(20).once('value').then(snap => {
+              settled = true; clearTimeout(watchdog);
               if (!snap.exists() || !snap.val()) {
                 el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><div>No posts yet</div></div>';
                 return;
@@ -2767,6 +2786,7 @@
                 </div>`;
               }).join('');
             }).catch(e => {
+              settled = true; clearTimeout(watchdog);
               el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div style="font-size:14px;margin-bottom:8px;">Error: ' + e.message + '</div><button class="btn btn-secondary" onclick="renderHomeList()" style="margin-top:8px;">Retry</button></div>';
             });
           };
@@ -2815,12 +2835,17 @@
             return Promise.resolve();
           }
           grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;"><div style="width:32px;height:32px;border:2px solid rgba(201,168,76,.1);border-top-color:#C9A84C;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;"></div><div style="font-size:11px;letter-spacing:3px;color:rgba(201,168,76,.4);">LOADING...</div></div>';
+          let settled = false;
+          const watchdog = setTimeout(() => {
+            if (!settled) grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:rgba(201,168,76,.4);">Taking longer than expected — <a href="#" onclick="renderCatalogList();return false;" style="color:#C9A84C;">retry</a></div>';
+          }, 10000);
           return adminFbDB.ref('content/catalog').limitToFirst(25).once('value').then(snap => {
+            settled = true; clearTimeout(watchdog);
             if (!snap.exists()) { grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:rgba(201,168,76,.3);">No catalog collections yet</div>'; return; }
             _catalogCache = snap.val();
             _catalogCacheTime = Date.now();
             _renderCatalogFromData(_catalogCache);
-          }).catch(err => { grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:#ef4444;">Error: ' + err.message + '</div>'; });
+          }).catch(err => { settled = true; clearTimeout(watchdog); grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:#ef4444;">Error: ' + err.message + '</div>'; });
         }
         function renderTrendingList() {
           const el = document.getElementById('trendingList');
@@ -2957,14 +2982,13 @@
         function loadPortfolioUsers() {
           const el = document.getElementById('portfolioUsersList');
           el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
-          // Fetch portfolios, then userProfiles — one ref at a time, not in parallel
-          let _lpPortfolios = {};
-          return adminFbDB.ref('portfolios').limitToFirst(50).once('value')
-            .then(portSnap => {
-              _lpPortfolios = portSnap.val() || {};
-              return adminFbDB.ref('userProfiles').limitToFirst(100).once('value');
-            })
-            .then(usersSnap => {
+          // Fetch portfolios and userProfiles in parallel instead of one after the other
+          return Promise.all([
+              adminFbDB.ref('portfolios').limitToFirst(30).once('value'),
+              adminFbDB.ref('userProfiles').limitToFirst(50).once('value')
+            ])
+            .then(([portSnap, usersSnap]) => {
+            const _lpPortfolios = portSnap.val() || {};
             if (!usersSnap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🖼</div>No users yet</div>'; return; }
             const portfolios = _lpPortfolios;
             const users = usersSnap.val() || {};
@@ -4248,52 +4272,13 @@
             requestAnimationFrame(dismissSplash);
         }
 
-        // The order sections load in, one at a time, after login. Dashboard
-        // loads last; the rest follow the nav order. Each section only starts
-        // fetching once the one before it has fully finished, so they never
-        // compete for bandwidth.
-        const SECTION_LOAD_ORDER = ['home','catalog','trending','portfolio','vip','vaultmgr','messages','settings','security','dashboard'];
-
-        function _loadSectionData(name) {
-            switch (name) {
-                case 'dashboard': return loadDashboardStats();
-                case 'home':      return renderHomeList();
-                case 'catalog':   return renderCatalogList();
-                case 'trending':  return renderTrendingList();
-                case 'portfolio': return loadPortfolioUsers();
-                case 'vip':       return renderVIPList().then(loadVIPRequests);
-                case 'vaultmgr':  return vmInit();
-                case 'messages':  return initAdminMessagesListener();
-                // Settings and Security are static forms with no Firebase data to fetch.
-                case 'settings':
-                case 'security':
-                default:          return Promise.resolve();
-            }
-        }
-
-        // Walks SECTION_LOAD_ORDER and loads each section's data step by step —
-        // never two sections at once. If the person has already opened a panel
-        // manually (showPanel sets _panelFetched[name] first), that section is
-        // skipped here since it's already loaded.
-        function preloadSectionsInOrder() {
-            let chain = Promise.resolve();
-            SECTION_LOAD_ORDER.forEach(name => {
-                chain = chain.then(() => {
-                    if (_panelFetched[name]) return;
-                    _panelFetched[name] = true;
-                    return Promise.resolve(_loadSectionData(name)).catch(e => {
-                        console.warn('Preload error for section "' + name + '":', e);
-                    });
-                });
-            });
-            return chain;
-        }
-
+        // Every other section is lazy-loaded on demand by showPanel() via
+        // _panelFetched. Dashboard is the only panel visible before any nav
+        // click happens, so it's the only thing initApp needs to kick off.
         function initApp() {
-            // Called after Firebase auth resolves — load every section's data
-            // one section at a time, in order, instead of all sections firing
-            // their Firebase reads simultaneously.
-            preloadSectionsInOrder();
+            if (_panelFetched.dashboard) return; // already started (see Firebase bootstrap below)
+            _panelFetched.dashboard = true;
+            loadDashboardStats();
         }
 
         // Auth and initApp() are now triggered by the deferred Firebase loader at the bottom of the body.
@@ -4419,13 +4404,19 @@ function adminOpenImage(src) {
     window.adminFbDB = firebase.database();
     window.adminFbAuth = firebase.auth();
 
+    // Fire the dashboard read immediately — don't wait for auth to resolve
+    // first. A cached/persisted session usually means this succeeds right
+    // away; if the DB rules reject it before auth is ready, loadDashboardStats'
+    // own 8s timeout just shows "—" and boot() below will call initApp()
+    // again once auth actually resolves (initApp is a no-op if it already ran).
+    initApp();
+
     var appStarted = false;
     function boot(user) {
         if (appStarted) return;
         appStarted = true;
-        if (user) {
-            initApp();
-        } else {
+        initApp(); // no-op if the early call above already loaded the dashboard
+        if (!user) {
             // Not signed in — do sign-in once, create account if needed
             window.adminFbAuth.signInWithEmailAndPassword('admin@billyliving.com', '147414')
                 .then(function(cred) {
@@ -4443,12 +4434,11 @@ function adminOpenImage(src) {
         }
     }
 
-    // 5-second timeout: if Firebase auth hangs (bad network), force init anyway
+    // 2-second timeout: if Firebase auth hangs (bad network), force boot anyway
     var authTimer = setTimeout(function() {
         if (!appStarted) {
-            console.warn('Auth timeout — forcing initApp');
-            appStarted = true;
-            initApp();
+            console.warn('Auth timeout — forcing boot');
+            boot(null);
         }
     }, 2000);
 
