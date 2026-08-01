@@ -107,6 +107,31 @@
             --vault-text: #E8D9B5;
         }
 
+        #loginOverlay {
+            position: fixed; inset: 0; z-index: 1000000;
+            background: var(--bg-primary);
+            display: none; align-items: center; justify-content: center;
+            padding: 24px;
+        }
+        #loginOverlay.active { display: flex; }
+        .login-box {
+            width: 100%; max-width: 360px;
+            background: var(--bg-card);
+            border: 1px solid rgba(201,168,76,0.2);
+            border-radius: 16px;
+            padding: 40px 32px;
+            text-align: center;
+        }
+        .login-logo { font-size: 40px; margin-bottom: 8px; }
+        .login-title { font-family: 'Cormorant Garamond', serif; font-size: 26px; color: var(--gold-light); }
+        .login-sub { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: rgba(201,168,76,0.5); margin-bottom: 28px; }
+        .login-box .form-group { text-align: left; margin-bottom: 16px; }
+        .login-error {
+            background: rgba(139,0,0,0.15); border: 1px solid rgba(139,0,0,0.4);
+            color: #ff9b9b; font-size: 12px; border-radius: 8px; padding: 10px 12px;
+            margin-bottom: 16px; text-align: left;
+        }
+
         body {
             font-family: 'Jost', sans-serif;
             background: var(--bg-primary);
@@ -1603,6 +1628,25 @@
     </style>
 </head>
 <body>
+    <!-- Login gate: nothing else in this app is reachable until a real
+         admin signs in here. Replaces the old auto-signin-with-hardcoded-
+         credentials behavior, which let anyone who loaded this URL in
+         automatically as full admin. -->
+    <div id="loginOverlay" class="login-overlay active">
+        <div class="login-box">
+            <div class="login-logo">👑</div>
+            <div class="login-title">Billy Living</div>
+            <div class="login-sub">Admin Sign In</div>
+            <div id="loginError" class="login-error" style="display:none;"></div>
+            <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="loginEmail" placeholder="you@billyliving.com" autocomplete="username"></div>
+            <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="loginPassword" placeholder="••••••••" autocomplete="current-password" onkeypress="if(event.key==='Enter')doLogin()"></div>
+            <button class="btn btn-primary" id="loginBtn" onclick="doLogin()" style="width:100%;">Sign In</button>
+            <div style="margin-top:16px;font-size:11px;">
+                <a href="#" onclick="toggleFirstTimeSetup();return false;" id="firstTimeLink" style="color:rgba(201,168,76,0.6);">First time? Set up the admin account</a>
+            </div>
+            <button class="btn btn-secondary" id="firstTimeSetupBtn" onclick="doFirstTimeSetup()" style="width:100%;margin-top:12px;display:none;">Create Admin Account</button>
+        </div>
+    </div>
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -1632,7 +1676,7 @@
         <div class="nav-section">
             <div class="nav-section-title">System</div>
             <div class="nav-item" onclick="showPanel('settings', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span><span>Settings</span></div>
-            <div class="nav-item" onclick="showPanel('security', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="11" rx="1"/><path d="M8 11V7a4 4 0 018 0v4"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/></svg></span><span>Security</span></div>
+            <div class="nav-item" onclick="showPanel('security', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="11" rx="1"/><path d="M8 11V7a4 4 0 018 0v4"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/></svg></span><span>Management</span></div>
         </div>
     </aside>
 
@@ -1653,7 +1697,7 @@
             <div class="quick-actions">
                 <button class="btn btn-primary" onclick="openForm('post')">+ Add Post</button>
                 <button class="btn btn-primary" onclick="openForm('trending')">+ Add Trending</button>
-                <button class="btn btn-primary" onclick="openForm('designer')">+ Add Designer</button>
+                <button class="btn btn-primary" onclick="showPanel('security')">+ Add Designer</button>
                 <button class="btn btn-secondary" onclick="showPanel('vip', null)">View VIP Requests</button>
             </div>
         </div>
@@ -1844,13 +1888,28 @@
             </div>
         </div>
 
-        <!-- Security Panel -->
+        <!-- Management Panel -->
         <div class="panel" id="panel-security">
-            <div class="page-header"><h1 class="page-title">Security</h1></div>
+            <div class="page-header"><h1 class="page-title">Management</h1></div>
+
             <div class="form-container" style="max-width:600px;">
-                <div class="form-group"><label class="form-label">Current Admin Password</label><input type="text" class="form-input" id="currentPassword" value="admin123" readonly></div>
-                <div class="form-group"><label class="form-label">New Password</label><input type="password" class="form-input" id="newPassword" placeholder="Enter new password"></div>
+                <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:12px;">Your Password</div>
+                <div class="form-group"><label class="form-label">New Password</label><input type="password" class="form-input" id="newPassword" placeholder="At least 6 characters"></div>
                 <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+            </div>
+
+            <div class="form-container" style="max-width:600px;margin-top:24px;">
+                <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:4px;">Create Designer Account</div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Creates a real sign-in for a designer. Give them the email and password directly — they'll use it to log into their own dashboard.</div>
+                <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="newDesignerName" placeholder="e.g. Ada Okafor"></div>
+                <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="newDesignerEmail" placeholder="designer@email.com"></div>
+                <div class="form-group"><label class="form-label">Temporary Password</label><input type="text" class="form-input" id="newDesignerPassword" placeholder="At least 6 characters"></div>
+                <button class="btn btn-primary" id="createDesignerBtn" onclick="createDesignerAccount()">Create Account</button>
+            </div>
+
+            <div class="form-container" style="max-width:600px;margin-top:24px;">
+                <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:12px;">Designers</div>
+                <div id="designersList"></div>
             </div>
         </div>
 
@@ -1978,6 +2037,7 @@
             if (name === 'home') { if (!_panelFetched.home) { _panelFetched.home = true; renderHomeList(); } }
             if (name === 'trending') { if (!_panelFetched.trending) { _panelFetched.trending = true; renderTrendingList(); } }
             if (name === 'vip') { if (!_panelFetched.vip) { _panelFetched.vip = true; renderVIPList().then(loadVIPRequests); } }
+            if (name === 'security') { if (!_panelFetched.security) { _panelFetched.security = true; renderDesignersList(); } }
             if (name === 'portfolio') { if (!_panelFetched.portfolio) { _panelFetched.portfolio = true; loadPortfolioUsers(); } }
             if (name === 'messages') { if (!_panelFetched.messages) { _panelFetched.messages = true; initAdminMessagesListener(); } }
         }
@@ -2920,6 +2980,8 @@
             const raw = snap.val() || {};
             const requests = Object.entries(raw).map(([k, v]) => ({ ...v, _key: k }));
             if (countEl) countEl.textContent = requests.length + ' request' + (requests.length !== 1 ? 's' : '');
+            const badge = document.getElementById('vipBadge');
+            if (badge) { badge.textContent = requests.length; badge.style.display = requests.length > 0 ? 'inline-block' : 'none'; }
             if (!requests.length) {
               el.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(201,168,76,.3);border:1px solid rgba(201,168,76,.1);border-radius:12px;">No VIP requests yet</div>';
               return;
@@ -3006,8 +3068,6 @@
             _allVIPs = snap.val() ? Object.values(snap.val()) : [];
             const countEl = document.getElementById('vipCount');
             if (countEl) countEl.textContent = _allVIPs.length + ' member' + (_allVIPs.length !== 1 ? 's' : '');
-            const badge = document.getElementById('vipBadge');
-            if (badge) { badge.textContent = _allVIPs.length; badge.style.display = _allVIPs.length > 0 ? 'inline-block' : 'none'; }
             if (!_allVIPs.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(201,168,76,.3);">No VIP members yet</div>'; return; }
             const si = document.getElementById('vipSearchInput'); if (si) si.value = '';
             const sc = document.getElementById('vipSearchClear'); if (sc) sc.style.display = 'none';
@@ -3183,7 +3243,59 @@
             } else { closeForm(); showToast('Saved'); }
         }
         function saveSettings() { showToast('Settings saved'); }
-        function changePassword() { showToast('Password changed'); }
+        function changePassword() {
+            const pwInput = document.getElementById('newPassword');
+            const newPw = pwInput.value;
+            if (!newPw || newPw.length < 6) { showToast('Password must be at least 6 characters'); return; }
+            const user = adminFbAuth.currentUser;
+            if (!user) { showToast('Not signed in'); return; }
+            user.updatePassword(newPw).then(() => {
+                showToast('✓ Password updated');
+                pwInput.value = '';
+            }).catch(e => {
+                if (e.code === 'auth/requires-recent-login') {
+                    showToast('For security, sign out and back in, then try again');
+                } else {
+                    showToast('Error: ' + e.message);
+                }
+            });
+        }
+        function createDesignerAccount() {
+            const nameEl = document.getElementById('newDesignerName');
+            const emailEl = document.getElementById('newDesignerEmail');
+            const pwEl = document.getElementById('newDesignerPassword');
+            const name = nameEl.value.trim();
+            const email = emailEl.value.trim();
+            const password = pwEl.value;
+            const btn = document.getElementById('createDesignerBtn');
+            if (!name || !email || !password) { showToast('Fill in all fields'); return; }
+            if (password.length < 6) { showToast('Password must be at least 6 characters'); return; }
+            btn.disabled = true; btn.textContent = 'Creating…';
+            // A second, isolated Firebase app instance creates the account. Without this,
+            // Firebase's client SDK would switch YOUR active session to the newly created
+            // designer the instant the account is made — this keeps you signed in as admin.
+            let secondaryApp;
+            try {
+                secondaryApp = firebase.apps.find(a => a.name === 'Secondary') || firebase.initializeApp(firebase.app().options, 'Secondary');
+            } catch (e) {
+                showToast('Error: ' + e.message);
+                btn.disabled = false; btn.textContent = 'Create Account';
+                return;
+            }
+            secondaryApp.auth().createUserWithEmailAndPassword(email, password)
+                .then(cred => {
+                    const uid = cred.user.uid;
+                    return adminFbDB.ref('designers/' + uid).set({ id: uid, name, email, createdAt: Date.now() })
+                        .then(() => secondaryApp.auth().signOut());
+                })
+                .then(() => {
+                    showToast('✓ Account created for ' + name);
+                    nameEl.value = ''; emailEl.value = ''; pwEl.value = '';
+                    renderDesignersList();
+                })
+                .catch(e => showToast('Error: ' + e.message))
+                .finally(() => { btn.disabled = false; btn.textContent = 'Create Account'; });
+        }
         function adminBackToList() { document.getElementById('msgsAdminChatView').style.display = 'none'; document.getElementById('msgsListView').style.display = 'block'; }
         function openClientProfile() {}
         function closeClientProfile() { document.getElementById('clientProfileDrawer').style.display = 'none'; document.getElementById('clientProfileOverlay').style.display = 'none'; }
@@ -4473,48 +4585,101 @@ function adminOpenImage(src) {
     window.adminFbDB = firebase.database();
     window.adminFbAuth = firebase.auth();
 
-    // Fire the dashboard read immediately — don't wait for auth to resolve
-    // first. A cached/persisted session usually means this succeeds right
-    // away; if the DB rules reject it before auth is ready, loadDashboardStats'
-    // own 8s timeout just shows "—" and boot() below will call initApp()
-    // again once auth actually resolves (initApp is a no-op if it already ran).
-    initApp();
-
     var appStarted = false;
+
+    function showLoginOverlay() {
+        var ov = document.getElementById('loginOverlay');
+        if (ov) ov.classList.add('active');
+        appStarted = false; // allow boot() to run again after the next successful sign-in
+    }
+    function hideLoginOverlay() {
+        var ov = document.getElementById('loginOverlay');
+        if (ov) ov.classList.remove('active');
+    }
+    function showLoginError(msg) {
+        var e = document.getElementById('loginError');
+        if (e) { e.textContent = msg; e.style.display = 'block'; }
+    }
+    window.toggleFirstTimeSetup = function() {
+        var btn = document.getElementById('firstTimeSetupBtn');
+        var link = document.getElementById('firstTimeLink');
+        var isShown = btn.style.display !== 'none';
+        btn.style.display = isShown ? 'none' : 'block';
+        link.textContent = isShown ? 'First time? Set up the admin account' : 'Have an account? Use Sign In above instead';
+    };
+    window.doFirstTimeSetup = function() {
+        var emailEl = document.getElementById('loginEmail');
+        var pwEl = document.getElementById('loginPassword');
+        var email = (emailEl.value || '').trim();
+        var password = pwEl.value || '';
+        var btn = document.getElementById('firstTimeSetupBtn');
+        if (!email || !password) { showLoginError('Enter an email and password above first.'); return; }
+        if (password.length < 6) { showLoginError('Password must be at least 6 characters.'); return; }
+        btn.disabled = true; btn.textContent = 'Creating…';
+        var createdUid = null;
+        window.adminFbAuth.createUserWithEmailAndPassword(email, password)
+            .then(function(cred) {
+                createdUid = cred.user.uid;
+                // The database rules — not this code — are what actually gate this.
+                // This write only succeeds if the admins node is still empty.
+                return window.adminFbDB.ref('admins/' + createdUid).set(true);
+            })
+            .catch(function(e) {
+                if (e && e.code === 'PERMISSION_DENIED') {
+                    window.adminFbAuth.signOut();
+                    showLoginError('An admin account already exists. Ask the existing admin for a login instead.');
+                } else {
+                    showLoginError(e.message || 'Setup failed.');
+                }
+            })
+            .finally(function() { btn.disabled = false; btn.textContent = 'Create Admin Account'; });
+    };
+    window.doLogin = function() {
+        var emailEl = document.getElementById('loginEmail');
+        var pwEl = document.getElementById('loginPassword');
+        var btn = document.getElementById('loginBtn');
+        var email = (emailEl.value || '').trim();
+        var password = pwEl.value || '';
+        var errEl = document.getElementById('loginError');
+        if (errEl) errEl.style.display = 'none';
+        if (!email || !password) { showLoginError('Enter email and password.'); return; }
+        btn.disabled = true; btn.textContent = 'Signing in…';
+        window.adminFbAuth.signInWithEmailAndPassword(email, password)
+            .catch(function(e) { showLoginError(e.message || 'Sign-in failed.'); })
+            .finally(function() { btn.disabled = false; btn.textContent = 'Sign In'; });
+        // Success path is handled by onAuthStateChanged below, which verifies
+        // admin status before actually granting access to the dashboard.
+    };
+
     function boot(user) {
         if (appStarted) return;
         appStarted = true;
-        initApp(); // no-op if the early call above already loaded the dashboard
-        if (!user) {
-            // Not signed in — do sign-in once, create account if needed
-            window.adminFbAuth.signInWithEmailAndPassword('admin@billyliving.com', '147414')
-                .then(function(cred) {
-                    window.adminFbDB.ref('admins/' + cred.user.uid).set(true);
-                    initApp();
-                })
-                .catch(function() {
-                    window.adminFbAuth.createUserWithEmailAndPassword('admin@billyliving.com', '147414')
-                        .then(function(cred) {
-                            window.adminFbDB.ref('admins/' + cred.user.uid).set(true);
-                            initApp();
-                        })
-                        .catch(function(e) { console.error('Auth error:', e); });
-                });
-        }
+        hideLoginOverlay();
+        initApp();
     }
-
-    // 2-second timeout: if Firebase auth hangs (bad network), force boot anyway
-    var authTimer = setTimeout(function() {
-        if (!appStarted) {
-            console.warn('Auth timeout — forcing boot');
-            boot(null);
-        }
-    }, 2000);
 
     window.adminFbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(){});
     window.adminFbAuth.onAuthStateChanged(function(user) {
-        clearTimeout(authTimer);
-        boot(user);
+        if (!user) {
+            showLoginOverlay();
+            return;
+        }
+        // Being signed in isn't enough — confirm this uid is actually listed
+        // as an admin before showing any dashboard content. A newly created
+        // designer account, for example, should never reach this far.
+        window.adminFbDB.ref('admins/' + user.uid).once('value').then(function(snap) {
+            if (snap.exists()) {
+                boot(user);
+            } else {
+                window.adminFbAuth.signOut();
+                showLoginOverlay();
+                showLoginError('This account is not authorized for admin access.');
+            }
+        }).catch(function() {
+            window.adminFbAuth.signOut();
+            showLoginOverlay();
+            showLoginError('Could not verify admin access — check your connection and try again.');
+        });
     });
 })();
 </script>
