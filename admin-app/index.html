@@ -1636,15 +1636,28 @@
         <div class="login-box">
             <div class="login-logo">👑</div>
             <div class="login-title">Billy Living</div>
-            <div class="login-sub">Admin Sign In</div>
-            <div id="loginError" class="login-error" style="display:none;"></div>
-            <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="loginEmail" placeholder="you@billyliving.com" autocomplete="username"></div>
-            <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="loginPassword" placeholder="••••••••" autocomplete="current-password" onkeypress="if(event.key==='Enter')doLogin()"></div>
-            <button class="btn btn-primary" id="loginBtn" onclick="doLogin()" style="width:100%;">Sign In</button>
-            <div style="margin-top:16px;font-size:11px;">
-                <a href="#" onclick="toggleFirstTimeSetup();return false;" id="firstTimeLink" style="color:rgba(201,168,76,0.6);">First time? Set up the admin account</a>
+
+            <!-- Shown first, on every load, while we check for an existing valid
+                 session. On a device that's already signed in this is the only
+                 thing anyone ever sees before landing on the dashboard — the
+                 credential form below never appears. -->
+            <div id="loginChecking" style="padding:24px 0;">
+                <div class="loading-spinner" style="margin:0 auto 16px;width:28px;height:28px;"></div>
+                <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(201,168,76,0.5);">Checking session…</div>
             </div>
-            <button class="btn btn-secondary" id="firstTimeSetupBtn" onclick="doFirstTimeSetup()" style="width:100%;margin-top:12px;display:none;">Create Admin Account</button>
+
+            <!-- Only revealed once we've confirmed there's no valid admin session. -->
+            <div id="loginForm" style="display:none;">
+                <div class="login-sub">Admin Sign In</div>
+                <div id="loginError" class="login-error" style="display:none;"></div>
+                <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="loginEmail" placeholder="you@billyliving.com" autocomplete="username"></div>
+                <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="loginPassword" placeholder="••••••••" autocomplete="current-password" onkeypress="if(event.key==='Enter')doLogin()"></div>
+                <button class="btn btn-primary" id="loginBtn" onclick="doLogin()" style="width:100%;">Sign In</button>
+                <div style="margin-top:16px;font-size:11px;">
+                    <a href="#" onclick="toggleFirstTimeSetup();return false;" id="firstTimeLink" style="color:rgba(201,168,76,0.6);">First time? Set up the admin account</a>
+                </div>
+                <button class="btn btn-secondary" id="firstTimeSetupBtn" onclick="doFirstTimeSetup()" style="width:100%;margin-top:12px;display:none;">Create Admin Account</button>
+            </div>
         </div>
     </div>
     <!-- Sidebar -->
@@ -1890,21 +1903,15 @@
 
         <!-- Management Panel -->
         <div class="panel" id="panel-security">
-            <div class="page-header"><h1 class="page-title">Management</h1></div>
+            <div class="page-header"><h1 class="page-title">Management</h1><button class="btn btn-secondary" onclick="_panelFetched.security=false;renderDesignersList();" style="padding:10px 16px;font-size:12px;">&#x21BB; Refresh</button></div>
 
             <div class="form-container" style="max-width:600px;">
-                <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:12px;">Your Password</div>
-                <div class="form-group"><label class="form-label">New Password</label><input type="password" class="form-input" id="newPassword" placeholder="At least 6 characters"></div>
-                <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
-            </div>
-
-            <div class="form-container" style="max-width:600px;margin-top:24px;">
-                <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:4px;">Create Designer Account</div>
-                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Creates a real sign-in for a designer. Give them the email and password directly — they'll use it to log into their own dashboard.</div>
+                <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:4px;">Invite Designer</div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Sends a 6-digit code to their email. They enter it on their own sign-up page and choose their own password — you never see or set it.</div>
+                <div id="inviteError" class="login-error" style="display:none;"></div>
                 <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="newDesignerName" placeholder="e.g. Ada Okafor"></div>
                 <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="newDesignerEmail" placeholder="designer@email.com"></div>
-                <div class="form-group"><label class="form-label">Temporary Password</label><input type="text" class="form-input" id="newDesignerPassword" placeholder="At least 6 characters"></div>
-                <button class="btn btn-primary" id="createDesignerBtn" onclick="createDesignerAccount()">Create Account</button>
+                <button class="btn btn-primary" id="createDesignerBtn" onclick="inviteDesigner()">Send Invite</button>
             </div>
 
             <div class="form-container" style="max-width:600px;margin-top:24px;">
@@ -3243,58 +3250,30 @@
             } else { closeForm(); showToast('Saved'); }
         }
         function saveSettings() { showToast('Settings saved'); }
-        function changePassword() {
-            const pwInput = document.getElementById('newPassword');
-            const newPw = pwInput.value;
-            if (!newPw || newPw.length < 6) { showToast('Password must be at least 6 characters'); return; }
-            const user = adminFbAuth.currentUser;
-            if (!user) { showToast('Not signed in'); return; }
-            user.updatePassword(newPw).then(() => {
-                showToast('✓ Password updated');
-                pwInput.value = '';
-            }).catch(e => {
-                if (e.code === 'auth/requires-recent-login') {
-                    showToast('For security, sign out and back in, then try again');
-                } else {
-                    showToast('Error: ' + e.message);
-                }
-            });
-        }
-        function createDesignerAccount() {
+        function inviteDesigner() {
             const nameEl = document.getElementById('newDesignerName');
             const emailEl = document.getElementById('newDesignerEmail');
-            const pwEl = document.getElementById('newDesignerPassword');
             const name = nameEl.value.trim();
             const email = emailEl.value.trim();
-            const password = pwEl.value;
             const btn = document.getElementById('createDesignerBtn');
-            if (!name || !email || !password) { showToast('Fill in all fields'); return; }
-            if (password.length < 6) { showToast('Password must be at least 6 characters'); return; }
-            btn.disabled = true; btn.textContent = 'Creating…';
-            // A second, isolated Firebase app instance creates the account. Without this,
-            // Firebase's client SDK would switch YOUR active session to the newly created
-            // designer the instant the account is made — this keeps you signed in as admin.
-            let secondaryApp;
-            try {
-                secondaryApp = firebase.apps.find(a => a.name === 'Secondary') || firebase.initializeApp(firebase.app().options, 'Secondary');
-            } catch (e) {
-                showToast('Error: ' + e.message);
-                btn.disabled = false; btn.textContent = 'Create Account';
-                return;
-            }
-            secondaryApp.auth().createUserWithEmailAndPassword(email, password)
-                .then(cred => {
-                    const uid = cred.user.uid;
-                    return adminFbDB.ref('designers/' + uid).set({ id: uid, name, email, createdAt: Date.now() })
-                        .then(() => secondaryApp.auth().signOut());
+            const errEl = document.getElementById('inviteError');
+            errEl.style.display = 'none';
+            if (!name || !email) { errEl.textContent = 'Fill in both fields.'; errEl.style.display = 'block'; return; }
+            btn.disabled = true; btn.textContent = 'Sending…';
+            adminFbAuth.currentUser.getIdToken()
+                .then(idToken => fetch('/api/send-invite-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+                    body: JSON.stringify({ name, email })
+                }))
+                .then(r => r.json().then(data => ({ ok: r.ok, data })))
+                .then(result => {
+                    if (!result.ok) { errEl.textContent = result.data.error || 'Failed to send invite.'; errEl.style.display = 'block'; return; }
+                    showToast('✓ Invite sent to ' + email);
+                    nameEl.value = ''; emailEl.value = '';
                 })
-                .then(() => {
-                    showToast('✓ Account created for ' + name);
-                    nameEl.value = ''; emailEl.value = ''; pwEl.value = '';
-                    renderDesignersList();
-                })
-                .catch(e => showToast('Error: ' + e.message))
-                .finally(() => { btn.disabled = false; btn.textContent = 'Create Account'; });
+                .catch(e => { errEl.textContent = 'Network error: ' + e.message; errEl.style.display = 'block'; })
+                .finally(() => { btn.disabled = false; btn.textContent = 'Send Invite'; });
         }
         function adminBackToList() { document.getElementById('msgsAdminChatView').style.display = 'none'; document.getElementById('msgsListView').style.display = 'block'; }
         function openClientProfile() {}
@@ -4590,6 +4569,10 @@ function adminOpenImage(src) {
     function showLoginOverlay() {
         var ov = document.getElementById('loginOverlay');
         if (ov) ov.classList.add('active');
+        var checking = document.getElementById('loginChecking');
+        var form = document.getElementById('loginForm');
+        if (checking) checking.style.display = 'none';
+        if (form) form.style.display = 'block';
         appStarted = false; // allow boot() to run again after the next successful sign-in
     }
     function hideLoginOverlay() {
