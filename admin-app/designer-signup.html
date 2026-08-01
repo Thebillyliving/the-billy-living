@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Billy Living — Designer Sign Up</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg-primary: #120D06;
+        --bg-card: #1E160C;
+        --text-primary: #F5F0E8;
+        --text-secondary: #A89B8C;
+        --gold: #C9A84C;
+        --gold-light: #E8D5A3;
+        --danger: #8B0000;
+    }
+    * { box-sizing: border-box; }
+    body {
+        font-family: 'Jost', sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        margin: 0;
+    }
+    .box {
+        width: 100%; max-width: 380px;
+        background: var(--bg-card);
+        border: 1px solid rgba(201,168,76,0.2);
+        border-radius: 16px;
+        padding: 40px 32px;
+        text-align: center;
+    }
+    .logo { font-size: 40px; margin-bottom: 8px; }
+    .title { font-family: 'Cormorant Garamond', serif; font-size: 26px; color: var(--gold-light); }
+    .sub { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: rgba(201,168,76,0.5); margin-bottom: 28px; }
+    .form-group { text-align: left; margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+    .form-input {
+        width: 100%; padding: 12px 14px;
+        background: rgba(0,0,0,0.25); border: 1px solid rgba(201,168,76,0.2);
+        border-radius: 8px; color: var(--text-primary); font: inherit; font-size: 14px;
+    }
+    .form-input:focus { outline: none; border-color: var(--gold); }
+    .btn {
+        width: 100%; padding: 13px; border: none; border-radius: 8px;
+        font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+        background: var(--gold); color: #1a1206;
+    }
+    .btn:disabled { opacity: 0.6; cursor: default; }
+    .error {
+        background: rgba(139,0,0,0.15); border: 1px solid rgba(139,0,0,0.4);
+        color: #ff9b9b; font-size: 12px; border-radius: 8px; padding: 10px 12px;
+        margin-bottom: 16px; text-align: left;
+    }
+    .success { padding: 12px 0 4px; }
+    .success-icon { font-size: 36px; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+    <div class="box">
+        <div class="logo">👑</div>
+        <div class="title">Billy Living</div>
+        <div class="sub">Designer Sign Up</div>
+
+        <div id="signupForm">
+            <div id="formError" class="error" style="display:none;"></div>
+            <div class="form-group">
+                <label class="form-label">Email — the one your invite was sent to</label>
+                <input type="email" class="form-input" id="email" placeholder="you@email.com" autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label class="form-label">6-Digit Code</label>
+                <input type="text" class="form-input" id="code" placeholder="123456" inputmode="numeric" maxlength="6">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Choose a Password</label>
+                <input type="password" class="form-input" id="password" placeholder="At least 6 characters" autocomplete="new-password">
+            </div>
+            <button class="btn" id="submitBtn" onclick="submitSignup()">Complete Sign Up</button>
+        </div>
+
+        <div id="successView" class="success" style="display:none;">
+            <div class="success-icon">✓</div>
+            <div style="color:var(--gold-light);font-weight:600;margin-bottom:8px;">Account created</div>
+            <div style="font-size:13px;color:var(--text-secondary);">Your account is ready. Billy will let you know when your dashboard access is set up.</div>
+        </div>
+    </div>
+
+    <script>
+    function submitSignup() {
+        var emailEl = document.getElementById('email');
+        var codeEl = document.getElementById('code');
+        var pwEl = document.getElementById('password');
+        var errEl = document.getElementById('formError');
+        var btn = document.getElementById('submitBtn');
+
+        var email = emailEl.value.trim();
+        var code = codeEl.value.trim();
+        var password = pwEl.value;
+
+        errEl.style.display = 'none';
+        if (!email || !code || !password) {
+            errEl.textContent = 'Fill in all fields.';
+            errEl.style.display = 'block';
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Creating account…';
+
+        fetch('/api/verify-invite-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email, code: code, password: password })
+        })
+        .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, data: data }; }); })
+        .then(function(result) {
+            if (!result.ok) {
+                errEl.textContent = result.data.error || 'Something went wrong.';
+                errEl.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Complete Sign Up';
+                return;
+            }
+            document.getElementById('signupForm').style.display = 'none';
+            document.getElementById('successView').style.display = 'block';
+        })
+        .catch(function() {
+            errEl.textContent = 'Network error — check your connection and try again.';
+            errEl.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Complete Sign Up';
+        });
+    }
+    </script>
+</body>
+</html>
