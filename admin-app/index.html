@@ -27,6 +27,7 @@
                 try { navigator.clipboard.writeText(box.textContent); box.style.borderTopColor = '#4caf50'; } catch(e) {}
             };
         }
+        window._showAppError = showErr;
         window.addEventListener('error', function(e) {
             showErr('ERROR: ' + (e.message || 'unknown') + ' @ ' + (e.filename ? e.filename.split('/').pop() + ':' + e.lineno : '?'));
         });
@@ -2785,7 +2786,11 @@
               settled = true;
               clearTimeout(timeout);
               statIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '!'; });
+              // Let a later, better-timed call (e.g. after auth resolves) retry instead of
+              // being permanently blocked by an early attempt that failed on a permission check.
+              _panelFetched.dashboard = false;
               console.warn('Stats error:', e);
+              if (window._showAppError) window._showAppError('Dashboard stats failed: ' + e.message);
             });
         }
         function renderHomeList() {
