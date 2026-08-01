@@ -4588,7 +4588,6 @@ function adminOpenImage(src) {
     var appStarted = false;
 
     function showLoginOverlay() {
-        if (window._showAppError) window._showAppError('showLoginOverlay() called');
         var ov = document.getElementById('loginOverlay');
         if (ov) ov.classList.add('active');
         appStarted = false; // allow boot() to run again after the next successful sign-in
@@ -4655,14 +4654,12 @@ function adminOpenImage(src) {
     function boot(user) {
         if (appStarted) return;
         appStarted = true;
-        if (window._showAppError) window._showAppError('boot() running — hiding login, showing dashboard');
         hideLoginOverlay();
         initApp();
     }
 
     window.adminFbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(){});
     window.adminFbAuth.onAuthStateChanged(function(user) {
-        if (window._showAppError) window._showAppError('onAuthStateChanged fired. user=' + (user ? (user.email || user.uid) : 'null'));
         if (!user) {
             showLoginOverlay();
             return;
@@ -4671,7 +4668,6 @@ function adminOpenImage(src) {
         // as an admin before showing any dashboard content. A newly created
         // designer account, for example, should never reach this far.
         window.adminFbDB.ref('admins/' + user.uid).once('value').then(function(snap) {
-            if (window._showAppError) window._showAppError('admins/' + user.uid + ' exists=' + snap.exists());
             if (snap.exists()) {
                 boot(user);
             } else {
@@ -4680,7 +4676,6 @@ function adminOpenImage(src) {
                 showLoginError('This account is not authorized for admin access.');
             }
         }).catch(function(e) {
-            if (window._showAppError) window._showAppError('admin check FAILED: ' + e.message);
             window.adminFbAuth.signOut();
             showLoginOverlay();
             showLoginError('Could not verify admin access — check your connection and try again.');
