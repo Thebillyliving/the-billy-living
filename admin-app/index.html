@@ -78,9 +78,9 @@
         <div id="bl-splash-ring"></div>
     </div>
     <!-- Firebase: defer = parallel download, executes after HTML parsed, in order -->
-    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js" onerror="this.onerror=null;setTimeout(()=>{var s=document.createElement('script');s.src=this.src;document.head.appendChild(s);},1000)"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js" onerror="this.onerror=null;setTimeout(()=>{var s=document.createElement('script');s.src=this.src;document.head.appendChild(s);},1000)"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js" onerror="this.onerror=null;setTimeout(()=>{var s=document.createElement('script');s.src=this.src;document.head.appendChild(s);},1000)"></script>
     <style>
         * {
             margin: 0;
@@ -4420,7 +4420,41 @@ function adminOpenImage(src) {
 </script>
 <!-- ── Firebase Bootstrap (runs after defer scripts execute) ─────────── -->
 <script defer>
-(function() {
+(function bootFirebase(attempt) {
+    attempt = attempt || 0;
+
+    // On a slow connection the gstatic.com SDK files can still be in flight
+    // (or can outright fail) by the time this deferred script runs. Instead
+    // of crashing on "firebase is not defined", wait and retry for up to ~15s.
+    if (typeof firebase === 'undefined') {
+        function showNotice(text, isError) {
+            var n = document.getElementById('_fbLoadNotice');
+            if (!n) {
+                n = document.createElement('div');
+                n.id = '_fbLoadNotice';
+                n.style.cssText = 'position:fixed;top:0;left:0;right:0;font:12px/1.4 sans-serif;padding:10px;text-align:center;z-index:999998;';
+                var attach = function() { document.body.appendChild(n); };
+                if (document.body) attach(); else document.addEventListener('DOMContentLoaded', attach);
+            }
+            if (isError) {
+                n.style.background = '#5a1414'; n.style.color = '#fff';
+                n.innerHTML = text;
+            } else {
+                n.style.background = '#3a2a0a'; n.style.color = '#C9A84C';
+                n.textContent = text;
+            }
+        }
+        if (attempt < 30) {
+            showNotice('Connecting… (slow network detected)', false);
+            setTimeout(function() { bootFirebase(attempt + 1); }, 500);
+            return;
+        }
+        showNotice('Could not connect — check your internet, then <a href="#" onclick="location.reload();return false;" style="color:#fff;text-decoration:underline;">tap to retry</a>', true);
+        return;
+    }
+    var loadedNotice = document.getElementById('_fbLoadNotice');
+    if (loadedNotice) loadedNotice.remove();
+
     var adminFirebaseConfig = {
         apiKey: "AIzaSyBbs6k7PInHUnv1x9FzHB31kUwrCcoGG7c",
         authDomain: "the-billy-living.firebaseapp.com",
