@@ -5,6 +5,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>Billy Living - Admin Dashboard</title>
+    <!-- On-page error catcher: since desktop-mode mobile Chrome has no console access,
+         any JS error or failed promise gets shown directly on the page as a red banner
+         instead of failing silently. Tap it to copy the message. Remove this block once
+         debugging is done if you don't want it visible to anyone else using the dashboard. -->
+    <script>
+    (function() {
+        var box = null;
+        function showErr(msg) {
+            if (!box) {
+                box = document.createElement('div');
+                box.style.cssText = 'position:fixed;bottom:0;left:0;right:0;max-height:40vh;overflow:auto;background:#5a1414;color:#fff;font:12px/1.4 monospace;padding:10px;z-index:999999;white-space:pre-wrap;border-top:3px solid #ff6b6b;';
+                document.addEventListener('DOMContentLoaded', function() { document.body.appendChild(box); });
+                if (document.body) document.body.appendChild(box);
+            }
+            var line = document.createElement('div');
+            line.style.cssText = 'padding:6px 0;border-bottom:1px solid rgba(255,255,255,.2);';
+            line.textContent = new Date().toLocaleTimeString() + '  ' + msg;
+            box.appendChild(line);
+            box.onclick = function() {
+                try { navigator.clipboard.writeText(box.textContent); box.style.borderTopColor = '#4caf50'; } catch(e) {}
+            };
+        }
+        window.addEventListener('error', function(e) {
+            showErr('ERROR: ' + (e.message || 'unknown') + ' @ ' + (e.filename ? e.filename.split('/').pop() + ':' + e.lineno : '?'));
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+            showErr('PROMISE REJECTED: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+        });
+    })();
+    </script>
     <!-- Fonts: preconnect first so DNS/TLS is ready, then load async -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
