@@ -56,6 +56,12 @@ module.exports = async (req, res) => {
     used: false
   });
 
+  // Build the signup link using whatever domain the request actually came
+  // through — avoids hardcoding a URL that could go stale if the deployment
+  // domain ever changes.
+  const origin = 'https://' + req.headers.host;
+  const signupUrl = origin + '/designer-signup.html?email=' + encodeURIComponent(email.toLowerCase().trim());
+
   const resendResp = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -70,7 +76,9 @@ module.exports = async (req, res) => {
         '<div style="font-family:sans-serif;background:#120D06;color:#F5F0E8;padding:32px;">' +
         '<h2 style="color:#C9A84C;">Billy Living</h2>' +
         '<p>Hi ' + name.trim() + ',</p>' +
-        '<p>You\'ve been invited to join as a designer. Use this code to set up your account:</p>' +
+        '<p>You\'ve been invited to join as a designer. Tap below to set up your account:</p>' +
+        '<p style="margin:24px 0;"><a href="' + signupUrl + '" style="background:#C9A84C;color:#1a1206;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;">Set Up My Account</a></p>' +
+        '<p>Or go to <a href="' + signupUrl + '" style="color:#E8D5A3;">' + signupUrl + '</a> and enter this code:</p>' +
         '<div style="font-size:32px;letter-spacing:8px;font-weight:bold;color:#E8D5A3;margin:24px 0;">' + code + '</div>' +
         '<p style="color:#A89B8C;font-size:13px;">This code expires in 15 minutes.</p>' +
         '</div>'
