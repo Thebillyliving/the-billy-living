@@ -1651,7 +1651,7 @@
                 <div class="login-sub">Admin Sign In</div>
                 <div id="loginError" class="login-error" style="display:none;"></div>
                 <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="loginEmail" placeholder="you@billyliving.com" autocomplete="username"></div>
-                <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="loginPassword" placeholder="••••••••" autocomplete="current-password" onkeypress="if(event.key==='Enter')doLogin()"></div>
+                <div class="form-group"><label class="form-label">Password</label><div style="position:relative;"><input type="password" class="form-input" id="loginPassword" placeholder="••••••••" autocomplete="current-password" onkeypress="if(event.key==='Enter')doLogin()" style="padding-right:56px;"><button type="button" onclick="toggleLoginPasswordVisibility()" id="toggleLoginPwBtn" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--gold);font-size:12px;cursor:pointer;padding:4px;">Show</button></div></div>
                 <button class="btn btn-primary" id="loginBtn" onclick="doLogin()" style="width:100%;">Sign In</button>
                 <div style="margin-top:16px;font-size:11px;">
                     <a href="#" onclick="toggleFirstTimeSetup();return false;" id="firstTimeLink" style="color:rgba(201,168,76,0.6);">First time? Set up the admin account</a>
@@ -1906,6 +1906,21 @@
             <div class="page-header"><h1 class="page-title">Management</h1><button class="btn btn-secondary" onclick="_panelFetched.security=false;renderDesignersList();" style="padding:10px 16px;font-size:12px;">&#x21BB; Refresh</button></div>
 
             <div class="form-container" style="max-width:600px;">
+                <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:4px;">Change Admin Login</div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Changes the email and password you sign in with. Takes effect immediately — you'll need the new credentials next time you log in.</div>
+                <div id="credError" class="login-error" style="display:none;"></div>
+                <div class="form-group"><label class="form-label">New Email</label><input type="email" class="form-input" id="newAdminEmail" placeholder="you@email.com"></div>
+                <div class="form-group">
+                    <label class="form-label">New Password</label>
+                    <div style="position:relative;">
+                        <input type="password" class="form-input" id="newAdminPassword" placeholder="At least 6 characters" style="padding-right:56px;">
+                        <button type="button" onclick="toggleAdminPasswordVisibility()" id="toggleAdminPwBtn" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--gold);font-size:12px;cursor:pointer;padding:4px;">Show</button>
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="updateCredBtn" onclick="updateAdminCredentials()">Update Login</button>
+            </div>
+
+            <div class="form-container" style="max-width:600px;margin-top:24px;">
                 <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:4px;">Invite Designer</div>
                 <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Sends a 6-digit code to their email. They enter it on their own sign-up page and choose their own password — you never see or set it.</div>
                 <div id="inviteError" class="login-error" style="display:none;"></div>
@@ -3250,6 +3265,42 @@
             } else { closeForm(); showToast('Saved'); }
         }
         function saveSettings() { showToast('Settings saved'); }
+        function toggleAdminPasswordVisibility() {
+            const pwEl = document.getElementById('newAdminPassword');
+            const btn = document.getElementById('toggleAdminPwBtn');
+            const isHidden = pwEl.type === 'password';
+            pwEl.type = isHidden ? 'text' : 'password';
+            btn.textContent = isHidden ? 'Hide' : 'Show';
+        }
+        function updateAdminCredentials() {
+            const emailEl = document.getElementById('newAdminEmail');
+            const pwEl = document.getElementById('newAdminPassword');
+            const errEl = document.getElementById('credError');
+            const btn = document.getElementById('updateCredBtn');
+            const newEmail = emailEl.value.trim();
+            const newPw = pwEl.value;
+            errEl.style.display = 'none';
+            if (!newEmail || !newPw) { errEl.textContent = 'Fill in both fields.'; errEl.style.display = 'block'; return; }
+            if (newPw.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
+            const user = adminFbAuth.currentUser;
+            if (!user) { errEl.textContent = 'Not signed in.'; errEl.style.display = 'block'; return; }
+            btn.disabled = true; btn.textContent = 'Updating…';
+            user.updateEmail(newEmail)
+                .then(() => user.updatePassword(newPw))
+                .then(() => {
+                    showToast('✓ Login updated — use the new email & password next time');
+                    emailEl.value = ''; pwEl.value = '';
+                })
+                .catch(e => {
+                    if (e.code === 'auth/requires-recent-login') {
+                        errEl.textContent = 'For security, sign out and back in, then try again right after.';
+                    } else {
+                        errEl.textContent = e.message;
+                    }
+                    errEl.style.display = 'block';
+                })
+                .finally(() => { btn.disabled = false; btn.textContent = 'Update Login'; });
+        }
         function inviteDesigner() {
             const nameEl = document.getElementById('newDesignerName');
             const emailEl = document.getElementById('newDesignerEmail');
@@ -4616,6 +4667,13 @@ function adminOpenImage(src) {
                 }
             })
             .finally(function() { btn.disabled = false; btn.textContent = 'Create Admin Account'; });
+    };
+    window.toggleLoginPasswordVisibility = function() {
+        var pwEl = document.getElementById('loginPassword');
+        var btn = document.getElementById('toggleLoginPwBtn');
+        var isHidden = pwEl.type === 'password';
+        pwEl.type = isHidden ? 'text' : 'password';
+        btn.textContent = isHidden ? 'Hide' : 'Show';
     };
     window.doLogin = function() {
         var emailEl = document.getElementById('loginEmail');
