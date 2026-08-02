@@ -93,6 +93,14 @@
     </div>
 
     <script>
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        var prefillEmail = params.get('email');
+        if (prefillEmail) {
+            document.getElementById('email').value = prefillEmail;
+            document.getElementById('code').focus();
+        }
+    })();
     function submitSignup() {
         var emailEl = document.getElementById('email');
         var codeEl = document.getElementById('code');
