@@ -3285,21 +3285,31 @@
             const user = adminFbAuth.currentUser;
             if (!user) { errEl.textContent = 'Not signed in.'; errEl.style.display = 'block'; return; }
             btn.disabled = true; btn.textContent = 'Updating…';
-            user.updateEmail(newEmail)
-                .then(() => user.updatePassword(newPw))
-                .then(() => {
-                    showToast('✓ Login updated — use the new email & password next time');
+            // Password and email are handled independently — Firebase won't let us change the
+            // email directly (your current admin@billyliving.com was never a verifiable inbox),
+            // so instead it sends a confirmation link to the NEW email; the email only actually
+            // changes once that link is clicked. The password change is immediate either way.
+            Promise.allSettled([
+                user.updatePassword(newPw),
+                user.verifyBeforeUpdateEmail(newEmail)
+            ]).then(([pwResult, emailResult]) => {
+                const pwOk = pwResult.status === 'fulfilled';
+                const emailOk = emailResult.status === 'fulfilled';
+                if (pwOk && emailOk) {
+                    showToast('✓ Password updated. Check ' + newEmail + ' and click the confirmation link to finish the email change.');
                     emailEl.value = ''; pwEl.value = '';
-                })
-                .catch(e => {
-                    if (e.code === 'auth/requires-recent-login') {
-                        errEl.textContent = 'For security, sign out and back in, then try again right after.';
-                    } else {
-                        errEl.textContent = e.message;
-                    }
+                } else if (pwOk && !emailOk) {
+                    showToast('✓ Password updated. Email change failed: ' + emailResult.reason.message);
+                } else if (!pwOk && emailOk) {
+                    errEl.textContent = 'Confirmation link sent to ' + newEmail + ', but password update failed: ' + pwResult.reason.message;
                     errEl.style.display = 'block';
-                })
-                .finally(() => { btn.disabled = false; btn.textContent = 'Update Login'; });
+                } else {
+                    errEl.textContent = pwResult.reason.code === 'auth/requires-recent-login'
+                        ? 'For security, sign out and back in, then try again right after.'
+                        : (pwResult.reason.message + ' / ' + emailResult.reason.message);
+                    errEl.style.display = 'block';
+                }
+            }).finally(() => { btn.disabled = false; btn.textContent = 'Update Login'; });
         }
         function inviteDesigner() {
             const nameEl = document.getElementById('newDesignerName');
