@@ -37,6 +37,7 @@ module.exports = async (req, res) => {
   if (invite.used) return res.status(410).json({ error: 'This invite has already been used' });
   if (Date.now() > invite.expiresAt) return res.status(410).json({ error: 'This code has expired — ask for a new invite' });
   if (String(invite.code) !== String(code).trim()) return res.status(401).json({ error: 'Incorrect code' });
+  if (!invite.approved) return res.status(403).json({ error: 'This invite has not been approved by the admin yet — check with them.' });
 
   let userRecord;
   try {
