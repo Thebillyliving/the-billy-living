@@ -572,10 +572,24 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     <div id="gateSignup" style="display:none">
       <div class="gate-input-group"><label class="gate-input-label">Full Name</label><input id="signupName" class="gate-input" type="text" placeholder="Your full name" autocomplete="name"></div>
       <div class="gate-input-group"><label class="gate-input-label">Email Address</label><input id="signupEmail" class="gate-input" type="email" placeholder="your@email.com" autocomplete="email"></div>
-      <div class="gate-input-group"><label class="gate-input-label">Password</label><div class="gate-input-pw-wrap"><input id="signupPassword" class="gate-input" type="password" placeholder="Min. 6 characters" autocomplete="new-password"><button type="button" class="pw-toggle" onclick="togglePw('signupPassword',this)" aria-label="Show password"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
       <button class="gate-btn" id="signupBtn" onclick="handleSignup()" ontouchend="event.preventDefault();handleSignup()">Continue →</button>
       <div class="gate-error" id="signupError"></div>
     </div>
+  </div>
+  <div class="gate-panel" id="gateStepCode" style="display:none">
+    <div class="gate-step2-title">Check Your Email</div>
+    <div class="gate-step2-sub" id="codeStepSub">Enter the code sent to your email</div>
+    <div class="gate-input-group"><label class="gate-input-label">6-Digit Code</label><input id="signupCode" class="gate-input" type="text" placeholder="123456" inputmode="numeric" maxlength="6"></div>
+    <button class="gate-btn" id="confirmCodeBtn" onclick="handleConfirmSignupCode()" ontouchend="event.preventDefault();handleConfirmSignupCode()">Confirm Code</button>
+    <div class="gate-error" id="codeError"></div>
+  </div>
+  <div class="gate-panel" id="gateStepPassword" style="display:none">
+    <div class="gate-step2-title">Create Your Password</div>
+    <div class="gate-step2-sub">Almost there — choose a password</div>
+    <div class="gate-input-group"><label class="gate-input-label">Password</label><div class="gate-input-pw-wrap"><input id="createPassword" class="gate-input" type="password" placeholder="Min. 6 characters" autocomplete="new-password"><button type="button" class="pw-toggle" onclick="togglePw('createPassword',this)" aria-label="Show password"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+    <div class="gate-input-group"><label class="gate-input-label">Re-enter Password</label><div class="gate-input-pw-wrap"><input id="createPasswordConfirm" class="gate-input" type="password" placeholder="Re-enter password" autocomplete="new-password"><button type="button" class="pw-toggle" onclick="togglePw('createPasswordConfirm',this)" aria-label="Show password"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+    <button class="gate-btn" id="createPasswordBtn" onclick="handleCreatePassword()" ontouchend="event.preventDefault();handleCreatePassword()">Create Account</button>
+    <div class="gate-error" id="createPasswordError"></div>
   </div>
   <div class="gate-panel" id="gateStep2">
     <div class="gate-step2-title">Welcome,<br><span id="gateNameReveal" style="color:var(--gold)">Designer</span></div>
@@ -1043,7 +1057,7 @@ let currentCatalogBox = null;
 let currentCatalogPaletteIndex = 0;
 let vaultSession = null;
 let currentShareItem = null;
-let pendingSignupName = '', pendingSignupEmail = '', pendingSignupPw = '';
+let pendingSignupName = '', pendingSignupEmail = '', pendingSignupCode = '';
 
 // ─── GATEKEEPER ──────────────────────────────────────────────────────────────
 function hideGatekeeper() {
@@ -1303,45 +1317,87 @@ async function handleSignup() {
   const btn = document.getElementById('signupBtn');
   const name  = document.getElementById('signupName').value.trim();
   const email = document.getElementById('signupEmail').value.trim();
-  const pw    = document.getElementById('signupPassword').value;
   clearGateError('signupError');
-  if (!name)         { showGateError('signupError', 'Please enter your full name.'); return; }
-  if (!email)        { showGateError('signupError', 'Please enter your email address.'); return; }
-  if (!pw)           { showGateError('signupError', 'Please enter a password.'); return; }
-  if (pw.length < 6) { showGateError('signupError', 'Password must be at least 6 characters.'); return; }
+  if (!name)  { showGateError('signupError', 'Please enter your full name.'); return; }
+  if (!email) { showGateError('signupError', 'Please enter your email address.'); return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showGateError('signupError', 'Please enter a valid email address.'); return; }
-  btn.disabled = true; btn.textContent = 'Creating…';
+  btn.disabled = true; btn.textContent = 'Sending code…';
   try {
-    pendingSignupName = name; pendingSignupEmail = email; pendingSignupPw = pw;
+    const resp = await fetch('/api/send-signup-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email })
+    });
+    const data = await resp.json();
+    if (!resp.ok) { showGateError('signupError', data.error || 'Could not send code.'); btn.disabled = false; btn.textContent = 'Continue →'; return; }
+    pendingSignupName = name; pendingSignupEmail = email;
+    document.getElementById('codeStepSub').textContent = 'Enter the code sent to ' + email;
     document.getElementById('gateStep1').style.display = 'none';
-    document.getElementById('gateStep2').style.display = 'block';
-    document.getElementById('gateNameReveal').textContent = name.split(' ')[0];
+    document.getElementById('gateStepCode').style.display = 'block';
   } catch(e) {
-    showGateError('signupError', gateAuthError(e.code || '', 'signup'));
-    btn.disabled = false; btn.textContent = 'Continue →';
+    showGateError('signupError', 'Network error — check your connection and try again.');
   }
+  btn.disabled = false; btn.textContent = 'Continue →';
 }
 
-async function handleFinishSignup() {
-  const btn = document.getElementById('finishBtn');
-  clearGateError('photoError');
+async function handleConfirmSignupCode() {
+  const btn = document.getElementById('confirmCodeBtn');
+  const code = document.getElementById('signupCode').value.trim();
+  clearGateError('codeError');
+  if (!code) { showGateError('codeError', 'Please enter the code.'); return; }
+  btn.disabled = true; btn.textContent = 'Checking…';
+  try {
+    const resp = await fetch('/api/check-signup-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: pendingSignupEmail, code })
+    });
+    const data = await resp.json();
+    if (!resp.ok) { showGateError('codeError', data.error || 'That code is incorrect.'); btn.disabled = false; btn.textContent = 'Confirm Code'; return; }
+    pendingSignupCode = code;
+    document.getElementById('gateStepCode').style.display = 'none';
+    document.getElementById('gateStepPassword').style.display = 'block';
+  } catch(e) {
+    showGateError('codeError', 'Network error — check your connection and try again.');
+  }
+  btn.disabled = false; btn.textContent = 'Confirm Code';
+}
+
+async function handleCreatePassword() {
+  const btn = document.getElementById('createPasswordBtn');
+  const pw = document.getElementById('createPassword').value;
+  const pwConfirm = document.getElementById('createPasswordConfirm').value;
+  clearGateError('createPasswordError');
+  if (!pw)             { showGateError('createPasswordError', 'Please enter a password.'); return; }
+  if (pw.length < 6)   { showGateError('createPasswordError', 'Password must be at least 6 characters.'); return; }
+  if (pw !== pwConfirm) { showGateError('createPasswordError', 'Passwords do not match.'); return; }
   btn.disabled = true; btn.textContent = 'Creating account…';
   try {
-    const cred = await fbAuth.createUserWithEmailAndPassword(pendingSignupEmail, pendingSignupPw);
-    await fbDb.ref('userProfiles/' + cred.user.uid).set({
-      name: pendingSignupName, email: pendingSignupEmail,
-      avatar: '', residence: '', mobile: '', measure: '', createdAt: Date.now()
+    const resp = await fetch('/api/complete-signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: pendingSignupName, email: pendingSignupEmail, code: pendingSignupCode, password: pw })
     });
+    const data = await resp.json();
+    if (!resp.ok) { showGateError('createPasswordError', data.error || 'Could not create account.'); btn.disabled = false; btn.textContent = 'Create Account'; return; }
+    await fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    const cred = await fbAuth.signInWithEmailAndPassword(pendingSignupEmail, pw);
     currentUser = cred.user;
-    hideGatekeeper();
-    showPage('home');
-    // Trigger new account splash sequence
-    showNewAccountSplashSequence(pendingSignupName);
-    loadUserProfile(cred.user.uid);
+    document.getElementById('gateStepPassword').style.display = 'none';
+    document.getElementById('gateStep2').style.display = 'block';
+    document.getElementById('gateNameReveal').textContent = pendingSignupName.split(' ')[0];
   } catch(e) {
-    showGateError('photoError', gateAuthError(e.code || '', 'signup'));
-    btn.disabled = false; btn.textContent = 'Enter The Billy Living';
+    showGateError('createPasswordError', gateAuthError(e.code || '', 'signup'));
   }
+  btn.disabled = false; btn.textContent = 'Create Account';
+}
+
+function handleFinishSignup() {
+  hideGatekeeper();
+  showPage('home');
+  // Trigger new account splash sequence
+  showNewAccountSplashSequence(pendingSignupName);
+  loadUserProfile(currentUser.uid);
 }
 
 // Enter key triggers login/signup
@@ -1352,8 +1408,14 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('loginEmail').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') handleLogin();
   });
-  document.getElementById('signupPassword').addEventListener('keydown', function(e) {
+  document.getElementById('signupEmail').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') handleSignup();
+  });
+  document.getElementById('signupCode').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleConfirmSignupCode();
+  });
+  document.getElementById('createPasswordConfirm').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleCreatePassword();
   });
   // Single delegated handler — click + touch-action:manipulation = no 300ms delay, no double-fire
   var nav = document.querySelector('.bottom-nav');
