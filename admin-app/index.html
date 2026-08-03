@@ -1690,7 +1690,6 @@
             <div class="nav-section-title">System</div>
             <div class="nav-item" onclick="showPanel('settings', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span><span>Settings</span></div>
             <div class="nav-item" onclick="showPanel('security', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="11" rx="1"/><path d="M8 11V7a4 4 0 018 0v4"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/></svg></span><span>Management</span></div>
-            <div class="nav-item" onclick="if(confirm('Sign out?'))adminFbAuth.signOut();"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span><span>Sign Out</span></div>
         </div>
     </aside>
 
@@ -1900,34 +1899,47 @@
                 <div class="form-group"><label class="form-label">Booking Link</label><input type="text" class="form-input" id="settingBooking" value="https://calendly.com/billyliving"></div>
                 <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
             </div>
+            <div class="form-container" style="max-width:600px;margin-top:24px;">
+                <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:12px;">Session</div>
+                <button class="btn btn-secondary" onclick="if(confirm('Sign out?'))adminFbAuth.signOut();">Sign Out</button>
+            </div>
         </div>
 
         <!-- Management Panel -->
         <div class="panel" id="panel-security">
             <div class="page-header"><h1 class="page-title">Management</h1><button class="btn btn-secondary" onclick="_panelFetched.security=false;renderDesignersList();" style="padding:10px 16px;font-size:12px;">&#x21BB; Refresh</button></div>
 
-            <div class="form-container" style="max-width:600px;">
-                <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:4px;">Change Admin Login</div>
-                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Changes the email and password you sign in with. Takes effect immediately — you'll need the new credentials next time you log in.</div>
-                <div id="credError" class="login-error" style="display:none;"></div>
-                <div class="form-group"><label class="form-label">New Email</label><input type="email" class="form-input" id="newAdminEmail" placeholder="you@email.com"></div>
-                <div class="form-group">
-                    <label class="form-label">New Password</label>
-                    <div style="position:relative;">
-                        <input type="password" class="form-input" id="newAdminPassword" placeholder="At least 6 characters" style="padding-right:56px;">
-                        <button type="button" onclick="toggleAdminPasswordVisibility()" id="toggleAdminPwBtn" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--gold);font-size:12px;cursor:pointer;padding:4px;">Show</button>
-                    </div>
-                </div>
-                <button class="btn btn-primary" id="updateCredBtn" onclick="updateAdminCredentials()">Update Login</button>
-            </div>
-
             <div class="form-container" style="max-width:600px;margin-top:24px;">
-                <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:4px;">Invite Designer</div>
-                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Sends a 6-digit code to their email. They enter it on their own sign-up page and choose their own password — you never see or set it.</div>
+                <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:4px;">Create Designer Account</div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Sends a 6-digit code to their email right away. They enter it on their own sign-up page to create their account and choose their own password — but it won't work until you confirm the code and your password here first.</div>
                 <div id="inviteError" class="login-error" style="display:none;"></div>
-                <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="newDesignerName" placeholder="e.g. Ada Okafor"></div>
-                <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="newDesignerEmail" placeholder="designer@email.com"></div>
-                <button class="btn btn-primary" id="createDesignerBtn" onclick="inviteDesigner()">Send Invite</button>
+
+                <!-- Step 1: name + email -->
+                <div id="designerStep1">
+                    <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="newDesignerName" placeholder="e.g. Ada Okafor"></div>
+                    <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="newDesignerEmail" placeholder="designer@email.com"></div>
+                    <button class="btn btn-primary" id="createDesignerBtn" onclick="createDesignerAccount()">Create Designer Account</button>
+                </div>
+
+                <!-- Step 2: admin re-types the code that was just emailed -->
+                <div id="designerStep2" style="display:none;">
+                    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">A code was sent to <strong id="step2EmailLabel"></strong>. Enter it below to continue.</div>
+                    <div class="form-group"><label class="form-label">6-Digit Code</label><input type="text" class="form-input" id="confirmCodeInput" placeholder="123456" inputmode="numeric" maxlength="6"></div>
+                    <button class="btn btn-primary" id="confirmCodeBtn" onclick="confirmDesignerCode()">Confirm Code</button>
+                </div>
+
+                <!-- Step 3: admin re-confirms their own password before the invite is approved -->
+                <div id="designerStep3" style="display:none;">
+                    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">Enter your admin password to approve this account.</div>
+                    <div class="form-group">
+                        <label class="form-label">Your Password</label>
+                        <div style="position:relative;">
+                            <input type="password" class="form-input" id="approvePasswordInput" placeholder="••••••••" style="padding-right:56px;">
+                            <button type="button" onclick="toggleApprovePasswordVisibility()" id="toggleApprovePwBtn" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--gold);font-size:12px;cursor:pointer;padding:4px;">Show</button>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="approveBtn" onclick="approveDesignerInvite()">Approve & Finish</button>
+                </div>
             </div>
 
             <div class="form-container" style="max-width:600px;margin-top:24px;">
@@ -3266,53 +3278,10 @@
             } else { closeForm(); showToast('Saved'); }
         }
         function saveSettings() { showToast('Settings saved'); }
-        function toggleAdminPasswordVisibility() {
-            const pwEl = document.getElementById('newAdminPassword');
-            const btn = document.getElementById('toggleAdminPwBtn');
-            const isHidden = pwEl.type === 'password';
-            pwEl.type = isHidden ? 'text' : 'password';
-            btn.textContent = isHidden ? 'Hide' : 'Show';
-        }
-        function updateAdminCredentials() {
-            const emailEl = document.getElementById('newAdminEmail');
-            const pwEl = document.getElementById('newAdminPassword');
-            const errEl = document.getElementById('credError');
-            const btn = document.getElementById('updateCredBtn');
-            const newEmail = emailEl.value.trim();
-            const newPw = pwEl.value;
-            errEl.style.display = 'none';
-            if (!newEmail || !newPw) { errEl.textContent = 'Fill in both fields.'; errEl.style.display = 'block'; return; }
-            if (newPw.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
-            const user = adminFbAuth.currentUser;
-            if (!user) { errEl.textContent = 'Not signed in.'; errEl.style.display = 'block'; return; }
-            btn.disabled = true; btn.textContent = 'Updating…';
-            // Password and email are handled independently — Firebase won't let us change the
-            // email directly (your current admin@billyliving.com was never a verifiable inbox),
-            // so instead it sends a confirmation link to the NEW email; the email only actually
-            // changes once that link is clicked. The password change is immediate either way.
-            Promise.allSettled([
-                user.updatePassword(newPw),
-                user.verifyBeforeUpdateEmail(newEmail)
-            ]).then(([pwResult, emailResult]) => {
-                const pwOk = pwResult.status === 'fulfilled';
-                const emailOk = emailResult.status === 'fulfilled';
-                if (pwOk && emailOk) {
-                    showToast('✓ Password updated. Check ' + newEmail + ' and click the confirmation link to finish the email change.');
-                    emailEl.value = ''; pwEl.value = '';
-                } else if (pwOk && !emailOk) {
-                    showToast('✓ Password updated. Email change failed: ' + emailResult.reason.message);
-                } else if (!pwOk && emailOk) {
-                    errEl.textContent = 'Confirmation link sent to ' + newEmail + ', but password update failed: ' + pwResult.reason.message;
-                    errEl.style.display = 'block';
-                } else {
-                    errEl.textContent = pwResult.reason.code === 'auth/requires-recent-login'
-                        ? 'For security, sign out and back in, then try again right after.'
-                        : (pwResult.reason.message + ' / ' + emailResult.reason.message);
-                    errEl.style.display = 'block';
-                }
-            }).finally(() => { btn.disabled = false; btn.textContent = 'Update Login'; });
-        }
-        function inviteDesigner() {
+        // Tracks the email currently mid-approval across the 3 steps.
+        let _pendingDesignerEmail = '';
+
+        function createDesignerAccount() {
             const nameEl = document.getElementById('newDesignerName');
             const emailEl = document.getElementById('newDesignerEmail');
             const name = nameEl.value.trim();
@@ -3330,12 +3299,84 @@
                 }))
                 .then(r => r.json().then(data => ({ ok: r.ok, data })))
                 .then(result => {
-                    if (!result.ok) { errEl.textContent = result.data.error || 'Failed to send invite.'; errEl.style.display = 'block'; return; }
-                    showToast('✓ Invite sent to ' + email);
-                    nameEl.value = ''; emailEl.value = '';
+                    if (!result.ok) { errEl.textContent = result.data.error || 'Failed to send code.'; errEl.style.display = 'block'; return; }
+                    showToast('✓ Code sent to ' + email);
+                    _pendingDesignerEmail = email;
+                    document.getElementById('step2EmailLabel').textContent = email;
+                    document.getElementById('designerStep1').style.display = 'none';
+                    document.getElementById('designerStep2').style.display = 'block';
                 })
                 .catch(e => { errEl.textContent = 'Network error: ' + e.message; errEl.style.display = 'block'; })
-                .finally(() => { btn.disabled = false; btn.textContent = 'Send Invite'; });
+                .finally(() => { btn.disabled = false; btn.textContent = 'Create Designer Account'; });
+        }
+
+        function confirmDesignerCode() {
+            const codeEl = document.getElementById('confirmCodeInput');
+            const code = codeEl.value.trim();
+            const btn = document.getElementById('confirmCodeBtn');
+            const errEl = document.getElementById('inviteError');
+            errEl.style.display = 'none';
+            if (!code) { errEl.textContent = 'Enter the code.'; errEl.style.display = 'block'; return; }
+            btn.disabled = true; btn.textContent = 'Checking…';
+            adminFbAuth.currentUser.getIdToken()
+                .then(idToken => fetch('/api/confirm-invite-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+                    body: JSON.stringify({ email: _pendingDesignerEmail, code })
+                }))
+                .then(r => r.json().then(data => ({ ok: r.ok, data })))
+                .then(result => {
+                    if (!result.ok) { errEl.textContent = result.data.error || 'Code check failed.'; errEl.style.display = 'block'; return; }
+                    document.getElementById('designerStep2').style.display = 'none';
+                    document.getElementById('designerStep3').style.display = 'block';
+                })
+                .catch(e => { errEl.textContent = 'Network error: ' + e.message; errEl.style.display = 'block'; })
+                .finally(() => { btn.disabled = false; btn.textContent = 'Confirm Code'; });
+        }
+
+        function toggleApprovePasswordVisibility() {
+            const pwEl = document.getElementById('approvePasswordInput');
+            const btn = document.getElementById('toggleApprovePwBtn');
+            const isHidden = pwEl.type === 'password';
+            pwEl.type = isHidden ? 'text' : 'password';
+            btn.textContent = isHidden ? 'Hide' : 'Show';
+        }
+
+        function approveDesignerInvite() {
+            const pwEl = document.getElementById('approvePasswordInput');
+            const password = pwEl.value;
+            const btn = document.getElementById('approveBtn');
+            const errEl = document.getElementById('inviteError');
+            const code = document.getElementById('confirmCodeInput').value.trim();
+            errEl.style.display = 'none';
+            if (!password) { errEl.textContent = 'Enter your password.'; errEl.style.display = 'block'; return; }
+            btn.disabled = true; btn.textContent = 'Confirming…';
+            const user = adminFbAuth.currentUser;
+            const credential = firebase.auth.EmailAuthProvider.credential(user.email, password);
+            user.reauthenticateWithCredential(credential)
+                .then(() => user.getIdToken(true)) // force-refresh so the token's auth_time is fresh
+                .then(idToken => fetch('/api/approve-invite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+                    body: JSON.stringify({ email: _pendingDesignerEmail, code })
+                }))
+                .then(r => r.json().then(data => ({ ok: r.ok, data })))
+                .then(result => {
+                    if (!result.ok) { errEl.textContent = result.data.error || 'Approval failed.'; errEl.style.display = 'block'; return; }
+                    showToast('✓ Approved — ' + _pendingDesignerEmail + ' can now finish creating their account');
+                    document.getElementById('newDesignerName').value = '';
+                    document.getElementById('newDesignerEmail').value = '';
+                    document.getElementById('confirmCodeInput').value = '';
+                    pwEl.value = '';
+                    document.getElementById('designerStep3').style.display = 'none';
+                    document.getElementById('designerStep1').style.display = 'block';
+                    _pendingDesignerEmail = '';
+                })
+                .catch(e => {
+                    errEl.textContent = e.code === 'auth/wrong-password' ? 'Incorrect password.' : (e.message || 'Something went wrong.');
+                    errEl.style.display = 'block';
+                })
+                .finally(() => { btn.disabled = false; btn.textContent = 'Approve & Finish'; });
         }
         function adminBackToList() { document.getElementById('msgsAdminChatView').style.display = 'none'; document.getElementById('msgsListView').style.display = 'block'; }
         function openClientProfile() {}
