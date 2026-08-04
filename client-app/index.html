@@ -1054,6 +1054,8 @@ window._feedImgObserver = window._feedImgObserver || null;
 let cgMessages = [], cgHistory = [];
 let portfolioItems = [], selectedPortfolioItems = [];
 let currentCatalogBox = null;
+let _catalogScrollY = 0;      // remembers scroll position of the top-level catalog grid
+let _catalogInnerScrollY = 0; // remembers scroll position of the collection/palette view
 let currentCatalogPaletteIndex = 0;
 let vaultSession = null;
 let currentShareItem = null;
@@ -2568,6 +2570,7 @@ function _buildPaletteCard(box, paletteImage) {
 
 function openCatalogInner(box) {
   currentCatalogBox = box;
+  _catalogScrollY = window.scrollY;
   // Track this catalog view
   if (currentUser && box.id) trackPostView('catalog', box.id);
 
@@ -2610,6 +2613,7 @@ function closeCatalogInner() {
   document.getElementById('catalogInner').classList.remove('active');
   document.getElementById('catalog').style.display = 'block';
   document.getElementById('catalog').classList.add('active');
+  window.scrollTo(0, _catalogScrollY);
 }
 
 const ROOM_NAMES = ['Living Room','Dining Room','Bed Room','Kitchen','Toilet','Passage Way','Rest Room'];
@@ -2618,6 +2622,7 @@ function openCatalogRooms(box, paletteIndex) {
   paletteIndex = paletteIndex || 0;
   currentCatalogBox = box;
   currentCatalogPaletteIndex = paletteIndex;
+  _catalogInnerScrollY = window.scrollY;
   document.getElementById('roomsPageTitle').textContent    = box.value || box.topic || 'ROOMS';
   document.getElementById('roomsPageSubtitle').textContent = box.description || box.feeling || '';
 
@@ -2692,6 +2697,7 @@ function closeCatalogRooms() {
   _ci2.style.display = 'block';
   void _ci2.offsetWidth;
   _ci2.classList.add('active');
+  window.scrollTo(0, _catalogInnerScrollY);
 }
 
 function viewRoomImage(name, idx) {
@@ -3900,6 +3906,23 @@ function dismissBanner() {
   let dismissed = false;
   function dismissSplash() {
     if (dismissed) return;
+
+    // If the real splash sequence is already driving (loading splash, login
+    // splash, creating-account splash, or welcome splash all active), this
+    // fallback has nothing useful to do — it was firing blindly before and
+    // yanking the splash away mid-sequence on slow connections. Let the real
+    // sequence keep going; it has its own timers.
+    const loading  = document.getElementById('loadingSplash');
+    const loginS   = document.getElementById('loginSplash');
+    const creating = document.getElementById('creatingAccountSplash');
+    const welcome  = document.getElementById('welcomeSplash');
+    const realSequenceRunning =
+      (loading  && loading.classList.contains('active'))  ||
+      (loginS   && loginS.classList.contains('active'))   ||
+      (creating && creating.classList.contains('active')) ||
+      (welcome  && welcome.classList.contains('active'));
+    if (realSequenceRunning) return;
+
     dismissed = true;
     const s = document.getElementById('splashScreen');
     if (s) {
@@ -3908,12 +3931,23 @@ function dismissBanner() {
       s.style.pointerEvents = 'none';
     }
     setTimeout(() => { if (s && s.parentNode) s.remove(); }, 700);
-    // Ensure nav stays locked — loading splash will handle the reveal
+
+    // Auth genuinely hasn't resolved yet (slow network / slow Firebase load).
+    // The safe thing to reveal is the login gate — never the raw app
+    // underneath, which is what was happening before this fix.
+    const gk = document.getElementById('gatekeeper');
+    if (gk && gk.classList.contains('hidden')) {
+      gk.style.transition = 'none';
+      gk.style.display = 'flex';
+      gk.classList.remove('hidden');
+    }
     var nav = document.querySelector('.bottom-nav');
     if (nav) nav.classList.remove('nav-ready');
   }
-  // Hard fallback at 3.5s — only fires if showLoadingSplash didn't run
-  setTimeout(dismissSplash, 3500);
+  // Hard fallback — only fires if nothing else has taken over by then.
+  // Raised from 3.5s to 8s: on a slow connection, Firebase's SDK alone can
+  // still be loading past 3.5s, which was the actual cause of the early bug.
+  setTimeout(dismissSplash, 8000);
 })();
 </script>
 
