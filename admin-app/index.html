@@ -841,6 +841,36 @@
             padding: 0;
         }
 
+        /* Style sections — group preformats under a named interior design style */
+        .style-section { margin-bottom: 6px; }
+        .style-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 14px 10px;
+            border-bottom: 1px solid rgba(201,168,76,0.35);
+            background: rgba(201,168,76,0.04);
+        }
+        .style-section-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #C9A84C;
+            text-transform: uppercase;
+        }
+        .style-section-count {
+            font-size: 10px;
+            letter-spacing: 1px;
+            color: rgba(201,168,76,0.5);
+        }
+        .style-section-empty {
+            padding: 22px 14px;
+            text-align: center;
+            font-size: 12px;
+            color: rgba(201,168,76,0.35);
+        }
+
         .elite-collection-cell-admin {
             padding: 14px 10px 10px;
             border-right: 1px solid #C9A84C;
@@ -1720,10 +1750,10 @@
 
         <!-- Catalog Panel -->
         <div class="panel" id="panel-catalog">
-            <div class="page-header"><h1 class="page-title">Catalog Manager</h1><button class="btn btn-primary" onclick="openForm('category')">+ Add Category</button></div>
+            <div class="page-header"><h1 class="page-title">Catalog Manager</h1><div style="display:flex;gap:8px;"><button class="btn btn-secondary" onclick="openForm('style')">+ Create New Style</button><button class="btn btn-primary" onclick="openForm('category')">+ Add Category</button></div></div>
             <div style="background: var(--bg-primary); border: 1px solid rgba(201,168,76,0.15); border-radius: 16px; overflow: hidden;">
                 <div class="elite-catalog-header"><div class="elite-catalog-name">Billy Living Presents</div><div class="elite-catalog-title">The Elite Preformats</div></div>
-                <div class="elite-catalog-grid-admin" id="catalogList"></div>
+                <div id="catalogList"></div>
             </div>
         </div>
 
@@ -1893,13 +1923,6 @@
         <div class="panel" id="panel-settings">
             <div class="page-header"><h1 class="page-title">Settings</h1></div>
             <div class="form-container" style="max-width:600px;">
-                <div class="form-group"><label class="form-label">App Name</label><input type="text" class="form-input" id="settingAppName" value="Billy Living"></div>
-                <div class="form-group"><label class="form-label">WhatsApp Number</label><input type="text" class="form-input" id="settingWhatsApp" value="+2348084410220"></div>
-                <div class="form-group"><label class="form-label">WhatsApp Message</label><input type="text" class="form-input" id="settingWhatsAppMsg" value="Hello, I'm interested in your interior design services"></div>
-                <div class="form-group"><label class="form-label">Booking Link</label><input type="text" class="form-input" id="settingBooking" value="https://calendly.com/billyliving"></div>
-                <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
-            </div>
-            <div class="form-container" style="max-width:600px;margin-top:24px;">
                 <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:12px;">Session</div>
                 <button class="btn btn-secondary" onclick="if(confirm('Sign out?'))adminFbAuth.signOut();">Sign Out</button>
             </div>
@@ -1988,6 +2011,7 @@
     </div>
     
     <div id="formModal" class="form-modal"><div class="form-container"><h2 class="form-title" id="formTitle">Add New</h2><div id="formContent"></div><div style="display:flex;gap:12px;margin-top:24px;"><button class="btn btn-secondary" onclick="closeForm()" style="flex:1;">Cancel</button><button class="btn btn-primary" onclick="submitForm()" style="flex:1;">Save</button></div></div></div>
+    <div id="moveStyleModal" class="form-modal"><div class="form-container"><h2 class="form-title">Move to Style</h2><div id="moveStyleList" style="display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto;"></div><div style="display:flex;gap:12px;margin-top:20px;"><button class="btn btn-secondary" onclick="closeMoveStyleModal()" style="flex:1;">Cancel</button></div></div></div>
     <div id="vmDetailOverlay" class="vm-detail-overlay"><div class="vm-detail-header"><button class="vm-detail-back" onclick="vmCloseDetail()">← Back</button><div style="font-size:9px;letter-spacing:4px;color:rgba(212,175,55,0.4);text-transform:uppercase;">Asset Preview</div></div><div class="vm-detail-body" id="vmDetailContent"></div></div>
     <div class="context-backdrop" id="contextBackdrop" onclick="closeContextMenu()"></div>
     <div class="cell-context-menu" id="cellContextMenu"><div class="context-menu-header"><div class="context-menu-title" id="contextMenuTitle">—</div></div><div id="contextMenuOptions"></div></div>
@@ -2926,56 +2950,105 @@
         let _catalogCache = null;
         let _catalogCacheTime = 0;
         const CATALOG_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+        let _stylesCache = null;
+        let _stylesCacheTime = 0;
+        const STYLES_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-        function _renderCatalogFromData(data) {
+        function fetchStyles(force) {
+          if (!force && _stylesCache && (Date.now() - _stylesCacheTime < STYLES_CACHE_TTL)) {
+            return Promise.resolve(_stylesCache);
+          }
+          return adminFbDB.ref('content/styles').once('value').then(snap => {
+            const list = snap.exists() ? Object.values(snap.val()) : [];
+            list.sort((a,b) => (a.createdAt||0) - (b.createdAt||0));
+            _stylesCache = list;
+            _stylesCacheTime = Date.now();
+            return _stylesCache;
+          });
+        }
+
+        function _renderCatalogCell(box) {
+          const imgs = box.images ? (Array.isArray(box.images) ? box.images : Object.values(box.images)) : [];
+          const thumb = imgs.find(i => i) || null;
+          return '<div class="elite-collection-cell-admin"'
+            + ' ontouchstart="startCellPress(event,\'' + box.id + '\')" ontouchend="cancelCellPress()" ontouchmove="cancelCellPress()"'
+            + ' onmousedown="startCellPress(event,\'' + box.id + '\')" onmouseup="cancelCellPress()" onmouseleave="cancelCellPress()"'
+            + ' onclick="openAdminCatalogInner(_adminCatalogMap[\'' + box.id + '\'])">'
+            + '<div class="elite-cell-meta-admin"><div class="elite-cell-topic-admin">' + (box.value||box.topic||'Collection') + '</div>'
+            + '<div class="elite-cell-feeling-admin">' + (box.description||box.feeling||'') + '</div></div>'
+            + '<div class="elite-cell-box-admin" style="position:relative;overflow:hidden;">'
+            + (thumb
+                ? '<img src="' + thumb + '" loading="lazy" decoding="async" alt="" style="width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .35s;" onload="this.style.opacity=1" onerror="this.style.display=\'none\'">'
+                : '<div style="width:100%;height:100%;background:rgba(201,168,76,0.06);"></div>')
+            + '<div class="elite-cell-grain-admin"></div>'
+            + '</div>'
+            + '<div class="elite-cell-actions-admin">'
+            + '<button class="btn btn-secondary" style="font-size:11px;padding:8px 6px;flex:1;" onclick="event.stopPropagation();openAdminCatalogInner(_adminCatalogMap[\'' + box.id + '\'])">Edit</button>'
+            + '<button class="btn btn-secondary" style="font-size:11px;padding:8px 4px;flex:1;background:rgba(201,168,76,0.08);" onclick="event.stopPropagation();openPostAnalytics(\'catalog\',\'' + box.id + '\',\'' + (box.value||'Collection').replace(/'/g,"\\'") + '\')">👁</button>'
+            + '<button class="btn btn-danger" style="flex:0 0 36px;padding:8px;font-size:14px;" onclick="event.stopPropagation();if(confirm(\'Delete?\'))adminFbDB.ref(\'content/catalog/' + box.id + '\').remove().then(()=>{_catalogCache=null;showToast(\'Deleted\');renderCatalogList();})">×</button>'
+            + '</div></div>';
+        }
+
+        function _renderStyleSection(name, styleId, boxes) {
+          const cellsHtml = boxes.length
+            ? '<div class="elite-catalog-grid-admin">' + boxes.map(_renderCatalogCell).join('') + '</div>'
+            : '<div class="style-section-empty">No preformats yet — long-press a preformat to move it here</div>';
+          return '<div class="style-section" data-style-id="' + (styleId||'') + '">'
+            + '<div class="style-section-header"><div class="style-section-name">' + name + '</div><div class="style-section-count">' + boxes.length + '</div></div>'
+            + cellsHtml
+            + '</div>';
+        }
+
+        function _renderCatalogFromData(data, styles) {
           const grid = document.getElementById('catalogList');
-          const boxes = Object.values(data).sort((a,b) => {
+          styles = styles || _stylesCache || [];
+          const boxes = Object.values(data || {}).sort((a,b) => {
             const n = s => parseInt((s.id||'').replace(/\D/g,'')) || 0;
             return n(a) - n(b);
           });
           boxes.forEach(b => { _adminCatalogMap[b.id] = b; });
-          grid.innerHTML = boxes.map(box => {
-            const imgs = box.images ? (Array.isArray(box.images) ? box.images : Object.values(box.images)) : [];
-            const thumb = imgs.find(i => i) || null;
-            return '<div class="elite-collection-cell-admin"'
-              + ' ontouchstart="startCellPress(event,\'' + box.id + '\')" ontouchend="cancelCellPress()" ontouchmove="cancelCellPress()"'
-              + ' onmousedown="startCellPress(event,\'' + box.id + '\')" onmouseup="cancelCellPress()" onmouseleave="cancelCellPress()"'
-              + ' onclick="openAdminCatalogInner(_adminCatalogMap[\'' + box.id + '\'])">'
-              + '<div class="elite-cell-meta-admin"><div class="elite-cell-topic-admin">' + (box.value||box.topic||'Collection') + '</div>'
-              + '<div class="elite-cell-feeling-admin">' + (box.description||box.feeling||'') + '</div></div>'
-              + '<div class="elite-cell-box-admin" style="position:relative;overflow:hidden;">'
-              + (thumb
-                  ? '<img src="' + thumb + '" loading="lazy" decoding="async" alt="" style="width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .35s;" onload="this.style.opacity=1" onerror="this.style.display=\'none\'">'
-                  : '<div style="width:100%;height:100%;background:rgba(201,168,76,0.06);"></div>')
-              + '<div class="elite-cell-grain-admin"></div>'
-              + '</div>'
-              + '<div class="elite-cell-actions-admin">'
-              + '<button class="btn btn-secondary" style="font-size:11px;padding:8px 6px;flex:1;" onclick="event.stopPropagation();openAdminCatalogInner(_adminCatalogMap[\'' + box.id + '\'])">Edit</button>'
-              + '<button class="btn btn-secondary" style="font-size:11px;padding:8px 4px;flex:1;background:rgba(201,168,76,0.08);" onclick="event.stopPropagation();openPostAnalytics(\'catalog\',\'' + box.id + '\',\'' + (box.value||'Collection').replace(/'/g,"\\'") + '\')">👁</button>'
-              + '<button class="btn btn-danger" style="flex:0 0 36px;padding:8px;font-size:14px;" onclick="event.stopPropagation();if(confirm(\'Delete?\'))adminFbDB.ref(\'content/catalog/' + box.id + '\').remove().then(()=>{_catalogCache=null;showToast(\'Deleted\');renderCatalogList();})">×</button>'
-              + '</div></div>';
-          }).join('');
+
+          if (!boxes.length && !styles.length) {
+            grid.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);">No catalog collections yet</div>';
+            return;
+          }
+
+          const styleIds = styles.map(s => s.id);
+          const groups = {};
+          const unsorted = [];
+          boxes.forEach(b => {
+            if (b.styleId && styleIds.indexOf(b.styleId) !== -1) {
+              (groups[b.styleId] = groups[b.styleId] || []).push(b);
+            } else {
+              unsorted.push(b);
+            }
+          });
+
+          let html = '';
+          if (unsorted.length) html += _renderStyleSection('Unsorted', '', unsorted);
+          styles.forEach(s => { html += _renderStyleSection(s.name || 'Style', s.id, groups[s.id] || []); });
+          grid.innerHTML = html;
         }
 
         function renderCatalogList() {
           const grid = document.getElementById('catalogList');
-          // Serve from cache if fresh
-          if (_catalogCache && (Date.now() - _catalogCacheTime < CATALOG_CACHE_TTL)) {
-            _renderCatalogFromData(_catalogCache);
-            return Promise.resolve();
+          const useCache = _catalogCache && (Date.now() - _catalogCacheTime < CATALOG_CACHE_TTL);
+          if (!useCache) {
+            grid.innerHTML = '<div style="padding:40px;text-align:center;"><div style="width:32px;height:32px;border:2px solid rgba(201,168,76,.1);border-top-color:#C9A84C;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;"></div><div style="font-size:11px;letter-spacing:3px;color:rgba(201,168,76,.4);">LOADING...</div></div>';
           }
-          grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;"><div style="width:32px;height:32px;border:2px solid rgba(201,168,76,.1);border-top-color:#C9A84C;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;"></div><div style="font-size:11px;letter-spacing:3px;color:rgba(201,168,76,.4);">LOADING...</div></div>';
           let settled = false;
           const watchdog = setTimeout(() => {
-            if (!settled) grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:rgba(201,168,76,.4);">Taking longer than expected — <a href="#" onclick="renderCatalogList();return false;" style="color:#C9A84C;">retry</a></div>';
+            if (!settled) grid.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.4);">Taking longer than expected — <a href="#" onclick="renderCatalogList();return false;" style="color:#C9A84C;">retry</a></div>';
           }, 10000);
-          return adminFbDB.ref('content/catalog').limitToFirst(25).once('value').then(snap => {
-            settled = true; clearTimeout(watchdog);
-            if (!snap.exists()) { grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:rgba(201,168,76,.3);">No catalog collections yet</div>'; return; }
-            _catalogCache = snap.val();
+          const catalogPromise = useCache ? Promise.resolve(_catalogCache) : adminFbDB.ref('content/catalog').limitToFirst(25).once('value').then(snap => {
+            _catalogCache = snap.exists() ? snap.val() : {};
             _catalogCacheTime = Date.now();
-            _renderCatalogFromData(_catalogCache);
-          }).catch(err => { settled = true; clearTimeout(watchdog); grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:#ef4444;">Error: ' + err.message + '</div>'; });
+            return _catalogCache;
+          });
+          return Promise.all([catalogPromise, fetchStyles()]).then(([catalogData, styles]) => {
+            settled = true; clearTimeout(watchdog);
+            _renderCatalogFromData(catalogData, styles);
+          }).catch(err => { settled = true; clearTimeout(watchdog); grid.innerHTML = '<div style="padding:40px;text-align:center;color:#ef4444;">Error: ' + err.message + '</div>'; });
         }
         function renderTrendingList() {
           const el = document.getElementById('trendingList');
@@ -3226,13 +3299,15 @@
         function openForm(t) {
             currentForm = t;
             document.getElementById('formModal').classList.add('active');
-            const titles = { post: 'Add Home Post', trending: 'Add Trending Item', category: 'Add Catalog Category' };
+            const titles = { post: 'Add Home Post', trending: 'Add Trending Item', category: 'Add Catalog Category', style: 'Create New Style' };
             document.getElementById('formTitle').textContent = titles[t] || (('Add ') + t);
             const fc = document.getElementById('formContent');
             if (t === 'post' || t === 'trending') {
                 fc.innerHTML = '<div class="form-group"><label class="form-label">Caption / Title</label><input class="form-input" id="fCaption" placeholder="e.g. Modern Living Room"></div><div class="form-group"><label class="form-label">Location</label><input class="form-input" id="fLocation" placeholder="e.g. Lagos, Nigeria"></div><div class="form-group"><label class="form-label">Image</label><input type="file" accept="image/*" id="fImageFile" style="display:none;" onchange="handleFormImagePick(this)"><div id="fImagePreviewWrap" onclick="document.getElementById(\'fImageFile\').click()" style="border:2px dashed rgba(201,168,76,0.3);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor=\'#C9A84C\'" onmouseout="this.style.borderColor=\'rgba(201,168,76,0.3)\'"><div id="fImagePreviewInner"><div style="font-size:32px;margin-bottom:8px;">&#x1F5BC;</div><div style="font-size:13px;color:rgba(201,168,76,0.6);">Tap to pick from gallery</div></div></div></div><div class="form-group"><label class="form-label">Audio <span style="font-size:11px;color:rgba(201,168,76,0.45);font-weight:400;">(optional)</span></label><input type="file" accept="audio/*" id="fAudioFile" style="display:none;" onchange="handleFormAudioPick(this)"><div id="fAudioPickerWrap" onclick="document.getElementById(\'fAudioFile\').click()" style="border:2px dashed rgba(201,168,76,0.3);border-radius:12px;padding:20px 24px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor=\'#C9A84C\'" onmouseout="this.style.borderColor=\'rgba(201,168,76,0.3)\'"><div style="font-size:28px;flex-shrink:0;">&#x1F3B5;</div><div id="fAudioPickerLabel" style="font-size:13px;color:rgba(201,168,76,0.6);">Tap to pick audio from device</div></div></div>';
             } else if (t === 'category') {
                 fc.innerHTML = '<div class="form-group"><label class="form-label">Collection Name</label><input class="form-input" id="fName" placeholder="e.g. Minimalist Luxury"></div><div class="form-group"><label class="form-label">Description</label><input class="form-input" id="fSpecialty" placeholder="e.g. Calm, Refined"></div>';
+            } else if (t === 'style') {
+                fc.innerHTML = '<div class="form-group"><label class="form-label">Style Name</label><input class="form-input" id="fStyleName" placeholder="e.g. Modern Minimalist"></div>';
             }
         }
         function closeForm() { window._fImageBase64 = ''; window._fAudioBase64 = ''; window._fAudioName = ''; document.getElementById('formModal').classList.remove('active'); }
@@ -3275,9 +3350,14 @@
                 const n = document.getElementById('fName').value||'Collection'; const sid = n.toLowerCase().replace(/[^a-z0-9]/g,'_');
                 const data = { id: sid, value: n, description: (document.getElementById('fSpecialty').value||''), createdAt: Date.now() };
                 adminFbDB.ref('content/catalog/' + sid).set(data).then(() => { closeForm(); showToast('✓ Category saved'); renderCatalogList(); });
+            } else if (t === 'style') {
+                const n = (document.getElementById('fStyleName').value || '').trim();
+                if (!n) { showToast('Enter a style name'); return; }
+                const sid = 'style_' + Date.now();
+                const data = { id: sid, name: n, createdAt: Date.now() };
+                adminFbDB.ref('content/styles/' + sid).set(data).then(() => { _stylesCache = null; closeForm(); showToast('✓ Style created'); renderCatalogList(); });
             } else { closeForm(); showToast('Saved'); }
         }
-        function saveSettings() { showToast('Settings saved'); }
         // Tracks the email currently mid-approval across the 3 steps.
         let _pendingDesignerEmail = '';
 
@@ -3594,6 +3674,9 @@
                     <button class="context-menu-option" onclick="openAdminCatalogInner(_adminCatalogMap['${id}']);closeContextMenu()">
                         <div class="context-menu-icon gold">✏️</div>Edit Collection
                     </button>
+                    <button class="context-menu-option" onclick="openMoveStyleModal('${id}')">
+                        <div class="context-menu-icon gold">📂</div>Move to Style
+                    </button>
                     <button class="context-menu-option danger" onclick="contextDeleteBox('${id}')">
                         <div class="context-menu-icon red">🗑</div>Delete Collection
                     </button>`;
@@ -3638,6 +3721,39 @@
                 _catalogCache = null;
                 showToast('Collection deleted');
                 renderCatalogList();
+            });
+        }
+
+        // ── MOVE PREFORMAT TO STYLE ──────────────────────────────────────────────
+        function openMoveStyleModal(boxId) {
+            closeContextMenu();
+            fetchStyles().then(styles => {
+                const listEl = document.getElementById('moveStyleList');
+                const box = _adminCatalogMap[boxId] || {};
+                if (!styles.length) {
+                    listEl.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(201,168,76,.4);font-size:12px;">No styles yet — tap "+ Create New Style" first</div>';
+                } else {
+                    listEl.innerHTML = styles.map(s =>
+                        '<button class="context-menu-option" style="border-radius:8px;" onclick="moveBoxToStyle(\'' + boxId + '\',\'' + s.id + '\')">'
+                        + '<div class="context-menu-icon gold">' + (box.styleId === s.id ? '✓' : '📁') + '</div>' + (s.name||'Style')
+                        + '</button>'
+                    ).join('')
+                    + '<button class="context-menu-option" style="border-radius:8px;" onclick="moveBoxToStyle(\'' + boxId + '\',\'\')">'
+                    + '<div class="context-menu-icon">—</div>Unsorted</button>';
+                }
+                document.getElementById('moveStyleModal').classList.add('active');
+            });
+        }
+        function closeMoveStyleModal() {
+            document.getElementById('moveStyleModal').classList.remove('active');
+        }
+        function moveBoxToStyle(boxId, styleId) {
+            adminFbDB.ref('content/catalog/' + boxId + '/styleId').set(styleId || null).then(() => {
+                if (_catalogCache && _catalogCache[boxId]) _catalogCache[boxId].styleId = styleId || null;
+                if (_adminCatalogMap[boxId]) _adminCatalogMap[boxId].styleId = styleId || null;
+                closeMoveStyleModal();
+                showToast('✓ Moved');
+                _renderCatalogFromData(_catalogCache, _stylesCache);
             });
         }
 
