@@ -2929,9 +2929,11 @@
               const posts = Object.entries(snap.val()).map(([k,v]) => ({...v, id: v.id||k})).sort((a,b) => (b.createdAt||0)-(a.createdAt||0));
               el.innerHTML = posts.map(p => {
                 const imgSrc = p.imageData || p.imageUrl || p.image || null;
-                const thumb = imgSrc ? '<img src="'+imgSrc+'" loading="lazy" onerror="this.style.display=\'none\'">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">🏠</div>';
+                const thumb = p.videoData || p.videoUrl
+                  ? '<video src="'+(p.videoData||p.videoUrl)+'" muted style="width:100%;height:100%;object-fit:cover;"></video><div style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.6);border-radius:4px;padding:2px 5px;font-size:10px;">🎬</div>'
+                  : (imgSrc ? '<img src="'+imgSrc+'" loading="lazy" onerror="this.style.display=\'none\'">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">🏠</div>');
                 return `<div class="list-item" style="cursor:pointer;" onclick="openPostAnalytics('posts','${p.id}','${(p.caption||p.title||'Post').replace(/'/g,"\\'")}')">
-                  <div class="list-image">${thumb}</div>
+                  <div class="list-image" style="position:relative;">${thumb}</div>
                   <div class="list-info"><div class="list-title">${p.caption||p.title||p.description||'Post'}</div><div class="list-meta">${p.location||''} · ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div></div>
                   <div class="list-actions" style="gap:6px;">
                     <button class="btn btn-secondary" style="padding:8px 10px;font-size:11px;" onclick="event.stopPropagation();openPostAnalytics('posts','${p.id}','${(p.caption||p.title||'Post').replace(/'/g,"\\'")}')">👁 Views</button>
@@ -3057,7 +3059,7 @@
             if (!snap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔥</div>No trending items yet</div>'; return; }
             const items = Object.values(snap.val()).reverse();
             el.innerHTML = items.map(p => `<div class="list-item" style="cursor:pointer;" onclick="openPostAnalytics('trending','${p.id||''}','${(p.caption||p.title||'Trending').replace(/'/g,"\\'")}')">
-              <div class="list-image">${p.imageData||p.imageUrl ? '<img src="'+(p.imageData||p.imageUrl)+'" loading="lazy" decoding="async">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">🔥</div>'}</div>
+              <div class="list-image" style="position:relative;">${(p.videoData||p.videoUrl) ? '<video src="'+(p.videoData||p.videoUrl)+'" muted style="width:100%;height:100%;object-fit:cover;"></video><div style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.6);border-radius:4px;padding:2px 5px;font-size:10px;">🎬</div>' : (p.imageData||p.imageUrl ? '<img src="'+(p.imageData||p.imageUrl)+'" loading="lazy" decoding="async">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">🔥</div>')}</div>
               <div class="list-info"><div class="list-title">${p.caption||p.title||'Trending'}</div><div class="list-meta">${p.location||''} · ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div></div>
               <div class="list-actions" style="gap:6px;">
                 <button class="btn btn-secondary" style="padding:8px 10px;font-size:11px;" onclick="event.stopPropagation();openPostAnalytics('trending','${p.id||''}','${(p.caption||p.title||'Trending').replace(/'/g,"\\'")}')">👁 Views</button>
@@ -3303,14 +3305,14 @@
             document.getElementById('formTitle').textContent = titles[t] || (('Add ') + t);
             const fc = document.getElementById('formContent');
             if (t === 'post' || t === 'trending') {
-                fc.innerHTML = '<div class="form-group"><label class="form-label">Caption / Title</label><input class="form-input" id="fCaption" placeholder="e.g. Modern Living Room"></div><div class="form-group"><label class="form-label">Location</label><input class="form-input" id="fLocation" placeholder="e.g. Lagos, Nigeria"></div><div class="form-group"><label class="form-label">Image</label><input type="file" accept="image/*" id="fImageFile" style="display:none;" onchange="handleFormImagePick(this)"><div id="fImagePreviewWrap" onclick="document.getElementById(\'fImageFile\').click()" style="border:2px dashed rgba(201,168,76,0.3);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor=\'#C9A84C\'" onmouseout="this.style.borderColor=\'rgba(201,168,76,0.3)\'"><div id="fImagePreviewInner"><div style="font-size:32px;margin-bottom:8px;">&#x1F5BC;</div><div style="font-size:13px;color:rgba(201,168,76,0.6);">Tap to pick from gallery</div></div></div></div><div class="form-group"><label class="form-label">Audio <span style="font-size:11px;color:rgba(201,168,76,0.45);font-weight:400;">(optional)</span></label><input type="file" accept="audio/*" id="fAudioFile" style="display:none;" onchange="handleFormAudioPick(this)"><div id="fAudioPickerWrap" onclick="document.getElementById(\'fAudioFile\').click()" style="border:2px dashed rgba(201,168,76,0.3);border-radius:12px;padding:20px 24px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor=\'#C9A84C\'" onmouseout="this.style.borderColor=\'rgba(201,168,76,0.3)\'"><div style="font-size:28px;flex-shrink:0;">&#x1F3B5;</div><div id="fAudioPickerLabel" style="font-size:13px;color:rgba(201,168,76,0.6);">Tap to pick audio from device</div></div></div>';
+                fc.innerHTML = '<div class="form-group"><label class="form-label">Caption / Title</label><input class="form-input" id="fCaption" placeholder="e.g. Modern Living Room"></div><div class="form-group"><label class="form-label">Location</label><input class="form-input" id="fLocation" placeholder="e.g. Lagos, Nigeria"></div><div class="form-group"><label class="form-label">Image</label><input type="file" accept="image/*" id="fImageFile" style="display:none;" onchange="handleFormImagePick(this)"><div id="fImagePreviewWrap" onclick="document.getElementById(\'fImageFile\').click()" style="border:2px dashed rgba(201,168,76,0.3);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor=\'#C9A84C\'" onmouseout="this.style.borderColor=\'rgba(201,168,76,0.3)\'"><div id="fImagePreviewInner"><div style="font-size:32px;margin-bottom:8px;">&#x1F5BC;</div><div style="font-size:13px;color:rgba(201,168,76,0.6);">Tap to pick from gallery</div></div></div></div><div class="form-group"><label class="form-label">Video <span style="font-size:11px;color:rgba(201,168,76,0.45);font-weight:400;">(optional — overrides image when set)</span></label><input type="file" accept="video/*" id="fVideoFile" style="display:none;" onchange="handleFormVideoPick(this)"><div id="fVideoPreviewWrap" onclick="document.getElementById(\'fVideoFile\').click()" style="border:2px dashed rgba(201,168,76,0.3);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor=\'#C9A84C\'" onmouseout="this.style.borderColor=\'rgba(201,168,76,0.3)\'"><div id="fVideoPreviewInner"><div style="font-size:32px;margin-bottom:8px;">&#x1F3AC;</div><div style="font-size:13px;color:rgba(201,168,76,0.6);">Tap to pick a video from gallery</div><div style="font-size:10px;color:rgba(201,168,76,0.35);margin-top:4px;">Max 15MB — video keeps its own sound unless muted</div></div></div></div><div class="form-group"><label class="form-label">Audio <span style="font-size:11px;color:rgba(201,168,76,0.45);font-weight:400;">(optional — external track, use instead of the video\'s own sound)</span></label><input type="file" accept="audio/*" id="fAudioFile" style="display:none;" onchange="handleFormAudioPick(this)"><div id="fAudioPickerWrap" onclick="document.getElementById(\'fAudioFile\').click()" style="border:2px dashed rgba(201,168,76,0.3);border-radius:12px;padding:20px 24px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor=\'#C9A84C\'" onmouseout="this.style.borderColor=\'rgba(201,168,76,0.3)\'"><div style="font-size:28px;flex-shrink:0;">&#x1F3B5;</div><div id="fAudioPickerLabel" style="font-size:13px;color:rgba(201,168,76,0.6);">Tap to pick audio from device</div></div></div>';
             } else if (t === 'category') {
                 fc.innerHTML = '<div class="form-group"><label class="form-label">Collection Name</label><input class="form-input" id="fName" placeholder="e.g. Minimalist Luxury"></div><div class="form-group"><label class="form-label">Description</label><input class="form-input" id="fSpecialty" placeholder="e.g. Calm, Refined"></div>';
             } else if (t === 'style') {
                 fc.innerHTML = '<div class="form-group"><label class="form-label">Style Name</label><input class="form-input" id="fStyleName" placeholder="e.g. Modern Minimalist"></div>';
             }
         }
-        function closeForm() { window._fImageBase64 = ''; window._fAudioBase64 = ''; window._fAudioName = ''; document.getElementById('formModal').classList.remove('active'); }
+        function closeForm() { window._fImageBase64 = ''; window._fAudioBase64 = ''; window._fAudioName = ''; window._fVideoBase64 = ''; document.getElementById('formModal').classList.remove('active'); }
         function handleFormImagePick(input) {
             const file = input.files[0];
             if (!file) return;
@@ -3337,15 +3339,35 @@
             };
             reader.readAsDataURL(file);
         }
+        function handleFormVideoPick(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const wrap = document.getElementById('fVideoPreviewInner');
+            if (file.size > 15 * 1024 * 1024) {
+                if (wrap) wrap.innerHTML = '<div style="padding:20px;text-align:center;color:#ef4444;font-size:13px;">Video too large (max 15MB) — trim or compress it first</div>';
+                input.value = '';
+                return;
+            }
+            if (wrap) wrap.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(201,168,76,0.5);font-size:13px;">Processing…</div>';
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                window._fVideoBase64 = e.target.result;
+                if (wrap) wrap.innerHTML = '<video src="' + e.target.result + '" controls muted style="max-width:100%;max-height:180px;border-radius:8px;display:block;margin:0 auto;"></video>';
+            };
+            reader.onerror = function() {
+                if (wrap) wrap.innerHTML = '<div style="padding:20px;text-align:center;color:#ef4444;font-size:13px;">Failed to process video</div>';
+            };
+            reader.readAsDataURL(file);
+        }
         function submitForm() {
             const t = currentForm;
             const id = t + '_' + Date.now();
             if (t === 'post') {
-                const data = { id, caption: (document.getElementById('fCaption').value||'Untitled'), location: (document.getElementById('fLocation').value||''), imageData: (window._fImageBase64||''), audioData: (window._fAudioBase64||''), audioName: (window._fAudioName||''), createdAt: Date.now() };
-                adminFbDB.ref('content/posts/' + id).set(data).then(() => { window._fImageBase64=''; window._fAudioBase64=''; window._fAudioName=''; closeForm(); showToast('✓ Post saved'); renderHomeList(); });
+                const data = { id, caption: (document.getElementById('fCaption').value||'Untitled'), location: (document.getElementById('fLocation').value||''), imageData: (window._fImageBase64||''), videoData: (window._fVideoBase64||''), audioData: (window._fAudioBase64||''), audioName: (window._fAudioName||''), createdAt: Date.now() };
+                adminFbDB.ref('content/posts/' + id).set(data).then(() => { window._fImageBase64=''; window._fVideoBase64=''; window._fAudioBase64=''; window._fAudioName=''; closeForm(); showToast('✓ Post saved'); renderHomeList(); });
             } else if (t === 'trending') {
-                const data = { id, caption: (document.getElementById('fCaption').value||'Untitled'), location: (document.getElementById('fLocation').value||''), imageData: (window._fImageBase64||''), audioData: (window._fAudioBase64||''), audioName: (window._fAudioName||''), createdAt: Date.now() };
-                adminFbDB.ref('content/trending/' + id).set(data).then(() => { window._fImageBase64=''; window._fAudioBase64=''; window._fAudioName=''; closeForm(); showToast('✓ Trending item saved'); renderTrendingList(); });
+                const data = { id, caption: (document.getElementById('fCaption').value||'Untitled'), location: (document.getElementById('fLocation').value||''), imageData: (window._fImageBase64||''), videoData: (window._fVideoBase64||''), audioData: (window._fAudioBase64||''), audioName: (window._fAudioName||''), createdAt: Date.now() };
+                adminFbDB.ref('content/trending/' + id).set(data).then(() => { window._fImageBase64=''; window._fVideoBase64=''; window._fAudioBase64=''; window._fAudioName=''; closeForm(); showToast('✓ Trending item saved'); renderTrendingList(); });
             } else if (t === 'category') {
                 const n = document.getElementById('fName').value||'Collection'; const sid = n.toLowerCase().replace(/[^a-z0-9]/g,'_');
                 const data = { id: sid, value: n, description: (document.getElementById('fSpecialty').value||''), createdAt: Date.now() };
