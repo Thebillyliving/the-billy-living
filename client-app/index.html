@@ -2002,6 +2002,7 @@ function buildFeedItem(p) {
   } else {
     mediaHtml = '<div class="feed-image-placeholder">🛋️</div>';
   }
+  const _hasVideo = !!(p.videoData || p.videoUrl);
   const locHtml = p.location ? '<div class="feed-caption-location"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>' + p.location + '</div>' : '';
   const headerLocHtml = p.location ? '<div class="feed-header-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>' + p.location + '</div>' : '';
   return '<div class="feed-item" data-id="' + id + '">'
@@ -2021,7 +2022,7 @@ function buildFeedItem(p) {
     +     '<span class="feed-action-count">' + fmtCount(p.shares||0) + '</span>'
     +   '</button>'
     +   '<div class="feed-action-spacer"></div>'
-    +   (p.audioData ? '<button class="feed-action-btn feed-post-sound" onclick="togglePostSound(this,\'audio_post_' + id + '\')" style="padding:4px 6px;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;">' + '<svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>' + '</button>' : '')
+    +   ((_hasVideo || p.audioData) ? '<button class="feed-action-btn feed-post-sound" onclick="togglePostSound(this,\'' + id + '\')" style="padding:4px 6px;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;">' + _svgMuted + '</button>' : '')
     +   '<button class="feed-action-btn" onclick="bookmarkPost(this,\'' + id + '\',_postsMap[\'' + id + '\'])">'
     +     '<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>'
     +   '</button>'
@@ -2078,19 +2079,28 @@ function _setFeedSoundState(enabled) {
   document.querySelectorAll('.feed-post-sound').forEach(b => {
     b.innerHTML = enabled ? _svgUnmuted : _svgMuted;
   });
+  document.querySelectorAll('.feed-item').forEach(item => {
+    const video = item.querySelector('.feed-image video');
+    const audio = item.querySelector('audio[id^="audio_post_"]');
+    if (video) {
+      // If this post has its own external audio track, keep the video silent —
+      // the external audio is the intended sound, not the video's internal one.
+      video.muted = audio ? true : !enabled;
+    }
+  });
   if (!enabled) {
     document.querySelectorAll('audio[id^="audio_post_"]').forEach(a => a.pause());
   }
 }
 
-function togglePostSound(btn, audioId) {
-  const audio = document.getElementById(audioId);
-  if (!audio) return;
+function togglePostSound(btn, postId) {
+  const item = btn.closest('.feed-item');
+  const audio = item ? item.querySelector('audio[id^="audio_post_"]') : document.getElementById('audio_post_' + postId);
   if (window._feedSoundEnabled) {
     _setFeedSoundState(false);
   } else {
     _setFeedSoundState(true);
-    audio.play().catch(()=>{});
+    if (audio) audio.play().catch(()=>{});
   }
 }
 
@@ -2109,6 +2119,9 @@ function initFeedVideos() {
       const audio = feedItem ? feedItem.querySelector('audio[id^="audio_post_"]') : null;
       const soundBtn = feedItem ? feedItem.querySelector('.feed-post-sound') : null;
       if (e.isIntersecting) {
+        // Keep video silent if this post has its own external audio track —
+        // that track is the intended sound, not the video's internal one.
+        v.muted = audio ? true : !window._feedSoundEnabled;
         v.play().catch(()=>{});
         if (window._feedSoundEnabled && audio) {
           audio.play().catch(()=>{});
@@ -2124,7 +2137,9 @@ function initFeedVideos() {
     });
   }, { threshold: 0.5 });
   document.querySelectorAll('.feed-image video').forEach(v => {
-    v.muted = true;
+    const feedItem = v.closest('.feed-item');
+    const audio = feedItem ? feedItem.querySelector('audio[id^="audio_post_"]') : null;
+    v.muted = audio ? true : !window._feedSoundEnabled;
     v.playsInline = true;
     window._feedVideoObserver.observe(v);
   });
@@ -2391,7 +2406,10 @@ function buildTikTokItem(item) {
   const audioEl = item.audioData
     ? '<audio id="taudio_' + id + '" src="' + item.audioData + '" loop style="display:none;"></audio>'
     : '';
-  const muteBtn = ''; // Audio auto-plays — no manual mute button needed
+  const _hasTVideo = !!(item.videoData || item.videoUrl);
+  const muteBtn = (_hasTVideo || item.audioData)
+    ? '<button class="tiktok-action tiktok-sound-btn" onclick="event.stopPropagation();toggleTrendingSound(this,\'' + id + '\')"><div class="tiktok-action-icon">' + (item.audioData ? _svgUnmuted : _svgMuted) + '</div></button>'
+    : '';
   return '<div class="tiktok-item" data-id="' + id + '">'
     + audioEl
     + mediaHtml
@@ -2439,6 +2457,35 @@ function toggleTikTokAudio(btn, id) {
   } else {
     audio.pause();
     if (icon) icon.textContent = '🔇';
+  }
+}
+
+// Mute/unmute a trending item's sound — its own video audio, or its external
+// audio track if one was uploaded (whichever exists is the "sound" for that item).
+function toggleTrendingSound(btn, id) {
+  const item = btn.closest('.tiktok-item');
+  if (!item) return;
+  const iconWrap = btn.querySelector('.tiktok-action-icon') || btn;
+  const video = item.querySelector('video');
+  const audio = item.querySelector('audio[id^="taudio_"]');
+  const target = audio || video; // external track takes priority over the video's own sound
+  if (!target) return;
+  const isMuted = target.muted;
+
+  if (isMuted) {
+    // Turning sound ON for this item — silence every other trending item first
+    document.querySelectorAll('.tiktok-item').forEach(other => {
+      if (other === item) return;
+      const ov = other.querySelector('video'); if (ov) ov.muted = true;
+      const oa = other.querySelector('audio[id^="taudio_"]'); if (oa) oa.muted = true;
+      const ob = other.querySelector('.tiktok-sound-btn .tiktok-action-icon'); if (ob) ob.innerHTML = _svgMuted;
+    });
+    target.muted = false;
+    if (target.paused) target.play().catch(()=>{});
+    iconWrap.innerHTML = _svgUnmuted;
+  } else {
+    target.muted = true;
+    iconWrap.innerHTML = _svgMuted;
   }
 }
 
