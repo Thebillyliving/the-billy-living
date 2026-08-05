@@ -128,6 +128,11 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .elite-catalog-name{font-family:'Cormorant Garamond',serif;font-size:11px;letter-spacing:5px;color:#C9A84C;text-transform:uppercase;margin-bottom:6px}
 .elite-catalog-title{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:#C9A84C;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
 .elite-catalog-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0;padding:0}
+.style-section{margin-bottom:4px}
+.style-section-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px;border-bottom:1px solid rgba(201,168,76,.35);background:rgba(201,168,76,.04)}
+.style-section-name{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:700;letter-spacing:2px;color:#C9A84C;text-transform:uppercase}
+.style-section-count{font-size:10px;letter-spacing:1px;color:rgba(201,168,76,.5)}
+.style-section-empty{padding:22px 20px;text-align:center;font-size:12px;color:rgba(201,168,76,.35)}
 .elite-collection-cell{padding:14px 10px 10px;cursor:pointer;border-right:1px solid #C9A84C;border-bottom:1px solid #C9A84C;transition:background .25s;position:relative}
 .elite-collection-cell:nth-child(even){border-right:none}
 .elite-collection-cell:active,.elite-collection-cell:hover{background:rgba(201,168,76,.06)}
@@ -732,7 +737,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     <div class="elite-catalog-name">Billy Living Presents</div>
     <div class="elite-catalog-title">The Elite Preformats</div>
   </div>
-  <div class="elite-catalog-grid" id="eliteCatalogGrid"></div>
+  <div id="eliteCatalogGrid"></div>
 </div>
 
 <!-- CATALOG INNER -->
@@ -2480,6 +2485,7 @@ async function bookmarkTrending(btn, id, item) {
 
 // ─── CATALOG ─────────────────────────────────────────────────────────────────
 const _catalogMap = {};
+let _stylesCache = [];
 
 // ── Cover image cache: {boxId: base64} — grid loads with photos instantly ──
 function _saveCoverCache(boxId, imgSrc) {
@@ -2493,31 +2499,70 @@ function _getCoverCache() {
   try { return JSON.parse(localStorage.getItem('catalog_covers') || '{}'); } catch(e) { return {}; }
 }
 
-function _renderCatalogGrid(boxes) {
+function _renderCatalogCell(box, _covers) {
+  const imgsArr = box.images ? (Array.isArray(box.images) ? box.images : Object.values(box.images)) : [];
+  const fbCover = imgsArr.find(i => i) || null;
+  if (fbCover) _saveCoverCache(box.id, fbCover);
+  const thumb = _covers[box.id] || fbCover || null;
+  return '<div class="elite-collection-cell" onclick="openCatalogInner(_catalogMap[\'' + box.id + '\'])">'
+    + '<div class="elite-cell-meta">'
+    +   '<div class="elite-cell-topic">' + (box.value||box.topic||'Collection') + '</div>'
+    +   '<div class="elite-cell-feeling">' + (box.description||box.feeling||'') + '</div>'
+    + '</div>'
+    + '<div class="elite-cell-box">'
+    +   (thumb ? '<img src="' + thumb + '" alt="' + (box.value||'') + '" loading="lazy">' : '<div class="elite-cell-grain"></div>')
+    +   '<div class="elite-cell-grain"></div>'
+    +   '<span class="elite-cell-arrow">›</span>'
+    + '</div>'
+  + '</div>';
+}
+
+function _renderStyleSection(name, styleId, boxes, _covers) {
+  const cellsHtml = boxes.length
+    ? '<div class="elite-catalog-grid">' + boxes.map(b => _renderCatalogCell(b, _covers)).join('') + '</div>'
+    : '<div class="style-section-empty">No preformats yet</div>';
+  return '<div class="style-section" data-style-id="' + (styleId||'') + '">'
+    + '<div class="style-section-header"><div class="style-section-name">' + name + '</div><div class="style-section-count">' + boxes.length + '</div></div>'
+    + cellsHtml
+    + '</div>';
+}
+
+function _renderCatalogGrid(boxes, styles) {
   const grid = document.getElementById('eliteCatalogGrid');
+  styles = styles || _stylesCache || [];
   if (!boxes || !boxes.length) {
-    grid.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3)">No collections yet</div>';
-    return;
+    if (!styles.length) {
+      grid.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3)">No collections yet</div>';
+      return;
+    }
   }
   boxes.forEach(box => { _catalogMap[box.id] = box; });
   const _covers = _getCoverCache();
-  grid.innerHTML = boxes.map(box => {
-    const imgsArr = box.images ? (Array.isArray(box.images) ? box.images : Object.values(box.images)) : [];
-    const fbCover = imgsArr.find(i => i) || null;
-    if (fbCover) _saveCoverCache(box.id, fbCover);
-    const thumb = _covers[box.id] || fbCover || null;
-    return '<div class="elite-collection-cell" onclick="openCatalogInner(_catalogMap[\'' + box.id + '\'])">'
-      + '<div class="elite-cell-meta">'
-      +   '<div class="elite-cell-topic">' + (box.value||box.topic||'Collection') + '</div>'
-      +   '<div class="elite-cell-feeling">' + (box.description||box.feeling||'') + '</div>'
-      + '</div>'
-      + '<div class="elite-cell-box">'
-      +   (thumb ? '<img src="' + thumb + '" alt="' + (box.value||'') + '" loading="lazy">' : '<div class="elite-cell-grain"></div>')
-      +   '<div class="elite-cell-grain"></div>'
-      +   '<span class="elite-cell-arrow">›</span>'
-      + '</div>'
-    + '</div>';
-  }).join('');
+
+  // No styles created yet — fall back to the flat grid, unchanged behavior
+  if (!styles.length) {
+    grid.innerHTML = '<div class="elite-catalog-grid">' + boxes.map(b => _renderCatalogCell(b, _covers)).join('') + '</div>';
+    return;
+  }
+
+  const styleIds = styles.map(s => s.id);
+  const groups = {};
+  const unsorted = [];
+  boxes.forEach(b => {
+    if (b.styleId && styleIds.indexOf(b.styleId) !== -1) {
+      (groups[b.styleId] = groups[b.styleId] || []).push(b);
+    } else {
+      unsorted.push(b);
+    }
+  });
+
+  let html = '';
+  if (unsorted.length) html += _renderStyleSection('Collections', '', unsorted, _covers);
+  styles.forEach(s => {
+    const list = groups[s.id] || [];
+    if (list.length) html += _renderStyleSection(s.name || 'Style', s.id, list, _covers);
+  });
+  grid.innerHTML = html || '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3)">No collections yet</div>';
 }
 
 async function loadCatalog() {
@@ -2526,14 +2571,24 @@ async function loadCatalog() {
     const n = s => parseInt((s.id||'').replace(/\D/g,'')) || 0;
     return n(a) - n(b);
   });
+  const sortStyles = arr => arr.sort((a, b) => (a.createdAt||0) - (b.createdAt||0));
 
   // Show immediately from metadata + cover image cache — zero Firebase wait
   const cached = JSON.parse(localStorage.getItem('tbl_catalog_boxes') || '[]');
-  if (cached.length) _renderCatalogGrid(sortBoxes(cached));
+  const cachedStyles = JSON.parse(localStorage.getItem('tbl_catalog_styles') || '[]');
+  if (cachedStyles.length) _stylesCache = sortStyles(cachedStyles);
+  if (cached.length) _renderCatalogGrid(sortBoxes(cached), _stylesCache);
 
   // Background Firebase refresh — updates cover cache + grid silently
   try {
-    const snap = await fbDb.ref('content/catalog').get();
+    const [snap, stylesSnap] = await Promise.all([
+      fbDb.ref('content/catalog').get(),
+      fbDb.ref('content/styles').get()
+    ]);
+    const styles = stylesSnap.exists() ? sortStyles(Object.values(stylesSnap.val())) : [];
+    _stylesCache = styles;
+    try { localStorage.setItem('tbl_catalog_styles', JSON.stringify(styles)); } catch(e) {}
+
     if (!snap.exists()) {
       if (!cached.length) grid.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3)">No collections yet</div>';
       return;
@@ -2542,7 +2597,7 @@ async function loadCatalog() {
     // Store only metadata (no images) to avoid localStorage quota issues
     const meta = boxes.map(b => { const {images, mixtureImages, ...rest} = b; return rest; });
     try { localStorage.setItem('tbl_catalog_boxes', JSON.stringify(meta)); } catch(e) {}
-    _renderCatalogGrid(boxes);
+    _renderCatalogGrid(boxes, styles);
   } catch(e) {
     if (!cached.length) grid.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3)">No collections yet</div>';
   }
