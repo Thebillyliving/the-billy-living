@@ -64,7 +64,12 @@
             showErr(msg);
         };
         window.addEventListener('error', function(e) {
-            showErr('ERROR: ' + (e.message || 'unknown') + ' @ ' + (e.filename ? e.filename.split('/').pop() + ':' + e.lineno : '?'));
+            var msg = e.message || 'unknown';
+            var loc = e.filename ? (e.filename.split('/').pop() + ':' + e.lineno) : '?';
+            var note = (msg === 'Script error.')
+                ? ' [a cross-origin script threw this — likely the video compressor or a CDN file failing to load; browsers hide details for these unless the script tag has crossorigin set]'
+                : '';
+            showErr('ERROR: ' + msg + ' @ ' + loc + note);
         });
         window.addEventListener('unhandledrejection', function(e) {
             showErr('PROMISE REJECTED: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
@@ -525,6 +530,10 @@
         .list-title {
             font-weight: 600;
             margin-bottom: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .list-meta {
@@ -535,6 +544,7 @@
         .list-actions {
             display: flex;
             gap: 8px;
+            flex-shrink: 0;
         }
 
         .toggle-switch {
@@ -2967,11 +2977,11 @@
                 const thumb = p.videoData || p.videoUrl
                   ? '<video src="'+(p.videoData||p.videoUrl)+'" muted style="width:100%;height:100%;object-fit:cover;"></video><div style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.6);border-radius:4px;padding:2px 5px;font-size:10px;">🎬</div>'
                   : (imgSrc ? '<img src="'+imgSrc+'" loading="lazy" onerror="this.style.display=\'none\'">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">🏠</div>');
-                return `<div class="list-item" style="cursor:pointer;" onclick="openPostAnalytics('posts','${p.id}','${(p.caption||p.title||'Post').replace(/'/g,"\\'")}')">
+                return `<div class="list-item">
                   <div class="list-image" style="position:relative;">${thumb}</div>
                   <div class="list-info"><div class="list-title">${p.caption||p.title||p.description||'Post'}</div><div class="list-meta">${p.location||''} · ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div></div>
                   <div class="list-actions" style="gap:8px;">
-                    <button class="btn btn-secondary" style="padding:12px 16px;font-size:13px;" onclick="event.stopPropagation();openPostAnalytics('posts','${p.id}','${(p.caption||p.title||'Post').replace(/'/g,"\\'")}')">👁 Views</button>
+                    <button class="btn btn-secondary" style="padding:12px 16px;font-size:13px;" onclick="openPostAnalytics('posts','${p.id}','${(p.caption||p.title||'Post').replace(/'/g,"\\'")}')">👁 Views</button>
                     <button class="btn btn-secondary" style="padding:12px 16px;font-size:13px;" onclick="event.stopPropagation();openStatsEditor('posts','${p.id}','${(p.caption||p.title||'Post').replace(/'/g,"\\'")}')">❤️ Likes</button>
                     <button class="btn btn-danger" style="padding:12px 14px;font-size:13px;" onclick="event.stopPropagation();if(confirm('Delete?'))adminFbDB.ref('content/posts/${p.id||''}').remove().then(()=>{showToast('Deleted');_panelFetched.home=false;renderHomeList();})">×</button>
                   </div>
@@ -3094,11 +3104,11 @@
           return adminFbDB.ref('content/trending').limitToLast(15).once('value').then(snap => {
             if (!snap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔥</div>No trending items yet</div>'; return; }
             const items = Object.values(snap.val()).reverse();
-            el.innerHTML = items.map(p => `<div class="list-item" style="cursor:pointer;" onclick="openPostAnalytics('trending','${p.id||''}','${(p.caption||p.title||'Trending').replace(/'/g,"\\'")}')">
+            el.innerHTML = items.map(p => `<div class="list-item">
               <div class="list-image" style="position:relative;">${(p.videoData||p.videoUrl) ? '<video src="'+(p.videoData||p.videoUrl)+'" muted style="width:100%;height:100%;object-fit:cover;"></video><div style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.6);border-radius:4px;padding:2px 5px;font-size:10px;">🎬</div>' : (p.imageData||p.imageUrl ? '<img src="'+(p.imageData||p.imageUrl)+'" loading="lazy" decoding="async">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">🔥</div>')}</div>
               <div class="list-info"><div class="list-title">${p.caption||p.title||'Trending'}</div><div class="list-meta">${p.location||''} · ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div></div>
               <div class="list-actions" style="gap:8px;">
-                <button class="btn btn-secondary" style="padding:12px 16px;font-size:13px;" onclick="event.stopPropagation();openPostAnalytics('trending','${p.id||''}','${(p.caption||p.title||'Trending').replace(/'/g,"\\'")}')">👁 Views</button>
+                <button class="btn btn-secondary" style="padding:12px 16px;font-size:13px;" onclick="openPostAnalytics('trending','${p.id||''}','${(p.caption||p.title||'Trending').replace(/'/g,"\\'")}')">👁 Views</button>
                 <button class="btn btn-secondary" style="padding:12px 16px;font-size:13px;" onclick="event.stopPropagation();openStatsEditor('trending','${p.id||''}','${(p.caption||p.title||'Trending').replace(/'/g,"\\'")}')">❤️ Likes</button>
                 <button class="btn btn-danger" style="padding:12px 14px;font-size:13px;" onclick="event.stopPropagation();if(confirm('Delete?'))adminFbDB.ref('content/trending/${p.id||''}').remove().then(()=>{showToast('Deleted');renderTrendingList();})">×</button>
               </div>
@@ -3405,6 +3415,9 @@
                 reader.readAsDataURL(blob);
             }).catch(err => {
                 console.error('Video compression failed, falling back to original file:', err);
+                if (typeof window._splashLog === 'function') {
+                    window._splashLog('videoCompress', 'FAILED — saved uncompressed instead', { message: err && err.message, name: err && err.name });
+                }
                 // Fall back to the original raw upload so a compressor failure
                 // never blocks the admin from posting a video entirely.
                 if (file.size > 15 * 1024 * 1024) {
@@ -3416,7 +3429,7 @@
                 reader.onload = function(e) {
                     window._fVideoBase64 = e.target.result;
                     if (wrap) wrap.innerHTML = '<video src="' + e.target.result + '" controls muted style="max-width:100%;max-height:180px;border-radius:8px;display:block;margin:0 auto;"></video>'
-                        + '<div style="text-align:center;font-size:11px;color:#ef4444;margin-top:6px;">Compression unavailable — saved uncompressed</div>';
+                        + '<div style="text-align:center;font-size:11px;color:#ef4444;margin-top:6px;">Compression unavailable (' + ((err && err.message) || 'unknown error') + ') — saved uncompressed</div>';
                 };
                 reader.onerror = function() {
                     if (wrap) wrap.innerHTML = '<div style="padding:20px;text-align:center;color:#ef4444;font-size:13px;">Failed to process video</div>';
@@ -3924,8 +3937,9 @@
             _ffmpegLoadPromise = new Promise((resolve, reject) => {
                 const s = document.createElement('script');
                 s.src = 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js';
+                s.crossOrigin = 'anonymous'; // lets the browser report the real error instead of a generic "Script error."
                 s.onload = () => resolve();
-                s.onerror = () => reject(new Error('Could not load video compressor — check your connection'));
+                s.onerror = () => reject(new Error('Could not load video compressor script (network/CDN blocked?)'));
                 document.head.appendChild(s);
             });
             return _ffmpegLoadPromise;
