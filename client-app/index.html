@@ -1084,11 +1084,6 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 
 <script>
 window._pageLoadTime = Date.now();
-window._splashLog = window._splashLog || function(id, event, detail) {
-  const t = Date.now() - (window._pageLoadTime || Date.now());
-  console.log('%c[SPLASH ' + t + 'ms] ' + id + ' → ' + event, 'color:#C9A84C;font-weight:600', detail !== undefined ? detail : '');
-};
-window._splashLog('splashScreen', 'app script started', { splashScreenInDOM: !!document.getElementById('splashScreen'), splashScreenVisibleClass: document.getElementById('splashScreen') ? !document.getElementById('splashScreen').classList.contains('hidden') : null });
 // ─── FIREBASE ───────────────────────────────────────────────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyBbs6k7PInHUnv1x9FzHB31kUwrCcoGG7c",
@@ -1101,6 +1096,10 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const fbAuth = firebase.auth();
+// Set explicitly and as early as possible — LOCAL survives app relaunches.
+// This used to only get set inside the login/signup handlers, leaving a
+// window right at boot where persistence wasn't guaranteed yet.
+fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
 
 // ─── APP CONFIG ──────────────────────────────────────────────────────────────
 const CONFIG = {
@@ -1136,7 +1135,6 @@ let pendingSignupName = '', pendingSignupEmail = '', pendingSignupCode = '';
 
 // ─── GATEKEEPER ──────────────────────────────────────────────────────────────
 function hideGatekeeper() {
-  window._splashLog('gatekeeper', 'hide');
   document.getElementById('gatekeeper').classList.add('hidden');
   setTimeout(() => { document.getElementById('gatekeeper').style.display = 'none'; }, 600);
 }
@@ -1144,23 +1142,17 @@ function hideGatekeeper() {
 // ─── SPLASH HELPERS ───────────────────────────────────────────────────────────
 const BL_LOGO_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23C9A84C' rx='20'/%3E%3Ctext x='50' y='68' font-family='Cormorant Garamond,serif' font-size='42' fill='%23120D06' text-anchor='middle' font-weight='bold'%3EBL%3C/text%3E%3C/svg%3E";
 
-// window._splashLog is defined at the very top of this script (before
-// firebase init) so the very first boot log can use it. Filter the console
-// on "[SPLASH" to see the full sequence with timing.
-
 function _hideSplash(id) {
   const el = document.getElementById(id);
-  if (!el) { window._splashLog(id, 'hide() called — element not found in DOM'); return; }
-  window._splashLog(id, 'hide (dismissing)');
+  if (!el) return;
   el.classList.remove('active');
   el.classList.add('dismissing');
-  setTimeout(() => { if (el.parentNode) { el.remove(); window._splashLog(id, 'removed from DOM'); } }, 700);
+  setTimeout(() => { if (el.parentNode) el.remove(); }, 700);
 }
 
 function _showLogoSplash() {
   const s = document.getElementById('splashScreen');
-  if (!s) { window._splashLog('splashScreen', 'show() called — element not found'); return; }
-  window._splashLog('splashScreen', 'show');
+  if (!s) return;
   s.style.opacity = '1';
   s.style.visibility = 'visible';
   s.style.pointerEvents = 'auto';
@@ -1169,32 +1161,26 @@ function _showLogoSplash() {
 
 function _hideLogoSplash() {
   const s = document.getElementById('splashScreen');
-  if (s) { window._splashLog('splashScreen', 'hide'); s.style.opacity = '0'; s.style.visibility = 'hidden'; s.style.pointerEvents = 'none'; }
-  else { window._splashLog('splashScreen', 'hide() called — element not found'); }
+  if (s) { s.style.opacity = '0'; s.style.visibility = 'hidden'; s.style.pointerEvents = 'none'; }
 }
 
 function _runLoadingSplash(onDone) {
   const ls  = document.getElementById('loadingSplash');
   const bar = document.getElementById('lsBarFill');
   const DURATION = 4000;
-  if (!ls) { window._splashLog('loadingSplash', 'skipped — element not found'); onDone && onDone(); return; }
-  window._splashLog('loadingSplash', 'show', { durationMs: DURATION, barFound: !!bar });
+  if (!ls) { onDone && onDone(); return; }
   ls.classList.add('active');
   if (bar) {
     setTimeout(() => {
       bar.style.transition = 'width ' + (DURATION - 400) + 'ms linear';
       bar.style.width = '100%';
     }, 150);
-  } else {
-    window._splashLog('loadingSplash', 'warning — progress bar element #lsBarFill not found');
   }
   setTimeout(() => {
-    window._splashLog('loadingSplash', 'hide (dismissing)');
     ls.classList.remove('active');
     ls.classList.add('dismissing');
     setTimeout(() => {
       if (ls.parentNode) ls.remove();
-      window._splashLog('loadingSplash', 'removed — sequence complete, app shell revealed');
       onDone && onDone();
     }, 650);
   }, DURATION);
@@ -1203,7 +1189,6 @@ function _runLoadingSplash(onDone) {
 // ─── LOGIN SPLASH SEQUENCE ────────────────────────────────────────────────────
 // Login splash (3s) → Logo splash (3s) → Loading splash (4s) → App
 function showLoginSplashSequence(userName) {
-  window._splashLog('loginSplash sequence', 'start', { userName });
   const nav = document.querySelector('.bottom-nav');
   if (nav) nav.classList.remove('nav-ready');
 
@@ -1213,8 +1198,7 @@ function showLoginSplashSequence(userName) {
 
   // 1. Show login splash
   const ls = document.getElementById('loginSplash');
-  if (ls) { ls.classList.add('active'); window._splashLog('loginSplash', 'show'); }
-  else { window._splashLog('loginSplash', 'show() — element not found, sequence will still continue'); }
+  if (ls) ls.classList.add('active');
 
   // 2. After 3s → fade login splash, show logo splash
   setTimeout(() => {
@@ -1225,7 +1209,7 @@ function showLoginSplashSequence(userName) {
       setTimeout(() => {
         _hideLogoSplash();
         setTimeout(() => {
-          _runLoadingSplash(() => { window._splashLog('loginSplash sequence', 'complete'); revealNav(); });
+          _runLoadingSplash(() => revealNav());
         }, 400);
       }, 3000);
     }, 400);
@@ -1236,7 +1220,6 @@ function showLoginSplashSequence(userName) {
 // Creating account splash already played live during handleCreatePassword.
 // Welcome splash (3s) → Logo splash (3s) → Loading splash (4s) → App
 function showNewAccountSplashSequence(userName) {
-  window._splashLog('newAccount sequence', 'start', { userName });
   const nav = document.querySelector('.bottom-nav');
   if (nav) nav.classList.remove('nav-ready');
 
@@ -1246,8 +1229,7 @@ function showNewAccountSplashSequence(userName) {
 
   // 1. Show welcome splash directly
   const ws = document.getElementById('welcomeSplash');
-  if (ws) { ws.classList.add('active'); window._splashLog('welcomeSplash', 'show'); }
-  else { window._splashLog('welcomeSplash', 'show() — element not found, sequence will still continue'); }
+  if (ws) ws.classList.add('active');
   // 2. After 3s → fade welcome splash, show logo splash
   setTimeout(() => {
     _hideSplash('welcomeSplash');
@@ -1257,7 +1239,7 @@ function showNewAccountSplashSequence(userName) {
       setTimeout(() => {
         _hideLogoSplash();
         setTimeout(() => {
-          _runLoadingSplash(() => { window._splashLog('newAccount sequence', 'complete'); revealNav(); });
+          _runLoadingSplash(() => revealNav());
         }, 400);
       }, 3000);
     }, 400);
@@ -1273,9 +1255,8 @@ function showLoadingSplash() {
   const elapsed = Date.now() - window._pageLoadTime;
   const firstSplashGone = 2500;
   const delay = Math.max(0, firstSplashGone - elapsed);
-  window._splashLog('returningUser sequence', 'start', { elapsedSincePageLoad: elapsed, delayBeforeLoadingSplash: delay });
   setTimeout(() => {
-    _runLoadingSplash(() => { window._splashLog('returningUser sequence', 'complete'); revealNav(); });
+    _runLoadingSplash(() => revealNav());
     setTimeout(_hideLogoSplash, 100);
   }, delay);
 }
@@ -1283,7 +1264,7 @@ function showLoadingSplash() {
 fbAuth.onAuthStateChanged(user => {
   if (user) {
     currentUser = user;
-    window._splashLog('auth', 'signed in — showing returning-user splash path', { uid: user.uid });
+    localStorage.setItem('bl_last_uid', user.uid); // marks "this device has a real session" for the retry check below
     hideGatekeeper();
     showLoadingSplash();
     loadUserProfile(user.uid);
@@ -1299,8 +1280,32 @@ fbAuth.onAuthStateChanged(user => {
       })
       .catch(() => {}); // silently ignore if profile not yet created
   } else {
+    // On a slow/flaky connection, Firebase can briefly report "signed out"
+    // while it's still restoring the session (token refresh failing due to
+    // poor connectivity, not because the account actually logged out). If
+    // this device has a known previous session, give it one short grace
+    // window to resolve before showing the login screen — this is exactly
+    // the "it recognizes me but still asks me to log in" symptom.
+    const hadSession = localStorage.getItem('bl_last_uid');
+    if (hadSession && !window._authGraceUsed) {
+      window._authGraceUsed = true;
+      setTimeout(() => {
+        if (!fbAuth.currentUser) {
+          // Still genuinely signed out after the grace window — show gatekeeper for real
+          localStorage.removeItem('bl_last_uid');
+          currentUser = null;
+          const gk = document.getElementById('gatekeeper');
+          gk.style.transition = 'none';
+          gk.style.display = 'flex';
+          gk.classList.remove('hidden');
+          var nav = document.querySelector('.bottom-nav');
+          if (nav) nav.classList.remove('nav-ready');
+        }
+        // else: onAuthStateChanged will have already fired again with the user — nothing to do
+      }, 2500);
+      return;
+    }
     currentUser = null;
-    window._splashLog('auth', 'signed out — showing gatekeeper');
     const gk = document.getElementById('gatekeeper');
     gk.style.transition = 'none';
     gk.style.display = 'flex';
@@ -1452,7 +1457,6 @@ async function handleCreatePassword() {
   const caSteps = ['caStep1','caStep2','caStep3','caStep4'];
   let caTimers = [];
   if (cas) {
-    window._splashLog('creatingAccountSplash', 'show — real account creation begins');
     caSteps.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('visible','done'); });
     cas.classList.remove('dismissing');
     cas.classList.add('active');
@@ -1461,8 +1465,6 @@ async function handleCreatePassword() {
       const el = document.getElementById(id);
       if (el) el.classList.add('visible');
     }, stepDelay[i]));
-  } else {
-    window._splashLog('creatingAccountSplash', 'show() — element not found, no visual wait indicator will appear');
   }
 
   try {
@@ -1473,7 +1475,6 @@ async function handleCreatePassword() {
     });
     const data = await resp.json();
     if (!resp.ok) {
-      window._splashLog('creatingAccountSplash', 'aborted — /api/complete-signup failed', { status: resp.status, error: data.error });
       caTimers.forEach(clearTimeout);
       if (cas) cas.classList.remove('active');
       showGateError('createPasswordError', data.error || 'Could not create account.'); btn.disabled = false; btn.textContent = 'Create Account'; return;
@@ -1481,7 +1482,6 @@ async function handleCreatePassword() {
     await fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     const cred = await fbAuth.signInWithEmailAndPassword(pendingSignupEmail, pw);
     currentUser = cred.user;
-    window._splashLog('creatingAccountSplash', 'account created + signed in', { uid: cred.user.uid });
     // Mark every step complete now that the account genuinely exists
     caSteps.forEach(id => { const el = document.getElementById(id); if (el) { el.classList.add('visible'); el.classList.add('done'); } });
     setTimeout(() => {
@@ -1491,7 +1491,6 @@ async function handleCreatePassword() {
       document.getElementById('gateNameReveal').textContent = pendingSignupName.split(' ')[0];
     }, 500);
   } catch(e) {
-    window._splashLog('creatingAccountSplash', 'aborted — exception during signup', { code: e.code, message: e.message });
     caTimers.forEach(clearTimeout);
     if (cas) cas.classList.remove('active');
     showGateError('createPasswordError', gateAuthError(e.code || '', 'signup'));
@@ -3972,7 +3971,8 @@ function openShareSheet(item, fromPortfolio) {
     const ref = fbDb.ref('content/' + collection + '/' + pid + '/shares');
     ref.get().then(snap => {
       const newVal = (snap.val() || 0) + 1;
-      ref.set(newVal);
+      return ref.set(newVal).then(() => newVal);
+    }).then(newVal => {
       // Update DOM count in feed and trending
       const postEl = document.querySelector('[data-id="' + pid + '"]');
       if (postEl) {
@@ -3984,6 +3984,9 @@ function openShareSheet(item, fromPortfolio) {
           }
         });
       }
+    }).catch(e => {
+      console.error('share count update failed:', e);
+      showToast('Could not update share count — check your connection');
     });
   }
 }
