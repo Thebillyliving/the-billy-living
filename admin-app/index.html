@@ -11,41 +11,9 @@
          debugging is done if you don't want it visible to anyone else using the dashboard. -->
     <script>
     window._pageLoadTime = window._pageLoadTime || Date.now();
-    window._diagLog = window._diagLog || [];
-    window._diagExpanded = false;
-    function _renderDiagPanel() {
-        var bar = document.getElementById('_diagBar');
-        if (!bar) {
-            bar = document.createElement('div');
-            bar.id = '_diagBar';
-            bar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:999998;font:11px/1.4 monospace;background:#1a1408;color:#C9A84C;border-bottom:2px solid #C9A84C;';
-            var attach = function() { document.body.appendChild(bar); };
-            if (document.body) attach(); else document.addEventListener('DOMContentLoaded', attach);
-        }
-        var last = window._diagLog[window._diagLog.length - 1] || '';
-        var head = '<div style="padding:6px 10px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" onclick="window._diagExpanded=!window._diagExpanded;_renderDiagPanel();">BOOT: ' + last + ' (tap for full log)</div>';
-        var body = window._diagExpanded
-            ? '<div style="max-height:45vh;overflow:auto;padding:0 10px 10px;white-space:pre-wrap;border-top:1px solid rgba(201,168,76,.3);" onclick="try{navigator.clipboard.writeText(window._diagLog.join(String.fromCharCode(10)))}catch(e){}">' + window._diagLog.join('\n') + '\n\n(tap to copy)</div>'
-            : '';
-        bar.innerHTML = head + body;
-    }
-    // Diagnostic logger for splash screens AND the whole boot sequence (Firebase
-    // SDK load, auth, admin verification, dashboard init). Shows live on-screen
-    // (top bar, tap to expand/copy) since mobile Chrome has no console access —
-    // also mirrored to console.log tagged [SPLASH]/[BOOT] for desktop debugging.
-    window._splashLog = window._splashLog || function(id, event, detail) {
-        var t = Date.now() - window._pageLoadTime;
-        var line = '[' + t + 'ms] ' + id + ' \u2192 ' + event + (detail !== undefined ? ' | ' + JSON.stringify(detail) : '');
-        window._diagLog.push(line);
-        console.log('%c[SPLASH ' + t + 'ms] ' + id + ' \u2192 ' + event, 'color:#C9A84C;font-weight:600', detail !== undefined ? detail : '');
-        _renderDiagPanel();
-    };
-    window._splashLog('boot', 'page script started');
     (function() {
         var box = null;
         function showErr(msg) {
-            window._diagLog.push('[' + (Date.now() - window._pageLoadTime) + 'ms] ✗ ERROR: ' + msg);
-            if (typeof _renderDiagPanel === 'function') _renderDiagPanel();
             if (!box) {
                 box = document.createElement('div');
                 box.style.cssText = 'position:fixed;bottom:0;left:0;right:0;max-height:40vh;overflow:auto;background:#5a1414;color:#fff;font:12px/1.4 monospace;padding:10px;z-index:999999;white-space:pre-wrap;border-top:3px solid #ff6b6b;';
@@ -2218,12 +2186,9 @@
                         }
                     });
                     updates['system/rankMigrationDone'] = true;
-                    window._splashLog('rankMigration', 'running one-time migration', { accountsUpgradedToHead: Object.keys(updates).length - 1 });
                     return window.adminFbDB.ref().update(updates);
                 });
-            }).catch(e => {
-                window._splashLog('rankMigration', 'failed — accounts keep default access this session', { message: e.message });
-            });
+            }).catch(e => {});
         }
         function rankAtLeast(rank, minRank) {
             return RANK_ORDER.indexOf(rank) >= RANK_ORDER.indexOf(minRank);
@@ -3996,9 +3961,6 @@
                 reader.readAsDataURL(blob);
             }).catch(err => {
                 console.error('Video compression failed, falling back to original file:', err);
-                if (typeof window._splashLog === 'function') {
-                    window._splashLog('videoCompress', 'FAILED — saved uncompressed instead', { message: err && err.message, name: err && err.name });
-                }
                 // Fall back to the original raw upload so a compressor failure
                 // never blocks the admin from posting a video entirely.
                 if (file.size > 15 * 1024 * 1024) {
@@ -5528,22 +5490,19 @@
         }
 
         function dismissSplash() {
-            window._splashLog('bl-splash', 'hide (dismissing)');
             const splash = document.getElementById('bl-splash');
-            if (!splash) { window._splashLog('bl-splash', 'hide() called — element not found'); return; }
+            if (!splash) return;
             splash.classList.add('fade-out');
-            setTimeout(() => { splash.remove(); window._splashLog('bl-splash', 'removed from DOM'); }, 450);
+            setTimeout(() => { splash.remove(); }, 450);
         }
 
         // Dismiss splash and show shell immediately on DOMContentLoaded
         // Auth + data hydrate in background after Firebase loads
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function() {
-                window._splashLog('bl-splash', 'DOMContentLoaded — scheduling dismiss');
                 requestAnimationFrame(dismissSplash);
             });
         } else {
-            window._splashLog('bl-splash', 'document already loaded — scheduling dismiss');
             requestAnimationFrame(dismissSplash);
         }
 
@@ -5551,14 +5510,9 @@
         // _panelFetched. Dashboard is the only panel visible before any nav
         // click happens, so it's the only thing initApp needs to kick off.
         function initApp() {
-            window._splashLog('initApp', 'starting dashboard data load');
-            if (_panelFetched.dashboard) { window._splashLog('initApp', 'skipped — already started earlier'); return; }
+            if (_panelFetched.dashboard) return;
             _panelFetched.dashboard = true;
-            loadDashboardStats().then(() => {
-                window._splashLog('initApp', 'dashboard stats loaded — boot complete');
-            }).catch(e => {
-                window._splashLog('initApp', 'dashboard stats failed (non-blocking, dashboard still shown)', { message: e && e.message });
-            });
+            loadDashboardStats().catch(() => {});
         }
 
         // Auth and initApp() are now triggered by the deferred Firebase loader at the bottom of the body.
@@ -5819,7 +5773,6 @@ function adminOpenVideo(src) {
 <script defer>
 (function bootFirebase(attempt) {
     attempt = attempt || 0;
-    window._splashLog('bootFirebase', 'attempt ' + attempt, { firebaseSdkPresent: typeof firebase !== 'undefined' });
 
     // On a slow connection the gstatic.com SDK files can still be in flight
     // (or can outright fail) by the time this deferred script runs. Instead
@@ -5847,11 +5800,9 @@ function adminOpenVideo(src) {
             setTimeout(function() { bootFirebase(attempt + 1); }, 500);
             return;
         }
-        window._splashLog('bootFirebase', 'GAVE UP — Firebase SDK never loaded after 30 attempts (~15s). Check that gstatic.com is reachable.');
         showNotice('Could not connect — check your internet, then <a href="#" onclick="location.reload();return false;" style="color:#fff;text-decoration:underline;">tap to retry</a>', true);
         return;
     }
-    window._splashLog('bootFirebase', 'Firebase SDK confirmed loaded');
     var loadedNotice = document.getElementById('_fbLoadNotice');
     if (loadedNotice) loadedNotice.remove();
 
@@ -5867,12 +5818,10 @@ function adminOpenVideo(src) {
     if (!firebase.apps.length) firebase.initializeApp(adminFirebaseConfig);
     window.adminFbDB = firebase.database();
     window.adminFbAuth = firebase.auth();
-    window._splashLog('bootFirebase', 'Firebase app + database + auth initialized');
 
     var appStarted = false;
 
     function showLoginOverlay() {
-        window._splashLog('loginOverlay', 'show');
         var ov = document.getElementById('loginOverlay');
         if (ov) ov.classList.add('active');
         var checking = document.getElementById('loginChecking');
@@ -5882,7 +5831,6 @@ function adminOpenVideo(src) {
         appStarted = false; // allow boot() to run again after the next successful sign-in
     }
     function hideLoginOverlay() {
-        window._splashLog('loginOverlay', 'hide');
         var ov = document.getElementById('loginOverlay');
         if (ov) ov.classList.remove('active');
     }
@@ -5951,7 +5899,6 @@ function adminOpenVideo(src) {
     function boot(user) {
         if (appStarted) return;
         appStarted = true;
-        window._splashLog('adminBoot', 'starting dashboard for verified admin', { uid: user.uid });
         hideLoginOverlay();
         initApp();
     }
@@ -5959,30 +5906,25 @@ function adminOpenVideo(src) {
     window.adminFbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(){});
     window.adminFbAuth.onAuthStateChanged(function(user) {
         if (!user) {
-            window._splashLog('adminAuth', 'signed out');
             showLoginOverlay();
             return;
         }
         // Being signed in isn't enough — confirm this uid is actually listed
         // as an admin before showing any dashboard content. A newly created
         // designer account, for example, should never reach this far.
-        window._splashLog('adminAuth', 'signed in — verifying admin status', { uid: user.uid });
         runRankMigrationIfNeeded().then(function() {
         window.adminFbDB.ref('admins/' + user.uid).once('value').then(function(snap) {
             if (snap.exists()) {
                 var rank = rankOf(snap.val());
-                window._splashLog('adminAuth', 'verified — uid is a listed admin', { uid: user.uid, rank: rank });
                 window.currentAdminUid = user.uid;
                 applyRankUI(rank);
                 boot(user);
             } else {
-                window._splashLog('adminAuth', 'rejected — uid not listed under admins/', { uid: user.uid });
                 window.adminFbAuth.signOut();
                 showLoginOverlay();
                 showLoginError('This account is not authorized for admin access.');
             }
         }).catch(function(e) {
-            window._splashLog('adminAuth', 'admin-status check failed', { message: e.message });
             window.adminFbAuth.signOut();
             showLoginOverlay();
             showLoginError('Could not verify admin access — check your connection and try again.');
