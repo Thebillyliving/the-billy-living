@@ -91,7 +91,8 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .feed-action-spacer{flex:1}
 .feed-caption{padding:4px 14px 14px}
 .feed-caption-title{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:var(--gold);margin-bottom:2px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.feed-caption-text{font-family:'Jost',sans-serif;font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feed-caption-text{font-family:'Jost',sans-serif;font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer;transition:-webkit-line-clamp .1s}
+.feed-caption-text.expanded{-webkit-line-clamp:unset;display:block}
 .feed-caption-location{display:flex;align-items:center;gap:4px;font-family:'Jost',sans-serif;font-size:11px;color:rgba(168,155,140,.6);letter-spacing:.3px}
 .feed-caption-location svg{width:11px;height:11px;stroke:rgba(168,155,140,.5);fill:none;stroke-width:2;flex-shrink:0}
 /* FIX 1: overscroll-behavior:contain stops scroll bleeding into nav taps */
@@ -196,49 +197,49 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .view-modal-title{font-family:'Cormorant Garamond',serif;font-size:22px;color:#E8D5A3;margin-bottom:4px}
 .view-modal-meta{font-size:11px;color:rgba(201,168,76,.6);letter-spacing:1px}
 
-.vault-login-container{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;background:#0A1628}
-.vault-locked-container{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;background:#0A1628}
+.vault-login-container{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;background:#FAF8F3}
+.vault-locked-container{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;background:#FAF8F3}
 .vault-locked-inner{width:100%;max-width:360px;display:flex;flex-direction:column;align-items:center;text-align:center}
-.vault-locked-eyebrow{font-family:'Jost',sans-serif;font-size:10px;letter-spacing:4px;color:rgba(201,168,76,.6);text-transform:uppercase;margin-bottom:10px}
-.vault-locked-title{font-family:'Cormorant Garamond',serif;font-size:34px;color:var(--gold);letter-spacing:1px;margin-bottom:8px}
-.vault-locked-copy{font-family:'Jost',sans-serif;font-size:13px;line-height:1.8;color:rgba(230,225,215,.75);letter-spacing:.2px;margin:18px 0 26px}
+.vault-locked-eyebrow{font-family:'Jost',sans-serif;font-size:10px;letter-spacing:4px;color:rgba(184,134,11,.75);text-transform:uppercase;margin-bottom:10px}
+.vault-locked-title{font-family:'Cormorant Garamond',serif;font-size:34px;color:#0A0A08;letter-spacing:1px;margin-bottom:8px}
+.vault-locked-copy{font-family:'Jost',sans-serif;font-size:13px;line-height:1.8;color:rgba(10,10,8,.65);letter-spacing:.2px;margin:18px 0 26px}
 .vault-locked-progress{width:100%;margin-bottom:28px}
-.vault-locked-progress-label{display:flex;justify-content:space-between;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(201,168,76,.65);margin-bottom:8px}
-.vault-locked-progress-track{width:100%;height:6px;border-radius:3px;background:rgba(201,168,76,.12);overflow:hidden}
-.vault-locked-progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#B8860B,var(--gold));transition:width .5s ease}
+.vault-locked-progress-label{display:flex;justify-content:space-between;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(10,10,8,.55);margin-bottom:8px}
+.vault-locked-progress-track{width:100%;height:6px;border-radius:3px;background:rgba(184,134,11,.14);overflow:hidden}
+.vault-locked-progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#1B5E3F,#B8860B);transition:width .5s ease}
 .vault-locked-teasers{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%;margin-bottom:24px}
-.vault-teaser-item{aspect-ratio:1;border-radius:10px;position:relative;overflow:hidden;border:1px solid rgba(201,168,76,.25)}
-.vault-teaser-bg{position:absolute;inset:-4px;background:linear-gradient(135deg,#2a1f0d,#3d2e12,#241a08);filter:blur(3px) saturate(1.15) brightness(.85)}
-.vault-teaser-bg::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,168,76,.25),transparent 60%)}
+.vault-teaser-item{aspect-ratio:1;border-radius:10px;position:relative;overflow:hidden;border:1px solid rgba(184,134,11,.3)}
+.vault-teaser-bg{position:absolute;inset:-4px;background:linear-gradient(135deg,#e8dcc0,#d4c398,#c9b478);filter:blur(3px) saturate(1.1) brightness(.95)}
+.vault-teaser-bg::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(184,134,11,.3),transparent 60%)}
 .vault-teaser-lock{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2}
 .vault-teaser-lock svg{width:18px;height:18px}
-.vault-locked-anchor{display:flex;align-items:flex-start;gap:10px;text-align:left;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.18);border-radius:10px;padding:14px 16px;font-family:'Jost',sans-serif;font-size:12px;line-height:1.7;color:rgba(230,225,215,.8);letter-spacing:.2px}
-.vault-locked-anchor strong{color:var(--gold);font-weight:600}
-.vault-locked-anchor-icon{color:var(--gold);flex-shrink:0;margin-top:1px}
-.vault-locked-concierge{margin-top:14px;background:none;border:none;color:rgba(201,168,76,.55);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
-.vault-logo{width:100px;height:100px;background:linear-gradient(135deg,var(--gold),#B8860B);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:32px;box-shadow:0 20px 60px rgba(201,169,98,.3)}
-.vault-title{font-family:'Cormorant Garamond',serif;font-size:36px;color:var(--gold);margin-bottom:8px;text-align:center}
-.vault-subtitle{color:#6B7B8F;font-size:14px;margin-bottom:40px;text-align:center}
+.vault-locked-anchor{display:flex;align-items:flex-start;gap:10px;text-align:left;background:rgba(27,94,63,.06);border:1px solid rgba(27,94,63,.22);border-radius:10px;padding:14px 16px;font-family:'Jost',sans-serif;font-size:12px;line-height:1.7;color:rgba(10,10,8,.75);letter-spacing:.2px}
+.vault-locked-anchor strong{color:#1B5E3F;font-weight:600}
+.vault-locked-anchor-icon{color:#1B5E3F;flex-shrink:0;margin-top:1px}
+.vault-locked-concierge{margin-top:14px;background:none;border:none;color:rgba(10,10,8,.5);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.vault-logo{width:100px;height:100px;background:linear-gradient(135deg,var(--gold),#B8860B);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:32px;box-shadow:0 20px 60px rgba(184,134,11,.25)}
+.vault-title{font-family:'Cormorant Garamond',serif;font-size:36px;color:#0A0A08;margin-bottom:8px;text-align:center}
+.vault-subtitle{color:#5A5548;font-size:14px;margin-bottom:40px;text-align:center}
 .vault-form{width:100%;max-width:320px;display:flex;flex-direction:column;gap:20px}
-.vault-input{width:100%;padding:18px 20px;background:rgba(255,255,255,.05);border:1px solid rgba(201,169,98,.3);border-radius:12px;color:var(--text-primary);font-size:16px;outline:none;font-family:'Jost',sans-serif;transition:border-color .2s,box-shadow .2s}
-.vault-input:focus{border-color:var(--gold);background:rgba(255,255,255,.08)}
-.vault-btn{padding:18px;background:linear-gradient(135deg,var(--gold),#B8860B);border:none;border-radius:12px;color:#0A1628;font-weight:600;font-size:16px;cursor:pointer}
-.vault-phone-wrapper{width:100%;display:flex;align-items:stretch;background:rgba(255,255,255,.05);border:1px solid rgba(201,169,98,.3);border-radius:12px;overflow:hidden;transition:border-color .2s}
-.vault-phone-wrapper:focus-within{border-color:var(--gold);background:rgba(255,255,255,.08)}
-.vault-phone-prefix{display:flex;align-items:center;padding:0 14px;background:rgba(201,169,98,.08);border-right:1px solid rgba(201,169,98,.2);color:var(--gold);font-family:'Jost',sans-serif;font-size:15px;font-weight:500;letter-spacing:.5px;white-space:nowrap;flex-shrink:0}
-.vault-phone-input{flex:1;padding:18px 16px;background:transparent;border:none;color:var(--text-primary);font-size:16px;outline:none;font-family:'Jost',sans-serif;min-width:0}
+.vault-input{width:100%;padding:18px 20px;background:#fff;border:1px solid rgba(184,134,11,.35);border-radius:12px;color:#0A0A08;font-size:16px;outline:none;font-family:'Jost',sans-serif;transition:border-color .2s,box-shadow .2s}
+.vault-input:focus{border-color:#B8860B;background:#fff;box-shadow:0 0 0 3px rgba(184,134,11,.12)}
+.vault-btn{padding:18px;background:linear-gradient(135deg,var(--gold),#B8860B);border:none;border-radius:12px;color:#0A0A08;font-weight:600;font-size:16px;cursor:pointer}
+.vault-phone-wrapper{width:100%;display:flex;align-items:stretch;background:#fff;border:1px solid rgba(184,134,11,.35);border-radius:12px;overflow:hidden;transition:border-color .2s}
+.vault-phone-wrapper:focus-within{border-color:#B8860B;box-shadow:0 0 0 3px rgba(184,134,11,.12)}
+.vault-phone-prefix{display:flex;align-items:center;padding:0 14px;background:rgba(184,134,11,.08);border-right:1px solid rgba(184,134,11,.25);color:#8A6508;font-family:'Jost',sans-serif;font-size:15px;font-weight:500;letter-spacing:.5px;white-space:nowrap;flex-shrink:0}
+.vault-phone-input{flex:1;padding:18px 16px;background:transparent;border:none;color:#0A0A08;font-size:16px;outline:none;font-family:'Jost',sans-serif;min-width:0}
 .input-error{border-color:#ff5555!important;box-shadow:0 0 0 1px rgba(255,85,85,.3)!important}
 #vault-login-form{opacity:1;transition:opacity .5s ease;width:100%;display:flex;flex-direction:column;align-items:center}
 #vault-success-state{opacity:1;transition:opacity .5s ease;width:100%;display:none;flex-direction:column;align-items:center}
 .vault-success-icon{margin-bottom:28px;animation:vaultGlow 3s ease-in-out infinite alternate}
-@keyframes vaultGlow{from{filter:drop-shadow(0 0 12px rgba(201,168,76,.25))}to{filter:drop-shadow(0 0 28px rgba(201,168,76,.6))}}
-.vault-success-eyebrow{font-family:'Jost',sans-serif;font-size:9px;letter-spacing:6px;color:rgba(201,168,76,.5);text-transform:uppercase;margin-bottom:14px}
-.vault-success-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:var(--gold);letter-spacing:1px;line-height:1.3;margin-bottom:20px}
-.vault-success-divider{width:60px;height:1px;background:linear-gradient(to right,transparent,rgba(201,168,76,.6),transparent);margin:0 auto 20px}
-.vault-success-sub{font-family:'Jost',sans-serif;font-size:13px;color:var(--text-secondary);line-height:1.7;letter-spacing:.3px;margin-bottom:28px}
+@keyframes vaultGlow{from{filter:drop-shadow(0 0 12px rgba(184,134,11,.3))}to{filter:drop-shadow(0 0 28px rgba(184,134,11,.65))}}
+.vault-success-eyebrow{font-family:'Jost',sans-serif;font-size:9px;letter-spacing:6px;color:rgba(27,94,63,.7);text-transform:uppercase;margin-bottom:14px}
+.vault-success-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:#0A0A08;letter-spacing:1px;line-height:1.3;margin-bottom:20px}
+.vault-success-divider{width:60px;height:1px;background:linear-gradient(to right,transparent,#B8860B,transparent);margin:0 auto 20px}
+.vault-success-sub{font-family:'Jost',sans-serif;font-size:13px;color:#5A5548;line-height:1.7;letter-spacing:.3px;margin-bottom:28px}
 .vault-success-badges{display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px}
-.vault-badge-item{display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.18);border-radius:8px;font-family:'Jost',sans-serif;font-size:12px;color:var(--text-primary);letter-spacing:1px}
-.vault-badge-icon{color:var(--gold);font-size:14px;flex-shrink:0}
+.vault-badge-item{display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(27,94,63,.05);border:1px solid rgba(27,94,63,.2);border-radius:8px;font-family:'Jost',sans-serif;font-size:12px;color:#0A0A08;letter-spacing:1px}
+.vault-badge-icon{color:#1B5E3F;font-size:14px;flex-shrink:0}
 .vault-pin-input-wrapper{width:100%;position:relative}
 .portfolio-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding:20px}
 .portfolio-subnav{display:flex;gap:0;margin:18px 20px 0;border:1px solid rgba(201,168,76,.25);border-radius:10px;overflow:hidden}
@@ -1593,17 +1594,31 @@ function _hideRefreshSpinner() {
   if (el) { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 320); }
 }
 
+let _refreshInFlight = false;
 function refreshPage(pageId) {
+  // Guard against overlapping refreshes — this alone was enough to leave the
+  // spinner stuck: each loader below used to be CALLED TWICE (once just to
+  // check whether it returned a promise, again to actually use it), so two
+  // overlapping loads could finish in the wrong order and leave the overlay
+  // showing forever, or get carried along when the user switched tabs since
+  // the overlay is a single body-level element, not scoped to any one page.
+  if (_refreshInFlight) return;
+  _refreshInFlight = true;
   _showRefreshSpinner();
 
-  // Bust panel caches so data re-fetches
+  const done = () => { _refreshInFlight = false; _hideRefreshSpinner(); };
+  // Hard safety net — no matter what happens above, the spinner is gone
+  // within 6s and navigation is never blocked longer than that.
+  const watchdog = setTimeout(done, 6000);
+  const settle = (p) => {
+    Promise.resolve(p).catch(() => {}).finally(() => { clearTimeout(watchdog); done(); });
+  };
+
   if (pageId === 'home') {
     _panelFetched && (_panelFetched.home = false);
-    // Scroll home feed to top
     const feed = document.getElementById('homeFeed');
     if (feed) feed.scrollTo({ top: 0, behavior: 'smooth' });
-    loadHomeFeed().finally ? loadHomeFeed().finally(_hideRefreshSpinner) : loadHomeFeed();
-    setTimeout(_hideRefreshSpinner, 2500);
+    settle(loadHomeFeed());
 
   } else if (pageId === 'trending') {
     const container = document.getElementById('trendingContainer');
@@ -1611,38 +1626,36 @@ function refreshPage(pageId) {
       container.scrollTo({ top: 0, behavior: 'instant' });
       container.innerHTML = '';
     }
-    loadTrending().finally ? loadTrending().finally(_hideRefreshSpinner) : loadTrending();
-    setTimeout(_hideRefreshSpinner, 3000);
+    settle(loadTrending());
 
   } else if (pageId === 'catalog') {
     _catalogCache = [];
     const grid = document.getElementById('eliteCatalogGrid');
     if (grid) grid.innerHTML = '';
-    loadCatalog().finally ? loadCatalog().finally(_hideRefreshSpinner) : loadCatalog();
-    setTimeout(_hideRefreshSpinner, 2500);
+    settle(loadCatalog());
 
   } else if (pageId === 'vault') {
-    // Reset vault to login screen and re-init
     if (vaultSession) {
-      // Already unlocked — just re-load vault content
-      loadBespokeVault(true);
-      setTimeout(_hideRefreshSpinner, 2000);
+      // Already unlocked — nothing to re-fetch here, just confirm the
+      // welcome state is showing (there's no single "reload vault content"
+      // call; each sub-section loads its own data on demand when opened).
+      const successState = document.getElementById('vault-success-state');
+      if (successState) successState.style.display = 'flex';
+      settle();
     } else {
       initVaultLogin();
-      setTimeout(_hideRefreshSpinner, 800);
+      settle();
     }
 
   } else if (pageId === 'concierge') {
-    loadConciergeHistory();
-    setTimeout(_hideRefreshSpinner, 1500);
+    settle(loadConciergeHistory());
 
   } else if (pageId === 'portfolio') {
     _panelFetched && (_panelFetched.portfolio = false);
-    loadPortfolio && loadPortfolio();
-    setTimeout(_hideRefreshSpinner, 2000);
+    settle(loadPortfolio && loadPortfolio());
 
   } else {
-    setTimeout(_hideRefreshSpinner, 800);
+    settle();
   }
 }
 
@@ -2173,7 +2186,7 @@ function buildFeedItem(p) {
     + (p.audioData ? '<audio id="audio_post_' + id + '" src="' + p.audioData + '" loop style="display:none;"></audio>' : '')
     + '<div class="feed-caption">'
     +   '<div class="feed-caption-title">' + (p.title||'') + '</div>'
-    +   '<div class="feed-caption-text">' + (p.caption||'') + '</div>'
+    +   '<div class="feed-caption-text" onclick="this.classList.toggle(\'expanded\')">' + (p.caption||'') + '</div>'
     + '</div>'
   + '</div>';
 }
@@ -2406,6 +2419,7 @@ async function loadTrending() {
       cached.forEach(item => { _trendMap[item.id] = item; });
       container.innerHTML = cached.map(item => buildTikTokItem(item)).join('');
       _initTrendingObservers(container);
+      initCarousels();
     }
   } catch(e) {}
 
@@ -2425,6 +2439,7 @@ async function loadTrending() {
   container.innerHTML = items.map(item => buildTikTokItem(item)).join('');
   container.style.scrollBehavior = 'auto';
   _initTrendingObservers(container);
+  initCarousels();
   // Restore liked/bookmarked state after fresh load
   if (currentUser) {
     fbDb.ref(`userTrendingLikes/${currentUser.uid}`).get().then(likeSnap => {
@@ -2571,7 +2586,7 @@ function buildTikTokItem(item) {
   const timgs = (item.images && item.images.length > 1) ? item.images : null;
   if (timgs) {
     // Multi-image tiktok carousel — clear the loader once the first slide is ready
-    const slides = timgs.map((src,i) => '<img src="' + src + '" alt="" style="width:100%;height:100%;object-fit:cover;flex-shrink:0;"' + (i===0 ? ' onload="' + clearLoader + '" onerror="' + clearLoader + '"' : '') + '>').join('');
+    const slides = timgs.map((src,i) => '<img src="' + src + '" alt="" style="width:100%;height:100%;object-fit:contain;background:#000;flex-shrink:0;"' + (i===0 ? ' onload="' + clearLoader + '" onerror="' + clearLoader + '"' : '') + '>').join('');
     const dots   = timgs.map((_,i) => '<span class="feed-carousel-dot' + (i===0?' active':'') + '"></span>').join('');
     mediaHtml = loaderHtml + '<div class="feed-carousel tiktok-car" id="car_t_' + id + '" style="width:100%;height:100%;">'
       + '<div class="feed-carousel-track" id="track_t_' + id + '" style="height:100%;">' + slides + '</div>'
@@ -2584,7 +2599,7 @@ function buildTikTokItem(item) {
   } else if (item.imageData) {
     mediaHtml = loaderHtml + '<img src="' + item.imageData + '" alt="" style="width:100%;height:100%;object-fit:contain" onload="' + clearLoader + '" onerror="' + clearLoader + '">';
   } else if (item.imageUrl) {
-    mediaHtml = loaderHtml + '<img src="' + item.imageUrl + '" alt="" style="width:100%;height:100%;object-fit:cover" onload="' + clearLoader + '" onerror="' + clearLoader + '">';
+    mediaHtml = loaderHtml + '<img src="' + item.imageUrl + '" alt="" style="width:100%;height:100%;object-fit:contain;background:#000;" onload="' + clearLoader + '" onerror="' + clearLoader + '">';
   } else {
     mediaHtml = '<div style="width:100%;height:100%;background:linear-gradient(135deg,#1a0f00,#2a1a00);display:flex;align-items:center;justify-content:center;font-size:64px">🛋️</div>';
   }
