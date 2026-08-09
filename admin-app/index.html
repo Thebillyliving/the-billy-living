@@ -546,6 +546,36 @@
             gap: 8px;
             flex-shrink: 0;
         }
+        /* Ordinary Designers / Assistant Leads: no delete, no editing live
+           content. Views stay visible. */
+        body.rank-restricted-view .rank-gated {
+            display: none !important;
+        }
+        /* Only Head Designer can see/set like & share numbers. */
+        body.rank-no-engagement .engagement-gated {
+            display: none !important;
+        }
+        /* Catalog Views button hidden for Assistant Lead only. */
+        body.rank-no-catalog-views .catalog-views-gated {
+            display: none !important;
+        }
+        /* Dashboard quick actions hidden for plain Designer only — Lead and
+           Assistant Lead get every dashboard action button. */
+        body.rank-designer-only .designer-only-gated {
+            display: none !important;
+        }
+        .msg-ctx-btn {
+            display: block; width: 100%; text-align: left; padding: 12px 16px;
+            background: none; border: none; color: #E8D5A3; font-size: 13px;
+            cursor: pointer; font-family: inherit;
+        }
+        .msg-ctx-btn:hover { background: rgba(201,168,76,0.1); }
+        .msg-ctx-btn + .msg-ctx-btn { border-top: 1px solid rgba(201,168,76,0.1); }
+        .admin-msg.edited-msg::after { content: '(edited)'; font-size: 10px; color: rgba(201,168,76,0.4); margin-left: 6px; }
+        .msgs-search-result { display:flex; align-items:center; gap:12px; padding:12px 16px; cursor:pointer; border-bottom:1px solid rgba(201,168,76,0.08); }
+        .msgs-search-result:hover { background: rgba(201,168,76,0.06); }
+        .msgs-search-avatar { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:600; flex-shrink:0; }
+        .msgs-search-tag { font-size:9px; letter-spacing:1px; text-transform:uppercase; padding:2px 6px; border-radius:4px; }
 
         .toggle-switch {
             width: 48px;
@@ -1707,6 +1737,9 @@
          admin signs in here. Replaces the old auto-signin-with-hardcoded-
          credentials behavior, which let anyone who loaded this URL in
          automatically as full admin. -->
+    <div id="previewModeBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:999990;background:#3a2a0a;color:#F5D68A;padding:10px 16px;text-align:center;font-family:'Jost',sans-serif;font-size:13px;">
+        Viewing as: <strong id="previewModeName"></strong> — <a href="#" onclick="exitPreviewMode();return false;" style="color:#fff;text-decoration:underline;">Exit Preview</a>
+    </div>
     <div id="loginOverlay" class="login-overlay active">
         <div class="login-box">
             <div class="login-logo">👑</div>
@@ -1743,28 +1776,29 @@
         </div>
         <div class="nav-section">
             <div class="nav-section-title">Overview</div>
-            <div class="nav-item active" onclick="showPanel('dashboard', this)">
+            <div class="nav-item active" data-nav="dashboard" onclick="showPanel('dashboard', this)">
                 <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="0.5"/><rect x="14" y="3" width="7" height="5" rx="0.5"/><rect x="14" y="12" width="7" height="9" rx="0.5"/><rect x="3" y="16" width="7" height="5" rx="0.5"/></svg></span>
                 <span>Dashboard</span>
             </div>
         </div>
         <div class="nav-section">
             <div class="nav-section-title">Content</div>
-            <div class="nav-item" onclick="showPanel('home', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H15v-5h-6v5H4a1 1 0 01-1-1V10.5z"/></svg></span><span>Home</span></div>
-            <div class="nav-item" onclick="showPanel('catalog', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="0.5"/><rect x="14" y="3" width="7" height="7" rx="0.5"/><rect x="3" y="14" width="7" height="7" rx="0.5"/><rect x="14" y="14" width="7" height="7" rx="0.5"/></svg></span><span>Catalog</span></div>
-            <div class="nav-item" onclick="showPanel('trending', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 2C12 2 7 8 7 13a5 5 0 0010 0c0-5-5-11-5-11z"/><path d="M9.5 15.5c.5-1.5 2-2.5 2.5-4"/></svg></span><span>Trending</span></div>
-            <div class="nav-item" onclick="showPanel('portfolio', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"/></svg></span><span>Portfolio</span></div>
+            <div class="nav-item" data-nav="home" onclick="showPanel('home', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H15v-5h-6v5H4a1 1 0 01-1-1V10.5z"/></svg></span><span>Home</span></div>
+            <div class="nav-item" data-nav="catalog" onclick="showPanel('catalog', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="0.5"/><rect x="14" y="3" width="7" height="7" rx="0.5"/><rect x="3" y="14" width="7" height="7" rx="0.5"/><rect x="14" y="14" width="7" height="7" rx="0.5"/></svg></span><span>Catalog</span></div>
+            <div class="nav-item" data-nav="trending" onclick="showPanel('trending', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 2C12 2 7 8 7 13a5 5 0 0010 0c0-5-5-11-5-11z"/><path d="M9.5 15.5c.5-1.5 2-2.5 2.5-4"/></svg></span><span>Trending</span></div>
+            <div class="nav-item" data-nav="pending" onclick="showPanel('pending', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span><span>Pending Approval</span><span class="nav-badge" id="pendingBadge" style="display:none;">0</span></div>
+            <div class="nav-item" data-nav="portfolio" onclick="showPanel('portfolio', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"/></svg></span><span>Portfolio</span></div>
         </div>
         <div class="nav-section">
             <div class="nav-section-title">Clients</div>
-            <div class="nav-item" onclick="showPanel('vip', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span>VIP Manager</span><span class="nav-badge" id="vipBadge" style="display:none;">0</span></div>
-            <div class="nav-item" onclick="showPanel('vaultmgr', this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/></svg></span><span>Vault Manager</span></div>
-            <div class="nav-item" onclick="showPanel('messages', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span><span>Messages</span><span class="nav-badge admin-msgs-badge" id="msgsBadge" style="display:none;">0</span></div>
+            <div class="nav-item" data-nav="vip" onclick="showPanel('vip', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span>VIP Manager</span><span class="nav-badge" id="vipBadge" style="display:none;">0</span></div>
+            <div class="nav-item" data-nav="vaultmgr" onclick="showPanel('vaultmgr', this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/></svg></span><span>Vault Manager</span></div>
+            <div class="nav-item" data-nav="messages" onclick="showPanel('messages', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span><span>Messages</span><span class="nav-badge admin-msgs-badge" id="msgsBadge" style="display:none;">0</span></div>
         </div>
         <div class="nav-section">
             <div class="nav-section-title">System</div>
-            <div class="nav-item" onclick="showPanel('settings', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span><span>Settings</span></div>
-            <div class="nav-item" onclick="showPanel('security', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="11" rx="1"/><path d="M8 11V7a4 4 0 018 0v4"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/></svg></span><span>Management</span></div>
+            <div class="nav-item" data-nav="settings" onclick="showPanel('settings', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span><span>Settings</span></div>
+            <div class="nav-item" data-nav="security" onclick="showPanel('security', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="11" rx="1"/><path d="M8 11V7a4 4 0 018 0v4"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/></svg></span><span>Management</span></div>
         </div>
     </aside>
 
@@ -1785,8 +1819,8 @@
             <div class="quick-actions">
                 <button class="btn btn-primary" onclick="openForm('post')">+ Add Post</button>
                 <button class="btn btn-primary" onclick="openForm('trending')">+ Add Trending</button>
-                <button class="btn btn-primary" onclick="showPanel('security')">+ Add Designer</button>
-                <button class="btn btn-secondary" onclick="showPanel('vip', null)">View VIP Requests</button>
+                <button class="btn btn-primary designer-only-gated" onclick="showPanel('security')">+ Add Designer</button>
+                <button class="btn btn-secondary designer-only-gated" onclick="showPanel('vip', null)">View VIP Requests</button>
             </div>
         </div>
 
@@ -1804,6 +1838,12 @@
 
         <!-- Trending Panel -->
         <div class="panel" id="panel-trending"><div class="page-header"><h1 class="page-title">Trending Items</h1><button class="btn btn-primary" onclick="openForm('trending')">+ Add Trending</button></div><div class="list-container" id="trendingList"></div></div>
+
+        <!-- Pending Approval Panel -->
+        <div class="panel" id="panel-pending">
+            <div class="page-header"><h1 class="page-title">Pending Approval</h1><button class="btn btn-secondary" onclick="_panelFetched.pending=false;renderPendingList()" style="padding:10px 16px;font-size:12px;">&#x21BB; Refresh</button></div>
+            <div class="list-container" id="pendingListEl"></div>
+        </div>
 
         <!-- Portfolio Panel -->
         <div class="panel" id="panel-portfolio">
@@ -1898,8 +1938,13 @@
                     <button class="vm-detail-back" onclick="event.stopPropagation(); vmShowView('main'); return false;">← All Clients</button>
                     <div class="vm-client-av" id="vmPOVAv" style="width:40px;height:40px;font-size:15px;">?</div>
                     <div><div style="font-size:15px;font-weight:600;color:var(--vault-text);" id="vmPOVName">Client</div><div style="font-size:11px;color:rgba(212,175,55,0.35);letter-spacing:1px;" id="vmPOVSub">0 vault items</div></div>
-                    
                     <button class="vm-pov-sync" onclick="event.stopPropagation(); vmSyncDefaults(); return false;">↓ SYNC DEFAULTS</button>
+                    <div style="position:relative;" id="vmDotsWrap" class="designer-only-gated">
+                        <button onclick="event.stopPropagation(); vmToggleDotsMenu(); return false;" style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.2);color:var(--vault-gold);width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;margin-left:8px;">⋮</button>
+                        <div id="vmDotsMenu" style="display:none;position:absolute;top:44px;right:0;background:#1a1408;border:1px solid rgba(212,175,55,0.25);border-radius:10px;overflow:hidden;min-width:160px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.5);">
+                            <button onclick="event.stopPropagation(); vmToggleDotsMenu(); vmOpenGrantAccessModal(); return false;" style="display:block;width:100%;text-align:left;padding:12px 16px;background:none;border:none;color:var(--vault-text);font-size:13px;cursor:pointer;font-family:inherit;">🔑 Grant Access</button>
+                        </div>
+                    </div>
                 </div>
                 <div style="overflow-y:auto;flex:1;display:flex;flex-direction:column;">
                     <!-- Library Panel (hidden by default, appears when VAULT LIBRARY is clicked) -->
@@ -1964,9 +2009,39 @@
             </div>
         </div>
 
+        <!-- Grant Access Modal — lets Head/Lead/Assistant Lead give a Designer
+             visibility into one specific client's vault -->
+        <div id="vmGrantAccessModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:5010;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
+            <div style="background:#0A0700;border:1px solid rgba(212,175,55,0.25);border-radius:16px;width:100%;max-width:420px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;">
+                <div style="padding:20px 24px 16px;border-bottom:1px solid rgba(212,175,55,0.1);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                    <div>
+                        <div style="font-size:10px;letter-spacing:3px;color:rgba(212,175,55,0.5);margin-bottom:4px;">GRANT VAULT ACCESS</div>
+                        <div id="vmGrantClientName" style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--vault-text);"></div>
+                    </div>
+                    <button onclick="vmCloseGrantAccessModal()" style="background:none;border:none;color:rgba(212,175,55,0.5);font-size:26px;cursor:pointer;line-height:1;padding:4px;">×</button>
+                </div>
+                <div style="padding:12px 24px;font-size:12px;color:rgba(212,175,55,0.5);flex-shrink:0;">Only checked Designers can see this client's vault. Everyone else with vault access (Head, Lead, Assistant Lead) always can, regardless of this list.</div>
+                <div id="vmGrantDesignerList" style="overflow-y:auto;flex:1;padding:0 24px 20px;"></div>
+            </div>
+        </div>
+
         <!-- Settings Panel -->
         <div class="panel" id="panel-settings">
             <div class="page-header"><h1 class="page-title">Settings</h1></div>
+            <div class="form-container" style="max-width:600px;">
+                <div style="display:flex;flex-direction:column;align-items:center;padding:24px 0;">
+                    <div id="myProfileAvatar" style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#C9A84C,#7A5C10);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;color:#0A0804;margin-bottom:14px;">?</div>
+                    <div id="myProfileName" style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#F5F0E8;margin-bottom:2px;">—</div>
+                    <div id="myProfileRank" style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(201,168,76,0.6);margin-bottom:18px;">—</div>
+                    <div style="display:flex;gap:24px;">
+                        <div style="text-align:center;"><div id="myProfileHomeCount" style="font-size:22px;color:var(--gold);font-family:'Cormorant Garamond',serif;">—</div><div style="font-size:10px;letter-spacing:1px;color:rgba(201,168,76,0.5);">HOME</div></div>
+                        <div style="text-align:center;"><div id="myProfileTrendingCount" style="font-size:22px;color:var(--gold);font-family:'Cormorant Garamond',serif;">—</div><div style="font-size:10px;letter-spacing:1px;color:rgba(201,168,76,0.5);">TRENDING</div></div>
+                        <div style="text-align:center;"><div id="myProfileCatalogCount" style="font-size:22px;color:var(--gold);font-family:'Cormorant Garamond',serif;">—</div><div style="font-size:10px;letter-spacing:1px;color:rgba(201,168,76,0.5);">CATALOG</div></div>
+                        <div style="text-align:center;"><div id="myProfileTotalCount" style="font-size:22px;color:var(--gold);font-family:'Cormorant Garamond',serif;">—</div><div style="font-size:10px;letter-spacing:1px;color:rgba(201,168,76,0.5);">TOTAL</div></div>
+                    </div>
+                    <div style="font-size:10px;color:rgba(201,168,76,0.35);margin-top:14px;text-align:center;">Counts only items created since project tracking was added — older content isn't attributed to anyone yet.</div>
+                </div>
+            </div>
             <div class="form-container" style="max-width:600px;">
                 <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:12px;">Session</div>
                 <button class="btn btn-secondary" onclick="if(confirm('Sign out?'))adminFbAuth.signOut();">Sign Out</button>
@@ -1986,6 +2061,7 @@
                 <div id="designerStep1">
                     <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="newDesignerName" placeholder="e.g. Ada Okafor"></div>
                     <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="newDesignerEmail" placeholder="designer@email.com"></div>
+                    <div id="rankNoteBackend" style="font-size:11px;color:rgba(201,168,76,0.45);margin:0 0 14px;">Once they finish creating their account, they'll appear below as a Designer by default — set their real rank there.</div>
                     <button class="btn btn-primary" id="createDesignerBtn" onclick="createDesignerAccount()">Create Designer Account</button>
                 </div>
 
@@ -2011,6 +2087,12 @@
             </div>
 
             <div class="form-container" style="max-width:600px;margin-top:24px;">
+                <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:4px;">Ranks & Access</div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Everyone who can log into this dashboard, and what they're allowed to do.</div>
+                <div id="adminRanksList"></div>
+            </div>
+
+            <div class="form-container" style="max-width:600px;margin-top:24px;">
                 <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:12px;">Designers</div>
                 <div id="designersList"></div>
             </div>
@@ -2019,14 +2101,23 @@
         <!-- Messages Panel -->
         <div class="panel" id="panel-messages">
             <div id="msgsListView">
-                <div class="page-header"><div><div class="page-eyebrow">Billy Living</div><h1 class="page-title">Client Messages</h1></div></div>
+                <div class="page-header"><div><div class="page-eyebrow">Billy Living</div><h1 class="page-title">Messages</h1></div></div>
+                <div style="padding:0 0 16px;">
+                    <input id="msgsSearchInput" class="form-input" placeholder="Search admins or clients…" oninput="handleMsgsSearch(this.value)" style="width:100%;box-sizing:border-box;">
+                </div>
+                <div id="msgsSearchResults" style="display:none;"></div>
                 <div id="msgsConversationsList" class="msg-conversations"></div>
             </div>
             <div id="msgsAdminChatView" style="display:none;height:100%;">
                 <div class="admin-chat-panel">
-                    <div class="admin-chat-hdr"><button class="back-link" onclick="adminBackToList()">← Back</button><div class="admin-chat-av" id="adminChatAv" onclick="openClientProfile()" style="cursor:pointer;">?</div><div onclick="openClientProfile()" style="cursor:pointer;flex:1;"><div style="font-weight:600;font-size:15px;color:#E8D5A3;" id="adminChatClientName">Client</div><div style="font-size:11px;color:rgba(201,168,76,0.4);">Tap to view profile →</div></div></div>
+                    <div class="admin-chat-hdr"><button class="back-link" onclick="adminBackToList()">← Back</button><div class="admin-chat-av" id="adminChatAv" onclick="openClientProfile()" style="cursor:pointer;">?</div><div onclick="openClientProfile()" style="cursor:pointer;flex:1;"><div style="font-weight:600;font-size:15px;color:#E8D5A3;" id="adminChatClientName">Client</div><div style="font-size:11px;color:rgba(201,168,76,0.4);" id="adminChatSubline">Tap to view profile →</div></div></div>
                     <div class="admin-chat-msgs" id="adminChatMsgs"></div>
-                    <div class="admin-chat-input-row"><input class="admin-chat-input" id="adminChatInput" placeholder="Reply to client…" onkeypress="if(event.key==='Enter')adminSendMessage()"><button class="admin-chat-send" onclick="adminSendMessage()"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div>
+                    <div id="msgContextMenu" style="display:none;position:fixed;z-index:99999;background:#1a1408;border:1px solid rgba(201,168,76,0.3);border-radius:10px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.5);min-width:140px;">
+                        <button class="msg-ctx-btn" onclick="msgCtxAction('edit')" id="msgCtxEditBtn">✏️ Edit</button>
+                        <button class="msg-ctx-btn" onclick="msgCtxAction('share')">↗ Share</button>
+                        <button class="msg-ctx-btn" onclick="msgCtxAction('delete')" style="color:#ef4444;">🗑 Delete</button>
+                    </div>
+                    <div class="admin-chat-input-row"><input class="admin-chat-input" id="adminChatInput" placeholder="Type a message…" onkeypress="if(event.key==='Enter')adminSendMessage()"><button class="admin-chat-send" onclick="adminSendMessage()"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div>
                 </div>
             </div>
         </div>
@@ -2055,7 +2146,7 @@
         </div>
     </div>
     
-    <div id="formModal" class="form-modal"><div class="form-container"><h2 class="form-title" id="formTitle">Add New</h2><div id="formContent"></div><div style="display:flex;gap:12px;margin-top:24px;"><button class="btn btn-secondary" onclick="closeForm()" style="flex:1;">Cancel</button><button class="btn btn-primary" onclick="submitForm()" style="flex:1;">Save</button></div></div></div>
+    <div id="formModal" class="form-modal"><div class="form-container"><h2 class="form-title" id="formTitle">Add New</h2><div id="formContent"></div><div style="display:flex;gap:12px;margin-top:24px;"><button class="btn btn-secondary" onclick="closeForm()" style="flex:1;">Cancel</button><button class="btn btn-primary" id="formSubmitBtn" onclick="submitForm()" style="flex:1;">Save</button></div></div></div>
     <div id="moveStyleModal" class="form-modal"><div class="form-container"><h2 class="form-title">Move to Style</h2><div id="moveStyleList" style="display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto;"></div><div style="display:flex;gap:12px;margin-top:20px;"><button class="btn btn-secondary" onclick="closeMoveStyleModal()" style="flex:1;">Cancel</button></div></div></div>
     <div id="vmDetailOverlay" class="vm-detail-overlay"><div class="vm-detail-header"><button class="vm-detail-back" onclick="vmCloseDetail()">← Back</button><div style="font-size:9px;letter-spacing:4px;color:rgba(212,175,55,0.4);text-transform:uppercase;">Asset Preview</div></div><div class="vm-detail-body" id="vmDetailContent"></div></div>
     <div class="context-backdrop" id="contextBackdrop" onclick="closeContextMenu()"></div>
@@ -2096,6 +2187,126 @@
         const _panelFetched = {};
         const _vmViewFetched = {}; // tracks which vault sub-views have already loaded their data
 
+        // ── RANKS / PERMISSIONS ────────────────────────────────────────────────
+        // admins/{uid} is either legacy boolean `true` (treated as 'head', per
+        // explicit choice — no existing account loses access) or an object
+        // { rank, email, name, createdAt }.
+        const RANK_ORDER = ['designer', 'assistant_lead', 'lead', 'head'];
+        window.currentAdminRank = 'head'; // safe default until boot() resolves the real value
+        window.currentAdminUid = null;
+
+        function rankOf(adminValue) {
+            if (!adminValue) return 'designer';
+            if (adminValue === true) return 'designer'; // post-migration: only brand-new accounts should be bare `true`
+            return adminValue.rank || 'head';
+        }
+        // One-time migration: any admin account that predates ranks entirely
+        // (bare `true`) becomes Head Designer, so nobody who already had full
+        // access loses it. Runs once, guarded by system/rankMigrationDone —
+        // after that, a fresh bare `true` (e.g. from the invite backend) is
+        // treated as the safe minimum (Designer) until someone assigns it a
+        // real rank in Management.
+        function runRankMigrationIfNeeded() {
+            return window.adminFbDB.ref('system/rankMigrationDone').once('value').then(snap => {
+                if (snap.exists()) return;
+                return window.adminFbDB.ref('admins').once('value').then(adminsSnap => {
+                    const all = adminsSnap.val() || {};
+                    const updates = {};
+                    Object.keys(all).forEach(uid => {
+                        if (all[uid] === true) {
+                            updates['admins/' + uid] = { rank: 'head', migratedAt: Date.now() };
+                        }
+                    });
+                    updates['system/rankMigrationDone'] = true;
+                    window._splashLog('rankMigration', 'running one-time migration', { accountsUpgradedToHead: Object.keys(updates).length - 1 });
+                    return window.adminFbDB.ref().update(updates);
+                });
+            }).catch(e => {
+                window._splashLog('rankMigration', 'failed — accounts keep default access this session', { message: e.message });
+            });
+        }
+        function rankAtLeast(rank, minRank) {
+            return RANK_ORDER.indexOf(rank) >= RANK_ORDER.indexOf(minRank);
+        }
+        // Who is allowed to change/remove whose rank
+        function canManageRank(actingRank, targetRank) {
+            if (actingRank === 'head') return true;
+            if (actingRank === 'lead' || actingRank === 'assistant_lead') return targetRank === 'designer' || targetRank === 'assistant_lead';
+            return false;
+        }
+        // Which sidebar panels each rank may open. 'head' implicitly gets everything.
+        const PANEL_ACCESS = {
+            dashboard:  ['head', 'lead', 'assistant_lead', 'designer'],
+            home:       ['head', 'lead', 'assistant_lead', 'designer'],
+            catalog:    ['head', 'lead', 'assistant_lead', 'designer'],
+            trending:   ['head', 'lead', 'assistant_lead', 'designer'],
+            pending:    ['head', 'lead', 'assistant_lead', 'designer'], // designer sees only their own, can cancel
+            portfolio:  ['head'], // explicitly kept off everyone else's navigator
+            vip:        ['head', 'lead', 'assistant_lead', 'designer'],
+            vaultmgr:   ['head', 'lead', 'assistant_lead', 'designer'],
+            messages:   ['head', 'lead', 'assistant_lead', 'designer'],
+            settings:   ['head', 'lead', 'assistant_lead', 'designer'],
+            security:   ['head', 'lead', 'assistant_lead'], // "Management" — designer explicitly excluded
+        };
+        function canAccessPanel(rank, panelName) {
+            if (rank === 'head') return true;
+            const allowed = PANEL_ACCESS[panelName];
+            return !!allowed && allowed.includes(rank);
+        }
+        // Content actions (submit directly vs into the pending queue) —
+        // designer and assistant_lead submissions always go to pendingContent/;
+        // lead and head publish straight to content/.
+        function submitsToPending(rank) {
+            return rank === 'designer' || rank === 'assistant_lead';
+        }
+        function canApprovePending(rank) {
+            return rank === 'head' || rank === 'lead' || rank === 'assistant_lead';
+        }
+        // Designer/Assistant Lead: no deleting or editing LIVE content — their
+        // own work always goes through review first. Lead is NOT restricted
+        // here (they're one of the approvers, can manage any live content).
+        function isContentRestricted(rank) {
+            return rank === 'designer' || rank === 'assistant_lead';
+        }
+        // Only Head Designer can set/edit like & share numbers — everyone
+        // else (including Lead) submits/publishes without touching them.
+        function canSetEngagementNumbers(rank) {
+            return rank === 'head';
+        }
+        // Catalog's Views/analytics button — Head Designer only now.
+        function canSeeCatalogViews(rank) {
+            return rank === 'head';
+        }
+
+        // Hides nav items / gates the UI once the real rank is known (called from boot()).
+        function applyRankUI(rank) {
+            window.currentAdminRank = rank;
+            document.querySelectorAll('.nav-item[data-nav]').forEach(item => {
+                const panel = item.getAttribute('data-nav');
+                item.style.display = canAccessPanel(rank, panel) ? '' : 'none';
+            });
+            // If the panel currently marked active isn't allowed for this rank
+            // (e.g. reload lands back on Dashboard for a Designer), redirect to
+            // the first panel they're actually allowed to see.
+            const activePanel = document.querySelector('.panel.active');
+            const activeName = activePanel ? activePanel.id.replace('panel-', '') : null;
+            if (!activeName || !canAccessPanel(rank, activeName)) {
+                const fallback = Object.keys(PANEL_ACCESS).find(p => canAccessPanel(rank, p)) || 'home';
+                showPanel(fallback);
+            }
+            // Ordinary Designers (and Assistant Leads, same content rules) only
+            // ever submit for approval — hide delete/edit/engagement-setting
+            // controls on live content. Views stay visible.
+            document.body.classList.toggle('rank-restricted-view', isContentRestricted(rank));
+            // Only Head can set like/share numbers — hides the ❤️ Likes editor
+            // button and the Add-Post/Trending Likes+Shares fields for everyone else.
+            document.body.classList.toggle('rank-no-engagement', !canSetEngagementNumbers(rank));
+            // Catalog's Views button is hidden for Assistant Lead only.
+            document.body.classList.toggle('rank-no-catalog-views', !canSeeCatalogViews(rank));
+            // Dashboard's "+ Add Designer" / "View VIP Requests" — Designer only restriction.
+            document.body.classList.toggle('rank-designer-only', rank === 'designer');
+        }
+
         // Firebase config — actual init happens in the deferred loader at bottom of body
         // adminFbDB and adminFbAuth are set as window globals by the loader before initApp() is called
         // Placeholder refs so code that references them before initApp doesn't throw
@@ -2112,6 +2323,10 @@
 
         // Navigation
         function showPanel(name, el) {
+            if (!canAccessPanel(window.currentAdminRank, name)) {
+                showToast('Not available for your role');
+                return;
+            }
             // Close any stray backdrops / overlays that could block clicks
             const backdrop = document.getElementById('contextBackdrop');
             if (backdrop) backdrop.classList.remove('active');
@@ -2141,9 +2356,11 @@
             if (name === 'home') { if (!_panelFetched.home) { _panelFetched.home = true; renderHomeList(); } }
             if (name === 'trending') { if (!_panelFetched.trending) { _panelFetched.trending = true; renderTrendingList(); } }
             if (name === 'vip') { if (!_panelFetched.vip) { _panelFetched.vip = true; renderVIPList().then(loadVIPRequests); } }
-            if (name === 'security') { if (!_panelFetched.security) { _panelFetched.security = true; renderDesignersList(); } }
+            if (name === 'security') { if (!_panelFetched.security) { _panelFetched.security = true; renderDesignersList(); renderAdminRanksList(); } }
+            if (name === 'settings') { if (!_panelFetched.settings) { _panelFetched.settings = true; renderMyProfile(); } }
             if (name === 'portfolio') { if (!_panelFetched.portfolio) { _panelFetched.portfolio = true; loadPortfolioUsers(); } }
             if (name === 'messages') { if (!_panelFetched.messages) { _panelFetched.messages = true; initAdminMessagesListener(); } }
+            if (name === 'pending') { if (!_panelFetched.pending) { _panelFetched.pending = true; renderPendingList(); } }
         }
 
         // Vault Manager Init
@@ -2181,14 +2398,30 @@
             }, 10000);
             return adminFbDB.ref('vip').limitToFirst(100).once('value').then(snap => {
                 settled = true; clearTimeout(watchdog);
-                _allVaultClients = Object.values(snap.val() || {});
-                if (!_allVaultClients.length) {
-                    list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">No VIP clients registered yet</div><div class="vm-empty-sub">Add clients in VIP Manager first</div></div>';
-                    return;
+                const allClients = Object.values(snap.val() || {});
+                const finish = (clients) => {
+                    _allVaultClients = clients;
+                    if (!_allVaultClients.length) {
+                        list.innerHTML = window.currentAdminRank === 'designer'
+                            ? '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">No clients granted to you yet</div><div class="vm-empty-sub">A Lead or Head Designer needs to grant you access first</div></div>'
+                            : '<div class="vm-empty"><div class="vm-empty-ornament">◆</div><div class="vm-empty-title">No VIP clients registered yet</div><div class="vm-empty-sub">Add clients in VIP Manager first</div></div>';
+                        return;
+                    }
+                    const si = document.getElementById('vmClientSearchInput'); if (si) si.value = '';
+                    const sc = document.getElementById('vmSearchClear'); if (sc) sc.style.display = 'none';
+                    _renderVaultClientList(_allVaultClients);
+                };
+                // Ordinary Designers only ever see clients someone has explicitly
+                // granted them access to — everyone else (Head/Lead/Assistant
+                // Lead) sees every VIP client, unrestricted.
+                if (window.currentAdminRank === 'designer') {
+                    adminFbDB.ref('vaultAccessByDesigner/' + window.currentAdminUid).once('value').then(grantSnap => {
+                        const grants = grantSnap.val() || {};
+                        finish(allClients.filter(c => grants[c.id || c.phone]));
+                    }).catch(() => finish([]));
+                } else {
+                    finish(allClients);
                 }
-                const si = document.getElementById('vmClientSearchInput'); if (si) si.value = '';
-                const sc = document.getElementById('vmSearchClear'); if (sc) sc.style.display = 'none';
-                _renderVaultClientList(_allVaultClients);
             }).catch(e => { settled = true; clearTimeout(watchdog); list.innerHTML = '<div class="vm-empty"><div class="vm-empty-ornament">⚠</div><div class="vm-empty-title">Error loading clients</div><div class="vm-empty-sub">' + e.message + '</div></div>'; });
         }
 
@@ -2871,6 +3104,64 @@
             });
         }
 
+        // ── VAULT ACCESS GRANTS ─────────────────────────────────────────────────
+        // Only Head / Lead / Assistant Lead can grant. Storage is mirrored both
+        // ways so both lookups are cheap: which designers can see THIS client
+        // (for this menu), and which clients a given designer can see (for
+        // filtering their Vault Manager client list).
+        function vmCanGrantAccess() {
+            return ['head', 'lead', 'assistant_lead'].includes(window.currentAdminRank);
+        }
+        function vmToggleDotsMenu() {
+            const menu = document.getElementById('vmDotsMenu');
+            if (menu) menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('vmDotsMenu');
+            const wrap = document.getElementById('vmDotsWrap');
+            if (menu && menu.style.display === 'block' && wrap && !wrap.contains(e.target)) menu.style.display = 'none';
+        });
+        function vmOpenGrantAccessModal() {
+            if (!vmCanGrantAccess()) { showToast('Not permitted for your role'); return; }
+            if (!vmCurrentClientUID) { showToast('Open a client first'); return; }
+            document.getElementById('vmGrantClientName').textContent = document.getElementById('vmPOVName').textContent || 'Client';
+            document.getElementById('vmGrantAccessModal').style.display = 'flex';
+            renderGrantDesignerList();
+        }
+        function vmCloseGrantAccessModal() {
+            document.getElementById('vmGrantAccessModal').style.display = 'none';
+        }
+        function renderGrantDesignerList() {
+            const el = document.getElementById('vmGrantDesignerList');
+            el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(212,175,55,.4);">Loading…</div>';
+            const clientUid = vmCurrentClientUID;
+            Promise.all([
+                adminFbDB.ref('admins').once('value'),
+                adminFbDB.ref('vaultAccessByClient/' + clientUid).once('value')
+            ]).then(([adminsSnap, grantsSnap]) => {
+                const all = adminsSnap.val() || {};
+                const grants = grantsSnap.val() || {};
+                const designers = Object.keys(all).filter(uid => rankOf(all[uid]) === 'designer');
+                if (!designers.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(212,175,55,.4);">No Designer accounts yet</div>'; return; }
+                el.innerHTML = designers.map(uid => {
+                    const email = (all[uid] && all[uid].email) || uid.slice(0, 10) + '…';
+                    const checked = !!grants[uid];
+                    return `<label style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(212,175,55,0.08);cursor:pointer;">
+                        <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleVaultGrant('${uid}','${clientUid}',this.checked)" style="width:18px;height:18px;accent-color:#D4AF37;">
+                        <span style="font-size:13px;color:var(--vault-text);">${email}</span>
+                    </label>`;
+                }).join('');
+            }).catch(e => { el.innerHTML = '<div style="text-align:center;padding:20px;color:#ef4444;">Error: ' + e.message + '</div>'; });
+        }
+        function toggleVaultGrant(designerUid, clientUid, granted) {
+            const updates = {};
+            updates['vaultAccessByClient/' + clientUid + '/' + designerUid] = granted ? true : null;
+            updates['vaultAccessByDesigner/' + designerUid + '/' + clientUid] = granted ? true : null;
+            adminFbDB.ref().update(updates).then(() => {
+                showToast(granted ? '✓ Access granted' : 'Access removed');
+            }).catch(e => { showToast('Error: ' + e.message); renderGrantDesignerList(); });
+        }
+
         function vmSyncDefaults() {
             if (!vmCurrentClientUID) return;
             vmRef('defaults').once('value').then(s => {
@@ -2957,49 +3248,96 @@
               if (window._showAppError) window._showAppError('Dashboard stats failed: ' + e.message);
             });
         }
+        // ── LOCAL CACHE ─────────────────────────────────────────────────────────
+        // Shows cached data instantly on load, refreshes quietly in the
+        // background so the dashboard doesn't wait on Firebase every launch.
+        function _cacheGet(key) {
+            try { const raw = localStorage.getItem('blcache_' + key); return raw ? JSON.parse(raw) : null; } catch(e) { return null; }
+        }
+        function _cacheSet(key, value) {
+            try { localStorage.setItem('blcache_' + key, JSON.stringify(value)); } catch(e) { /* storage full/unavailable — just skip caching */ }
+        }
+
+        function _buildHomeRowHtml(p) {
+            const imgSrc = p.imageData || p.imageUrl || p.image || null;
+            const vidSrc = p.videoData || p.videoUrl || null;
+            const thumb = vidSrc
+              ? '<video src="'+vidSrc+'" muted style="width:100%;height:100%;object-fit:cover;"></video><div style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.6);border-radius:4px;padding:2px 5px;font-size:10px;">🎬</div>'
+              : (imgSrc ? '<img src="'+imgSrc+'" loading="lazy" onerror="this.style.display=\'none\'">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">🏠</div>');
+            const mediaClick = vidSrc ? `adminOpenVideo('${vidSrc.replace(/'/g,"\\'")}')` : (imgSrc ? `adminOpenImage('${imgSrc.replace(/'/g,"\\'")}')` : '');
+            return `<div class="list-item" id="homeRow_${p.id}">
+              <div class="list-image" style="position:relative;${mediaClick?'cursor:pointer;':''}" ${mediaClick?`onclick="event.stopPropagation();${mediaClick}"`:''}>${thumb}</div>
+              <div class="list-info"><div class="list-title">${p.caption||p.title||p.description||'Post'}</div><div class="list-meta">${p.location||''} · ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div></div>
+              <div class="list-actions" style="gap:8px;">
+                <button class="btn btn-secondary" style="padding:12px 16px;font-size:13px;" onclick="openPostAnalytics('posts','${p.id}','${(p.caption||p.title||'Post').replace(/'/g,"\\'")}')">👁 Views</button>
+                <button class="btn btn-secondary engagement-gated" style="padding:12px 16px;font-size:13px;" onclick="event.stopPropagation();openStatsEditor('posts','${p.id}','${(p.caption||p.title||'Post').replace(/'/g,"\\'")}')">❤️ Likes</button>
+                <button class="btn btn-danger rank-gated" style="padding:12px 14px;font-size:13px;" onclick="event.stopPropagation();if(confirm('Delete?'))deleteHomeItem('${p.id||''}')">×</button>
+              </div>
+            </div>`;
+        }
+        // Adds one new row into the existing list without touching the rest —
+        // no full Firebase re-fetch, no re-render of everything else.
+        function addItemToHomeList(p) {
+            const el = document.getElementById('homeList');
+            if (!el) return;
+            if (el.querySelector('.empty-state')) el.innerHTML = '';
+            el.insertAdjacentHTML('afterbegin', _buildHomeRowHtml(p));
+            const cached = _cacheGet('home_posts') || [];
+            _cacheSet('home_posts', [p, ...cached.filter(x => x.id !== p.id)].slice(0, 20));
+        }
+        // Removes exactly the deleted row — nothing else in the list reloads.
+        function deleteHomeItem(id) {
+            adminFbDB.ref('content/posts/' + id).remove().then(() => {
+                showToast('Deleted');
+                const row = document.getElementById('homeRow_' + id);
+                if (row) row.remove();
+                const cached = _cacheGet('home_posts') || [];
+                _cacheSet('home_posts', cached.filter(x => x.id !== id));
+                const el = document.getElementById('homeList');
+                if (el && !el.children.length) el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><div>No posts yet</div></div>';
+            }).catch(e => showToast('Error: ' + e.message));
+        }
         function renderHomeList() {
           const el = document.getElementById('homeList');
-          el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
+          const cached = _cacheGet('home_posts');
+          if (cached && cached.length) {
+              el.innerHTML = cached.map(_buildHomeRowHtml).join('');
+          } else {
+              el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
+          }
           let settled = false;
           const watchdog = setTimeout(() => {
-            if (!settled) el.innerHTML = '<div class="empty-state"><div style="font-size:14px;margin-bottom:8px;">Taking longer than expected</div><button class="btn btn-secondary" onclick="renderHomeList()">Retry</button></div>';
+            if (!settled && !(cached && cached.length)) el.innerHTML = '<div class="empty-state"><div style="font-size:14px;margin-bottom:8px;">Taking longer than expected</div><button class="btn btn-secondary" onclick="renderHomeList()">Retry</button></div>';
           }, 10000);
           const doLoad = () => {
             return adminFbDB.ref('content/posts').limitToLast(20).once('value').then(snap => {
               settled = true; clearTimeout(watchdog);
               if (!snap.exists() || !snap.val()) {
                 el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><div>No posts yet</div></div>';
+                _cacheSet('home_posts', []);
                 return;
               }
               const posts = Object.entries(snap.val()).map(([k,v]) => ({...v, id: v.id||k})).sort((a,b) => (b.createdAt||0)-(a.createdAt||0));
-              el.innerHTML = posts.map(p => {
-                const imgSrc = p.imageData || p.imageUrl || p.image || null;
-                const thumb = p.videoData || p.videoUrl
-                  ? '<video src="'+(p.videoData||p.videoUrl)+'" muted style="width:100%;height:100%;object-fit:cover;"></video><div style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.6);border-radius:4px;padding:2px 5px;font-size:10px;">🎬</div>'
-                  : (imgSrc ? '<img src="'+imgSrc+'" loading="lazy" onerror="this.style.display=\'none\'">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">🏠</div>');
-                return `<div class="list-item">
-                  <div class="list-image" style="position:relative;">${thumb}</div>
-                  <div class="list-info"><div class="list-title">${p.caption||p.title||p.description||'Post'}</div><div class="list-meta">${p.location||''} · ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div></div>
-                  <div class="list-actions" style="gap:8px;">
-                    <button class="btn btn-secondary" style="padding:12px 16px;font-size:13px;" onclick="openPostAnalytics('posts','${p.id}','${(p.caption||p.title||'Post').replace(/'/g,"\\'")}')">👁 Views</button>
-                    <button class="btn btn-secondary" style="padding:12px 16px;font-size:13px;" onclick="event.stopPropagation();openStatsEditor('posts','${p.id}','${(p.caption||p.title||'Post').replace(/'/g,"\\'")}')">❤️ Likes</button>
-                    <button class="btn btn-danger" style="padding:12px 14px;font-size:13px;" onclick="event.stopPropagation();if(confirm('Delete?'))adminFbDB.ref('content/posts/${p.id||''}').remove().then(()=>{showToast('Deleted');_panelFetched.home=false;renderHomeList();})">×</button>
-                  </div>
-                </div>`;
-              }).join('');
+              el.innerHTML = posts.map(_buildHomeRowHtml).join('');
+              _cacheSet('home_posts', posts);
             }).catch(e => {
               settled = true; clearTimeout(watchdog);
-              el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div style="font-size:14px;margin-bottom:8px;">Error: ' + e.message + '</div><button class="btn btn-secondary" onclick="renderHomeList()" style="margin-top:8px;">Retry</button></div>';
+              // Don't blow away good cached content just because the background refresh failed
+              if (!(cached && cached.length)) {
+                el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div style="font-size:14px;margin-bottom:8px;">Error: ' + e.message + '</div><button class="btn btn-secondary" onclick="renderHomeList()" style="margin-top:8px;">Retry</button></div>';
+              } else {
+                showToast('Couldn\'t refresh — showing saved data');
+              }
             });
           };
           return doLoad();
         }
         const _adminCatalogMap = {};
-        let _catalogCache = null;
-        let _catalogCacheTime = 0;
+        let _catalogCache = _cacheGet('catalog_data');
+        let _catalogCacheTime = _catalogCache ? Date.now() : 0; // treat hydrated cache as "fresh enough to show", background refresh still runs on first render since renderCatalogList always kicks off a live fetch too
         const CATALOG_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-        let _stylesCache = null;
-        let _stylesCacheTime = 0;
+        let _stylesCache = _cacheGet('styles_data');
+        let _stylesCacheTime = _stylesCache ? Date.now() : 0;
         const STYLES_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
         function fetchStyles(force) {
@@ -3011,6 +3349,7 @@
             list.sort((a,b) => (a.createdAt||0) - (b.createdAt||0));
             _stylesCache = list;
             _stylesCacheTime = Date.now();
+            _cacheSet('styles_data', list);
             return _stylesCache;
           });
         }
@@ -3031,9 +3370,9 @@
             + '<div class="elite-cell-grain-admin"></div>'
             + '</div>'
             + '<div class="elite-cell-actions-admin">'
-            + '<button class="btn btn-secondary" style="font-size:11px;padding:8px 6px;flex:1;" onclick="event.stopPropagation();openAdminCatalogInner(_adminCatalogMap[\'' + box.id + '\'])">Edit</button>'
-            + '<button class="btn btn-secondary" style="font-size:11px;padding:8px 4px;flex:1;background:rgba(201,168,76,0.08);" onclick="event.stopPropagation();openPostAnalytics(\'catalog\',\'' + box.id + '\',\'' + (box.value||'Collection').replace(/'/g,"\\'") + '\')">👁</button>'
-            + '<button class="btn btn-danger" style="flex:0 0 36px;padding:8px;font-size:14px;" onclick="event.stopPropagation();if(confirm(\'Delete?\'))adminFbDB.ref(\'content/catalog/' + box.id + '\').remove().then(()=>{_catalogCache=null;showToast(\'Deleted\');renderCatalogList();})">×</button>'
+            + '<button class="btn btn-secondary rank-gated" style="font-size:11px;padding:8px 6px;flex:1;" onclick="event.stopPropagation();openAdminCatalogInner(_adminCatalogMap[\'' + box.id + '\'])">Edit</button>'
+            + '<button class="btn btn-secondary catalog-views-gated" style="font-size:11px;padding:8px 4px;flex:1;background:rgba(201,168,76,0.08);" onclick="event.stopPropagation();openPostAnalytics(\'catalog\',\'' + box.id + '\',\'' + (box.value||'Collection').replace(/'/g,"\\'") + '\')">👁</button>'
+            + '<button class="btn btn-danger rank-gated" style="flex:0 0 36px;padding:8px;font-size:14px;" onclick="event.stopPropagation();if(confirm(\'Delete?\'))adminFbDB.ref(\'content/catalog/' + box.id + '\').remove().then(()=>{_catalogCache=null;showToast(\'Deleted\');renderCatalogList();})">×</button>'
             + '</div></div>';
         }
 
@@ -3078,42 +3417,90 @@
           grid.innerHTML = html;
         }
 
+        let _catalogFetchedThisSession = false;
         function renderCatalogList() {
           const grid = document.getElementById('catalogList');
-          const useCache = _catalogCache && (Date.now() - _catalogCacheTime < CATALOG_CACHE_TTL);
-          if (!useCache) {
+          // Paint instantly from whatever we have — memory cache or hydrated
+          // localStorage from a previous launch — while a fresh copy loads
+          // quietly in the background.
+          if (_catalogCache) {
+            fetchStyles().then(styles => _renderCatalogFromData(_catalogCache, styles));
+          } else {
             grid.innerHTML = '<div style="padding:40px;text-align:center;"><div style="width:32px;height:32px;border:2px solid rgba(201,168,76,.1);border-top-color:#C9A84C;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;"></div><div style="font-size:11px;letter-spacing:3px;color:rgba(201,168,76,.4);">LOADING...</div></div>';
           }
+          const skipRefetch = _catalogFetchedThisSession && (Date.now() - _catalogCacheTime < CATALOG_CACHE_TTL);
+          if (skipRefetch) return Promise.resolve();
           let settled = false;
           const watchdog = setTimeout(() => {
-            if (!settled) grid.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.4);">Taking longer than expected — <a href="#" onclick="renderCatalogList();return false;" style="color:#C9A84C;">retry</a></div>';
+            if (!settled && !_catalogCache) grid.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.4);">Taking longer than expected — <a href="#" onclick="renderCatalogList();return false;" style="color:#C9A84C;">retry</a></div>';
           }, 10000);
-          const catalogPromise = useCache ? Promise.resolve(_catalogCache) : adminFbDB.ref('content/catalog').limitToFirst(25).once('value').then(snap => {
+          const catalogPromise = adminFbDB.ref('content/catalog').limitToFirst(25).once('value').then(snap => {
             _catalogCache = snap.exists() ? snap.val() : {};
             _catalogCacheTime = Date.now();
+            _catalogFetchedThisSession = true;
+            _cacheSet('catalog_data', _catalogCache);
             return _catalogCache;
           });
-          return Promise.all([catalogPromise, fetchStyles()]).then(([catalogData, styles]) => {
+          return Promise.all([catalogPromise, fetchStyles(true)]).then(([catalogData, styles]) => {
             settled = true; clearTimeout(watchdog);
             _renderCatalogFromData(catalogData, styles);
-          }).catch(err => { settled = true; clearTimeout(watchdog); grid.innerHTML = '<div style="padding:40px;text-align:center;color:#ef4444;">Error: ' + err.message + '</div>'; });
+          }).catch(err => {
+            settled = true; clearTimeout(watchdog);
+            if (!_catalogCache) grid.innerHTML = '<div style="padding:40px;text-align:center;color:#ef4444;">Error: ' + err.message + '</div>';
+            else showToast('Couldn\'t refresh — showing saved data');
+          });
         }
-        function renderTrendingList() {
-          const el = document.getElementById('trendingList');
-          el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
-          return adminFbDB.ref('content/trending').limitToLast(15).once('value').then(snap => {
-            if (!snap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔥</div>No trending items yet</div>'; return; }
-            const items = Object.values(snap.val()).reverse();
-            el.innerHTML = items.map(p => `<div class="list-item">
-              <div class="list-image" style="position:relative;">${(p.videoData||p.videoUrl) ? '<video src="'+(p.videoData||p.videoUrl)+'" muted style="width:100%;height:100%;object-fit:cover;"></video><div style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.6);border-radius:4px;padding:2px 5px;font-size:10px;">🎬</div>' : (p.imageData||p.imageUrl ? '<img src="'+(p.imageData||p.imageUrl)+'" loading="lazy" decoding="async">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">🔥</div>')}</div>
+        function _buildTrendingRowHtml(p) {
+            const vidSrc = p.videoData || p.videoUrl || null;
+            const imgSrc = p.imageData || p.imageUrl || null;
+            const thumb = vidSrc ? '<video src="'+vidSrc+'" muted style="width:100%;height:100%;object-fit:cover;"></video><div style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.6);border-radius:4px;padding:2px 5px;font-size:10px;">🎬</div>' : (imgSrc ? '<img src="'+imgSrc+'" loading="lazy" decoding="async">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">🔥</div>');
+            const mediaClick = vidSrc ? `adminOpenVideo('${vidSrc.replace(/'/g,"\\'")}')` : (imgSrc ? `adminOpenImage('${imgSrc.replace(/'/g,"\\'")}')` : '');
+            return `<div class="list-item" id="trendingRow_${p.id}">
+              <div class="list-image" style="position:relative;${mediaClick?'cursor:pointer;':''}" ${mediaClick?`onclick="event.stopPropagation();${mediaClick}"`:''}>${thumb}</div>
               <div class="list-info"><div class="list-title">${p.caption||p.title||'Trending'}</div><div class="list-meta">${p.location||''} · ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div></div>
               <div class="list-actions" style="gap:8px;">
                 <button class="btn btn-secondary" style="padding:12px 16px;font-size:13px;" onclick="openPostAnalytics('trending','${p.id||''}','${(p.caption||p.title||'Trending').replace(/'/g,"\\'")}')">👁 Views</button>
-                <button class="btn btn-secondary" style="padding:12px 16px;font-size:13px;" onclick="event.stopPropagation();openStatsEditor('trending','${p.id||''}','${(p.caption||p.title||'Trending').replace(/'/g,"\\'")}')">❤️ Likes</button>
-                <button class="btn btn-danger" style="padding:12px 14px;font-size:13px;" onclick="event.stopPropagation();if(confirm('Delete?'))adminFbDB.ref('content/trending/${p.id||''}').remove().then(()=>{showToast('Deleted');renderTrendingList();})">×</button>
+                <button class="btn btn-secondary engagement-gated" style="padding:12px 16px;font-size:13px;" onclick="event.stopPropagation();openStatsEditor('trending','${p.id||''}','${(p.caption||p.title||'Trending').replace(/'/g,"\\'")}')">❤️ Likes</button>
+                <button class="btn btn-danger rank-gated" style="padding:12px 14px;font-size:13px;" onclick="event.stopPropagation();if(confirm('Delete?'))deleteTrendingItem('${p.id||''}')">×</button>
               </div>
-            </div>`).join('');
-          }).catch(e => { el.innerHTML = '<div class="empty-state">Error: '+e.message+'</div>'; });
+            </div>`;
+        }
+        function addItemToTrendingList(p) {
+            const el = document.getElementById('trendingList');
+            if (!el) return;
+            if (el.querySelector('.empty-state')) el.innerHTML = '';
+            el.insertAdjacentHTML('afterbegin', _buildTrendingRowHtml(p));
+            const cached = _cacheGet('trending_items') || [];
+            _cacheSet('trending_items', [p, ...cached.filter(x => x.id !== p.id)].slice(0, 15));
+        }
+        function deleteTrendingItem(id) {
+            adminFbDB.ref('content/trending/' + id).remove().then(() => {
+                showToast('Deleted');
+                const row = document.getElementById('trendingRow_' + id);
+                if (row) row.remove();
+                const cached = _cacheGet('trending_items') || [];
+                _cacheSet('trending_items', cached.filter(x => x.id !== id));
+                const el = document.getElementById('trendingList');
+                if (el && !el.children.length) el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔥</div>No trending items yet</div>';
+            }).catch(e => showToast('Error: ' + e.message));
+        }
+        function renderTrendingList() {
+          const el = document.getElementById('trendingList');
+          const cached = _cacheGet('trending_items');
+          if (cached && cached.length) {
+              el.innerHTML = cached.map(_buildTrendingRowHtml).join('');
+          } else {
+              el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
+          }
+          return adminFbDB.ref('content/trending').limitToLast(15).once('value').then(snap => {
+            if (!snap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔥</div>No trending items yet</div>'; _cacheSet('trending_items', []); return; }
+            const items = Object.values(snap.val()).reverse();
+            el.innerHTML = items.map(_buildTrendingRowHtml).join('');
+            _cacheSet('trending_items', items);
+          }).catch(e => {
+            if (!(cached && cached.length)) { el.innerHTML = '<div class="empty-state">Error: '+e.message+'</div>'; }
+            else { showToast('Couldn\'t refresh — showing saved data'); }
+          });
         }
         function renderDesignersList() {
           const el = document.getElementById('designersList');
@@ -3128,6 +3515,197 @@
             </div>`).join('');
           }).catch(e => { el.innerHTML = '<div class="empty-state">Error: '+e.message+'</div>'; });
         }
+        const RANK_LABELS = { head: 'Head Designer', lead: 'Lead Designer', assistant_lead: 'Assistant Lead Designer', designer: 'Designer' };
+        function renderMyProfile() {
+          const email = window._previewActive ? window._previewEmail : ((adminFbAuth.currentUser && adminFbAuth.currentUser.email) || 'Admin');
+          const name = (email || 'Admin').split('@')[0];
+          const av = document.getElementById('myProfileAvatar'); if (av) av.textContent = (email[0] || '?').toUpperCase();
+          const nm = document.getElementById('myProfileName'); if (nm) nm.textContent = name;
+          const rk = document.getElementById('myProfileRank'); if (rk) rk.textContent = RANK_LABELS[window.currentAdminRank] || '';
+          const uid = window.currentAdminUid;
+          Promise.all([
+            adminFbDB.ref('content/posts').once('value'),
+            adminFbDB.ref('content/trending').once('value'),
+            adminFbDB.ref('content/catalog').once('value'),
+          ]).then(([postsSnap, trendSnap, catSnap]) => {
+            const countBy = snap => Object.values(snap.val() || {}).filter(v => v && v.createdByUid === uid).length;
+            const h = countBy(postsSnap), t = countBy(trendSnap), c = countBy(catSnap);
+            document.getElementById('myProfileHomeCount').textContent = h;
+            document.getElementById('myProfileTrendingCount').textContent = t;
+            document.getElementById('myProfileCatalogCount').textContent = c;
+            document.getElementById('myProfileTotalCount').textContent = h + t + c;
+          }).catch(() => {});
+        }
+        // The real, permanent identity — even while Head is previewing the
+        // app as someone else, permission checks for managing OTHER admins
+        // must use this, not the simulated rank.
+        function effectiveRealRank() { return window._previewActive ? window._realRank : window.currentAdminRank; }
+
+        function renderAdminRanksList() {
+          const el = document.getElementById('adminRanksList');
+          if (!el) return;
+          el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
+          const myRank = effectiveRealRank();
+          const myRealUid = window._previewActive ? window._realUid : window.currentAdminUid;
+          adminFbDB.ref('admins').once('value').then(snap => {
+            const all = snap.val() || {};
+            const uids = Object.keys(all);
+            if (!uids.length) { el.innerHTML = '<div class="empty-state">No admin accounts found</div>'; return; }
+            el.innerHTML = uids.map(uid => {
+              const rank = rankOf(all[uid]);
+              const email = (all[uid] && all[uid].email) || '';
+              const isMe = uid === myRealUid;
+              const canManage = canManageRank(myRank, rank) && !isMe;
+              const canPreview = myRank === 'head' && !isMe;
+              const options = ['designer','assistant_lead','lead','head'].map(r =>
+                `<option value="${r}"${r===rank?' selected':''}>${RANK_LABELS[r]}</option>`).join('');
+              return `<div class="list-item">
+                <div class="list-image"><div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#C9A84C,#7A5C10);font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:#0A0804;">${(email||'?')[0].toUpperCase()}</div></div>
+                <div class="list-info"><div class="list-title">${email || uid.slice(0,10)+'…'}</div><div class="list-meta">${isMe ? 'You · ' : ''}${RANK_LABELS[rank]}</div></div>
+                <div class="list-actions" style="flex-wrap:wrap;gap:6px;">
+                  ${canPreview ? `<button class="btn btn-secondary" style="padding:8px 10px;font-size:12px;" onclick="enterPreviewMode('${uid}','${email.replace(/'/g,"\\'")}','${rank}')">👁 View As</button>` : ''}
+                  ${canManage
+                    ? `<select class="form-input" style="padding:8px 10px;font-size:12px;width:auto;" onchange="setAdminRank('${uid}', this.value)">${options}</select>
+                       <button class="btn btn-danger" style="padding:8px 12px;font-size:12px;" onclick="removeAdmin('${uid}','${email.replace(/'/g,"\\'")}')">×</button>`
+                    : (!isMe ? `<span style="font-size:11px;color:rgba(201,168,76,0.35);">not yours to manage</span>` : '')}
+                </div>
+              </div>`;
+            }).join('');
+          }).catch(e => { el.innerHTML = '<div class="empty-state">Error: '+e.message+'</div>'; });
+        }
+        function setAdminRank(uid, newRank) {
+          adminFbDB.ref('admins/' + uid + '/rank').set(newRank).then(() => {
+            showToast('✓ Rank updated');
+            renderAdminRanksList();
+          }).catch(e => {
+            showToast('Error: ' + e.message);
+            if (e.code === 'PERMISSION_DENIED') {
+              showToast('Your database rules are blocking this — see setup notes');
+            }
+            renderAdminRanksList();
+          });
+        }
+        function removeAdmin(uid, email) {
+          if (!confirm('Remove admin access for ' + (email || uid) + '? They will no longer be able to log in.')) return;
+          adminFbDB.ref('admins/' + uid).remove().then(() => {
+            showToast('✓ Access removed');
+            renderAdminRanksList();
+          }).catch(e => showToast('Error: ' + e.message));
+        }
+
+        // ── HEAD DESIGNER: "VIEW AS" PREVIEW MODE ──────────────────────────────
+        // Simulates another admin's rank + identity client-side so Head can
+        // see exactly what that account sees/can do. Important limits, to be
+        // upfront about: this does NOT re-authenticate as them — it's still
+        // Head's real Firebase session underneath, so Database Rules still
+        // evaluate as Head. And since client chats aren't scoped per-admin in
+        // the data model yet, the client conversation list itself doesn't
+        // change in preview mode — only rank-based UI, Pending's "my
+        // submissions" filter, and the Profile page reflect the target account.
+        window._previewActive = false;
+        function enterPreviewMode(uid, name, rank) {
+          if (window.currentAdminRank !== 'head') { showToast('Only Head Designer can preview other accounts'); return; }
+          window._realRank = window.currentAdminRank;
+          window._realUid = window.currentAdminUid;
+          window._previewActive = true;
+          window._previewEmail = name; // "name" passed in is actually their email — that's all we store per admin
+          window.currentAdminRank = rank;
+          window.currentAdminUid = uid;
+          Object.keys(_panelFetched).forEach(k => delete _panelFetched[k]);
+          const banner = document.getElementById('previewModeBanner');
+          const nameEl = document.getElementById('previewModeName');
+          if (nameEl) nameEl.textContent = name + ' (' + (RANK_LABELS[rank] || rank) + ')';
+          if (banner) banner.style.display = 'block';
+          applyRankUI(rank);
+          showToast('Previewing as ' + name);
+        }
+        function exitPreviewMode() {
+          if (!window._previewActive) return;
+          window.currentAdminRank = window._realRank;
+          window.currentAdminUid = window._realUid;
+          window._previewActive = false;
+          window._previewEmail = null;
+          Object.keys(_panelFetched).forEach(k => delete _panelFetched[k]);
+          const banner = document.getElementById('previewModeBanner');
+          if (banner) banner.style.display = 'none';
+          applyRankUI(window.currentAdminRank);
+          showPanel('dashboard');
+          showToast('Exited preview');
+        }
+
+        // ── PENDING APPROVAL QUEUE ─────────────────────────────────────────────
+        // Designer/Assistant Lead submissions land in pendingContent/{section}/{id}
+        // instead of content/{section}/{id}. Lead/Assistant Lead/Head approve or
+        // decline from here; approving moves it into the live content/ node.
+        const PENDING_SECTION_LABEL = { posts: 'Home', trending: 'Trending', catalog: 'Catalog' };
+        function renderPendingList() {
+          const el = document.getElementById('pendingListEl');
+          const badge = document.getElementById('pendingBadge');
+          if (!el) return;
+          const isDesignerView = window.currentAdminRank === 'designer';
+          el.innerHTML = '<div class="empty-state"><div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;"></div></div>';
+          Promise.all(['posts','trending','catalog'].map(section =>
+            adminFbDB.ref('pendingContent/' + section).once('value').then(snap => ({ section, val: snap.val() || {} }))
+          )).then(results => {
+            let rows = [];
+            results.forEach(({ section, val }) => {
+              Object.keys(val).forEach(id => rows.push({ section, id, item: val[id] }));
+            });
+            // Ordinary Designers only ever see their own submissions here —
+            // they can withdraw them, not approve/decline anyone's.
+            if (isDesignerView) rows = rows.filter(r => r.item.submittedByUid === window.currentAdminUid);
+            rows.sort((a, b) => (b.item.submittedAt || 0) - (a.item.submittedAt || 0));
+            if (badge) { badge.textContent = rows.length; badge.style.display = (rows.length && !isDesignerView) ? 'inline-block' : 'none'; }
+            if (!rows.length) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✓</div>' + (isDesignerView ? "You don't have anything waiting on approval" : 'Nothing waiting on approval') + '</div>'; return; }
+            el.innerHTML = rows.map(({ section, id, item }) => {
+              const thumb = item.imageData ? `<img src="${item.imageData}" loading="lazy">`
+                : item.videoData ? `<video src="${item.videoData}" muted style="width:100%;height:100%;object-fit:cover;"></video>`
+                : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">📦</div>`;
+              const title = item.caption || item.title || item.value || 'Untitled';
+              const submitter = (item.submittedByName || item.submittedByEmail || 'Unknown designer');
+              const actionsHtml = isDesignerView
+                ? `<button class="btn btn-danger" style="padding:12px 14px;font-size:13px;" onclick="declinePending('${section}','${id}')">✕ Cancel</button>`
+                : `<button class="btn btn-primary" style="padding:12px 16px;font-size:13px;" onclick="approvePending('${section}','${id}')">✓ Approve</button>
+                   <button class="btn btn-danger" style="padding:12px 14px;font-size:13px;" onclick="declinePending('${section}','${id}')">✕ Decline</button>`;
+              return `<div class="list-item" id="pendingRow_${section}_${id}">
+                <div class="list-image">${thumb}</div>
+                <div class="list-info"><div class="list-title">${title}</div><div class="list-meta">${PENDING_SECTION_LABEL[section]}${isDesignerView ? '' : ' · from ' + submitter}</div></div>
+                <div class="list-actions" style="gap:8px;">${actionsHtml}</div>
+              </div>`;
+            }).join('');
+          }).catch(e => { el.innerHTML = '<div class="empty-state">Error: '+e.message+'</div>'; });
+        }
+        function approvePending(section, id) {
+          if (!canApprovePending(window.currentAdminRank)) { showToast('Not permitted for your role'); return; }
+          const ref = adminFbDB.ref('pendingContent/' + section + '/' + id);
+          ref.once('value').then(snap => {
+            if (!snap.exists()) { showToast('Already handled'); renderPendingList(); return; }
+            const data = snap.val();
+            // Clear the pending-specific marker but KEEP createdBy* — that's
+            // what powers each admin's project count on their profile page.
+            delete data.status;
+            return adminFbDB.ref('content/' + section + '/' + id).set(data).then(() => ref.remove());
+          }).then(() => {
+            showToast('✓ Approved and published');
+            const row = document.getElementById('pendingRow_' + section + '_' + id);
+            if (row) row.remove();
+            renderPendingList();
+            // The now-published item should appear in its normal list too
+            if (section === 'posts') { _panelFetched.home = false; }
+            else if (section === 'trending') { _panelFetched.trending = false; }
+            else if (section === 'catalog') { _panelFetched.catalog = false; }
+          }).catch(e => showToast('Error: ' + e.message));
+        }
+        function declinePending(section, id) {
+          if (!confirm('Decline this submission? It will be removed.')) return;
+          adminFbDB.ref('pendingContent/' + section + '/' + id).remove().then(() => {
+            showToast('Declined');
+            const row = document.getElementById('pendingRow_' + section + '_' + id);
+            if (row) row.remove();
+            renderPendingList();
+          }).catch(e => showToast('Error: ' + e.message));
+        }
+
         function loadVIPRequests() {
           const el = document.getElementById('vipRequestsList');
           const countEl = document.getElementById('vipRequestCount');
@@ -3350,9 +3928,12 @@
             document.getElementById('formModal').classList.add('active');
             const titles = { post: 'Add Home Post', trending: 'Add Trending Item', category: 'Add Catalog Category', style: 'Create New Style' };
             document.getElementById('formTitle').textContent = titles[t] || (('Add ') + t);
+            const submitBtn = document.getElementById('formSubmitBtn');
+            if (submitBtn) submitBtn.textContent = submitsToPending(window.currentAdminRank) ? 'Submit for Approval' : 'Save';
             const fc = document.getElementById('formContent');
             if (t === 'post' || t === 'trending') {
-                fc.innerHTML = '<div class="form-group"><label class="form-label">Caption / Title</label><input class="form-input" id="fCaption" placeholder="e.g. Modern Living Room"></div><div class="form-group"><label class="form-label">Location</label><input class="form-input" id="fLocation" placeholder="e.g. Lagos, Nigeria"></div><div class="form-group"><label class="form-label">Image</label><input type="file" accept="image/*" id="fImageFile" style="display:none;" onchange="handleFormImagePick(this)"><div id="fImagePreviewWrap" onclick="document.getElementById(\'fImageFile\').click()" style="border:2px dashed rgba(201,168,76,0.3);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor=\'#C9A84C\'" onmouseout="this.style.borderColor=\'rgba(201,168,76,0.3)\'"><div id="fImagePreviewInner"><div style="font-size:32px;margin-bottom:8px;">&#x1F5BC;</div><div style="font-size:13px;color:rgba(201,168,76,0.6);">Tap to pick from gallery</div></div></div></div><div class="form-group"><label class="form-label">Video <span style="font-size:11px;color:rgba(201,168,76,0.45);font-weight:400;">(optional — overrides image when set)</span></label><input type="file" accept="video/*" id="fVideoFile" style="display:none;" onchange="handleFormVideoPick(this)"><div id="fVideoPreviewWrap" onclick="document.getElementById(\'fVideoFile\').click()" style="border:2px dashed rgba(201,168,76,0.3);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor=\'#C9A84C\'" onmouseout="this.style.borderColor=\'rgba(201,168,76,0.3)\'"><div id="fVideoPreviewInner"><div style="font-size:32px;margin-bottom:8px;">&#x1F3AC;</div><div style="font-size:13px;color:rgba(201,168,76,0.6);">Tap to pick a video from gallery</div><div style="font-size:10px;color:rgba(201,168,76,0.35);margin-top:4px;">Max 15MB — video keeps its own sound unless muted</div></div></div></div><div class="form-group"><label class="form-label">Audio <span style="font-size:11px;color:rgba(201,168,76,0.45);font-weight:400;">(optional — external track, use instead of the video\'s own sound)</span></label><input type="file" accept="audio/*" id="fAudioFile" style="display:none;" onchange="handleFormAudioPick(this)"><div id="fAudioPickerWrap" onclick="document.getElementById(\'fAudioFile\').click()" style="border:2px dashed rgba(201,168,76,0.3);border-radius:12px;padding:20px 24px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor=\'#C9A84C\'" onmouseout="this.style.borderColor=\'rgba(201,168,76,0.3)\'"><div style="font-size:28px;flex-shrink:0;">&#x1F3B5;</div><div id="fAudioPickerLabel" style="font-size:13px;color:rgba(201,168,76,0.6);">Tap to pick audio from device</div></div></div><div style="display:flex;gap:12px;"><div class="form-group" style="flex:1;"><label class="form-label">Likes</label><input class="form-input" type="number" min="0" id="fLikes" placeholder="0"></div><div class="form-group" style="flex:1;"><label class="form-label">Shares</label><input class="form-input" type="number" min="0" id="fShares" placeholder="0"></div></div>';
+                fc.innerHTML = '<div class="form-group"><label class="form-label">Caption / Title</label><input class="form-input" id="fCaption" placeholder="e.g. Modern Living Room"></div><div class="form-group"><label class="form-label">Location</label><input class="form-input" id="fLocation" placeholder="e.g. Lagos, Nigeria"></div><div class="form-group"><label class="form-label">Image</label><input type="file" accept="image/*" id="fImageFile" style="display:none;" onchange="handleFormImagePick(this)"><div id="fImagePreviewWrap" onclick="document.getElementById(\'fImageFile\').click()" style="border:2px dashed rgba(201,168,76,0.3);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor=\'#C9A84C\'" onmouseout="this.style.borderColor=\'rgba(201,168,76,0.3)\'"><div id="fImagePreviewInner"><div style="font-size:32px;margin-bottom:8px;">&#x1F5BC;</div><div style="font-size:13px;color:rgba(201,168,76,0.6);">Tap to pick from gallery</div></div></div></div><div class="form-group"><label class="form-label">Video <span style="font-size:11px;color:rgba(201,168,76,0.45);font-weight:400;">(optional — overrides image when set)</span></label><input type="file" accept="video/*" id="fVideoFile" style="display:none;" onchange="handleFormVideoPick(this)"><div id="fVideoPreviewWrap" onclick="document.getElementById(\'fVideoFile\').click()" style="border:2px dashed rgba(201,168,76,0.3);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor=\'#C9A84C\'" onmouseout="this.style.borderColor=\'rgba(201,168,76,0.3)\'"><div id="fVideoPreviewInner"><div style="font-size:32px;margin-bottom:8px;">&#x1F3AC;</div><div style="font-size:13px;color:rgba(201,168,76,0.6);">Tap to pick a video from gallery</div><div style="font-size:10px;color:rgba(201,168,76,0.35);margin-top:4px;">Max 15MB — video keeps its own sound unless muted</div></div></div></div><div class="form-group"><label class="form-label">Audio <span style="font-size:11px;color:rgba(201,168,76,0.45);font-weight:400;">(optional — external track, use instead of the video\'s own sound)</span></label><input type="file" accept="audio/*" id="fAudioFile" style="display:none;" onchange="handleFormAudioPick(this)"><div id="fAudioPickerWrap" onclick="document.getElementById(\'fAudioFile\').click()" style="border:2px dashed rgba(201,168,76,0.3);border-radius:12px;padding:20px 24px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor=\'#C9A84C\'" onmouseout="this.style.borderColor=\'rgba(201,168,76,0.3)\'"><div style="font-size:28px;flex-shrink:0;">&#x1F3B5;</div><div id="fAudioPickerLabel" style="font-size:13px;color:rgba(201,168,76,0.6);">Tap to pick audio from device</div></div></div><div style="display:flex;gap:12px;" id="fLikesSharesRow"><div class="form-group" style="flex:1;"><label class="form-label">Likes</label><input class="form-input" type="number" min="0" id="fLikes" placeholder="0"></div><div class="form-group" style="flex:1;"><label class="form-label">Shares</label><input class="form-input" type="number" min="0" id="fShares" placeholder="0"></div></div>';
+                if (!canSetEngagementNumbers(window.currentAdminRank)) { const r = document.getElementById('fLikesSharesRow'); if (r) r.style.display = 'none'; }
             } else if (t === 'category') {
                 fc.innerHTML = '<div class="form-group"><label class="form-label">Collection Name</label><input class="form-input" id="fName" placeholder="e.g. Minimalist Luxury"></div><div class="form-group"><label class="form-label">Description</label><input class="form-input" id="fSpecialty" placeholder="e.g. Calm, Refined"></div>';
             } else if (t === 'style') {
@@ -3440,22 +4021,57 @@
         function submitForm() {
             const t = currentForm;
             const id = t + '_' + Date.now();
+            const toPending = submitsToPending(window.currentAdminRank);
+            // Attached to every new item regardless of rank, so profile
+            // "project counts" can tally contributions across everyone.
+            const creatorMeta = {
+                createdByUid: window.currentAdminUid || '',
+                createdByEmail: (adminFbAuth.currentUser && adminFbAuth.currentUser.email) || '',
+                createdByName: (adminFbAuth.currentUser && adminFbAuth.currentUser.displayName) || (adminFbAuth.currentUser && adminFbAuth.currentUser.email) || 'Admin',
+            };
+            const pendingMeta = toPending ? Object.assign({
+                submittedByUid: window.currentAdminUid || '',
+                submittedByEmail: creatorMeta.createdByEmail,
+                submittedByName: creatorMeta.createdByName,
+                submittedAt: Date.now(),
+                status: 'pending'
+            }, creatorMeta) : creatorMeta;
             if (t === 'post') {
-                const data = { id, caption: (document.getElementById('fCaption').value||'Untitled'), location: (document.getElementById('fLocation').value||''), imageData: (window._fImageBase64||''), videoData: (window._fVideoBase64||''), audioData: (window._fAudioBase64||''), audioName: (window._fAudioName||''), likes: (parseInt(document.getElementById('fLikes').value,10)||0), shares: (parseInt(document.getElementById('fShares').value,10)||0), createdAt: Date.now() };
-                adminFbDB.ref('content/posts/' + id).set(data).then(() => { window._fImageBase64=''; window._fVideoBase64=''; window._fAudioBase64=''; window._fAudioName=''; closeForm(); showToast('✓ Post saved'); renderHomeList(); });
+                const data = Object.assign({ id, caption: (document.getElementById('fCaption').value||'Untitled'), location: (document.getElementById('fLocation').value||''), imageData: (window._fImageBase64||''), videoData: (window._fVideoBase64||''), audioData: (window._fAudioBase64||''), audioName: (window._fAudioName||''), likes: (parseInt(document.getElementById('fLikes').value,10)||0), shares: (parseInt(document.getElementById('fShares').value,10)||0), createdAt: Date.now() }, pendingMeta);
+                const targetRef = toPending ? adminFbDB.ref('pendingContent/posts/' + id) : adminFbDB.ref('content/posts/' + id);
+                targetRef.set(data).then(() => {
+                    window._fImageBase64=''; window._fVideoBase64=''; window._fAudioBase64=''; window._fAudioName=''; closeForm();
+                    if (toPending) { showToast('✓ Sent for approval'); }
+                    else { showToast('✓ Post saved'); addItemToHomeList(data); }
+                });
             } else if (t === 'trending') {
-                const data = { id, caption: (document.getElementById('fCaption').value||'Untitled'), location: (document.getElementById('fLocation').value||''), imageData: (window._fImageBase64||''), videoData: (window._fVideoBase64||''), audioData: (window._fAudioBase64||''), audioName: (window._fAudioName||''), likes: (parseInt(document.getElementById('fLikes').value,10)||0), shares: (parseInt(document.getElementById('fShares').value,10)||0), createdAt: Date.now() };
-                adminFbDB.ref('content/trending/' + id).set(data).then(() => { window._fImageBase64=''; window._fVideoBase64=''; window._fAudioBase64=''; window._fAudioName=''; closeForm(); showToast('✓ Trending item saved'); renderTrendingList(); });
+                const data = Object.assign({ id, caption: (document.getElementById('fCaption').value||'Untitled'), location: (document.getElementById('fLocation').value||''), imageData: (window._fImageBase64||''), videoData: (window._fVideoBase64||''), audioData: (window._fAudioBase64||''), audioName: (window._fAudioName||''), likes: (parseInt(document.getElementById('fLikes').value,10)||0), shares: (parseInt(document.getElementById('fShares').value,10)||0), createdAt: Date.now() }, pendingMeta);
+                const targetRef = toPending ? adminFbDB.ref('pendingContent/trending/' + id) : adminFbDB.ref('content/trending/' + id);
+                targetRef.set(data).then(() => {
+                    window._fImageBase64=''; window._fVideoBase64=''; window._fAudioBase64=''; window._fAudioName=''; closeForm();
+                    if (toPending) { showToast('✓ Sent for approval'); }
+                    else { showToast('✓ Trending item saved'); addItemToTrendingList(data); }
+                });
             } else if (t === 'category') {
                 const n = document.getElementById('fName').value||'Collection'; const sid = n.toLowerCase().replace(/[^a-z0-9]/g,'_');
-                const data = { id: sid, value: n, description: (document.getElementById('fSpecialty').value||''), createdAt: Date.now() };
-                adminFbDB.ref('content/catalog/' + sid).set(data).then(() => { closeForm(); showToast('✓ Category saved'); renderCatalogList(); });
+                const data = Object.assign({ id: sid, value: n, description: (document.getElementById('fSpecialty').value||''), createdAt: Date.now() }, pendingMeta);
+                const targetRef = toPending ? adminFbDB.ref('pendingContent/catalog/' + sid) : adminFbDB.ref('content/catalog/' + sid);
+                targetRef.set(data).then(() => {
+                    closeForm();
+                    if (toPending) { showToast('✓ Sent for approval'); }
+                    else { showToast('✓ Category saved'); _panelFetched.catalog = false; renderCatalogList(); }
+                });
             } else if (t === 'style') {
                 const n = (document.getElementById('fStyleName').value || '').trim();
                 if (!n) { showToast('Enter a style name'); return; }
                 const sid = 'style_' + Date.now();
-                const data = { id: sid, name: n, createdAt: Date.now() };
-                adminFbDB.ref('content/styles/' + sid).set(data).then(() => { _stylesCache = null; closeForm(); showToast('✓ Style created'); renderCatalogList(); });
+                const data = Object.assign({ id: sid, name: n, createdAt: Date.now() }, pendingMeta);
+                const targetRef = toPending ? adminFbDB.ref('pendingContent/catalog/' + sid) : adminFbDB.ref('content/styles/' + sid);
+                targetRef.set(data).then(() => {
+                    _stylesCache = null; closeForm();
+                    if (toPending) { showToast('✓ Sent for approval'); }
+                    else { showToast('✓ Style created'); _panelFetched.catalog = false; renderCatalogList(); }
+                });
             } else { closeForm(); showToast('Saved'); }
         }
         // Tracks the email currently mid-approval across the 3 steps.
@@ -3558,11 +4174,21 @@
                 })
                 .finally(() => { btn.disabled = false; btn.textContent = 'Approve & Finish'; });
         }
-        function adminBackToList() { document.getElementById('msgsAdminChatView').style.display = 'none'; document.getElementById('msgsListView').style.display = 'block'; }
+        function adminBackToList() {
+          document.getElementById('msgsAdminChatView').style.display = 'none';
+          document.getElementById('msgsListView').style.display = 'block';
+          const search = document.getElementById('msgsSearchInput'); if (search) search.value = '';
+          const results = document.getElementById('msgsSearchResults'); if (results) { results.style.display = 'none'; results.innerHTML = ''; }
+          const list = document.getElementById('msgsConversationsList'); if (list) list.style.display = '';
+        }
         function openClientProfile() {}
         function closeClientProfile() { document.getElementById('clientProfileDrawer').style.display = 'none'; document.getElementById('clientProfileOverlay').style.display = 'none'; }
         function initAdminMessagesListener() {
           const el = document.getElementById('msgsConversationsList');
+          if (window.currentAdminRank === 'designer') {
+            el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👥</div>Search above to message another admin. Client messaging isn\'t available for your role.</div>';
+            return Promise.resolve();
+          }
           el.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(201,168,76,.4);">Loading messages...</div>';
           return adminFbDB.ref('chats').limitToFirst(30).once('value').then(snap => {
             if (!snap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💬</div>No messages yet</div>'; return; }
@@ -3590,20 +4216,53 @@
           }).catch(e => { el.innerHTML = '<div class="empty-state">Error: '+e.message+'</div>'; });
         }
         function openAdminChat(uid, name) {
+          if (window.currentAdminRank === 'designer') { showToast("You don't have access to message clients"); return; }
           document.getElementById('msgsListView').style.display = 'none';
           document.getElementById('msgsAdminChatView').style.display = 'block';
           document.getElementById('adminChatClientName').textContent = name;
           document.getElementById('adminChatAv').textContent = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+          const sub = document.getElementById('adminChatSubline'); if (sub) sub.textContent = 'Tap to view profile →';
+          window._activeChatMode = 'client';
+          window._activeChatPath = 'chats/' + uid + '/messages';
+          window._adminChatUID = uid; // kept for openClientProfile() and other existing client-chat code
+          loadActiveChatMessages();
+        }
+        function openAdminToAdminChat(otherUid, otherName) {
+          document.getElementById('msgsListView').style.display = 'none';
+          document.getElementById('msgsAdminChatView').style.display = 'block';
+          document.getElementById('adminChatClientName').textContent = otherName;
+          document.getElementById('adminChatAv').textContent = otherName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+          const sub = document.getElementById('adminChatSubline'); if (sub) sub.textContent = 'Admin conversation';
+          const pairKey = [window.currentAdminUid, otherUid].sort().join('_');
+          window._activeChatMode = 'admin';
+          window._activeChatPath = 'adminChats/' + pairKey + '/messages';
+          window._adminChatUID = null;
+          loadActiveChatMessages();
+        }
+        function loadActiveChatMessages() {
           const msgs = document.getElementById('adminChatMsgs');
           msgs.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(201,168,76,.4);">Loading...</div>';
-          adminFbDB.ref('chats/'+uid+'/messages').orderByChild('timestamp').limitToLast(50).once('value').then(snap => {
-            if (!snap.exists()) { msgs.innerHTML = '<div style="text-align:center;padding:20px;">No messages</div>'; return; }
-          msgs.innerHTML = Object.values(snap.val()).map(m => {
-            const isAdmin = m.role === 'admin' || m.sender === 'admin';
+          adminFbDB.ref(window._activeChatPath).orderByChild('timestamp').limitToLast(50).once('value').then(snap => {
+            if (!snap.exists()) { msgs.innerHTML = '<div style="text-align:center;padding:20px;">No messages yet</div>'; return; }
+            renderActiveChatMessages(snap.val());
+            if (window._activeChatMode === 'client') {
+              const updates = {};
+              Object.entries(snap.val()).forEach(([k,v]) => { if(!v.read && v.sender!=='admin') updates[k+'/read'] = true; });
+              if (Object.keys(updates).length) adminFbDB.ref(window._activeChatPath).update(updates);
+            }
+          }).catch(e => { msgs.innerHTML = '<div style="text-align:center;padding:20px;color:#ef4444;">Error: '+e.message+'</div>'; });
+        }
+        function renderActiveChatMessages(msgsObj) {
+          const msgs = document.getElementById('adminChatMsgs');
+          const isAdminChat = window._activeChatMode === 'admin';
+          msgs.innerHTML = Object.entries(msgsObj).map(([msgId, m]) => {
+            const isMine = isAdminChat ? (m.senderUid === window.currentAdminUid) : (m.role === 'admin' || m.sender === 'admin');
             const time = (m.timestamp || m.createdAt) ? new Date(m.timestamp || m.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
             const safeText = (m.text || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
             let bubbleHTML;
-            if (m.fileType === 'image' && m.fileData) {
+            if (m.deleted) {
+              bubbleHTML = `<div class="admin-bubble" style="font-style:italic;opacity:.5;">Message deleted</div>`;
+            } else if (m.fileType === 'image' && m.fileData) {
               const safeSrc = m.fileData.replace(/'/g, "\\'");
               bubbleHTML = `<div class="admin-img-bubble" onclick="adminOpenImage('${safeSrc}')"><img src="${m.fileData}" alt="Image" loading="lazy"></div>`;
             } else if (m.fileType === 'video' && m.fileData) {
@@ -3614,26 +4273,129 @@
             } else {
               bubbleHTML = `<div class="admin-bubble">${safeText}</div>`;
             }
-            return `<div class="admin-msg ${isAdmin ? 'from-admin' : 'from-client'}">${bubbleHTML}<div class="admin-msg-time">${time}</div></div>`;
+            const editedTag = m.editedAt ? ' edited-msg' : '';
+            return `<div class="admin-msg ${isMine ? 'from-admin' : 'from-client'}${editedTag}" data-msg-id="${msgId}" data-is-mine="${isMine?'1':'0'}" data-text="${(m.text||'').replace(/"/g,'&quot;')}"
+                      ontouchstart="startMsgLongPress(event,'${msgId}')" ontouchend="cancelMsgLongPress()" ontouchmove="cancelMsgLongPress()"
+                      oncontextmenu="event.preventDefault();showMsgContextMenu(event,'${msgId}')">
+                      ${bubbleHTML}<div class="admin-msg-time">${time}</div>
+                    </div>`;
           }).join('');
-            msgs.scrollTop = msgs.scrollHeight;
-            // Mark unread client messages as read — reuse existing snap, no second fetch
-            const updates = {};
-            Object.entries(snap.val()).forEach(([k,v]) => { if(!v.read && v.sender!=='admin') updates[k+'/read'] = true; });
-            if (Object.keys(updates).length) adminFbDB.ref('chats/'+uid+'/messages').update(updates);
-          });
-          // Store current uid for sending
-          window._adminChatUID = uid;
+          msgs.scrollTop = msgs.scrollHeight;
+        }
+        // Long-press (mobile) or right-click (desktop) any message bubble to
+        // edit, delete, or share it. Edit/delete only ever apply to your own
+        // messages — the menu hides them for anyone else's.
+        let _msgLongPressTimer = null;
+        function startMsgLongPress(e, msgId) {
+          _msgLongPressTimer = setTimeout(() => { showMsgContextMenu(e, msgId); }, 500);
+        }
+        function cancelMsgLongPress() {
+          if (_msgLongPressTimer) { clearTimeout(_msgLongPressTimer); _msgLongPressTimer = null; }
+        }
+        let _msgCtxTargetId = null;
+        function showMsgContextMenu(e, msgId) {
+          const el = document.querySelector('[data-msg-id="'+msgId+'"]');
+          const isMine = el && el.dataset.isMine === '1';
+          _msgCtxTargetId = msgId;
+          const menu = document.getElementById('msgContextMenu');
+          const btns = menu.querySelectorAll('.msg-ctx-btn');
+          btns[0].style.display = isMine ? 'block' : 'none'; // edit
+          btns[2].style.display = isMine ? 'block' : 'none'; // delete
+          const touch = e.touches && e.touches[0];
+          const x = touch ? touch.clientX : e.clientX;
+          const y = touch ? touch.clientY : e.clientY;
+          menu.style.left = Math.min(x, window.innerWidth - 160) + 'px';
+          menu.style.top = Math.min(y, window.innerHeight - 170) + 'px';
+          menu.style.display = 'block';
+          if (e.preventDefault) e.preventDefault();
+        }
+        document.addEventListener('click', function(e) {
+          const menu = document.getElementById('msgContextMenu');
+          if (menu && menu.style.display === 'block' && !menu.contains(e.target)) menu.style.display = 'none';
+        });
+        function msgCtxAction(action) {
+          const menu = document.getElementById('msgContextMenu');
+          menu.style.display = 'none';
+          const msgId = _msgCtxTargetId;
+          if (!msgId || !window._activeChatPath) return;
+          const el = document.querySelector('[data-msg-id="'+msgId+'"]');
+          if (action === 'delete') {
+            if (!confirm('Delete this message?')) return;
+            adminFbDB.ref(window._activeChatPath + '/' + msgId).update({ deleted: true, text: '' })
+              .then(() => loadActiveChatMessages()).catch(e => showToast('Error: '+e.message));
+          } else if (action === 'edit') {
+            const currentText = el ? el.dataset.text : '';
+            const newText = prompt('Edit message', currentText);
+            if (newText === null || !newText.trim() || newText === currentText) return;
+            adminFbDB.ref(window._activeChatPath + '/' + msgId).update({ text: newText.trim(), editedAt: Date.now() })
+              .then(() => loadActiveChatMessages()).catch(e => showToast('Error: '+e.message));
+          } else if (action === 'share') {
+            const text = el ? el.dataset.text : '';
+            if (navigator.share) { navigator.share({ text }).catch(() => {}); }
+            else if (navigator.clipboard) { navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard')); }
+            else { showToast('Sharing not supported on this browser'); }
+          }
         }
         function adminSendMessage() {
           const input = document.getElementById('adminChatInput');
           const text = input.value.trim();
-          if (!text || !window._adminChatUID) return;
-          const uid = window._adminChatUID;
+          if (!text || !window._activeChatPath) return;
           const id = 'msg_' + Date.now();
-          adminFbDB.ref('chats/'+uid+'/messages/'+id).set({ text, sender: 'admin', role: 'admin', timestamp: Date.now(), createdAt: Date.now(), read: true })
-            .then(() => { input.value = ''; openAdminChat(uid, document.getElementById('adminChatClientName').textContent); })
+          const isAdminChat = window._activeChatMode === 'admin';
+          const payload = isAdminChat
+            ? { text, senderUid: window.currentAdminUid, senderName: (adminFbAuth.currentUser && adminFbAuth.currentUser.email) || 'Admin', timestamp: Date.now(), read: true }
+            : { text, sender: 'admin', role: 'admin', timestamp: Date.now(), createdAt: Date.now(), read: true };
+          adminFbDB.ref(window._activeChatPath + '/' + id).set(payload)
+            .then(() => { input.value = ''; loadActiveChatMessages(); })
             .catch(e => showToast('Error: '+e.message));
+        }
+        // ── MESSAGES SEARCH ────────────────────────────────────────────────────
+        // Everyone can search for other admins to start a conversation.
+        // Ordinary Designers cannot discover/start chats with new clients —
+        // only admins show up for them; who they're allowed to message is a
+        // separate access-grant system covered in a future update.
+        function handleMsgsSearch(query) {
+          const resultsEl = document.getElementById('msgsSearchResults');
+          const listEl = document.getElementById('msgsConversationsList');
+          query = query.trim().toLowerCase();
+          if (!query) { resultsEl.style.display = 'none'; resultsEl.innerHTML = ''; listEl.style.display = ''; return; }
+          listEl.style.display = 'none';
+          resultsEl.style.display = 'block';
+          resultsEl.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(201,168,76,.4);">Searching…</div>';
+          const isDesigner = window.currentAdminRank === 'designer';
+          const tasks = [adminFbDB.ref('admins').once('value')];
+          if (!isDesigner) tasks.push(adminFbDB.ref('chats').limitToFirst(50).once('value'));
+          Promise.all(tasks).then(([adminsSnap, chatsSnap]) => {
+            const results = [];
+            const allAdmins = adminsSnap.val() || {};
+            Object.keys(allAdmins).forEach(uid => {
+              if (uid === window.currentAdminUid) return;
+              const a = allAdmins[uid];
+              const email = (a && a.email) || '';
+              if (email.toLowerCase().includes(query)) results.push({ type: 'admin', uid, name: email, rank: rankOf(a) });
+            });
+            if (chatsSnap) {
+              const allChats = chatsSnap.val() || {};
+              Object.entries(allChats).forEach(([uid, convo]) => {
+                const name = convo.clientName || '';
+                if (name.toLowerCase().includes(query)) results.push({ type: 'client', uid, name });
+              });
+            }
+            if (!results.length) { resultsEl.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(201,168,76,.4);">No matches' + (isDesigner ? ' — you can only search admins for now' : '') + '</div>'; return; }
+            resultsEl.innerHTML = results.map(r => {
+              const initials = (r.name || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+              const tagHtml = r.type === 'admin'
+                ? '<span class="msgs-search-tag" style="background:rgba(201,168,76,.15);color:#C9A84C;">' + (r.rank || '').replace('_', ' ') + '</span>'
+                : '<span class="msgs-search-tag" style="background:rgba(80,200,120,.15);color:#50C878;">Client</span>';
+              const clickFn = r.type === 'admin'
+                ? "openAdminToAdminChat('" + r.uid + "','" + r.name.replace(/'/g, "\\'") + "')"
+                : "openAdminChat('" + r.uid + "','" + r.name.replace(/'/g, "\\'") + "')";
+              return '<div class="msgs-search-result" onclick="' + clickFn + '">'
+                + '<div class="msgs-search-avatar" style="background:linear-gradient(135deg,#C9A84C,#7A5C10);color:#0A0804;">' + initials + '</div>'
+                + '<div style="flex:1;"><div style="font-size:14px;color:#E8D5A3;">' + r.name + '</div></div>'
+                + tagHtml + '</div>';
+            }).join('');
+          }).catch(e => { resultsEl.innerHTML = '<div style="padding:20px;color:#ef4444;">Error: ' + e.message + '</div>'; });
         }
         function forceSyncAllCatalog() { showToast('Synced to live'); }
 
@@ -4809,7 +5571,13 @@
                 <div style="font-size:10px;letter-spacing:3px;color:rgba(201,168,76,0.5);margin-bottom:4px;">POST ANALYTICS</div>
                 <div id="analyticsTitle" style="font-family:'Cormorant Garamond',serif;font-size:18px;color:#F5F0E8;max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
             </div>
-            <button onclick="closeAnalyticsModal()" style="background:none;border:none;color:rgba(201,168,76,0.5);font-size:26px;cursor:pointer;line-height:1;padding:4px;">×</button>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <button id="analyticsBoostBtn" style="display:none;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:#C9A84C;font-size:18px;font-weight:700;width:34px;height:34px;border-radius:50%;cursor:pointer;line-height:1;"
+                    onclick="handleBoostTap('views')"
+                    ontouchstart="startBoostLongPress('views')" ontouchend="cancelBoostLongPress()" ontouchmove="cancelBoostLongPress()"
+                    onmousedown="startBoostLongPress('views')" onmouseup="cancelBoostLongPress()" onmouseleave="cancelBoostLongPress()">+</button>
+                <button onclick="closeAnalyticsModal()" style="background:none;border:none;color:rgba(201,168,76,0.5);font-size:26px;cursor:pointer;line-height:1;padding:4px;">×</button>
+            </div>
         </div>
         <div style="display:flex;border-bottom:1px solid rgba(201,168,76,0.1);flex-shrink:0;">
             <div style="flex:1;padding:16px;text-align:center;border-right:1px solid rgba(201,168,76,0.1);">
@@ -4830,13 +5598,19 @@
     </div>
 </div>
 <script>
+let _analyticsSection = '';
+let _analyticsPostId = '';
 function openPostAnalytics(section, postId, title) {
+    _analyticsSection = section;
+    _analyticsPostId = postId;
     const modal = document.getElementById('analyticsModal');
     const titleEl = document.getElementById('analyticsTitle');
     const totalEl = document.getElementById('analyticsTotalViews');
     const uniqueEl = document.getElementById('analyticsUniqueViewers');
     const lastEl = document.getElementById('analyticsLastViewed');
     const clientListEl = document.getElementById('analyticsClientList');
+    const boostBtn = document.getElementById('analyticsBoostBtn');
+    if (boostBtn) boostBtn.style.display = (window.currentAdminRank === 'head') ? 'flex' : 'none';
 
     titleEl.textContent = title;
     totalEl.textContent = '…';
@@ -4846,16 +5620,23 @@ function openPostAnalytics(section, postId, title) {
     modal.style.display = 'flex';
 
     // Views stored at: postViews/{section}/{postId}/{uid} = { name, count, lastViewed }
-    adminFbDB.ref('postViews/' + section + '/' + postId).once('value').then(snap => {
+    // viewsBoost (Head only) is added on top of the real tracked total.
+    Promise.all([
+        adminFbDB.ref('postViews/' + section + '/' + postId).once('value'),
+        adminFbDB.ref('content/' + section + '/' + postId + '/viewsBoost').once('value')
+    ]).then(([snap, boostSnap]) => {
+        const boost = boostSnap.val() || 0;
         if (!snap.exists()) {
-            totalEl.textContent = '0';
+            totalEl.textContent = boost || '0';
             uniqueEl.textContent = '0';
             lastEl.textContent = 'Never';
-            clientListEl.innerHTML = '<div style="text-align:center;padding:32px;color:rgba(201,168,76,0.25);font-size:13px;">No views recorded yet</div>';
+            clientListEl.innerHTML = boost
+                ? '<div style="text-align:center;padding:32px;color:rgba(201,168,76,0.25);font-size:13px;">No client views yet — showing a manual boost of ' + boost + '</div>'
+                : '<div style="text-align:center;padding:32px;color:rgba(201,168,76,0.25);font-size:13px;">No views recorded yet</div>';
             return;
         }
         const viewers = Object.values(snap.val());
-        const total = viewers.reduce((s, v) => s + (v.count || 1), 0);
+        const total = viewers.reduce((s, v) => s + (v.count || 1), 0) + boost;
         const latest = viewers.reduce((max, v) => Math.max(max, v.lastViewed || 0), 0);
 
         totalEl.textContent = total;
@@ -4903,7 +5684,13 @@ document.getElementById('analyticsModal').addEventListener('click', function(e) 
                 <div style="font-size:10px;letter-spacing:3px;color:rgba(201,168,76,0.5);margin-bottom:4px;">SET LIKES &amp; SHARES</div>
                 <div id="statsEditTitle" style="font-family:'Cormorant Garamond',serif;font-size:18px;color:#F5F0E8;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
             </div>
-            <button onclick="closeStatsEditModal()" style="background:none;border:none;color:rgba(201,168,76,0.5);font-size:26px;cursor:pointer;line-height:1;padding:4px;">×</button>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <button id="statsBoostBtn" style="display:none;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:#C9A84C;font-size:18px;font-weight:700;width:34px;height:34px;border-radius:50%;cursor:pointer;line-height:1;"
+                    onclick="handleBoostTap('likes')"
+                    ontouchstart="startBoostLongPress('likes')" ontouchend="cancelBoostLongPress()" ontouchmove="cancelBoostLongPress()"
+                    onmousedown="startBoostLongPress('likes')" onmouseup="cancelBoostLongPress()" onmouseleave="cancelBoostLongPress()">+</button>
+                <button onclick="closeStatsEditModal()" style="background:none;border:none;color:rgba(201,168,76,0.5);font-size:26px;cursor:pointer;line-height:1;padding:4px;">×</button>
+            </div>
         </div>
         <div style="padding:20px 24px;display:flex;gap:12px;">
             <div style="flex:1;"><label style="display:block;font-size:10px;letter-spacing:1px;color:rgba(201,168,76,0.5);margin-bottom:6px;">Likes</label><input type="number" min="0" id="statsLikesInput" class="form-input" style="width:100%;box-sizing:border-box;"></div>
@@ -4924,6 +5711,8 @@ function openStatsEditor(section, postId, title) {
     document.getElementById('statsLikesInput').value = '';
     document.getElementById('statsSharesInput').value = '';
     document.getElementById('statsEditModal').style.display = 'flex';
+    const boostBtn = document.getElementById('statsBoostBtn');
+    if (boostBtn) boostBtn.style.display = (window.currentAdminRank === 'head') ? 'flex' : 'none';
     adminFbDB.ref('content/' + section + '/' + postId).once('value').then(snap => {
         const d = snap.val() || {};
         document.getElementById('statsLikesInput').value = d.likes || 0;
@@ -4944,19 +5733,85 @@ function saveEditedStats() {
         else if (_statsEditSection === 'trending') { _panelFetched.trending = false; renderTrendingList(); }
     }).catch(e => showToast('Error: ' + e.message));
 }
+
+// ── HEAD-ONLY QUICK BOOST: "+" on Views/Likes modals ────────────────────────
+// One tap = add 1. Long-press (1s) = prompt for a custom amount to ADD to
+// whatever's already there (never replaces/resets it).
+let _boostLongPressTimer = null;
+let _boostLongPressFired = false;
+const BOOST_LONG_PRESS_MS = 1000;
+function startBoostLongPress(kind) {
+    _boostLongPressFired = false;
+    _boostLongPressTimer = setTimeout(() => {
+        _boostLongPressFired = true;
+        promptCustomBoost(kind);
+    }, BOOST_LONG_PRESS_MS);
+}
+function cancelBoostLongPress() {
+    if (_boostLongPressTimer) { clearTimeout(_boostLongPressTimer); _boostLongPressTimer = null; }
+}
+function handleBoostTap(kind) {
+    // If the long-press already fired (and opened the custom-amount prompt),
+    // don't also apply a +1 tap on release.
+    if (_boostLongPressFired) { _boostLongPressFired = false; return; }
+    applyBoost(kind, 1);
+}
+function promptCustomBoost(kind) {
+    const label = kind === 'views' ? 'views' : 'likes';
+    const raw = prompt('Add how many ' + label + ' to what\'s already there?', '');
+    if (raw === null) return;
+    const amount = parseInt(raw, 10);
+    if (!amount || amount <= 0) { showToast('Enter a positive number'); return; }
+    applyBoost(kind, amount);
+}
+function applyBoost(kind, amount) {
+    if (window.currentAdminRank !== 'head') { showToast('Only Head Designer can do this'); return; }
+    if (kind === 'views') {
+        if (!_analyticsSection || !_analyticsPostId) return;
+        const ref = adminFbDB.ref('content/' + _analyticsSection + '/' + _analyticsPostId + '/viewsBoost');
+        ref.transaction(curr => (curr || 0) + amount).then(() => {
+            showToast('+' + amount + ' view' + (amount > 1 ? 's' : ''));
+            openPostAnalytics(_analyticsSection, _analyticsPostId, document.getElementById('analyticsTitle').textContent);
+        }).catch(e => showToast('Error: ' + e.message));
+    } else {
+        if (!_statsEditSection || !_statsEditPostId) return;
+        const ref = adminFbDB.ref('content/' + _statsEditSection + '/' + _statsEditPostId + '/likes');
+        ref.transaction(curr => (curr || 0) + amount).then(() => {
+            showToast('+' + amount + ' like' + (amount > 1 ? 's' : ''));
+            document.getElementById('statsLikesInput').value = (parseInt(document.getElementById('statsLikesInput').value, 10) || 0) + amount;
+            if (_statsEditSection === 'posts') { _panelFetched.home = false; }
+            else if (_statsEditSection === 'trending') { _panelFetched.trending = false; }
+        }).catch(e => showToast('Error: ' + e.message));
+    }
+}
+
 document.getElementById('statsEditModal').addEventListener('click', function(e) {
     if (e.target === this) closeStatsEditModal();
 });
 </script>
 
-<!-- ── Admin Image Lightbox ─────────────────────────────────────────── -->
+<!-- ── Admin Media Lightbox (images + video) ────────────────────────── -->
 <div id="adminImgLightbox" onclick="this.classList.remove('active')">
-  <button class="lb-close" onclick="event.stopPropagation();document.getElementById('adminImgLightbox').classList.remove('active')">✕</button>
-  <img id="adminImgLightboxImg" src="" alt="">
+  <button class="lb-close" onclick="event.stopPropagation();document.getElementById('adminImgLightbox').classList.remove('active');document.getElementById('adminImgLightboxVideo').pause();">✕</button>
+  <img id="adminImgLightboxImg" src="" alt="" style="display:none;">
+  <video id="adminImgLightboxVideo" src="" controls autoplay style="display:none;max-width:92vw;max-height:88vh;" onclick="event.stopPropagation()"></video>
 </div>
 <script>
 function adminOpenImage(src) {
-  document.getElementById('adminImgLightboxImg').src = src;
+  document.getElementById('adminImgLightboxVideo').pause();
+  document.getElementById('adminImgLightboxVideo').style.display = 'none';
+  document.getElementById('adminImgLightboxVideo').removeAttribute('src');
+  const img = document.getElementById('adminImgLightboxImg');
+  img.src = src;
+  img.style.display = 'block';
+  document.getElementById('adminImgLightbox').classList.add('active');
+}
+function adminOpenVideo(src) {
+  document.getElementById('adminImgLightboxImg').style.display = 'none';
+  document.getElementById('adminImgLightboxImg').src = '';
+  const video = document.getElementById('adminImgLightboxVideo');
+  video.src = src;
+  video.style.display = 'block';
   document.getElementById('adminImgLightbox').classList.add('active');
 }
 </script>
@@ -5057,7 +5912,7 @@ function adminOpenImage(src) {
                 createdUid = cred.user.uid;
                 // The database rules — not this code — are what actually gate this.
                 // This write only succeeds if the admins node is still empty.
-                return window.adminFbDB.ref('admins/' + createdUid).set(true);
+                return window.adminFbDB.ref('admins/' + createdUid).set({ rank: 'head', email: email, createdAt: Date.now() });
             })
             .catch(function(e) {
                 if (e && e.code === 'PERMISSION_DENIED') {
@@ -5112,9 +5967,13 @@ function adminOpenImage(src) {
         // as an admin before showing any dashboard content. A newly created
         // designer account, for example, should never reach this far.
         window._splashLog('adminAuth', 'signed in — verifying admin status', { uid: user.uid });
+        runRankMigrationIfNeeded().then(function() {
         window.adminFbDB.ref('admins/' + user.uid).once('value').then(function(snap) {
             if (snap.exists()) {
-                window._splashLog('adminAuth', 'verified — uid is a listed admin', { uid: user.uid });
+                var rank = rankOf(snap.val());
+                window._splashLog('adminAuth', 'verified — uid is a listed admin', { uid: user.uid, rank: rank });
+                window.currentAdminUid = user.uid;
+                applyRankUI(rank);
                 boot(user);
             } else {
                 window._splashLog('adminAuth', 'rejected — uid not listed under admins/', { uid: user.uid });
@@ -5127,6 +5986,7 @@ function adminOpenImage(src) {
             window.adminFbAuth.signOut();
             showLoginOverlay();
             showLoginError('Could not verify admin access — check your connection and try again.');
+        });
         });
     });
 })();
