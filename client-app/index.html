@@ -15,7 +15,14 @@
 <link rel="apple-touch-icon" href="/ic_launcher-web.png">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
-html{touch-action:manipulation}
+html{touch-action:manipulation;color-scheme:dark;scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+.page{overscroll-behavior-y:contain}
+.dt-heart{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:80px;opacity:0;pointer-events:none;z-index:20}
+.dt-heart.pop{animation:heartPop .8s ease forwards}
+@keyframes heartPop{0%{transform:translate(-50%,-50%) scale(0);opacity:0}40%{transform:translate(-50%,-50%) scale(1.2);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
 :root{--bg-primary:#120D06;--bg-card:#1E160C;--bg-secondary:#2A1F14;--bg-navy:#060D18;--text-primary:#F5F0E8;--text-secondary:#A89B8C;--gold:#C9A84C;--gold-light:#E8D5A3;--gold-dark:#8B6914;--nav-height:80px}
 body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow-x:hidden;min-height:100vh;padding-bottom:calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));overscroll-behavior-y:contain}
 .page{display:none;min-height:calc(100vh - var(--nav-height));overscroll-behavior-y:contain}
@@ -67,7 +74,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .feed-header-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#B8860B);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:700;color:var(--bg-primary);flex-shrink:0;border:1.5px solid var(--gold)}
 .feed-header-name{font-family:'Jost',sans-serif;font-size:13px;font-weight:600;color:var(--text-primary)}
 .feed-header-info{display:flex;flex-direction:column;gap:1px;flex:1}
-.feed-header-loc{display:flex;align-items:center;gap:3px;font-family:'Jost',sans-serif;font-size:10px;color:rgba(168,155,140,.7);letter-spacing:.2px}
+.feed-header-loc{display:flex;align-items:center;gap:3px;font-family:'Jost',sans-serif;font-size:10px;color:rgba(216,205,188,.9);letter-spacing:.2px}
 .feed-header-loc svg{width:9px;height:9px;stroke:rgba(168,155,140,.6);fill:none;stroke-width:2;flex-shrink:0}
 .feed-header-more{background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer;padding:0 4px;letter-spacing:1px}
 /* ─── TAP TO PAUSE OVERLAY ───────────────────────────────────────────────────── */
@@ -81,7 +88,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .feed-image img{width:100%;height:100%;object-fit:cover;display:block}
 .feed-image-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-secondary);font-size:64px}
 .feed-sound-btn{position:fixed;bottom:calc(var(--nav-height) + 16px);right:16px;z-index:500;background:rgba(18,13,6,0.75);border:1px solid rgba(201,168,76,0.4);border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;backdrop-filter:blur(8px);transition:opacity .3s;}
-.feed-actions{display:flex;align-items:center;padding:10px 14px 6px;gap:16px}
+.feed-actions{display:flex;align-items:center;padding:10px 14px 6px;gap:16px;background:rgba(255,255,255,0.02);backdrop-filter:blur(6px)}
 .feed-action-btn{background:none;border:none;color:var(--text-primary);cursor:pointer;display:flex;align-items:center;gap:5px;padding:4px 0;transition:opacity .2s,transform .15s}
 .feed-action-btn:active{transform:scale(.88)}
 .feed-action-btn svg{width:24px;height:24px;stroke:var(--text-primary);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s,fill .2s}
@@ -91,7 +98,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .feed-action-spacer{flex:1}
 .feed-caption{padding:4px 14px 14px}
 .feed-caption-title{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:var(--gold);margin-bottom:2px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.feed-caption-text{font-family:'Jost',sans-serif;font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer;transition:-webkit-line-clamp .1s}
+.feed-caption-text{font-family:'Jost',sans-serif;font-size:13px;color:#D9CFBE;line-height:1.5;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer;transition:-webkit-line-clamp .1s}
 .feed-caption-text.expanded{-webkit-line-clamp:unset;display:block}
 .feed-caption-location{display:flex;align-items:center;gap:4px;font-family:'Jost',sans-serif;font-size:11px;color:rgba(168,155,140,.6);letter-spacing:.3px}
 .feed-caption-location svg{width:11px;height:11px;stroke:rgba(168,155,140,.5);fill:none;stroke-width:2;flex-shrink:0}
@@ -197,49 +204,49 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .view-modal-title{font-family:'Cormorant Garamond',serif;font-size:22px;color:#E8D5A3;margin-bottom:4px}
 .view-modal-meta{font-size:11px;color:rgba(201,168,76,.6);letter-spacing:1px}
 
-.vault-login-container{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;background:#FAF8F3}
-.vault-locked-container{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;background:#FAF8F3}
+.vault-login-container{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;background:#0A1628}
+.vault-locked-container{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;background:#0A1628}
 .vault-locked-inner{width:100%;max-width:360px;display:flex;flex-direction:column;align-items:center;text-align:center}
-.vault-locked-eyebrow{font-family:'Jost',sans-serif;font-size:10px;letter-spacing:4px;color:rgba(184,134,11,.75);text-transform:uppercase;margin-bottom:10px}
-.vault-locked-title{font-family:'Cormorant Garamond',serif;font-size:34px;color:#0A0A08;letter-spacing:1px;margin-bottom:8px}
-.vault-locked-copy{font-family:'Jost',sans-serif;font-size:13px;line-height:1.8;color:rgba(10,10,8,.65);letter-spacing:.2px;margin:18px 0 26px}
+.vault-locked-eyebrow{font-family:'Jost',sans-serif;font-size:10px;letter-spacing:4px;color:rgba(201,168,76,.6);text-transform:uppercase;margin-bottom:10px}
+.vault-locked-title{font-family:'Cormorant Garamond',serif;font-size:34px;color:var(--gold);letter-spacing:1px;margin-bottom:8px}
+.vault-locked-copy{font-family:'Jost',sans-serif;font-size:13px;line-height:1.8;color:rgba(230,225,215,.75);letter-spacing:.2px;margin:18px 0 26px}
 .vault-locked-progress{width:100%;margin-bottom:28px}
-.vault-locked-progress-label{display:flex;justify-content:space-between;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(10,10,8,.55);margin-bottom:8px}
-.vault-locked-progress-track{width:100%;height:6px;border-radius:3px;background:rgba(184,134,11,.14);overflow:hidden}
-.vault-locked-progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#1B5E3F,#B8860B);transition:width .5s ease}
+.vault-locked-progress-label{display:flex;justify-content:space-between;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(201,168,76,.65);margin-bottom:8px}
+.vault-locked-progress-track{width:100%;height:6px;border-radius:3px;background:rgba(201,168,76,.12);overflow:hidden}
+.vault-locked-progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#B8860B,var(--gold));transition:width .5s ease}
 .vault-locked-teasers{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%;margin-bottom:24px}
-.vault-teaser-item{aspect-ratio:1;border-radius:10px;position:relative;overflow:hidden;border:1px solid rgba(184,134,11,.3)}
-.vault-teaser-bg{position:absolute;inset:-4px;background:linear-gradient(135deg,#e8dcc0,#d4c398,#c9b478);filter:blur(3px) saturate(1.1) brightness(.95)}
-.vault-teaser-bg::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(184,134,11,.3),transparent 60%)}
+.vault-teaser-item{aspect-ratio:1;border-radius:10px;position:relative;overflow:hidden;border:1px solid rgba(201,168,76,.25)}
+.vault-teaser-bg{position:absolute;inset:-4px;background:linear-gradient(135deg,#2a1f0d,#3d2e12,#241a08);filter:blur(3px) saturate(1.15) brightness(.85)}
+.vault-teaser-bg::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,168,76,.25),transparent 60%)}
 .vault-teaser-lock{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2}
 .vault-teaser-lock svg{width:18px;height:18px}
-.vault-locked-anchor{display:flex;align-items:flex-start;gap:10px;text-align:left;background:rgba(27,94,63,.06);border:1px solid rgba(27,94,63,.22);border-radius:10px;padding:14px 16px;font-family:'Jost',sans-serif;font-size:12px;line-height:1.7;color:rgba(10,10,8,.75);letter-spacing:.2px}
-.vault-locked-anchor strong{color:#1B5E3F;font-weight:600}
-.vault-locked-anchor-icon{color:#1B5E3F;flex-shrink:0;margin-top:1px}
-.vault-locked-concierge{margin-top:14px;background:none;border:none;color:rgba(10,10,8,.5);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
-.vault-logo{width:100px;height:100px;background:linear-gradient(135deg,var(--gold),#B8860B);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:32px;box-shadow:0 20px 60px rgba(184,134,11,.25)}
-.vault-title{font-family:'Cormorant Garamond',serif;font-size:36px;color:#0A0A08;margin-bottom:8px;text-align:center}
-.vault-subtitle{color:#5A5548;font-size:14px;margin-bottom:40px;text-align:center}
+.vault-locked-anchor{display:flex;align-items:flex-start;gap:10px;text-align:left;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.18);border-radius:10px;padding:14px 16px;font-family:'Jost',sans-serif;font-size:12px;line-height:1.7;color:rgba(230,225,215,.8);letter-spacing:.2px}
+.vault-locked-anchor strong{color:var(--gold);font-weight:600}
+.vault-locked-anchor-icon{color:var(--gold);flex-shrink:0;margin-top:1px}
+.vault-locked-concierge{margin-top:14px;background:none;border:none;color:rgba(201,168,76,.55);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.vault-logo{width:100px;height:100px;background:linear-gradient(135deg,var(--gold),#B8860B);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:32px;box-shadow:0 20px 60px rgba(201,169,98,.3)}
+.vault-title{font-family:'Cormorant Garamond',serif;font-size:36px;color:var(--gold);margin-bottom:8px;text-align:center}
+.vault-subtitle{color:#6B7B8F;font-size:14px;margin-bottom:40px;text-align:center}
 .vault-form{width:100%;max-width:320px;display:flex;flex-direction:column;gap:20px}
-.vault-input{width:100%;padding:18px 20px;background:#fff;border:1px solid rgba(184,134,11,.35);border-radius:12px;color:#0A0A08;font-size:16px;outline:none;font-family:'Jost',sans-serif;transition:border-color .2s,box-shadow .2s}
-.vault-input:focus{border-color:#B8860B;background:#fff;box-shadow:0 0 0 3px rgba(184,134,11,.12)}
-.vault-btn{padding:18px;background:linear-gradient(135deg,var(--gold),#B8860B);border:none;border-radius:12px;color:#0A0A08;font-weight:600;font-size:16px;cursor:pointer}
-.vault-phone-wrapper{width:100%;display:flex;align-items:stretch;background:#fff;border:1px solid rgba(184,134,11,.35);border-radius:12px;overflow:hidden;transition:border-color .2s}
-.vault-phone-wrapper:focus-within{border-color:#B8860B;box-shadow:0 0 0 3px rgba(184,134,11,.12)}
-.vault-phone-prefix{display:flex;align-items:center;padding:0 14px;background:rgba(184,134,11,.08);border-right:1px solid rgba(184,134,11,.25);color:#8A6508;font-family:'Jost',sans-serif;font-size:15px;font-weight:500;letter-spacing:.5px;white-space:nowrap;flex-shrink:0}
-.vault-phone-input{flex:1;padding:18px 16px;background:transparent;border:none;color:#0A0A08;font-size:16px;outline:none;font-family:'Jost',sans-serif;min-width:0}
+.vault-input{width:100%;padding:18px 20px;background:rgba(255,255,255,.05);border:1px solid rgba(201,169,98,.3);border-radius:12px;color:var(--text-primary);font-size:16px;outline:none;font-family:'Jost',sans-serif;transition:border-color .2s,box-shadow .2s}
+.vault-input:focus{border-color:var(--gold);background:rgba(255,255,255,.08)}
+.vault-btn{padding:18px;background:linear-gradient(135deg,var(--gold),#B8860B);border:none;border-radius:12px;color:#0A1628;font-weight:600;font-size:16px;cursor:pointer}
+.vault-phone-wrapper{width:100%;display:flex;align-items:stretch;background:rgba(255,255,255,.05);border:1px solid rgba(201,169,98,.3);border-radius:12px;overflow:hidden;transition:border-color .2s}
+.vault-phone-wrapper:focus-within{border-color:var(--gold);background:rgba(255,255,255,.08)}
+.vault-phone-prefix{display:flex;align-items:center;padding:0 14px;background:rgba(201,169,98,.08);border-right:1px solid rgba(201,169,98,.2);color:var(--gold);font-family:'Jost',sans-serif;font-size:15px;font-weight:500;letter-spacing:.5px;white-space:nowrap;flex-shrink:0}
+.vault-phone-input{flex:1;padding:18px 16px;background:transparent;border:none;color:var(--text-primary);font-size:16px;outline:none;font-family:'Jost',sans-serif;min-width:0}
 .input-error{border-color:#ff5555!important;box-shadow:0 0 0 1px rgba(255,85,85,.3)!important}
 #vault-login-form{opacity:1;transition:opacity .5s ease;width:100%;display:flex;flex-direction:column;align-items:center}
 #vault-success-state{opacity:1;transition:opacity .5s ease;width:100%;display:none;flex-direction:column;align-items:center}
 .vault-success-icon{margin-bottom:28px;animation:vaultGlow 3s ease-in-out infinite alternate}
-@keyframes vaultGlow{from{filter:drop-shadow(0 0 12px rgba(184,134,11,.3))}to{filter:drop-shadow(0 0 28px rgba(184,134,11,.65))}}
-.vault-success-eyebrow{font-family:'Jost',sans-serif;font-size:9px;letter-spacing:6px;color:rgba(27,94,63,.7);text-transform:uppercase;margin-bottom:14px}
-.vault-success-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:#0A0A08;letter-spacing:1px;line-height:1.3;margin-bottom:20px}
-.vault-success-divider{width:60px;height:1px;background:linear-gradient(to right,transparent,#B8860B,transparent);margin:0 auto 20px}
-.vault-success-sub{font-family:'Jost',sans-serif;font-size:13px;color:#5A5548;line-height:1.7;letter-spacing:.3px;margin-bottom:28px}
+@keyframes vaultGlow{from{filter:drop-shadow(0 0 12px rgba(201,168,76,.25))}to{filter:drop-shadow(0 0 28px rgba(201,168,76,.6))}}
+.vault-success-eyebrow{font-family:'Jost',sans-serif;font-size:9px;letter-spacing:6px;color:rgba(201,168,76,.5);text-transform:uppercase;margin-bottom:14px}
+.vault-success-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:var(--gold);letter-spacing:1px;line-height:1.3;margin-bottom:20px}
+.vault-success-divider{width:60px;height:1px;background:linear-gradient(to right,transparent,rgba(201,168,76,.6),transparent);margin:0 auto 20px}
+.vault-success-sub{font-family:'Jost',sans-serif;font-size:13px;color:var(--text-secondary);line-height:1.7;letter-spacing:.3px;margin-bottom:28px}
 .vault-success-badges{display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px}
-.vault-badge-item{display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(27,94,63,.05);border:1px solid rgba(27,94,63,.2);border-radius:8px;font-family:'Jost',sans-serif;font-size:12px;color:#0A0A08;letter-spacing:1px}
-.vault-badge-icon{color:#1B5E3F;font-size:14px;flex-shrink:0}
+.vault-badge-item{display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.18);border-radius:8px;font-family:'Jost',sans-serif;font-size:12px;color:var(--text-primary);letter-spacing:1px}
+.vault-badge-icon{color:var(--gold);font-size:14px;flex-shrink:0}
 .vault-pin-input-wrapper{width:100%;position:relative}
 .portfolio-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding:20px}
 .portfolio-subnav{display:flex;gap:0;margin:18px 20px 0;border:1px solid rgba(201,168,76,.25);border-radius:10px;overflow:hidden}
@@ -302,17 +309,17 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .cg-attach:active{background:rgba(201,169,98,.2)}
 .cg-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgba(201,169,98,.3);text-align:center;padding:40px;gap:12px}
 /* FIX 2: touch-action:manipulation kills 300ms delay on Android nav taps */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));padding-bottom:env(safe-area-inset-bottom, 0px);background:rgba(18,13,6,.98);display:none;justify-content:space-around;align-items:flex-start;z-index:99000;border-top:1px solid rgba(201,169,98,.1);padding-left:2px;padding-right:2px;}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));padding-bottom:env(safe-area-inset-bottom, 0px);background:rgba(15,12,8,.85);backdrop-filter:blur(20px) saturate(1.2);-webkit-backdrop-filter:blur(20px) saturate(1.2);display:none;justify-content:space-around;align-items:flex-start;z-index:99000;border-top:1px solid rgba(201,169,98,.12);padding-left:2px;padding-right:2px;}
 .bottom-nav.nav-ready{display:flex;opacity:1;pointer-events:auto;animation:navFadeIn 0.4s ease forwards;}
 @keyframes navFadeIn{from{opacity:0}to{opacity:1}}
 @keyframes blPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.88)}}
 @keyframes blSpin{to{transform:rotate(360deg)}}
-.bottom-nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-secondary);font-size:8px;cursor:pointer;padding:8px 4px;border:none;background:none;flex:1;min-width:0;min-height:56px;letter-spacing:.1px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;position:relative;}
+.bottom-nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-secondary);font-size:8px;cursor:pointer;padding:8px 4px;border:none;background:none;flex:1;min-width:0;min-height:56px;letter-spacing:.1px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;position:relative;transition:transform .2s cubic-bezier(0.22,1,0.36,1),color .2s ease;}
 .bottom-nav-item::before{content:'';position:absolute;top:-10px;left:0;right:0;bottom:0;pointer-events:none;}
-.bottom-nav-item.active{color:var(--gold)}
+.bottom-nav-item.active{color:var(--gold);transform:translateY(-2px)}
 .bottom-nav-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center}
-.bottom-nav-icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s ease,filter .2s ease}
-.bottom-nav-item.active .bottom-nav-icon svg{stroke:var(--gold);filter:drop-shadow(0 0 5px rgba(201,168,76,.4))}
+.bottom-nav-icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s ease,filter .2s ease,stroke-width .2s ease}
+.bottom-nav-item.active .bottom-nav-icon svg{stroke:var(--gold);filter:drop-shadow(0 0 6px rgba(201,168,76,.5));stroke-width:1.8}
 .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg-card);color:var(--gold);padding:16px 24px;border-radius:12px;opacity:0;transition:all .3s;z-index:10000}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .image-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.95);z-index:4000;align-items:center;justify-content:center}
@@ -348,10 +355,11 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .profile-container.is-vip .profile-standard-tag{opacity:0;max-height:0;margin:0}
 .profile-vip-badge{display:flex;flex-direction:column;align-items:center;margin-top:0;max-height:0;overflow:hidden;opacity:0;transition:max-height .45s ease,opacity .4s ease,margin-top .3s ease}
 .profile-container.is-vip .profile-vip-badge{max-height:100px;opacity:1;margin-top:14px}
-.vip-badge-shield{position:relative;background:linear-gradient(160deg,#1C1400 0%,#0C0900 50%,#1C1400 100%);border:1px solid var(--gold);border-radius:4px 4px 10px 10px;padding:10px 22px 13px;text-align:center;box-shadow:0 0 20px rgba(201,168,76,.3)}
-.vip-badge-shield::before,.vip-badge-shield::after{content:'◆';position:absolute;top:-7px;font-size:10px;color:var(--gold)}
+.vip-badge-shield{position:relative;overflow:hidden;background-color:#0C0900;background-image:linear-gradient(160deg,#1C1400 0%,#0C0900 50%,#1C1400 100%),linear-gradient(100deg,transparent 40%,rgba(232,213,163,.4) 50%,transparent 60%);background-size:100% 100%,220% 220%;background-position:0 0,-120% 0;background-repeat:no-repeat;animation:vipShimmer 3.5s linear infinite;border:1px solid var(--gold);border-radius:4px 4px 10px 10px;padding:10px 22px 13px;text-align:center;box-shadow:0 0 20px rgba(201,168,76,.3)}
+.vip-badge-shield::before,.vip-badge-shield::after{content:'◆';position:absolute;top:-7px;font-size:10px;color:var(--gold);z-index:2}
 .vip-badge-shield::before{left:10px}
 .vip-badge-shield::after{right:10px}
+@keyframes vipShimmer{0%{background-position:0 0,-120% 0}100%{background-position:0 0,120% 0}}
 .vip-badge-line1{font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:700;color:var(--gold);letter-spacing:2.5px;text-transform:uppercase;line-height:1.3}
 .vip-badge-divider{width:65%;height:1px;background:linear-gradient(to right,transparent,rgba(201,168,76,.7),transparent);margin:5px auto}
 .vip-badge-line2{font-family:'Jost',sans-serif;font-size:8px;font-weight:500;color:rgba(201,168,76,.7);letter-spacing:4px;text-transform:uppercase}
@@ -1134,9 +1142,18 @@ let currentShareItem = null;
 let pendingSignupName = '', pendingSignupEmail = '', pendingSignupCode = '';
 
 // ─── GATEKEEPER ──────────────────────────────────────────────────────────────
+function showSplashGuard() {
+  const g = document.getElementById('splashGuard');
+  if (g) { g.style.opacity = '1'; g.style.visibility = 'visible'; }
+}
+function hideSplashGuard() {
+  const g = document.getElementById('splashGuard');
+  if (g) { g.style.opacity = '0'; g.style.visibility = 'hidden'; }
+}
 function hideGatekeeper() {
   document.getElementById('gatekeeper').classList.add('hidden');
   setTimeout(() => { document.getElementById('gatekeeper').style.display = 'none'; }, 600);
+  showSplashGuard(); // covers the home page during every splash transition
 }
 
 // ─── SPLASH HELPERS ───────────────────────────────────────────────────────────
@@ -1153,15 +1170,20 @@ function _hideSplash(id) {
 function _showLogoSplash() {
   const s = document.getElementById('splashScreen');
   if (!s) return;
+  s.classList.remove('hidden');
+  s.style.transition = 'opacity .5s ease, visibility .5s ease';
   s.style.opacity = '1';
   s.style.visibility = 'visible';
   s.style.pointerEvents = 'auto';
-  s.classList.remove('hidden');
 }
 
 function _hideLogoSplash() {
   const s = document.getElementById('splashScreen');
-  if (s) { s.style.opacity = '0'; s.style.visibility = 'hidden'; s.style.pointerEvents = 'none'; }
+  if (!s) return;
+  s.style.transition = 'opacity .5s ease, visibility .5s ease';
+  s.style.opacity = '0';
+  s.style.visibility = 'hidden';
+  s.style.pointerEvents = 'none';
 }
 
 function _runLoadingSplash(onDone) {
@@ -1210,9 +1232,9 @@ function showLoginSplashSequence(userName) {
         _hideLogoSplash();
         setTimeout(() => {
           _runLoadingSplash(() => revealNav());
-        }, 400);
+        }, 100); // was 400ms — guard now covers the gap either way
       }, 3000);
-    }, 400);
+    }, 100); // was 400ms
   }, 3000);
 }
 
@@ -1240,9 +1262,9 @@ function showNewAccountSplashSequence(userName) {
         _hideLogoSplash();
         setTimeout(() => {
           _runLoadingSplash(() => revealNav());
-        }, 400);
+        }, 100); // was 400ms
       }, 3000);
-    }, 400);
+    }, 100); // was 400ms
   }, 3000);
 }
 
@@ -1261,10 +1283,22 @@ function showLoadingSplash() {
   }, delay);
 }
 
+let _authInitialized = false;
 fbAuth.onAuthStateChanged(user => {
   if (user) {
     currentUser = user;
     localStorage.setItem('bl_last_uid', user.uid); // marks "this device has a real session" for the retry check below
+
+    // Firebase fires this listener more than once per session (an initial
+    // cached firing, then again once the token is confirmed/refreshed with
+    // the server, and again on later silent refreshes). Only the FIRST
+    // firing should run the splash sequence and reload everything — later
+    // firings for the same session used to re-hide the nav and restart the
+    // loading splash mid-browsing, which is exactly why the nav bar was
+    // "disappearing sometimes" and the app appeared to misbehave.
+    if (_authInitialized) return;
+    _authInitialized = true;
+
     hideGatekeeper();
     showLoadingSplash();
     loadUserProfile(user.uid);
@@ -1294,6 +1328,7 @@ fbAuth.onAuthStateChanged(user => {
           // Still genuinely signed out after the grace window — show gatekeeper for real
           localStorage.removeItem('bl_last_uid');
           currentUser = null;
+          _authInitialized = false;
           const gk = document.getElementById('gatekeeper');
           gk.style.transition = 'none';
           gk.style.display = 'flex';
@@ -1306,6 +1341,7 @@ fbAuth.onAuthStateChanged(user => {
       return;
     }
     currentUser = null;
+    _authInitialized = false;
     const gk = document.getElementById('gatekeeper');
     gk.style.transition = 'none';
     gk.style.display = 'flex';
@@ -1565,6 +1601,7 @@ function revealNav() {
   if (nav && !nav.classList.contains('nav-ready')) {
     nav.classList.add('nav-ready');
   }
+  hideSplashGuard(); // app is fully ready; remove the safety cover
 }
 
 function dismissLoadingSplash() {
@@ -1828,16 +1865,22 @@ async function loadUserProfile(uid) {
     document.getElementById('profileStoryPhoto').style.display = 'block';
     document.getElementById('profileStoryDefault').style.display = 'none';
   }
-  // Check VIP — first check stored flag, then fallback to phone lookup
-  if (p.isVip) {
-    document.getElementById('profileContainer').classList.add('is-vip');
-  } else if (p.mobile) {
+  // VIP status — re-checked fresh every load so a revoked VIP correctly
+  // loses the badge/styling instead of keeping it forever. The old version
+  // of this only ever ADDED the "vip" look and never removed it, which is
+  // exactly why a removed client's profile kept looking like a VIP's.
+  const profileEl = document.getElementById('profileContainer');
+  let vipConfirmed = false;
+  if (p.mobile) {
     const phone = p.mobile.replace(/\D/g,'').slice(-10);
     const vSnap = await fbDb.ref('vip/' + phone).get();
-    if (vSnap.exists()) {
-      document.getElementById('profileContainer').classList.add('is-vip');
-      fbDb.ref('userProfiles/' + uid).update({ isVip: true });
-    }
+    vipConfirmed = vSnap.exists();
+  }
+  profileEl.classList.toggle('is-vip', vipConfirmed);
+  if (vipConfirmed !== !!p.isVip) {
+    // Keep the stored flag in sync with reality either direction —
+    // newly VIP, or no longer VIP.
+    fbDb.ref('userProfiles/' + uid + '/isVip').set(vipConfirmed);
   }
   updatePortfolioDashCount();
   } catch(e) { console.error('loadUserProfile:', e); }
@@ -2111,10 +2154,12 @@ async function loadHomeFeed() {
 
 function initCarousels() {
   document.querySelectorAll('.feed-carousel').forEach(car => {
+    if (car.dataset.carouselInit === '1') return; // avoid double-binding if called more than once while this element is still in the DOM
     const id = car.id.replace('car_','');
     const track = document.getElementById('track_' + id);
     const dots  = car.querySelectorAll('.feed-carousel-dot');
     if (!track || dots.length < 2) return;
+    car.dataset.carouselInit = '1';
     let cur = 0;
     const goTo = (n) => {
       cur = Math.max(0, Math.min(n, dots.length - 1));
@@ -2166,7 +2211,7 @@ function buildFeedItem(p) {
     +   '<div class="feed-header-info"><span class="feed-header-name">The Billy Living</span>' + headerLocHtml + '</div>'
     +   '<button class="feed-header-more" onclick="openShareSheetNoCount(_postsMap[\'' + id + '\'])">···</button>'
     + '</div>'
-    + '<div class="feed-image"><div class="tap-pause-overlay" onclick="tapToToggleMedia(this)"><div class="tap-pause-icon"></div></div>' + mediaHtml + '</div>'
+    + '<div class="feed-image"><div class="tap-pause-overlay" onclick="handleFeedImageTap(this, event, \'' + id + '\')"><div class="tap-pause-icon"></div><div class="dt-heart">❤️</div></div>' + mediaHtml + '</div>'
     + '<div class="feed-actions">'
     +   '<button class="feed-action-btn" onclick="toggleLike(this,\'' + id + '\',\'posts\')">'
     +     '<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>'
@@ -2342,10 +2387,20 @@ async function toggleLike(btn, id, collection) {
     console.error('toggleLike:', e);
     // Roll back the optimistic toggle so the heart reflects what actually saved
     btn.classList.toggle('liked');
-    showToast('Could not save — check your connection');
+    showLikeErrorToast(e);
   } finally {
     btn._busy = false;
   }
+}
+// Shows the actual Firebase error instead of a generic message — tap to see
+// slightly more detail. "permission-denied" specifically means the database
+// rules haven't been updated to let clients write likes/shares.
+function showLikeErrorToast(e) {
+  const code = (e && e.code) || 'unknown';
+  const detail = code === 'PERMISSION_DENIED' || code === 'permission-denied'
+    ? 'permission-denied — the server is rejecting this save'
+    : code;
+  showToast('Could not save (' + detail + ')');
 }
 
 // ─── FAVORITES → PORTFOLIO SYNC ───────────────────────────────────────────────
@@ -2548,6 +2603,32 @@ function _initTrendingObservers(container) {
   });
 }
 
+// Double-tap the image to like (Instagram-style) — single tap still falls
+// through to the normal play/pause behavior for video posts.
+function handleFeedImageTap(el, event, postId) {
+  const now = Date.now();
+  const last = el._lastTapTime || 0;
+  el._lastTapTime = now;
+  if (now - last < 300) {
+    // Double tap — like it (never unlike from a double-tap) and pop the heart
+    clearTimeout(el._singleTapTimer);
+    const item = el.closest('.feed-item');
+    const likeBtn = item && item.querySelector('.feed-action-btn[onclick*="toggleLike"]');
+    if (likeBtn && !likeBtn.classList.contains('liked')) {
+      toggleLike(likeBtn, postId, 'posts');
+    }
+    const heart = el.querySelector('.dt-heart');
+    if (heart) {
+      heart.classList.remove('pop');
+      void heart.offsetWidth; // restart animation
+      heart.classList.add('pop');
+    }
+    return;
+  }
+  // Wait briefly to see if a second tap follows before treating as single-tap
+  el._singleTapTimer = setTimeout(() => { tapToToggleMedia(el); }, 300);
+}
+
 function tapToToggleMedia(el) {
   // Find video or audio in this post
   const item = el.closest('.tiktok-item') || el.closest('.feed-item');
@@ -2709,7 +2790,7 @@ async function toggleTikTokLike(btn, id) {
   } catch(e) {
     console.error('toggleTikTokLike:', e);
     btn.classList.toggle('liked');
-    showToast('Could not save — check your connection');
+    showLikeErrorToast(e);
   } finally {
     btn._busy = false;
   }
@@ -4701,5 +4782,6 @@ function addManualRefreshButton() {
 setTimeout(addManualRefreshButton, 3000);
 </script>
 <div id="vaultGlint"></div>
+<div id="splashGuard" style="position:fixed;inset:0;background:#120D06;z-index:99998;opacity:0;visibility:hidden;transition:opacity .5s ease,visibility .5s ease;pointer-events:none;"></div>
 </body>
 </html>
