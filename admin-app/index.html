@@ -1907,10 +1907,12 @@
                     <div class="vm-client-av" id="vmPOVAv" style="width:40px;height:40px;font-size:15px;">?</div>
                     <div><div style="font-size:15px;font-weight:600;color:var(--vault-text);" id="vmPOVName">Client</div><div style="font-size:11px;color:rgba(212,175,55,0.35);letter-spacing:1px;" id="vmPOVSub">0 vault items</div></div>
                     <button class="vm-pov-sync" onclick="event.stopPropagation(); vmSyncDefaults(); return false;">↓ SYNC DEFAULTS</button>
-                    <div style="position:relative;" id="vmDotsWrap" class="designer-only-gated">
+                    <div style="position:relative;" id="vmDotsWrap">
                         <button onclick="event.stopPropagation(); vmToggleDotsMenu(); return false;" style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.2);color:var(--vault-gold);width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;margin-left:8px;">⋮</button>
-                        <div id="vmDotsMenu" style="display:none;position:absolute;top:44px;right:0;background:#1a1408;border:1px solid rgba(212,175,55,0.25);border-radius:10px;overflow:hidden;min-width:160px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.5);">
-                            <button onclick="event.stopPropagation(); vmToggleDotsMenu(); vmOpenGrantAccessModal(); return false;" style="display:block;width:100%;text-align:left;padding:12px 16px;background:none;border:none;color:var(--vault-text);font-size:13px;cursor:pointer;font-family:inherit;">🔑 Grant Access</button>
+                        <div id="vmDotsMenu" style="display:none;position:absolute;top:44px;right:0;background:#1a1408;border:1px solid rgba(212,175,55,0.25);border-radius:10px;overflow:hidden;min-width:180px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.5);">
+                            <button class="designer-only-gated" onclick="event.stopPropagation(); vmToggleDotsMenu(); vmOpenGrantAccessModal(); return false;" style="display:block;width:100%;text-align:left;padding:12px 16px;background:none;border:none;color:var(--vault-text);font-size:13px;cursor:pointer;font-family:inherit;">🔑 Grant Access</button>
+                            <button onclick="event.stopPropagation(); vmToggleDotsMenu(); vmOpenMySpaceModal(); return false;" style="display:block;width:100%;text-align:left;padding:12px 16px;background:none;border:none;color:var(--vault-text);font-size:13px;cursor:pointer;font-family:inherit;border-top:1px solid rgba(212,175,55,0.1);">🏠 Manage My Space</button>
+                            <button onclick="event.stopPropagation(); vmToggleDotsMenu(); vmOpenAtelierModal(); return false;" style="display:block;width:100%;text-align:left;padding:12px 16px;background:none;border:none;color:var(--vault-text);font-size:13px;cursor:pointer;font-family:inherit;border-top:1px solid rgba(212,175,55,0.1);">🏛️ Manage Atelier</button>
                         </div>
                     </div>
                 </div>
@@ -1993,7 +1995,50 @@
             </div>
         </div>
 
-        <!-- Settings Panel -->
+        <!-- My Space Modal — renders / sourcing guide / finish schedule, per project -->
+        <div id="vmMySpaceModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:5010;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
+            <div style="background:#0A0700;border:1px solid rgba(212,175,55,0.25);border-radius:16px;width:100%;max-width:480px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+                <div style="padding:20px 24px 16px;border-bottom:1px solid rgba(212,175,55,0.1);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                    <div>
+                        <div style="font-size:10px;letter-spacing:3px;color:rgba(212,175,55,0.5);margin-bottom:4px;">MY SPACE</div>
+                        <div id="vmMySpaceClientName" style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--vault-text);"></div>
+                    </div>
+                    <button onclick="vmCloseMySpaceModal()" style="background:none;border:none;color:rgba(212,175,55,0.5);font-size:26px;cursor:pointer;line-height:1;padding:4px;">×</button>
+                </div>
+                <div style="padding:14px 24px 0;flex-shrink:0;">
+                    <select id="vmMySpaceProjectSelect" onchange="vmMySpaceSwitchProject(this.value)" style="width:100%;padding:10px 12px;background:#150F06;border:1px solid rgba(212,175,55,0.25);border-radius:8px;color:var(--vault-text);font-size:13px;"></select>
+                    <div style="display:flex;gap:8px;margin-top:12px;">
+                        <button class="ms-admin-tab active" data-tab="renders" onclick="vmMySpaceSwitchTab(this,'renders')" style="flex:1;padding:8px 0;border-radius:8px;border:1px solid rgba(212,175,55,.3);background:rgba(212,175,55,.15);color:var(--vault-gold);font-size:11px;cursor:pointer;">Renders</button>
+                        <button class="ms-admin-tab" data-tab="sourcing" onclick="vmMySpaceSwitchTab(this,'sourcing')" style="flex:1;padding:8px 0;border-radius:8px;border:1px solid rgba(212,175,55,.2);background:none;color:rgba(212,175,55,.5);font-size:11px;cursor:pointer;">Sourcing</button>
+                        <button class="ms-admin-tab" data-tab="finish" onclick="vmMySpaceSwitchTab(this,'finish')" style="flex:1;padding:8px 0;border-radius:8px;border:1px solid rgba(212,175,55,.2);background:none;color:rgba(212,175,55,.5);font-size:11px;cursor:pointer;">Finish</button>
+                    </div>
+                </div>
+                <div id="vmMySpaceBody" style="overflow-y:auto;flex:1;padding:16px 24px 20px;"></div>
+            </div>
+        </div>
+
+        <!-- Atelier Modal — trade pricing / early access / artisans, per client -->
+        <div id="vmAtelierModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:5010;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
+            <div style="background:#0A0700;border:1px solid rgba(212,175,55,0.25);border-radius:16px;width:100%;max-width:480px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+                <div style="padding:20px 24px 16px;border-bottom:1px solid rgba(212,175,55,0.1);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                    <div>
+                        <div style="font-size:10px;letter-spacing:3px;color:rgba(212,175,55,0.5);margin-bottom:4px;">THE ATELIER</div>
+                        <div id="vmAtelierClientName" style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--vault-text);"></div>
+                    </div>
+                    <button onclick="vmCloseAtelierModal()" style="background:none;border:none;color:rgba(212,175,55,0.5);font-size:26px;cursor:pointer;line-height:1;padding:4px;">×</button>
+                </div>
+                <div style="padding:14px 24px 0;flex-shrink:0;">
+                    <div style="display:flex;gap:8px;">
+                        <button class="at-admin-tab active" data-tab="pricing" onclick="vmAtelierSwitchTab(this,'pricing')" style="flex:1;padding:8px 0;border-radius:8px;border:1px solid rgba(212,175,55,.3);background:rgba(212,175,55,.15);color:var(--vault-gold);font-size:11px;cursor:pointer;">Pricing</button>
+                        <button class="at-admin-tab" data-tab="early" onclick="vmAtelierSwitchTab(this,'early')" style="flex:1;padding:8px 0;border-radius:8px;border:1px solid rgba(212,175,55,.2);background:none;color:rgba(212,175,55,.5);font-size:11px;cursor:pointer;">Early Access</button>
+                        <button class="at-admin-tab" data-tab="artisans" onclick="vmAtelierSwitchTab(this,'artisans')" style="flex:1;padding:8px 0;border-radius:8px;border:1px solid rgba(212,175,55,.2);background:none;color:rgba(212,175,55,.5);font-size:11px;cursor:pointer;">Artisans</button>
+                    </div>
+                </div>
+                <div id="vmAtelierBody" style="overflow-y:auto;flex:1;padding:16px 24px 20px;"></div>
+            </div>
+        </div>
+
+
         <div class="panel" id="panel-settings">
             <div class="page-header"><h1 class="page-title">Settings</h1></div>
             <div class="form-container" style="max-width:600px;">
@@ -3125,6 +3170,258 @@
             adminFbDB.ref().update(updates).then(() => {
                 showToast(granted ? '✓ Access granted' : 'Access removed');
             }).catch(e => { showToast('Error: ' + e.message); renderGrantDesignerList(); });
+        }
+
+        // ── MY SPACE MANAGEMENT (admin) ─────────────────────────────────────────
+        // Writes into vault/clients/{uid}/projects/{projectId}/{renders|sourcingGuide|finishSchedule}
+        // — the exact paths the client app's "My Space" section reads from.
+        let _msAdminProjectId = null;
+        let _msAdminTab = 'renders';
+        function vmOpenMySpaceModal() {
+            if (!vmCurrentClientUID) { showToast('Open a client first'); return; }
+            document.getElementById('vmMySpaceClientName').textContent = document.getElementById('vmPOVName').textContent || 'Client';
+            document.getElementById('vmMySpaceModal').style.display = 'flex';
+            const sel = document.getElementById('vmMySpaceProjectSelect');
+            sel.innerHTML = '<option>Loading projects…</option>';
+            adminFbDB.ref('timelines/' + vmCurrentClientUID + '/projects').once('value').then(snap => {
+                const projects = snap.val() ? Object.entries(snap.val()) : [];
+                if (!projects.length) {
+                    sel.innerHTML = '<option value="">No projects yet — create one first</option>';
+                    document.getElementById('vmMySpaceBody').innerHTML = '<div style="text-align:center;padding:30px;color:rgba(212,175,55,.4);font-size:13px;">This client has no projects yet. Create one via Progress Tracker first.</div>';
+                    return;
+                }
+                sel.innerHTML = projects.map(([id,p]) => '<option value="'+id+'">'+(p.name||'Project')+'</option>').join('');
+                _msAdminProjectId = projects[0][0];
+                vmRenderMySpaceTab();
+            }).catch(e => showToast('Error: ' + e.message));
+        }
+        function vmCloseMySpaceModal() { document.getElementById('vmMySpaceModal').style.display = 'none'; }
+        function vmMySpaceSwitchProject(projectId) { _msAdminProjectId = projectId; vmRenderMySpaceTab(); }
+        function vmMySpaceSwitchTab(btn, tab) {
+            btn.parentElement.querySelectorAll('.ms-admin-tab').forEach(t => {
+                t.classList.remove('active'); t.style.background='none'; t.style.color='rgba(212,175,55,.5)'; t.style.borderColor='rgba(212,175,55,.2)';
+            });
+            btn.classList.add('active'); btn.style.background='rgba(212,175,55,.15)'; btn.style.color='var(--vault-gold)'; btn.style.borderColor='rgba(212,175,55,.3)';
+            _msAdminTab = tab;
+            vmRenderMySpaceTab();
+        }
+        function vmRenderMySpaceTab() {
+            const body = document.getElementById('vmMySpaceBody');
+            if (!_msAdminProjectId) { body.innerHTML = ''; return; }
+            const basePath = 'vault/clients/' + vmCurrentClientUID + '/projects/' + _msAdminProjectId;
+            if (_msAdminTab === 'renders') {
+                body.innerHTML = `
+                    <div style="display:flex;gap:8px;margin-bottom:14px;">
+                        <select id="msRenderType" style="flex:1;padding:8px;background:#150F06;border:1px solid rgba(212,175,55,.25);border-radius:6px;color:var(--vault-text);font-size:12px;">
+                            <option value="concept">Concept</option><option value="final_approved">Final Approved</option><option value="as_built">As Built</option>
+                        </select>
+                    </div>
+                    <input type="file" id="msRenderFile" accept="image/*" style="display:none" onchange="vmMySpaceAddRender()">
+                    <button onclick="document.getElementById('msRenderFile').click()" style="width:100%;padding:12px;background:rgba(212,175,55,.12);border:1px dashed rgba(212,175,55,.35);border-radius:8px;color:var(--vault-gold);font-size:12px;cursor:pointer;margin-bottom:16px;">+ Upload Render Image</button>
+                    <div id="msRenderList"></div>`;
+                vmMySpaceRenderList('renders', (item, id) =>
+                    `<div style="display:flex;gap:10px;align-items:center;padding:10px;background:#150F06;border:1px solid rgba(212,175,55,.12);border-radius:8px;margin-bottom:8px;">
+                        <img src="${item.url||''}" style="width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0;">
+                        <div style="flex:1;font-size:12px;color:var(--vault-text);">${(item.type||'render').replace('_',' ')}</div>
+                        <button onclick="vmMySpaceDeleteItem('renders','${id}')" style="background:none;border:none;color:#e74c3c;font-size:16px;cursor:pointer;">×</button>
+                    </div>`, 'msRenderList');
+            } else if (_msAdminTab === 'sourcing') {
+                body.innerHTML = `
+                    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+                        <input id="msSrcName" placeholder="Item name" style="padding:8px;background:#150F06;border:1px solid rgba(212,175,55,.25);border-radius:6px;color:var(--vault-text);font-size:12px;">
+                        <div style="display:flex;gap:8px;"><input id="msSrcRoom" placeholder="Room" style="flex:1;padding:8px;background:#150F06;border:1px solid rgba(212,175,55,.25);border-radius:6px;color:var(--vault-text);font-size:12px;"><input id="msSrcVendor" placeholder="Vendor" style="flex:1;padding:8px;background:#150F06;border:1px solid rgba(212,175,55,.25);border-radius:6px;color:var(--vault-text);font-size:12px;"></div>
+                        <div style="display:flex;gap:8px;"><input id="msSrcContact" placeholder="Contact (WhatsApp number)" style="flex:1;padding:8px;background:#150F06;border:1px solid rgba(212,175,55,.25);border-radius:6px;color:var(--vault-text);font-size:12px;"><input id="msSrcPrice" placeholder="Price (₦)" type="number" style="width:100px;padding:8px;background:#150F06;border:1px solid rgba(212,175,55,.25);border-radius:6px;color:var(--vault-text);font-size:12px;"></div>
+                        <input id="msSrcWarranty" placeholder="Warranty (months, optional)" type="number" style="padding:8px;background:#150F06;border:1px solid rgba(212,175,55,.25);border-radius:6px;color:var(--vault-text);font-size:12px;">
+                        <button onclick="vmMySpaceAddSourcing()" style="padding:10px;background:var(--vault-gold);border:none;border-radius:8px;color:#0A0700;font-weight:700;font-size:12px;cursor:pointer;">+ Add Item</button>
+                    </div>
+                    <div id="msSourcingList"></div>`;
+                vmMySpaceRenderList('sourcingGuide', (item, id) =>
+                    `<div style="padding:10px;background:#150F06;border:1px solid rgba(212,175,55,.12);border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                        <div><div style="font-size:13px;color:var(--vault-text);">${item.name||''}</div><div style="font-size:10px;color:rgba(212,175,55,.4);">${item.room||''}${item.vendor?' · '+item.vendor:''}</div></div>
+                        <button onclick="vmMySpaceDeleteItem('sourcingGuide','${id}')" style="background:none;border:none;color:#e74c3c;font-size:16px;cursor:pointer;">×</button>
+                    </div>`, 'msSourcingList');
+            } else if (_msAdminTab === 'finish') {
+                body.innerHTML = `
+                    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+                        <div style="display:flex;gap:8px;"><input id="msFinRoom" placeholder="Room" style="flex:1;padding:8px;background:#150F06;border:1px solid rgba(212,175,55,.25);border-radius:6px;color:var(--vault-text);font-size:12px;"><input id="msFinCategory" placeholder="Category (paint/tile/wood/fabric)" style="flex:1;padding:8px;background:#150F06;border:1px solid rgba(212,175,55,.25);border-radius:6px;color:var(--vault-text);font-size:12px;"></div>
+                        <div style="display:flex;gap:8px;"><input id="msFinBrand" placeholder="Brand" style="flex:1;padding:8px;background:#150F06;border:1px solid rgba(212,175,55,.25);border-radius:6px;color:var(--vault-text);font-size:12px;"><input id="msFinCode" placeholder="Code" style="flex:1;padding:8px;background:#150F06;border:1px solid rgba(212,175,55,.25);border-radius:6px;color:var(--vault-text);font-size:12px;"></div>
+                        <input id="msFinSupplier" placeholder="Supplier / carpenter / mill" style="padding:8px;background:#150F06;border:1px solid rgba(212,175,55,.25);border-radius:6px;color:var(--vault-text);font-size:12px;">
+                        <button onclick="vmMySpaceAddFinish()" style="padding:10px;background:var(--vault-gold);border:none;border-radius:8px;color:#0A0700;font-weight:700;font-size:12px;cursor:pointer;">+ Add Entry</button>
+                    </div>
+                    <div id="msFinishList"></div>`;
+                vmMySpaceRenderList('finishSchedule', (item, id) =>
+                    `<div style="padding:10px;background:#150F06;border:1px solid rgba(212,175,55,.12);border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                        <div><div style="font-size:13px;color:var(--vault-text);">${item.room||''} · ${item.category||''}</div><div style="font-size:10px;color:rgba(212,175,55,.4);">${item.brand||''} ${item.code||''}</div></div>
+                        <button onclick="vmMySpaceDeleteItem('finishSchedule','${id}')" style="background:none;border:none;color:#e74c3c;font-size:16px;cursor:pointer;">×</button>
+                    </div>`, 'msFinishList');
+            }
+        }
+        function vmMySpaceRenderList(field, rowFn, listElId) {
+            const listEl = document.getElementById(listElId);
+            listEl.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(212,175,55,.3);font-size:12px;">Loading…</div>';
+            adminFbDB.ref('vault/clients/' + vmCurrentClientUID + '/projects/' + _msAdminProjectId + '/' + field).once('value').then(snap => {
+                const items = snap.val() || {};
+                const keys = Object.keys(items);
+                if (!keys.length) { listEl.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(212,175,55,.3);font-size:12px;">Nothing added yet</div>'; return; }
+                listEl.innerHTML = keys.map(id => rowFn(items[id], id)).join('');
+            }).catch(() => { listEl.innerHTML = '<div style="text-align:center;padding:16px;color:#e74c3c;font-size:12px;">Error loading</div>'; });
+        }
+        function vmMySpaceAddRender() {
+            const file = document.getElementById('msRenderFile').files[0];
+            if (!file || !_msAdminProjectId) return;
+            const type = document.getElementById('msRenderType').value;
+            showToast('Uploading…');
+            _compressImageFile(file, 1200, 0.82).then(dataUrl => {
+                const id = 'r_' + Date.now();
+                return adminFbDB.ref('vault/clients/' + vmCurrentClientUID + '/projects/' + _msAdminProjectId + '/renders/' + id).set({ type, url: dataUrl, createdAt: Date.now() });
+            }).then(() => { showToast('✓ Render added'); vmRenderMySpaceTab(); }).catch(e => showToast('Error: ' + e.message));
+        }
+        function vmMySpaceAddSourcing() {
+            if (!_msAdminProjectId) return;
+            const name = document.getElementById('msSrcName').value.trim();
+            if (!name) { showToast('Enter an item name'); return; }
+            const data = {
+                name, room: document.getElementById('msSrcRoom').value.trim(),
+                vendor: document.getElementById('msSrcVendor').value.trim(),
+                contact: document.getElementById('msSrcContact').value.trim(),
+                price: parseInt(document.getElementById('msSrcPrice').value, 10) || 0,
+                warrantyMonths: parseInt(document.getElementById('msSrcWarranty').value, 10) || 0,
+                purchasedAt: Date.now()
+            };
+            const id = 'i_' + Date.now();
+            adminFbDB.ref('vault/clients/' + vmCurrentClientUID + '/projects/' + _msAdminProjectId + '/sourcingGuide/' + id).set(data)
+                .then(() => { showToast('✓ Item added'); vmRenderMySpaceTab(); }).catch(e => showToast('Error: ' + e.message));
+        }
+        function vmMySpaceAddFinish() {
+            if (!_msAdminProjectId) return;
+            const room = document.getElementById('msFinRoom').value.trim();
+            if (!room) { showToast('Enter a room'); return; }
+            const data = {
+                room, category: document.getElementById('msFinCategory').value.trim(),
+                brand: document.getElementById('msFinBrand').value.trim(),
+                code: document.getElementById('msFinCode').value.trim(),
+                supplier: document.getElementById('msFinSupplier').value.trim(),
+            };
+            const id = 'f_' + Date.now();
+            adminFbDB.ref('vault/clients/' + vmCurrentClientUID + '/projects/' + _msAdminProjectId + '/finishSchedule/' + id).set(data)
+                .then(() => { showToast('✓ Entry added'); vmRenderMySpaceTab(); }).catch(e => showToast('Error: ' + e.message));
+        }
+        function vmMySpaceDeleteItem(field, id) {
+            if (!confirm('Remove this item?')) return;
+            adminFbDB.ref('vault/clients/' + vmCurrentClientUID + '/projects/' + _msAdminProjectId + '/' + field + '/' + id).remove()
+                .then(() => vmRenderMySpaceTab()).catch(e => showToast('Error: ' + e.message));
+        }
+
+        // ── ATELIER MANAGEMENT (admin) ──────────────────────────────────────────
+        // Writes into vault/atelier/{uid}/{pricingSheets|earlyAccess|artisans}
+        let _atAdminTab = 'pricing';
+        function vmOpenAtelierModal() {
+            if (!vmCurrentClientUID) { showToast('Open a client first'); return; }
+            document.getElementById('vmAtelierClientName').textContent = document.getElementById('vmPOVName').textContent || 'Client';
+            document.getElementById('vmAtelierModal').style.display = 'flex';
+            vmRenderAtelierTab();
+        }
+        function vmCloseAtelierModal() { document.getElementById('vmAtelierModal').style.display = 'none'; }
+        function vmAtelierSwitchTab(btn, tab) {
+            btn.parentElement.querySelectorAll('.at-admin-tab').forEach(t => {
+                t.classList.remove('active'); t.style.background='none'; t.style.color='rgba(212,175,55,.5)'; t.style.borderColor='rgba(212,175,55,.2)';
+            });
+            btn.classList.add('active'); btn.style.background='rgba(212,175,55,.15)'; btn.style.color='var(--vault-gold)'; btn.style.borderColor='rgba(212,175,55,.3)';
+            _atAdminTab = tab;
+            vmRenderAtelierTab();
+        }
+        function vmRenderAtelierTab() {
+            const body = document.getElementById('vmAtelierBody');
+            const now = new Date();
+            const quarterKey = 'Q' + (Math.floor(now.getMonth()/3)+1) + '_' + now.getFullYear();
+            if (_atAdminTab === 'pricing') {
+                body.innerHTML = `
+                    <div style="font-size:11px;color:rgba(212,175,55,.5);margin-bottom:10px;">Adding to current sheet: ${quarterKey.replace('_',' ')}</div>
+                    <div style="display:flex;gap:8px;margin-bottom:14px;">
+                        <input id="atPriceCategory" placeholder="Category" style="flex:1;padding:8px;background:#150F06;border:1px solid rgba(212,175,55,.25);border-radius:6px;color:var(--vault-text);font-size:12px;">
+                        <input id="atPriceValue" placeholder="Client price (₦)" type="number" style="width:130px;padding:8px;background:#150F06;border:1px solid rgba(212,175,55,.25);border-radius:6px;color:var(--vault-text);font-size:12px;">
+                        <button onclick="vmAtelierAddPricing('${quarterKey}')" style="padding:0 14px;background:var(--vault-gold);border:none;border-radius:8px;color:#0A0700;font-weight:700;font-size:12px;cursor:pointer;">+</button>
+                    </div>
+                    <div id="atPricingList"></div>`;
+                adminFbDB.ref('vault/atelier/' + vmCurrentClientUID + '/pricingSheets/' + quarterKey).once('value').then(snap => {
+                    const d = snap.val() || {}; const items = d.items || [];
+                    const listEl = document.getElementById('atPricingList');
+                    listEl.innerHTML = items.length ? items.map((it,i) =>
+                        `<div style="display:flex;justify-content:space-between;padding:8px 10px;background:#150F06;border:1px solid rgba(212,175,55,.12);border-radius:8px;margin-bottom:6px;font-size:12px;"><span style="color:var(--vault-text);">${it.category}</span><span style="color:var(--vault-gold);">₦${it.clientPrice}</span></div>`
+                    ).join('') : '<div style="text-align:center;padding:16px;color:rgba(212,175,55,.3);font-size:12px;">Nothing added yet</div>';
+                }).catch(() => {});
+            } else if (_atAdminTab === 'early') {
+                body.innerHTML = `
+                    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+                        <input id="atEarlyName" placeholder="Collection name" style="padding:8px;background:#150F06;border:1px solid rgba(212,175,55,.25);border-radius:6px;color:var(--vault-text);font-size:12px;">
+                        <input id="atEarlyDate" type="date" style="padding:8px;background:#150F06;border:1px solid rgba(212,175,55,.25);border-radius:6px;color:var(--vault-text);font-size:12px;">
+                        <button onclick="vmAtelierAddEarly()" style="padding:10px;background:var(--vault-gold);border:none;border-radius:8px;color:#0A0700;font-weight:700;font-size:12px;cursor:pointer;">+ Add Collection</button>
+                    </div>
+                    <div id="atEarlyList"></div>`;
+                vmAtelierRenderList('earlyAccess', (item, id) =>
+                    `<div style="padding:10px;background:#150F06;border:1px solid rgba(212,175,55,.12);border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                        <div><div style="font-size:13px;color:var(--vault-text);">${item.name||''}</div><div style="font-size:10px;color:rgba(212,175,55,.4);">Public launch ${item.availableUntil?new Date(item.availableUntil).toLocaleDateString():'—'}</div></div>
+                        <button onclick="vmAtelierDeleteItem('earlyAccess','${id}')" style="background:none;border:none;color:#e74c3c;font-size:16px;cursor:pointer;">×</button>
+                    </div>`, 'atEarlyList');
+            } else if (_atAdminTab === 'artisans') {
+                body.innerHTML = `
+                    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+                        <input id="atArtName" placeholder="Artisan name" style="padding:8px;background:#150F06;border:1px solid rgba(212,175,55,.25);border-radius:6px;color:var(--vault-text);font-size:12px;">
+                        <div style="display:flex;gap:8px;"><input id="atArtSpecialty" placeholder="Specialty" style="flex:1;padding:8px;background:#150F06;border:1px solid rgba(212,175,55,.25);border-radius:6px;color:var(--vault-text);font-size:12px;"><input id="atArtLocation" placeholder="Location" style="flex:1;padding:8px;background:#150F06;border:1px solid rgba(212,175,55,.25);border-radius:6px;color:var(--vault-text);font-size:12px;"></div>
+                        <button onclick="vmAtelierAddArtisan()" style="padding:10px;background:var(--vault-gold);border:none;border-radius:8px;color:#0A0700;font-weight:700;font-size:12px;cursor:pointer;">+ Add Artisan</button>
+                    </div>
+                    <div id="atArtisanList"></div>`;
+                vmAtelierRenderList('artisans', (item, id) =>
+                    `<div style="padding:10px;background:#150F06;border:1px solid rgba(212,175,55,.12);border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                        <div><div style="font-size:13px;color:var(--vault-text);">${item.name||''}</div><div style="font-size:10px;color:rgba(212,175,55,.4);">${item.specialty||''}${item.location?' · '+item.location:''}</div></div>
+                        <button onclick="vmAtelierDeleteItem('artisans','${id}')" style="background:none;border:none;color:#e74c3c;font-size:16px;cursor:pointer;">×</button>
+                    </div>`, 'atArtisanList');
+            }
+        }
+        function vmAtelierRenderList(field, rowFn, listElId) {
+            const listEl = document.getElementById(listElId);
+            listEl.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(212,175,55,.3);font-size:12px;">Loading…</div>';
+            adminFbDB.ref('vault/atelier/' + vmCurrentClientUID + '/' + field).once('value').then(snap => {
+                const items = snap.val() || {};
+                const keys = Object.keys(items);
+                if (!keys.length) { listEl.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(212,175,55,.3);font-size:12px;">Nothing added yet</div>'; return; }
+                listEl.innerHTML = keys.map(id => rowFn(items[id], id)).join('');
+            }).catch(() => { listEl.innerHTML = '<div style="text-align:center;padding:16px;color:#e74c3c;font-size:12px;">Error loading</div>'; });
+        }
+        function vmAtelierAddPricing(quarterKey) {
+            const category = document.getElementById('atPriceCategory').value.trim();
+            const clientPrice = parseInt(document.getElementById('atPriceValue').value, 10) || 0;
+            if (!category) { showToast('Enter a category'); return; }
+            const ref = adminFbDB.ref('vault/atelier/' + vmCurrentClientUID + '/pricingSheets/' + quarterKey);
+            ref.once('value').then(snap => {
+                const d = snap.val() || { quarter: quarterKey.replace('_',' '), items: [] };
+                d.items = d.items || [];
+                d.items.push({ category, clientPrice });
+                return ref.set(d);
+            }).then(() => { showToast('✓ Added'); vmRenderAtelierTab(); }).catch(e => showToast('Error: ' + e.message));
+        }
+        function vmAtelierAddEarly() {
+            const name = document.getElementById('atEarlyName').value.trim();
+            if (!name) { showToast('Enter a collection name'); return; }
+            const dateVal = document.getElementById('atEarlyDate').value;
+            const id = 'e_' + Date.now();
+            adminFbDB.ref('vault/atelier/' + vmCurrentClientUID + '/earlyAccess/' + id).set({
+                name, availableUntil: dateVal ? new Date(dateVal).getTime() : null
+            }).then(() => { showToast('✓ Added'); vmRenderAtelierTab(); }).catch(e => showToast('Error: ' + e.message));
+        }
+        function vmAtelierAddArtisan() {
+            const name = document.getElementById('atArtName').value.trim();
+            if (!name) { showToast('Enter a name'); return; }
+            const id = 'a_' + Date.now();
+            adminFbDB.ref('vault/atelier/' + vmCurrentClientUID + '/artisans/' + id).set({
+                name, specialty: document.getElementById('atArtSpecialty').value.trim(),
+                location: document.getElementById('atArtLocation').value.trim()
+            }).then(() => { showToast('✓ Added'); vmRenderAtelierTab(); }).catch(e => showToast('Error: ' + e.message));
+        }
+        function vmAtelierDeleteItem(field, id) {
+            if (!confirm('Remove this item?')) return;
+            adminFbDB.ref('vault/atelier/' + vmCurrentClientUID + '/' + field + '/' + id).remove()
+                .then(() => vmRenderAtelierTab()).catch(e => showToast('Error: ' + e.message));
         }
 
         function vmSyncDefaults() {
