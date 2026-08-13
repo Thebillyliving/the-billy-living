@@ -223,6 +223,8 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .vault-locked-anchor{display:flex;align-items:flex-start;gap:10px;text-align:left;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.18);border-radius:10px;padding:14px 16px;font-family:'Jost',sans-serif;font-size:12px;line-height:1.7;color:rgba(230,225,215,.8);letter-spacing:.2px}
 .vault-locked-anchor strong{color:var(--gold);font-weight:600}
 .vault-locked-anchor-icon{color:var(--gold);flex-shrink:0;margin-top:1px}
+.vault-locked-teaser-labels{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%;margin-top:-16px;margin-bottom:18px}
+.vault-locked-teaser-labels span{font-family:'Jost',sans-serif;font-size:8px;line-height:1.3;color:rgba(201,168,76,.55);text-align:center;display:block}
 .vault-locked-concierge{margin-top:14px;background:none;border:none;color:rgba(201,168,76,.55);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .vault-logo{width:100px;height:100px;background:linear-gradient(135deg,var(--gold),#B8860B);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:32px;box-shadow:0 20px 60px rgba(201,169,98,.3)}
 .vault-title{font-family:'Cormorant Garamond',serif;font-size:36px;color:var(--gold);margin-bottom:8px;text-align:center}
@@ -526,6 +528,105 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .ls-dot:nth-child(1){animation:lsDotPulse 1.4s ease-in-out infinite 0s}
 .ls-dot:nth-child(2){animation:lsDotPulse 1.4s ease-in-out infinite .22s}
 .ls-dot:nth-child(3){animation:lsDotPulse 1.4s ease-in-out infinite .44s}
+/* ─── MODERN PROFILE ───────────────────────────────────────────────────────── */
+.profile-screen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;flex-direction:column;overflow-y:auto;scrollbar-width:none;padding-bottom:calc(var(--nav-height) + 20px);background:#0A0804}
+.profile-screen::-webkit-scrollbar{display:none}
+.profile-screen.active{display:flex;animation:fadeIn .35s ease}
+
+.profile-topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(201,168,76,.08);position:sticky;top:0;background:rgba(10,8,4,.92);backdrop-filter:blur(12px);z-index:10;flex-shrink:0}
+.profile-topbar-back{background:none;border:none;color:var(--gold);font-size:22px;cursor:pointer;line-height:1;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:10px;transition:background .2s}
+.profile-topbar-back:active{background:rgba(201,168,76,.08)}
+.profile-topbar-title{font-family:'Jost',sans-serif;font-size:10px;letter-spacing:4px;color:rgba(201,168,76,.45);text-transform:uppercase}
+.profile-topbar-settings{background:none;border:none;color:rgba(201,168,76,.55);cursor:pointer;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:10px;transition:all .2s}
+.profile-topbar-settings svg{width:22px;height:22px}
+.profile-topbar-settings:active{background:rgba(201,168,76,.08);color:var(--gold)}
+
+.profile-hero{display:flex;flex-direction:column;align-items:center;padding:32px 20px 24px}
+.profile-ornament{font-family:'Cormorant Garamond',serif;font-size:10px;letter-spacing:5px;color:rgba(201,168,76,.3);text-transform:uppercase;margin-bottom:18px}
+
+.profile-avatar-ring{width:110px;height:110px;border-radius:50%;padding:4px;background:linear-gradient(135deg,var(--gold),#8B6914,#C9A84C);position:relative;cursor:pointer;flex-shrink:0;box-shadow:0 8px 32px rgba(201,168,76,.15)}
+.profile-container.is-vip .profile-avatar-ring{background:linear-gradient(135deg,#E8D5A3,var(--gold),#B8860B,#E8D5A3);box-shadow:0 8px 40px rgba(201,168,76,.35)}
+.profile-avatar-ring::before{content:'';position:absolute;inset:4px;border-radius:50%;background:#0A0804;z-index:0}
+.profile-avatar-placeholder{width:100%;height:100%;border-radius:50%;background:#130E06;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;position:relative;z-index:1}
+.profile-avatar-placeholder svg{width:68%;height:80%}
+.profile-avatar-img{position:absolute;inset:4px;width:calc(100% - 8px);height:calc(100% - 8px);border-radius:50%;object-fit:cover;display:block;z-index:2}
+.profile-avatar-camera{position:absolute;bottom:2px;right:2px;width:28px;height:28px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #0A0804;z-index:3;cursor:pointer;transition:transform .2s,background .2s}
+.profile-avatar-camera:active{transform:scale(.9)}
+.profile-avatar-camera svg{width:13px;height:13px;stroke:#0A0804;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.profile-avatar-uploading{position:absolute;inset:4px;border-radius:50%;background:rgba(10,8,4,.72);display:flex;align-items:center;justify-content:center;z-index:4}
+
+.profile-name-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:18px;position:relative;width:100%}
+.profile-client-name{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--gold);letter-spacing:.5px;text-align:center;background:transparent;border:none;outline:none;width:260px;-webkit-user-select:text;user-select:text;-webkit-text-fill-color:var(--gold)!important;caret-color:var(--gold);padding:4px 0}
+.profile-client-name::placeholder{color:rgba(201,168,76,.3)}
+.profile-client-name:focus{border-bottom:1px solid rgba(201,168,76,.2)}
+
+.profile-standard-tag{margin-top:6px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:3px;color:rgba(168,155,140,.4);text-transform:uppercase;transition:opacity .3s ease,max-height .3s ease;max-height:30px;overflow:hidden}
+.profile-container.is-vip .profile-standard-tag{opacity:0;max-height:0;margin:0}
+
+.profile-vip-badge{display:flex;flex-direction:column;align-items:center;margin-top:0;max-height:0;overflow:hidden;opacity:0;transition:max-height .45s ease,opacity .4s ease,margin-top .3s ease}
+.profile-container.is-vip .profile-vip-badge{max-height:100px;opacity:1;margin-top:14px}
+
+/* Stats bar replaces the old dashboard cards */
+.profile-stats-bar{display:flex;align-items:center;justify-content:center;gap:0;margin:24px 20px 0;padding:18px 0;background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.1);border-radius:16px}
+.profile-stat{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.profile-stat-value{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--gold);line-height:1}
+.profile-stat-label{font-family:'Jost',sans-serif;font-size:10px;letter-spacing:1.5px;color:rgba(168,155,140,.5);text-transform:uppercase}
+.profile-stat-divider{width:1px;height:36px;background:rgba(201,168,76,.12)}
+
+.profile-section-header{padding:28px 20px 10px;font-family:'Jost',sans-serif;font-size:9px;letter-spacing:4px;color:rgba(201,168,76,.35);text-transform:uppercase}
+
+.profile-fields{margin:0 20px;border:1px solid rgba(201,168,76,.08);border-radius:14px;overflow:hidden;background:#0C0A06}
+.profile-field-row{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid rgba(201,168,76,.06);position:relative;min-height:56px}
+.profile-field-row:last-child{border-bottom:none}
+.profile-field-icon{font-size:18px;width:24px;text-align:center;flex-shrink:0;opacity:.6}
+.profile-field-body{flex:1;display:flex;flex-direction:column;gap:2px}
+.profile-field-label{font-family:'Jost',sans-serif;font-size:9px;letter-spacing:2px;color:rgba(201,168,76,.5);text-transform:uppercase}
+.profile-field-input{flex:1;background:transparent;border:none;outline:none;color:var(--text-primary);font-family:'Jost',sans-serif;font-size:14px;font-weight:400;letter-spacing:.2px;padding:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;-webkit-user-select:text;user-select:text;-webkit-text-fill-color:var(--text-primary)!important;caret-color:var(--gold)}
+.profile-field-input::placeholder{color:rgba(168,155,140,.25)}
+.profile-field-input:focus{white-space:normal;color:var(--gold)}
+.profile-field-select{flex:1;background:transparent;border:none;outline:none;color:var(--text-primary);font-family:'Jost',sans-serif;font-size:14px;font-weight:400;letter-spacing:.2px;padding:0;appearance:none;-webkit-appearance:none;cursor:pointer;min-width:0}
+.profile-field-select option{background:#160F04;color:var(--text-primary)}
+
+.profile-actions{padding:24px 20px 0;display:flex;flex-direction:column;gap:12px}
+.profile-btn-primary{width:100%;padding:16px;background:linear-gradient(135deg,var(--gold),#B8860B);border:none;border-radius:12px;color:#0A0804;font-family:'Jost',sans-serif;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:opacity .2s,transform .15s,box-shadow .2s;box-shadow:0 4px 16px rgba(201,168,76,.15)}
+.profile-btn-primary:active{opacity:.9;transform:scale(.99)}
+.profile-btn-ghost{width:100%;padding:16px;background:transparent;border:1px solid rgba(201,168,76,.2);border-radius:12px;color:var(--gold);font-family:'Jost',sans-serif;font-size:12px;font-weight:400;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:background .2s,transform .15s}
+.profile-btn-ghost:active{background:rgba(201,168,76,.06);transform:scale(.99)}
+
+/* ─── SETTINGS SCREEN ────────────────────────────────────────────────────────── */
+.settings-screen{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:100001;flex-direction:column;overflow-y:auto;scrollbar-width:none;background:#0A0804}
+.settings-screen::-webkit-scrollbar{display:none}
+.settings-screen.active{display:flex;animation:fadeIn .3s ease}
+
+.settings-topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(201,168,76,.08);position:sticky;top:0;background:rgba(10,8,4,.92);backdrop-filter:blur(12px);z-index:10;flex-shrink:0}
+.settings-back{background:none;border:none;color:var(--gold);font-size:22px;cursor:pointer;line-height:1;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:10px;transition:background .2s}
+.settings-back:active{background:rgba(201,168,76,.08)}
+.settings-title{font-family:'Jost',sans-serif;font-size:10px;letter-spacing:4px;color:rgba(201,168,76,.45);text-transform:uppercase}
+.settings-spacer{width:40px}
+
+.settings-body{padding:8px 0 40px}
+
+.settings-group{margin:16px 20px 0}
+.settings-group-label{padding:0 4px 10px;font-family:'Jost',sans-serif;font-size:9px;letter-spacing:3px;color:rgba(201,168,76,.35);text-transform:uppercase}
+
+.settings-row{width:100%;display:flex;align-items:center;gap:14px;padding:14px 16px;background:#0C0A06;border:1px solid rgba(201,168,76,.08);border-bottom:none;text-align:left;cursor:pointer;transition:background .15s}
+.settings-row:first-child{border-radius:12px 12px 0 0}
+.settings-row:last-child{border-radius:0 0 12px 12px;border-bottom:1px solid rgba(201,168,76,.08)}
+.settings-row:only-child{border-radius:12px;border-bottom:1px solid rgba(201,168,76,.08)}
+.settings-row:active{background:rgba(201,168,76,.05)}
+.settings-row.danger .settings-row-label{color:#e74c3c}
+.settings-row.danger .settings-row-icon{color:#e74c3c;opacity:.8}
+
+.settings-row-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:rgba(201,168,76,.5);flex-shrink:0}
+.settings-row-icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.settings-row-label{flex:1;font-family:'Jost',sans-serif;font-size:14px;color:var(--text-primary);letter-spacing:.2px}
+.settings-row-chevron{color:rgba(201,168,76,.25);font-size:18px;flex-shrink:0}
+
+/* Toggle switch */
+.settings-toggle{width:44px;height:26px;border-radius:13px;background:rgba(255,255,255,.1);position:relative;flex-shrink:0;transition:background .25s ease;cursor:pointer;border:none;padding:0}
+.settings-toggle.active{background:var(--gold)}
+.settings-toggle-knob{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3);transition:transform .25s ease}
+.settings-toggle.active .settings-toggle-knob{transform:translateX(18px)}
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -598,6 +699,11 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 <div id="gatekeeper" class="hidden" style="display:none">
   <div class="gate-logo">THE BILLY LIVING</div>
   <div class="gate-tagline">Luxury Interiors · Lagos &amp; Abuja</div>
+  <div id="gateChecking" style="display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:40px 20px;text-align:center;min-height:240px;">
+    <div style="width:48px;height:48px;border-radius:50%;border:2px solid rgba(201,169,98,.15);border-top-color:var(--gold);animation:spin 1s linear infinite;"></div>
+    <div style="font-family:'Jost',sans-serif;font-size:11px;letter-spacing:3px;color:rgba(201,169,98,.5);text-transform:uppercase;">Restoring your session</div>
+    <div style="font-size:12px;color:rgba(255,255,255,.25);max-width:260px;line-height:1.6;">Please wait while we reconnect your account. This will only take a moment.</div>
+  </div>
   <div class="gate-panel" id="gateStep1">
     <div class="gate-tab-row">
       <button class="gate-tab active" onclick="switchGateTab('login', this)">Sign In</button>
@@ -682,27 +788,39 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 <!-- PROFILE SCREEN -->
 <div class="profile-screen" id="profileScreen">
   <div class="profile-container" id="profileContainer">
+
+    <!-- Top Bar -->
     <div class="profile-topbar">
       <button class="profile-topbar-back" onclick="closeProfile()">←</button>
       <span class="profile-topbar-title">My Profile</span>
-      <div class="profile-topbar-spacer"></div>
+      <button class="profile-topbar-settings" onclick="openSettings()" aria-label="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9h.09a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
     </div>
-    <div class="profile-identity">
+
+    <!-- Hero -->
+    <div class="profile-hero">
       <div class="profile-ornament">— Billy Living —</div>
       <div class="profile-avatar-ring" onclick="document.getElementById('avatarFileInput').click()">
         <div class="profile-avatar-placeholder" id="avatarPlaceholder">
           <svg viewBox="0 0 60 72" fill="none"><circle cx="30" cy="20" r="13" fill="rgba(201,168,76,0.18)" stroke="rgba(201,168,76,0.65)" stroke-width="1"/><path d="M4 70c0-14.36 11.64-26 26-26s26 11.64 26 26" fill="rgba(201,168,76,0.15)" stroke="rgba(201,168,76,0.65)" stroke-width="1"/></svg>
         </div>
         <img class="profile-avatar-img" id="profileAvatarImg" src="" alt="" style="display:none">
-        <div class="profile-avatar-camera"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
-        <div class="profile-avatar-uploading" id="avatarUploadingOverlay" style="display:none"><span class="btn-inline-spinner" style="width:22px;height:22px;border-width:2px;"></span></div>
+        <div class="profile-avatar-camera">
+          <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </div>
+        <div class="profile-avatar-uploading" id="avatarUploadingOverlay" style="display:none">
+          <span class="btn-inline-spinner" style="width:22px;height:22px;border-width:2px;"></span>
+        </div>
         <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
       </div>
+
       <div class="profile-name-row">
-        <input class="profile-client-name" type="text" placeholder="Enter Your Name" id="profileNameInput" oninput="onProfileChange()">
-        <span class="profile-name-pencil"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
+        <input class="profile-client-name" type="text" placeholder="Your Name" id="profileNameInput" oninput="onProfileChange()">
       </div>
+
       <span class="profile-standard-tag">Standard Access</span>
+
       <div class="profile-vip-badge">
         <div class="vip-badge-shield">
           <div class="vip-badge-line1">★ Billy Living VIP ★</div>
@@ -711,37 +829,162 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
         </div>
       </div>
     </div>
-    <div class="profile-dashboard">
-      <div class="dash-card"><div class="dash-card-eyebrow">Active Projects</div><div class="dash-card-value" id="dashProjectsCount">0</div><div class="dash-card-label" id="dashProjectsLabel">No active<br>projects</div></div>
-      <div class="dash-card"><div class="dash-card-eyebrow">Portfolio Saves</div><div class="dash-card-value" id="dashSavesCount">0</div><div class="dash-card-label">Catalog designs<br>saved</div></div>
+
+    <!-- Stats Bar -->
+    <div class="profile-stats-bar">
+      <div class="profile-stat">
+        <div class="profile-stat-value" id="dashProjectsCount">0</div>
+        <div class="profile-stat-label">Projects</div>
+      </div>
+      <div class="profile-stat-divider"></div>
+      <div class="profile-stat">
+        <div class="profile-stat-value" id="dashSavesCount">0</div>
+        <div class="profile-stat-label">Saves</div>
+      </div>
+      <div class="profile-stat-divider"></div>
+      <div class="profile-stat">
+        <div class="profile-stat-value" id="dashVipStatus">—</div>
+        <div class="profile-stat-label">Status</div>
+      </div>
     </div>
+
+    <!-- Details -->
     <div class="profile-section-header">Account Details</div>
     <div class="profile-fields">
       <div class="profile-field-row">
-        <span class="profile-field-label">Residence</span>
-        <input class="profile-field-input" id="profileResidenceInput" type="text" placeholder="Add your address" oninput="onProfileChange()">
-        <span class="profile-field-pencil"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
+        <span class="profile-field-icon">🏠</span>
+        <div class="profile-field-body">
+          <span class="profile-field-label">Residence</span>
+          <input class="profile-field-input" id="profileResidenceInput" type="text" placeholder="Add your address" oninput="onProfileChange()">
+        </div>
       </div>
       <div class="profile-field-row">
-        <span class="profile-field-label">Mobile</span>
-        <input class="profile-field-input" id="profileMobileInput" type="tel" placeholder="Add your number" oninput="onProfileChange()">
-        <span class="profile-field-pencil"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
+        <span class="profile-field-icon">📱</span>
+        <div class="profile-field-body">
+          <span class="profile-field-label">Mobile</span>
+          <input class="profile-field-input" id="profileMobileInput" type="tel" placeholder="Add your number" oninput="onProfileChange()">
+        </div>
       </div>
       <div class="profile-field-row">
-        <span class="profile-field-label">Measurement</span>
-        <select class="profile-field-select" id="profileMeasurementSelect" onchange="onProfileChange()">
-          <option value="" disabled selected>Select unit</option>
-          <option value="inches">Inches — US Standard</option>
-          <option value="cm">Centimeters</option>
-        </select>
-        <span class="profile-field-pencil"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+        <span class="profile-field-icon">📏</span>
+        <div class="profile-field-body">
+          <span class="profile-field-label">Measurement</span>
+          <select class="profile-field-select" id="profileMeasurementSelect" onchange="onProfileChange()">
+            <option value="" disabled selected>Select unit</option>
+            <option value="inches">Inches — US Standard</option>
+            <option value="cm">Centimeters</option>
+          </select>
+        </div>
       </div>
     </div>
+
+    <!-- Actions -->
     <div class="profile-actions">
-      <button class="profile-btn-primary" id="saveProfileBtn" onclick="saveProfileUpdates()" style="display:none">Save Profile Updates</button>
-      <!-- FIX 3: handleLogout now calls fbAuth.signOut() properly -->
-      <button class="profile-btn-text" onclick="handleLogout()">Log Out</button>
+      <button class="profile-btn-primary" id="saveProfileBtn" onclick="saveProfileUpdates()" style="display:none">Save Changes</button>
+      <button class="profile-btn-ghost" onclick="handleLogout()">Log Out</button>
     </div>
+
+    <div style="height:40px"></div>
+  </div>
+</div>
+
+<!-- SETTINGS SCREEN -->
+<div class="settings-screen" id="settingsScreen">
+  <div class="settings-topbar">
+    <button class="settings-back" onclick="closeSettings()">←</button>
+    <span class="settings-title">Settings</span>
+    <div class="settings-spacer"></div>
+  </div>
+
+  <div class="settings-body">
+    <!-- Account -->
+    <div class="settings-group">
+      <div class="settings-group-label">Account</div>
+      <button class="settings-row" onclick="openProfile(); closeSettings();">
+        <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+        <span class="settings-row-label">Edit Profile</span>
+        <span class="settings-row-chevron">›</span>
+      </button>
+      <button class="settings-row" onclick="showToast('Change password — contact Concierge')">
+        <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>
+        <span class="settings-row-label">Change Password</span>
+        <span class="settings-row-chevron">›</span>
+      </button>
+      <button class="settings-row" onclick="showToast('Email preferences coming soon')">
+        <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+        <span class="settings-row-label">Email &amp; Notifications</span>
+        <span class="settings-row-chevron">›</span>
+      </button>
+    </div>
+
+    <!-- Preferences -->
+    <div class="settings-group">
+      <div class="settings-group-label">Preferences</div>
+      <button class="settings-row" onclick="showToast('Notification settings coming soon')">
+        <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></span>
+        <span class="settings-row-label">Push Notifications</span>
+        <span class="settings-row-chevron">›</span>
+      </button>
+      <button class="settings-row" onclick="showToast('Units set in profile')">
+        <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+        <span class="settings-row-label">Measurement Units</span>
+        <span class="settings-row-chevron">›</span>
+      </button>
+      <button class="settings-row" onclick="toggleDarkModeSetting(this)">
+        <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
+        <span class="settings-row-label">Dark Mode</span>
+        <span class="settings-toggle active" id="darkModeToggle" onclick="event.stopPropagation();toggleDarkModeSetting(this.closest('.settings-row'))"><span class="settings-toggle-knob"></span></span>
+      </button>
+    </div>
+
+    <!-- Support -->
+    <div class="settings-group">
+      <div class="settings-group-label">Support</div>
+      <button class="settings-row" onclick="closeSettings(); showPage('concierge');">
+        <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span>
+        <span class="settings-row-label">Concierge Support</span>
+        <span class="settings-row-chevron">›</span>
+      </button>
+      <button class="settings-row" onclick="window.open('https://wa.me/' + CONFIG.WHATSAPP_NUMBER, '_blank')">
+        <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg></span>
+        <span class="settings-row-label">WhatsApp Support</span>
+        <span class="settings-row-chevron">›</span>
+      </button>
+      <button class="settings-row" onclick="showToast('FAQ coming soon')">
+        <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+        <span class="settings-row-label">Help Center</span>
+        <span class="settings-row-chevron">›</span>
+      </button>
+    </div>
+
+    <!-- Legal -->
+    <div class="settings-group">
+      <div class="settings-group-label">Legal</div>
+      <button class="settings-row" onclick="showToast('Terms of Service coming soon')">
+        <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+        <span class="settings-row-label">Terms of Service</span>
+        <span class="settings-row-chevron">›</span>
+      </button>
+      <button class="settings-row" onclick="showToast('Privacy Policy coming soon')">
+        <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+        <span class="settings-row-label">Privacy Policy</span>
+        <span class="settings-row-chevron">›</span>
+      </button>
+    </div>
+
+    <!-- Danger -->
+    <div class="settings-group">
+      <button class="settings-row danger" onclick="handleLogout()">
+        <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
+        <span class="settings-row-label">Log Out</span>
+      </button>
+      <button class="settings-row danger" onclick="requestDeleteAccount()">
+        <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></span>
+        <span class="settings-row-label">Delete Account</span>
+      </button>
+    </div>
+
+    <div style="height:40px"></div>
   </div>
 </div>
 
@@ -839,10 +1082,11 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
         <div class="vault-teaser-item"><div class="vault-teaser-bg"></div><div class="vault-teaser-lock"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.6"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></div></div>
         <div class="vault-teaser-item"><div class="vault-teaser-bg"></div><div class="vault-teaser-lock"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.6"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></div></div>
       </div>
+      <div class="vault-locked-teaser-labels" id="vaultLockedTeaserLabels"></div>
 
       <div class="vault-locked-anchor">
         <span class="vault-locked-anchor-icon">✦</span>
-        <span>Inside: <strong>Exclusive 3D Concepts &amp; Sourcing Guides</strong>, plus private designer previews</span>
+        <span id="vaultLockedAnchorText">Inside: <strong>Exclusive 3D Concepts &amp; Sourcing Guides</strong>, plus private designer previews</span>
       </div>
 
       <button class="vault-btn" style="margin-top:28px;max-width:320px;width:100%" onclick="showPage('home')">Begin Your First Project</button>
@@ -905,6 +1149,16 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     <!-- VAULT SECTION CARDS — tap to open full screen -->
     <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px;">
 
+      <!-- My Space Card — the anchor: their actual finished project archive -->
+      <div onclick="openVaultSection('myspace')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,rgba(212,175,55,.26),rgba(212,175,55,.14));border:1px solid rgba(212,175,55,.6);border-radius:16px;cursor:pointer;transition:background .2s,border-color .2s;" ontouchstart="this.style.background='linear-gradient(145deg,rgba(212,175,55,.34),rgba(212,175,55,.2))'" ontouchend="this.style.background='linear-gradient(145deg,rgba(212,175,55,.26),rgba(212,175,55,.14))'">
+        <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.25);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">🏠</div>
+        <div style="flex:1;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--gold-light);font-weight:600;margin-bottom:3px;">My Space</div>
+          <div style="font-size:11px;color:rgba(212,175,55,.6);letter-spacing:.5px;" id="msCardSub">Your renders, sourcing guide &amp; finish schedule</div>
+        </div>
+        <div style="color:rgba(212,175,55,.7);font-size:22px;">›</div>
+      </div>
+
       <!-- Progress Tracker Card -->
       <div onclick="openVaultSection('progress')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,rgba(212,175,55,.18),rgba(212,175,55,.10));border:1px solid rgba(212,175,55,.45);border-radius:16px;cursor:pointer;transition:background .2s,border-color .2s;" ontouchstart="this.style.background='linear-gradient(145deg,rgba(212,175,55,.28),rgba(212,175,55,.18))'" ontouchend="this.style.background='linear-gradient(145deg,rgba(212,175,55,.18),rgba(212,175,55,.10))'">
         <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.2);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">📊</div>
@@ -941,6 +1195,16 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
         <div style="flex:1;">
           <div style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--gold-light);font-weight:600;margin-bottom:3px;">The Preservation Protocol</div>
           <div style="font-size:11px;color:rgba(212,175,55,.6);letter-spacing:.5px;" id="ppCardSub">Loading sheets…</div>
+        </div>
+        <div style="color:rgba(212,175,55,.7);font-size:22px;">›</div>
+      </div>
+
+      <!-- The Atelier Card -->
+      <div onclick="openVaultSection('atelier')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;background:linear-gradient(145deg,rgba(212,175,55,.18),rgba(212,175,55,.10));border:1px solid rgba(212,175,55,.45);border-radius:16px;cursor:pointer;transition:background .2s,border-color .2s;" ontouchstart="this.style.background='linear-gradient(145deg,rgba(212,175,55,.28),rgba(212,175,55,.18))'" ontouchend="this.style.background='linear-gradient(145deg,rgba(212,175,55,.18),rgba(212,175,55,.10))'">
+        <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.2);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">🏛️</div>
+        <div style="flex:1;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--gold-light);font-weight:600;margin-bottom:3px;">The Atelier</div>
+          <div style="font-size:11px;color:rgba(212,175,55,.6);letter-spacing:.5px;">Trade pricing, early access &amp; artisans</div>
         </div>
         <div style="color:rgba(212,175,55,.7);font-size:22px;">›</div>
       </div>
@@ -1151,8 +1415,10 @@ function hideSplashGuard() {
   if (g) { g.style.opacity = '0'; g.style.visibility = 'hidden'; }
 }
 function hideGatekeeper() {
-  document.getElementById('gatekeeper').classList.add('hidden');
-  setTimeout(() => { document.getElementById('gatekeeper').style.display = 'none'; }, 600);
+  const gk = document.getElementById('gatekeeper');
+  gk.classList.add('hidden');
+  setTimeout(() => { gk.style.display = 'none'; }, 600);
+  gk.style.bottom = ''; // restore CSS default (80px for nav) after showGatekeeperChecking/Login set it to 0
   showSplashGuard(); // covers the home page during every splash transition
 }
 
@@ -1284,6 +1550,8 @@ function showLoadingSplash() {
 }
 
 let _authInitialized = false;
+let _authGraceExpired = false;
+
 fbAuth.onAuthStateChanged(user => {
   if (user) {
     currentUser = user;
@@ -1298,6 +1566,7 @@ fbAuth.onAuthStateChanged(user => {
     // "disappearing sometimes" and the app appeared to misbehave.
     if (_authInitialized) return;
     _authInitialized = true;
+    _authGraceExpired = true; // auth resolved, cancel any pending grace
 
     hideGatekeeper();
     showLoadingSplash();
@@ -1314,43 +1583,72 @@ fbAuth.onAuthStateChanged(user => {
       })
       .catch(() => {}); // silently ignore if profile not yet created
   } else {
-    // On a slow/flaky connection, Firebase can briefly report "signed out"
-    // while it's still restoring the session (token refresh failing due to
-    // poor connectivity, not because the account actually logged out). If
-    // this device has a known previous session, give it one short grace
-    // window to resolve before showing the login screen — this is exactly
-    // the "it recognizes me but still asks me to log in" symptom.
+    // Firebase initially fires null while it checks the cache. On a
+    // slow/flaky connection this can also happen while a token refresh is
+    // failing — not because the account actually logged out. If this
+    // device has a known previous session, show a "restoring" spinner
+    // instead of the login form while we wait to find out for sure.
     const hadSession = localStorage.getItem('bl_last_uid');
     if (hadSession && !window._authGraceUsed) {
       window._authGraceUsed = true;
+      showGatekeeperChecking();
       setTimeout(() => {
+        _authGraceExpired = true;
         if (!fbAuth.currentUser) {
-          // Still genuinely signed out after the grace window — show gatekeeper for real
+          // Grace period over and still no user — truly logged out
           localStorage.removeItem('bl_last_uid');
           currentUser = null;
           _authInitialized = false;
-          const gk = document.getElementById('gatekeeper');
-          gk.style.transition = 'none';
-          gk.style.display = 'flex';
-          gk.classList.remove('hidden');
-          var nav = document.querySelector('.bottom-nav');
-          if (nav) nav.classList.remove('nav-ready');
+          showGatekeeperLogin();
         }
         // else: onAuthStateChanged will have already fired again with the user — nothing to do
-      }, 2500);
+      }, 4000);
       return;
     }
+
+    // No previous session (or grace already used) — show login immediately
     currentUser = null;
     _authInitialized = false;
-    const gk = document.getElementById('gatekeeper');
-    gk.style.transition = 'none';
-    gk.style.display = 'flex';
-    gk.classList.remove('hidden');
-    // Hide nav on logout
-    var nav = document.querySelector('.bottom-nav');
-    if (nav) nav.classList.remove('nav-ready');
+    _authGraceExpired = true;
+    showGatekeeperLogin();
   }
 });
+
+// Shows the spinner state inside the gatekeeper while a known previous
+// session is still being restored — keeps the splash guard up too, so
+// nothing underneath can leak through during this window.
+function showGatekeeperChecking() {
+  const gk = document.getElementById('gatekeeper');
+  gk.style.transition = 'none';
+  gk.style.display = 'flex';
+  gk.classList.remove('hidden');
+  gk.style.bottom = '0'; // cover full viewport (nav is hidden anyway)
+
+  document.getElementById('gateChecking').style.display = 'flex';
+  document.getElementById('gateStep1').style.display = 'none';
+  document.getElementById('gateStepCode').style.display = 'none';
+  document.getElementById('gateStepPassword').style.display = 'none';
+  document.getElementById('gateStep2').style.display = 'none';
+
+  showSplashGuard();
+}
+// Shows the actual login form — only once we're sure there's no session to restore.
+function showGatekeeperLogin() {
+  const gk = document.getElementById('gatekeeper');
+  gk.style.transition = 'none';
+  gk.style.display = 'flex';
+  gk.classList.remove('hidden');
+  gk.style.bottom = '0';
+
+  document.getElementById('gateChecking').style.display = 'none';
+  document.getElementById('gateStep1').style.display = '';
+
+  const loginTab = document.querySelector('.gate-tab');
+  if (loginTab) switchGateTab('login', loginTab);
+
+  // The gatekeeper itself now covers the screen — safe to drop the guard
+  hideSplashGuard();
+}
 
 function switchGateTab(tab, el) {
   document.querySelectorAll('.gate-tab').forEach(t => t.classList.remove('active'));
@@ -1789,12 +2087,12 @@ function showPage(pageId) {
           if (_login)  _login.style.display = 'flex';
         } else {
           if (_login)  _login.style.display = 'none';
-          if (_locked) { _locked.style.display = 'flex'; renderVaultLockedTeasers(); }
+          if (_locked) { _locked.style.display = 'flex'; renderVaultLockedTeasers(); personalizeVaultLockedTeasers(); }
         }
       }).catch(() => {
         // If we can't confirm status, default to showing the gate
         if (_login)  _login.style.display = 'none';
-        if (_locked) { _locked.style.display = 'flex'; renderVaultLockedTeasers(); }
+        if (_locked) { _locked.style.display = 'flex'; renderVaultLockedTeasers(); personalizeVaultLockedTeasers(); }
       });
     }
   }
@@ -1846,6 +2144,26 @@ function showPage(pageId) {
 function openProfile()  { document.getElementById('profileScreen').classList.add('active'); }
 function closeProfile() { document.getElementById('profileScreen').classList.remove('active'); }
 
+function openSettings() {
+  document.getElementById('settingsScreen').classList.add('active');
+}
+function closeSettings() {
+  document.getElementById('settingsScreen').classList.remove('active');
+}
+function toggleDarkModeSetting(btn) {
+  btn.classList.toggle('active');
+  // This app is already dark by default; toggle is visual for now
+  showToast(btn.classList.contains('active') ? 'Dark mode on' : 'Dark mode off');
+}
+function requestDeleteAccount() {
+  if (!confirm('Are you sure you want to delete your account? This cannot be undone.')) return;
+  if (!currentUser) { showToast('Please sign in first'); return; }
+  currentUser.delete().then(() => {
+    showToast('Account deleted');
+    handleLogout();
+  }).catch(() => showToast('Re-authentication required. Log out and contact support.'));
+}
+
 async function loadUserProfile(uid) {
   try {
   const snap = await fbDb.ref('userProfiles/' + uid).get();
@@ -1877,6 +2195,8 @@ async function loadUserProfile(uid) {
     vipConfirmed = vSnap.exists();
   }
   profileEl.classList.toggle('is-vip', vipConfirmed);
+  const vipStatusEl = document.getElementById('dashVipStatus');
+  if (vipStatusEl) vipStatusEl.textContent = vipConfirmed ? 'VIP' : 'Standard';
   if (vipConfirmed !== !!p.isVip) {
     // Keep the stored flag in sync with reality either direction —
     // newly VIP, or no longer VIP.
@@ -1958,6 +2278,14 @@ async function handleAvatarUpload(event) {
 // ─── FIX 3: handleLogout properly signs out ─────────────────────────────────
 function handleLogout() {
   closeProfile();
+
+  // A deliberate logout should show the login form immediately — not the
+  // "Restoring your session" spinner, which is only for accidental/network
+  // related sign-outs. Clear the session marker and pre-expire the grace
+  // window before Firebase's onAuthStateChanged(null) fires.
+  localStorage.removeItem('bl_last_uid');
+  window._authGraceUsed = true;
+  _authGraceExpired = true;
 
   // Detach real-time listeners before signing out
   if (_conciergeListener && currentUser) {
@@ -3145,6 +3473,34 @@ function renderVaultLockedTeasers() {
   }).catch(() => {});
 }
 
+// Makes the locked-state teasers feel personal rather than generic — pulls
+// the client's own name/address so the labels read like documents that
+// already exist and are waiting on them specifically, not stock copy.
+function personalizeVaultLockedTeasers() {
+  const labelsEl = document.getElementById('vaultLockedTeaserLabels');
+  const anchorEl = document.getElementById('vaultLockedAnchorText');
+  if (!labelsEl && !anchorEl) return;
+  const firstName = (currentProfile && currentProfile.name) ? currentProfile.name.split(' ')[0] : '';
+  const address = currentProfile && currentProfile.residence ? currentProfile.residence : '';
+  const now = new Date();
+  const quarter = 'Q' + (Math.floor(now.getMonth() / 3) + 1) + ' ' + now.getFullYear();
+
+  if (labelsEl) {
+    const labels = [
+      'Your 3D Render Archive',
+      address ? ('Finish Schedule for ' + address) : 'Your Finish Schedule',
+      'Trade Pricing — ' + quarter,
+      'Your Sourcing Guide'
+    ];
+    labelsEl.innerHTML = labels.map(l => '<span>' + l + '</span>').join('');
+  }
+  if (anchorEl) {
+    anchorEl.innerHTML = firstName
+      ? 'Inside: <strong>' + firstName + '\u2019s 3D Render Archive &amp; Sourcing Guide</strong>, plus private designer previews'
+      : 'Inside: <strong>Exclusive 3D Concepts &amp; Sourcing Guides</strong>, plus private designer previews';
+  }
+}
+
 function requestVIPAccess() {
   showPage('concierge');
   setTimeout(() => {
@@ -3438,8 +3794,8 @@ function openVaultSection(type) {
   const modal = document.createElement('div');
   modal.id = 'vaultSectionModal';
   modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:80px;background:#0A0804;z-index:20000;display:flex;flex-direction:column;overflow:hidden;';
-  const titles = { progress:'Progress Tracker', textures:'Material Samples', overseas:'Unreleased Overseas Exclusives', preservation:'The Preservation Protocol', concierge:'Priority Concierge Access' };
-  const icons  = { progress:'📊', textures:'🎨', overseas:'✈️', preservation:'📋', concierge:'⭐' };
+  const titles = { myspace:'My Space', progress:'Progress Tracker', textures:'Material Samples', overseas:'Unreleased Overseas Exclusives', preservation:'The Preservation Protocol', atelier:'The Atelier', concierge:'Priority Concierge Access' };
+  const icons  = { myspace:'🏠', progress:'📊', textures:'🎨', overseas:'✈️', preservation:'📋', atelier:'🏛️', concierge:'⭐' };
   modal.innerHTML = `
     <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid rgba(212,175,55,.15);background:rgba(10,8,4,.98);position:sticky;top:0;flex-shrink:0;">
       <button onclick="document.getElementById('vaultSectionModal').remove()" style="background:none;border:1px solid rgba(212,175,55,.3);color:rgba(212,175,55,.6);border-radius:8px;padding:8px 14px;font-size:11px;cursor:pointer;letter-spacing:1px;">←</button>
@@ -3455,11 +3811,116 @@ function openVaultSection(type) {
   document.body.appendChild(modal);
   const content = document.getElementById('vaultSectionContent');
   // Load content based on type
-  if (type === 'progress') _loadVaultSectionProgress(content);
+  if (type === 'myspace') _loadVaultSectionMySpace(content);
+  else if (type === 'progress') _loadVaultSectionProgress(content);
   else if (type === 'textures') _loadVaultSectionTextures(content);
   else if (type === 'overseas') _loadVaultSectionOverseas(content);
   else if (type === 'preservation') _loadVaultSectionPreservation(content);
+  else if (type === 'atelier') _loadVaultSectionAtelier(content);
   else if (type === 'concierge') _loadVaultSectionConcierge(content);
+}
+
+// ── MY SPACE — the vault's anchor: the client's own finished-project archive ──
+function _loadVaultSectionMySpace(content) {
+  content.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.4);">Loading your space…</div>';
+  if (!currentUser) { content.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.3);">Please sign in</div>'; return; }
+  fbDb.ref('timelines/' + currentUser.uid + '/projects').once('value').then(snap => {
+    const projects = snap.val() ? Object.entries(snap.val()).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0)) : [];
+    const msCardSub = document.getElementById('msCardSub');
+    if (!projects.length) {
+      if (msCardSub) msCardSub.textContent = 'Your designer will add this after your first project';
+      content.innerHTML = '<div style="text-align:center;padding:60px;"><div style="font-size:48px;margin-bottom:16px;opacity:.3;">🏠</div><div style="color:rgba(212,175,55,.4);font-family:Cormorant Garamond,serif;font-size:18px;">Nothing here yet</div><div style="color:rgba(212,175,55,.25);font-size:12px;margin-top:8px;">Your designer will add renders, sourcing guides and finish schedules here as your project progresses</div></div>';
+      return;
+    }
+    if (msCardSub) msCardSub.textContent = projects.length + ' project' + (projects.length!==1?'s':'') + ' archived';
+    // Selector if more than one project
+    const selector = projects.length > 1
+      ? '<select id="msProjectSelect" onchange="_renderMySpaceProject(this.value)" style="width:100%;padding:12px 14px;background:#120D06;border:1px solid rgba(212,175,55,.25);border-radius:10px;color:var(--gold-light);font-family:Jost,sans-serif;font-size:13px;margin-bottom:16px;">'
+        + projects.map(([id,p]) => '<option value="'+id+'">'+(p.name||'Project')+'</option>').join('') + '</select>'
+      : '';
+    window._msProjects = Object.fromEntries(projects);
+    content.innerHTML = selector + '<div id="msProjectBody"></div>';
+    _renderMySpaceProject(projects[0][0]);
+  }).catch(() => { content.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.3);">Unable to load</div>'; });
+}
+function _renderMySpaceProject(projectId) {
+  const body = document.getElementById('msProjectBody');
+  if (!body || !currentUser) return;
+  body.innerHTML = '<div style="text-align:center;padding:30px;color:rgba(212,175,55,.4);">Loading archive…</div>';
+  fbDb.ref('vault/clients/' + currentUser.uid + '/projects/' + projectId).once('value').then(snap => {
+    const d = snap.val() || {};
+    const renders = d.renders ? Object.values(d.renders) : [];
+    const sourcing = d.sourcingGuide ? Object.values(d.sourcingGuide) : [];
+    const finish = d.finishSchedule ? Object.values(d.finishSchedule) : [];
+
+    const tabsHtml = `
+      <div style="display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;">
+        <button class="ms-tab active" data-tab="renders" onclick="_msSwitchTab(this,'renders')" style="flex-shrink:0;padding:8px 14px;border-radius:20px;border:1px solid rgba(212,175,55,.3);background:rgba(212,175,55,.15);color:var(--gold-light);font-size:11px;letter-spacing:1px;cursor:pointer;">🖼 Renders</button>
+        <button class="ms-tab" data-tab="sourcing" onclick="_msSwitchTab(this,'sourcing')" style="flex-shrink:0;padding:8px 14px;border-radius:20px;border:1px solid rgba(212,175,55,.2);background:none;color:rgba(212,175,55,.5);font-size:11px;letter-spacing:1px;cursor:pointer;">📋 Sourcing Guide</button>
+        <button class="ms-tab" data-tab="finish" onclick="_msSwitchTab(this,'finish')" style="flex-shrink:0;padding:8px 14px;border-radius:20px;border:1px solid rgba(212,175,55,.2);background:none;color:rgba(212,175,55,.5);font-size:11px;letter-spacing:1px;cursor:pointer;">🎨 Finish Schedule</button>
+        <button class="ms-tab" data-tab="warranty" onclick="_msSwitchTab(this,'warranty')" style="flex-shrink:0;padding:8px 14px;border-radius:20px;border:1px solid rgba(212,175,55,.2);background:none;color:rgba(212,175,55,.5);font-size:11px;letter-spacing:1px;cursor:pointer;">🛡 Warranty</button>
+      </div>`;
+
+    const rendersHtml = renders.length
+      ? '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' + renders.map(r =>
+          `<div style="border-radius:10px;overflow:hidden;border:1px solid rgba(212,175,55,.15);aspect-ratio:1;position:relative;cursor:pointer;" onclick="openVaultAsset({title:'${(r.type||'Render').replace(/'/g,"\\'")}',url:'${(r.url||'').replace(/'/g,"\\'")}',cat:'3D Render Archive'})"><img src="${r.url||''}" style="width:100%;height:100%;object-fit:cover;"><span style="position:absolute;bottom:6px;left:6px;background:rgba(0,0,0,.6);color:var(--gold-light);font-size:9px;padding:2px 8px;border-radius:10px;letter-spacing:1px;">${(r.type||'RENDER').toUpperCase()}</span></div>`
+        ).join('') + '</div>'
+      : '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.3);font-size:13px;">Your designer will add render walkthroughs here</div>';
+
+    const sourcingHtml = sourcing.length
+      ? sourcing.map(item => `
+        <div style="display:flex;gap:12px;padding:14px;background:#120D06;border:1px solid rgba(212,175,55,.12);border-radius:12px;margin-bottom:10px;">
+          ${item.image ? `<img src="${item.image}" style="width:56px;height:56px;border-radius:8px;object-fit:cover;flex-shrink:0;">` : '<div style="width:56px;height:56px;border-radius:8px;background:rgba(212,175,55,.08);flex-shrink:0;display:flex;align-items:center;justify-content:center;">🛋️</div>'}
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:Cormorant Garamond,serif;font-size:15px;color:var(--gold-light);">${item.name||'Item'}</div>
+            <div style="font-size:11px;color:rgba(212,175,55,.5);">${item.room||''}${item.vendor?' · '+item.vendor:''}</div>
+            ${item.price ? `<div style="font-size:11px;color:rgba(212,175,55,.4);margin-top:2px;">₦${item.price}</div>` : ''}
+          </div>
+          ${item.contact ? `<a href="https://wa.me/${(item.contact||'').replace(/\\D/g,'')}?text=${encodeURIComponent('Hi, I would like to reorder: ' + (item.name||''))}" target="_blank" style="align-self:center;padding:8px 12px;background:rgba(80,200,120,.12);border:1px solid rgba(80,200,120,.3);border-radius:8px;color:#50C878;font-size:10px;letter-spacing:1px;text-decoration:none;flex-shrink:0;">REORDER</a>` : ''}
+        </div>`).join('')
+      : '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.3);font-size:13px;">Your designer will add sourcing details here</div>';
+
+    const finishHtml = finish.length
+      ? finish.map(f => `
+        <div style="padding:14px;background:#120D06;border:1px solid rgba(212,175,55,.12);border-radius:12px;margin-bottom:10px;">
+          <div style="font-size:9px;letter-spacing:2px;color:rgba(212,175,55,.4);text-transform:uppercase;margin-bottom:4px;">${f.room||''} · ${f.category||''}</div>
+          <div style="font-family:Cormorant Garamond,serif;font-size:15px;color:var(--gold-light);">${f.brand||''} ${f.code?'— '+f.code:''}</div>
+          ${f.supplier ? `<div style="font-size:11px;color:rgba(212,175,55,.5);margin-top:2px;">${f.supplier}</div>` : ''}
+        </div>`).join('')
+      : '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.3);font-size:13px;">Your designer will add finish details here</div>';
+
+    const now = Date.now();
+    const warrantyHtml = sourcing.filter(i => i.warrantyMonths).length
+      ? sourcing.filter(i => i.warrantyMonths).map(item => {
+          const expiresAt = (item.purchasedAt || now) + item.warrantyMonths * 30 * 24 * 60 * 60 * 1000;
+          const monthsLeft = (expiresAt - now) / (30*24*60*60*1000);
+          const color = monthsLeft < 0 ? '#e74c3c' : monthsLeft < 6 ? '#e0a832' : '#50C878';
+          const label = monthsLeft < 0 ? 'Expired' : monthsLeft < 6 ? 'Expiring soon' : 'Active';
+          return `<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:#120D06;border:1px solid rgba(212,175,55,.12);border-radius:12px;margin-bottom:10px;">
+            <div><div style="font-family:Cormorant Garamond,serif;font-size:14px;color:var(--gold-light);">${item.name||'Item'}</div><div style="font-size:10px;color:rgba(212,175,55,.4);">Expires ${new Date(expiresAt).toLocaleDateString()}</div></div>
+            <span style="font-size:9px;letter-spacing:1px;padding:4px 10px;border-radius:10px;background:${color}22;color:${color};">${label.toUpperCase()}</span>
+          </div>`;
+        }).join('')
+      : '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.3);font-size:13px;">Warranty info appears here once items are logged</div>';
+
+    body.innerHTML = tabsHtml
+      + `<div id="msTab_renders">${rendersHtml}</div>`
+      + `<div id="msTab_sourcing" style="display:none;">${sourcingHtml}</div>`
+      + `<div id="msTab_finish" style="display:none;">${finishHtml}</div>`
+      + `<div id="msTab_warranty" style="display:none;">${warrantyHtml}</div>`;
+  }).catch(() => { body.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.3);">Unable to load</div>'; });
+}
+function _msSwitchTab(btn, tab) {
+  btn.parentElement.querySelectorAll('.ms-tab').forEach(t => {
+    t.classList.remove('active');
+    t.style.background = 'none'; t.style.color = 'rgba(212,175,55,.5)'; t.style.borderColor = 'rgba(212,175,55,.2)';
+  });
+  btn.classList.add('active');
+  btn.style.background = 'rgba(212,175,55,.15)'; btn.style.color = 'var(--gold-light)'; btn.style.borderColor = 'rgba(212,175,55,.3)';
+  ['renders','sourcing','finish','warranty'].forEach(t => {
+    const el = document.getElementById('msTab_' + t);
+    if (el) el.style.display = (t === tab) ? 'block' : 'none';
+  });
 }
 
 function _loadVaultSectionProgress(content) {
@@ -3558,6 +4019,46 @@ function openPreservationSheet(key) {
       </div>`;
     document.body.appendChild(modal);
   });
+}
+
+// ── THE ATELIER — trade pricing transparency, early access, artisan profiles ──
+function _loadVaultSectionAtelier(content) {
+  content.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.4);">Loading the atelier…</div>';
+  if (!currentUser) { content.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.3);">Please sign in</div>'; return; }
+  fbDb.ref('vault/atelier/' + currentUser.uid).once('value').then(snap => {
+    const d = snap.val() || {};
+    const pricing = d.pricingSheets ? Object.values(d.pricingSheets) : [];
+    const earlyAccess = d.earlyAccess ? Object.values(d.earlyAccess) : [];
+    const artisans = d.artisans ? Object.values(d.artisans) : [];
+
+    const pricingHtml = pricing.length ? pricing.map(sheet => `
+      <div style="padding:14px;background:#120D06;border:1px solid rgba(212,175,55,.12);border-radius:12px;margin-bottom:10px;">
+        <div style="font-size:9px;letter-spacing:2px;color:rgba(212,175,55,.4);text-transform:uppercase;margin-bottom:8px;">${sheet.quarter||'Trade Pricing'}</div>
+        ${(sheet.items||[]).map(it => `<div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid rgba(212,175,55,.06);font-size:12px;"><span style="color:rgba(230,225,215,.8);">${it.category||''}</span><span style="color:var(--gold-light);">₦${it.clientPrice||it.price||'—'}</span></div>`).join('')}
+      </div>`).join('') : '';
+
+    const earlyAccessHtml = earlyAccess.length ? earlyAccess.map(c => `
+      <div style="padding:14px;background:linear-gradient(135deg,rgba(212,175,55,.08),transparent);border:1px solid rgba(212,175,55,.2);border-radius:12px;margin-bottom:10px;">
+        <div style="font-family:Cormorant Garamond,serif;font-size:15px;color:var(--gold-light);">${c.name||'New Collection'}</div>
+        <div style="font-size:10px;color:#e0a832;letter-spacing:1px;margin-top:4px;">EARLY ACCESS${c.availableUntil ? ' · public launch ' + new Date(c.availableUntil).toLocaleDateString() : ''}</div>
+      </div>`).join('') : '';
+
+    const artisansHtml = artisans.length ? artisans.map(a => `
+      <div style="display:flex;gap:12px;padding:14px;background:#120D06;border:1px solid rgba(212,175,55,.12);border-radius:12px;margin-bottom:10px;">
+        ${a.image ? `<img src="${a.image}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;">` : '<div style="width:52px;height:52px;border-radius:50%;background:rgba(212,175,55,.1);flex-shrink:0;"></div>'}
+        <div><div style="font-family:Cormorant Garamond,serif;font-size:15px;color:var(--gold-light);">${a.name||'Artisan'}</div><div style="font-size:11px;color:rgba(212,175,55,.5);">${a.specialty||''}${a.location?' · '+a.location:''}</div></div>
+      </div>`).join('') : '';
+
+    const anySection = pricing.length || earlyAccess.length || artisans.length;
+    if (!anySection) {
+      content.innerHTML = '<div style="text-align:center;padding:60px;"><div style="font-size:48px;margin-bottom:16px;opacity:.3;">🏛️</div><div style="color:rgba(212,175,55,.4);font-family:Cormorant Garamond,serif;font-size:18px;">Nothing here yet</div><div style="color:rgba(212,175,55,.25);font-size:12px;margin-top:8px;">Trade pricing, early access drops and artisan profiles appear here as they\'re shared</div></div>';
+      return;
+    }
+    content.innerHTML =
+      (pricing.length ? '<div style="font-size:9px;letter-spacing:3px;color:rgba(212,175,55,.4);text-transform:uppercase;margin:6px 0 10px;">Trade Pricing Transparency</div>' + pricingHtml : '')
+      + (earlyAccess.length ? '<div style="font-size:9px;letter-spacing:3px;color:rgba(212,175,55,.4);text-transform:uppercase;margin:18px 0 10px;">Unreleased Catalog</div>' + earlyAccessHtml : '')
+      + (artisans.length ? '<div style="font-size:9px;letter-spacing:3px;color:rgba(212,175,55,.4);text-transform:uppercase;margin:18px 0 10px;">Artisan Profiles</div>' + artisansHtml : '');
+  }).catch(() => { content.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.3);">Unable to load</div>'; });
 }
 
 function _loadVaultSectionConcierge(content) {
@@ -4348,11 +4849,19 @@ function dismissBanner() {
 })();
 
 // ─── SPLASH DISMISS ──────────────────────────────────────────────────────────
-// Safety fallback only — showLoadingSplash handles the real handoff at 2.5s
+// Safety fallback only — the real handoff happens via showLoadingSplash /
+// showGatekeeperChecking / showGatekeeperLogin above.
 (function() {
   let dismissed = false;
   function dismissSplash() {
     if (dismissed) return;
+
+    // Still waiting to find out if a cached session will restore — do NOT
+    // dismiss yet and do NOT reveal the gatekeeper's login form. The
+    // "Restoring your session" spinner (behind the splash guard) is already
+    // covering this window; jumping in early here is exactly what used to
+    // let the home page leak through or bounce a real session to login.
+    if (window._authGraceUsed && !_authGraceExpired) return;
 
     // If the real splash sequence is already driving (loading splash, login
     // splash, creating-account splash, or welcome splash all active), this
@@ -4379,22 +4888,18 @@ function dismissBanner() {
     }
     setTimeout(() => { if (s && s.parentNode) s.remove(); }, 700);
 
-    // Auth genuinely hasn't resolved yet (slow network / slow Firebase load).
+    // Auth genuinely hasn't resolved and grace (if any) has already expired.
     // The safe thing to reveal is the login gate — never the raw app
     // underneath, which is what was happening before this fix.
     const gk = document.getElementById('gatekeeper');
     if (gk && gk.classList.contains('hidden')) {
-      gk.style.transition = 'none';
-      gk.style.display = 'flex';
-      gk.classList.remove('hidden');
+      showGatekeeperLogin();
     }
     var nav = document.querySelector('.bottom-nav');
     if (nav) nav.classList.remove('nav-ready');
   }
-  // Hard fallback — only fires if nothing else has taken over by then.
-  // Raised from 3.5s to 8s: on a slow connection, Firebase's SDK alone can
-  // still be loading past 3.5s, which was the actual cause of the early bug.
-  setTimeout(dismissSplash, 8000);
+  // Hard fallback — only fires if the auth decision is definitively stuck.
+  setTimeout(dismissSplash, 10000);
 })();
 </script>
 
