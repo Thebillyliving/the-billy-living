@@ -113,6 +113,34 @@
             --vault-bg: #0E0B06;
             --vault-card: #141008;
             --vault-text: #E8D9B5;
+            /* Refined elevation + motion system — 2026 pass. Same palette,
+               deeper shadow layering and a consistent easing curve instead
+               of flat borders and ad-hoc transition durations. */
+            --ease: cubic-bezier(.4,0,.2,1);
+            --shadow-card: 0 1px 0 rgba(245,240,232,0.03) inset, 0 10px 30px -12px rgba(0,0,0,0.55);
+            --shadow-card-hover: 0 1px 0 rgba(245,240,232,0.04) inset, 0 16px 40px -14px rgba(0,0,0,0.65), 0 0 0 1px rgba(201,168,76,0.18);
+            --card-edge: linear-gradient(90deg, transparent, rgba(201,168,76,0.5), transparent);
+        }
+
+        /* Respect reduced-motion: kill transforms/animations, keep instant state changes */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.001ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.001ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+        body.bl-reduced-motion *, body.bl-reduced-motion *::before, body.bl-reduced-motion *::after {
+            animation-duration: 0.001ms !important;
+            transition-duration: 0.001ms !important;
+        }
+        /* Visible keyboard focus everywhere — accessibility floor */
+        a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible,
+        select:focus-visible, .nav-item:focus-visible, [tabindex]:focus-visible {
+            outline: 2px solid var(--gold);
+            outline-offset: 2px;
+            border-radius: 4px;
         }
 
         #loginOverlay {
@@ -216,7 +244,7 @@
             padding: 12px 16px;
             border-radius: 10px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: background 0.25s var(--ease), color 0.25s var(--ease), transform 0.25s var(--ease);
             color: var(--text-secondary);
             position: relative;
             -webkit-user-select: none;
@@ -314,7 +342,7 @@
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease), opacity 0.25s var(--ease), background 0.25s var(--ease);
             display: inline-flex;
             align-items: center;
             gap: 8px;
@@ -322,6 +350,7 @@
             position: relative;
             z-index: 100;
         }
+        .btn:active { transform: scale(0.97); }
 
         .btn-primary {
             background: linear-gradient(135deg, var(--gold), #B8860B);
@@ -332,6 +361,7 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(201, 169, 98, 0.3);
         }
+        .btn-primary:active { transform: scale(0.97); }
 
         .btn-secondary {
             background: rgba(255,255,255,0.1);
@@ -362,7 +392,24 @@
             border: 1px solid rgba(201, 169, 98, 0.1);
             border-radius: 16px;
             padding: 24px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+            transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease), border-color 0.3s var(--ease);
         }
+        .stat-card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: var(--card-edge);
+            opacity: 0.5;
+            transition: opacity 0.3s var(--ease);
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-card-hover);
+            border-color: rgba(201, 169, 98, 0.22);
+        }
+        .stat-card:hover::before { opacity: 1; }
 
         .stat-value {
             font-family: 'Cormorant Garamond', serif;
@@ -458,6 +505,15 @@
             border: 1px solid rgba(201, 169, 98, 0.1);
             border-radius: 16px;
             overflow: hidden;
+            position: relative;
+            box-shadow: var(--shadow-card);
+        }
+        .list-container::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: var(--card-edge);
+            opacity: 0.5;
+            z-index: 1;
         }
 
         .list-item {
@@ -607,6 +663,14 @@
             max-height: 90vh;
             overflow-y: auto;
             border: 1px solid rgba(201, 169, 98, 0.2);
+            position: relative;
+            box-shadow: var(--shadow-card);
+        }
+        .form-container::before {
+            content: '';
+            position: absolute; top: 0; left: 20px; right: 20px; height: 1px;
+            background: var(--card-edge);
+            opacity: 0.6;
         }
 
         .form-title {
@@ -636,10 +700,12 @@
             font-family: 'Jost', sans-serif;
             font-size: 15px;
             outline: none;
+            transition: border-color 0.25s var(--ease), box-shadow 0.25s var(--ease);
         }
 
         .form-input:focus, .form-textarea:focus, .form-select:focus {
             border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.12);
         }
 
         .form-textarea {
@@ -849,6 +915,47 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        /* ── Settings panel ──────────────────────────────────────────────── */
+        .settings-tabs {
+            display: flex; gap: 6px; flex-wrap: wrap;
+            border-bottom: 1px solid rgba(201,168,76,0.12);
+            margin-bottom: 24px; padding-bottom: 0;
+        }
+        .settings-tab {
+            background: none; border: none; cursor: pointer;
+            font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 500;
+            color: var(--text-secondary);
+            padding: 12px 16px;
+            border-bottom: 2px solid transparent;
+            transition: color 0.25s var(--ease), border-color 0.25s var(--ease);
+        }
+        .settings-tab:hover { color: var(--text-primary); }
+        .settings-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+        .settings-subpanel { display: none; }
+        .settings-subpanel.active { display: block; animation: fadeIn 0.3s ease; }
+
+        .pref-row { display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid rgba(201,168,76,0.08); gap:16px; }
+        .pref-row:last-child { border-bottom:none; }
+        .pref-label { font-family:'Jost',sans-serif; font-size:14px; color:var(--text-primary); }
+        .pref-desc { font-size:11px; color:rgba(168,155,140,0.6); margin-top:3px; line-height:1.4; }
+
+        .settings-toggle { width:44px; height:26px; border-radius:13px; background:rgba(255,255,255,0.1); position:relative; flex-shrink:0; transition:background 0.25s var(--ease); cursor:pointer; border:none; padding:0; }
+        .settings-toggle.active { background:var(--gold); }
+        .settings-toggle-knob { position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,0.3); transition:transform 0.25s var(--ease); }
+        .settings-toggle.active .settings-toggle-knob { transform:translateX(18px); }
+
+        .faq-item { border-bottom:1px solid rgba(201,168,76,0.08); }
+        .faq-item:last-child { border-bottom:none; }
+        .faq-question { padding:14px 0; font-family:'Jost',sans-serif; font-size:14px; color:var(--text-primary); cursor:pointer; display:flex; justify-content:space-between; align-items:center; line-height:1.4; }
+        .faq-question::after { content:'›'; color:rgba(201,168,76,0.4); font-size:18px; transition:transform 0.2s var(--ease); display:inline-block; }
+        .faq-question.open::after { transform:rotate(90deg); }
+        .faq-answer { max-height:0; overflow:hidden; transition:max-height 0.3s var(--ease), padding 0.3s var(--ease); font-size:13px; color:rgba(168,155,140,0.8); line-height:1.6; }
+        .faq-answer.open { max-height:300px; padding-bottom:14px; }
+
+        /* Compact density (opt-in via Appearance → Compact Lists) */
+        body.bl-compact .list-item { padding: 10px 16px; }
+        body.bl-compact .stat-card { padding: 16px; }
 
         /* Elite Catalog Grid (matches client app) */
         .elite-catalog-header {
@@ -1205,10 +1312,18 @@
 
         @media (max-width: 768px) {
             .sidebar {
-                width: 100%;
-                position: relative;
-                height: auto;
-                top: auto;
+                width: 280px;
+                position: fixed;
+                height: 100vh;
+                top: 0;
+                left: 0;
+                transform: translateX(-100%);
+                transition: transform 0.3s var(--ease);
+                z-index: 999995;
+                box-shadow: 20px 0 40px rgba(0,0,0,0.5);
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0);
             }
             .sidebar-spacer {
                 display: none;
@@ -1216,10 +1331,48 @@
             .main-content {
                 width: 100%;
                 min-width: 0;
+                padding: 20px;
+                padding-top: 76px;
             }
             body {
                 flex-direction: column;
             }
+            .mobile-topbar {
+                display: flex;
+            }
+            .sidebar-backdrop {
+                display: none;
+                position: fixed; inset: 0;
+                background: rgba(0,0,0,0.55);
+                backdrop-filter: blur(3px);
+                z-index: 999993;
+                transition: opacity 0.3s var(--ease);
+            }
+            .sidebar-backdrop.active { display: block; }
+        }
+        .mobile-topbar {
+            display: none;
+            position: fixed; top: 0; left: 0; right: 0;
+            height: 56px;
+            background: var(--bg-card);
+            border-bottom: 1px solid rgba(201,169,98,0.12);
+            align-items: center;
+            gap: 14px;
+            padding: 0 16px;
+            z-index: 999994;
+        }
+        .mobile-hamburger {
+            width: 36px; height: 36px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+            background: none; border: none; cursor: pointer; padding: 0;
+        }
+        .mobile-hamburger span {
+            display: block; width: 20px; height: 2px; background: var(--gold); border-radius: 2px;
+            transition: transform 0.25s var(--ease), opacity 0.25s var(--ease);
+        }
+        .mobile-topbar-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 19px; color: var(--gold);
         }
 
         /* ── Messages Panel ──────────────────────────────────────────────── */
@@ -1701,6 +1854,14 @@
     </style>
 </head>
 <body>
+    <!-- Mobile topbar — hidden on desktop via .mobile-topbar{display:none} -->
+    <div class="mobile-topbar">
+        <button class="mobile-hamburger" id="mobileHamburgerBtn" onclick="toggleMobileSidebar()" aria-label="Menu">
+            <span id="hbLine1"></span><span id="hbLine2"></span><span id="hbLine3"></span>
+        </button>
+        <div class="mobile-topbar-title">Billy Living</div>
+    </div>
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleMobileSidebar(false)"></div>
     <!-- Login gate: nothing else in this app is reachable until a real
          admin signs in here. Replaces the old auto-signin-with-hardcoded-
          credentials behavior, which let anyone who loaded this URL in
@@ -2040,24 +2201,85 @@
 
 
         <div class="panel" id="panel-settings">
-            <div class="page-header"><h1 class="page-title">Settings</h1></div>
-            <div class="form-container" style="max-width:600px;">
-                <div style="display:flex;flex-direction:column;align-items:center;padding:24px 0;">
-                    <div id="myProfileAvatar" style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#C9A84C,#7A5C10);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;color:#0A0804;margin-bottom:14px;">?</div>
-                    <div id="myProfileName" style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#F5F0E8;margin-bottom:2px;">—</div>
-                    <div id="myProfileRank" style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(201,168,76,0.6);margin-bottom:18px;">—</div>
-                    <div style="display:flex;gap:24px;">
-                        <div style="text-align:center;"><div id="myProfileHomeCount" style="font-size:22px;color:var(--gold);font-family:'Cormorant Garamond',serif;">—</div><div style="font-size:10px;letter-spacing:1px;color:rgba(201,168,76,0.5);">HOME</div></div>
-                        <div style="text-align:center;"><div id="myProfileTrendingCount" style="font-size:22px;color:var(--gold);font-family:'Cormorant Garamond',serif;">—</div><div style="font-size:10px;letter-spacing:1px;color:rgba(201,168,76,0.5);">TRENDING</div></div>
-                        <div style="text-align:center;"><div id="myProfileCatalogCount" style="font-size:22px;color:var(--gold);font-family:'Cormorant Garamond',serif;">—</div><div style="font-size:10px;letter-spacing:1px;color:rgba(201,168,76,0.5);">CATALOG</div></div>
-                        <div style="text-align:center;"><div id="myProfileTotalCount" style="font-size:22px;color:var(--gold);font-family:'Cormorant Garamond',serif;">—</div><div style="font-size:10px;letter-spacing:1px;color:rgba(201,168,76,0.5);">TOTAL</div></div>
+            <div class="page-header"><div><div class="page-eyebrow">Billy Living</div><h1 class="page-title">Settings</h1></div></div>
+
+            <div class="settings-tabs">
+                <button class="settings-tab active" data-tab="profile" onclick="showSettingsTab('profile',this)">Profile</button>
+                <button class="settings-tab" data-tab="notifications" onclick="showSettingsTab('notifications',this)">Notifications</button>
+                <button class="settings-tab" data-tab="security" onclick="showSettingsTab('security',this)">Security</button>
+                <button class="settings-tab" data-tab="appearance" onclick="showSettingsTab('appearance',this)">Appearance</button>
+                <button class="settings-tab" data-tab="support" onclick="showSettingsTab('support',this)">Support</button>
+            </div>
+
+            <!-- PROFILE -->
+            <div class="settings-subpanel active" id="settingsTab-profile">
+                <div class="form-container" style="max-width:600px;">
+                    <div style="display:flex;flex-direction:column;align-items:center;padding:24px 0;">
+                        <div id="myProfileAvatar" style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#C9A84C,#7A5C10);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;color:#0A0804;margin-bottom:14px;">?</div>
+                        <div id="myProfileName" style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#F5F0E8;margin-bottom:2px;">—</div>
+                        <div id="myProfileRank" style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(201,168,76,0.6);margin-bottom:18px;">—</div>
+                        <div style="display:flex;gap:24px;">
+                            <div style="text-align:center;"><div id="myProfileHomeCount" style="font-size:22px;color:var(--gold);font-family:'Cormorant Garamond',serif;">—</div><div style="font-size:10px;letter-spacing:1px;color:rgba(201,168,76,0.5);">HOME</div></div>
+                            <div style="text-align:center;"><div id="myProfileTrendingCount" style="font-size:22px;color:var(--gold);font-family:'Cormorant Garamond',serif;">—</div><div style="font-size:10px;letter-spacing:1px;color:rgba(201,168,76,0.5);">TRENDING</div></div>
+                            <div style="text-align:center;"><div id="myProfileCatalogCount" style="font-size:22px;color:var(--gold);font-family:'Cormorant Garamond',serif;">—</div><div style="font-size:10px;letter-spacing:1px;color:rgba(201,168,76,0.5);">CATALOG</div></div>
+                            <div style="text-align:center;"><div id="myProfileTotalCount" style="font-size:22px;color:var(--gold);font-family:'Cormorant Garamond',serif;">—</div><div style="font-size:10px;letter-spacing:1px;color:rgba(201,168,76,0.5);">TOTAL</div></div>
+                        </div>
+                        <div style="font-size:10px;color:rgba(201,168,76,0.35);margin-top:14px;text-align:center;">Counts only items created since project tracking was added — older content isn't attributed to anyone yet.</div>
                     </div>
-                    <div style="font-size:10px;color:rgba(201,168,76,0.35);margin-top:14px;text-align:center;">Counts only items created since project tracking was added — older content isn't attributed to anyone yet.</div>
+                </div>
+                <div class="form-container" style="max-width:600px;">
+                    <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:12px;">Session</div>
+                    <button class="btn btn-secondary" onclick="if(confirm('Sign out?'))adminFbAuth.signOut();">Sign Out</button>
                 </div>
             </div>
-            <div class="form-container" style="max-width:600px;">
-                <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:12px;">Session</div>
-                <button class="btn btn-secondary" onclick="if(confirm('Sign out?'))adminFbAuth.signOut();">Sign Out</button>
+
+            <!-- NOTIFICATIONS -->
+            <div class="settings-subpanel" id="settingsTab-notifications">
+                <div class="form-container" style="max-width:600px;">
+                    <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:4px;">Alerts</div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">What you're notified about in this dashboard. Applies to this admin account only.</div>
+                    <div class="pref-row"><div class="pref-info"><div class="pref-label">Pending Approvals</div><div class="pref-desc">New submissions waiting on your review</div></div><button class="settings-toggle" id="anp-pending" onclick="toggleAdminNotifPref('pending',this)"><span class="settings-toggle-knob"></span></button></div>
+                    <div class="pref-row"><div class="pref-info"><div class="pref-label">VIP Requests</div><div class="pref-desc">New Vault access requests from clients</div></div><button class="settings-toggle" id="anp-vip" onclick="toggleAdminNotifPref('vip',this)"><span class="settings-toggle-knob"></span></button></div>
+                    <div class="pref-row"><div class="pref-info"><div class="pref-label">Client Messages</div><div class="pref-desc">New Concierge messages from clients</div></div><button class="settings-toggle" id="anp-messages" onclick="toggleAdminNotifPref('messages',this)"><span class="settings-toggle-knob"></span></button></div>
+                </div>
+            </div>
+
+            <!-- SECURITY -->
+            <div class="settings-subpanel" id="settingsTab-security">
+                <div class="form-container" style="max-width:600px;">
+                    <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:4px;">Change Password</div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Re-authenticate to update your credentials.</div>
+                    <div class="form-group"><label class="form-label">Current Password</label><input type="password" class="form-input" id="admCpCurrent" placeholder="••••••••"></div>
+                    <div class="form-group"><label class="form-label">New Password</label><input type="password" class="form-input" id="admCpNew" placeholder="Min. 6 characters"></div>
+                    <div class="form-group"><label class="form-label">Confirm New Password</label><input type="password" class="form-input" id="admCpConfirm" placeholder="Re-enter new password"></div>
+                    <button class="btn btn-primary" onclick="handleAdminChangePassword()">Update Password</button>
+                </div>
+            </div>
+
+            <!-- APPEARANCE -->
+            <div class="settings-subpanel" id="settingsTab-appearance">
+                <div class="form-container" style="max-width:600px;">
+                    <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:4px;">Display</div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Saved on this device only.</div>
+                    <div class="pref-row"><div class="pref-info"><div class="pref-label">Reduced Motion</div><div class="pref-desc">Turns off animations and hover transitions</div></div><button class="settings-toggle" id="apr-motion" onclick="toggleReducedMotion(this)"><span class="settings-toggle-knob"></span></button></div>
+                    <div class="pref-row"><div class="pref-info"><div class="pref-label">Compact Lists</div><div class="pref-desc">Tighter row spacing in Home, Catalog, and Trending</div></div><button class="settings-toggle" id="apr-density" onclick="toggleCompactDensity(this)"><span class="settings-toggle-knob"></span></button></div>
+                </div>
+            </div>
+
+            <!-- SUPPORT -->
+            <div class="settings-subpanel" id="settingsTab-support">
+                <div class="form-container" style="max-width:600px;">
+                    <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:12px;">Help</div>
+                    <div class="faq-item"><div class="faq-question" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">Why can't I see a section?</div><div class="faq-answer">Some sections — Portfolio Analytics and Management — are limited by rank. Ask a Head or Lead Designer if you need access.</div></div>
+                    <div class="faq-item"><div class="faq-question" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">How do pending submissions work?</div><div class="faq-answer">Designer and Assistant Lead uploads go to Pending Approval first. Lead and Head Designer can approve or reject from there.</div></div>
+                    <div class="faq-item"><div class="faq-question" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">A page won't load or looks stuck</div><div class="faq-answer">Use the refresh button in that section's header first. If the page truly hangs, a red error banner will appear at the bottom of the screen — copy it and send it to whoever maintains this dashboard.</div></div>
+                </div>
+                <div class="form-container" style="max-width:600px;">
+                    <div style="font-size:13px;color:var(--gold-light);font-weight:600;margin-bottom:10px;">About</div>
+                    <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text-secondary);padding:8px 0;border-bottom:1px solid rgba(201,168,76,0.08);"><span>Signed in as</span><span id="supportSignedInEmail" style="color:var(--text-primary);">—</span></div>
+                    <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text-secondary);padding:8px 0;border-bottom:1px solid rgba(201,168,76,0.08);"><span>Connection</span><span id="supportFbStatus" style="color:var(--text-primary);">Checking…</span></div>
+                    <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text-secondary);padding:8px 0;"><span>Support</span><span style="color:var(--text-primary);">support@billyliving.com</span></div>
+                </div>
             </div>
         </div>
 
@@ -2331,12 +2553,24 @@
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
+        // Mobile sidebar (hamburger) — desktop is unaffected, CSS only applies the slide-in below 768px
+        function toggleMobileSidebar(force) {
+            const sb = document.querySelector('.sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            const open = typeof force === 'boolean' ? force : !sb.classList.contains('mobile-open');
+            sb.classList.toggle('mobile-open', open);
+            if (backdrop) backdrop.classList.toggle('active', open);
+            document.body.style.overflow = open ? 'hidden' : '';
+        }
+
         // Navigation
         function showPanel(name, el) {
             if (!canAccessPanel(window.currentAdminRank, name)) {
                 showToast('Not available for your role');
                 return;
             }
+            // On mobile, picking a section closes the slide-in nav
+            if (window.innerWidth <= 768) toggleMobileSidebar(false);
             // Close any stray backdrops / overlays that could block clicks
             const backdrop = document.getElementById('contextBackdrop');
             if (backdrop) backdrop.classList.remove('active');
@@ -2367,7 +2601,7 @@
             if (name === 'trending') { if (!_panelFetched.trending) { _panelFetched.trending = true; renderTrendingList(); } }
             if (name === 'vip') { if (!_panelFetched.vip) { _panelFetched.vip = true; renderVIPList().then(loadVIPRequests); } }
             if (name === 'security') { if (!_panelFetched.security) { _panelFetched.security = true; renderDesignersList(); renderAdminRanksList(); } }
-            if (name === 'settings') { if (!_panelFetched.settings) { _panelFetched.settings = true; renderMyProfile(); } }
+            if (name === 'settings') { if (!_panelFetched.settings) { _panelFetched.settings = true; renderMyProfile(); loadAdminNotifPrefs(); renderSupportInfo(); } }
             if (name === 'portfolio') { if (!_panelFetched.portfolio) { _panelFetched.portfolio = true; loadPortfolioUsers(); } }
             if (name === 'messages') { if (!_panelFetched.messages) { _panelFetched.messages = true; initAdminMessagesListener(); } }
             if (name === 'pending') { if (!_panelFetched.pending) { _panelFetched.pending = true; renderPendingList(); } }
@@ -3802,6 +4036,103 @@
         // app as someone else, permission checks for managing OTHER admins
         // must use this, not the simulated rank.
         function effectiveRealRank() { return window._previewActive ? window._realRank : window.currentAdminRank; }
+
+        // ── SETTINGS: TABS ──────────────────────────────────────────────────
+        function showSettingsTab(name, el) {
+            document.querySelectorAll('.settings-subpanel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+            const target = document.getElementById('settingsTab-' + name);
+            if (target) target.classList.add('active');
+            if (el) el.classList.add('active');
+        }
+
+        // ── SETTINGS: NOTIFICATIONS ─────────────────────────────────────────
+        // Per-admin alert prefs, stored at admins/{uid}/prefs/notifications/{key}.
+        // Informational only for now — doesn't yet change which badges fire.
+        function loadAdminNotifPrefs() {
+            const uid = window.currentAdminUid;
+            if (!uid) return;
+            adminFbDB.ref('admins/' + uid + '/prefs/notifications').once('value').then(snap => {
+                const p = snap.val() || { pending: true, vip: true, messages: true }; // default: on
+                ['pending', 'vip', 'messages'].forEach(k => {
+                    const el = document.getElementById('anp-' + k);
+                    if (el) el.classList.toggle('active', p[k] !== false);
+                });
+            }).catch(() => {});
+        }
+        function toggleAdminNotifPref(key, btn) {
+            const uid = window.currentAdminUid;
+            if (!uid) return;
+            const next = !btn.classList.contains('active');
+            btn.classList.toggle('active', next);
+            adminFbDB.ref('admins/' + uid + '/prefs/notifications/' + key).set(next).catch(e => {
+                btn.classList.toggle('active', !next);
+                showToast('Could not save: ' + e.message);
+            });
+        }
+
+        // ── SETTINGS: SECURITY (change password) ────────────────────────────
+        function handleAdminChangePassword() {
+            const cur = document.getElementById('admCpCurrent').value;
+            const nw = document.getElementById('admCpNew').value;
+            const cf = document.getElementById('admCpConfirm').value;
+            if (!cur || !nw || !cf) { showToast('Please fill in all fields'); return; }
+            if (nw.length < 6) { showToast('Password must be at least 6 characters'); return; }
+            if (nw !== cf) { showToast('New passwords do not match'); return; }
+            const user = adminFbAuth.currentUser;
+            if (!user) { showToast('Please sign in first'); return; }
+            const credential = firebase.auth.EmailAuthProvider.credential(user.email, cur);
+            user.reauthenticateWithCredential(credential)
+                .then(() => user.updatePassword(nw))
+                .then(() => {
+                    showToast('✓ Password updated');
+                    document.getElementById('admCpCurrent').value = '';
+                    document.getElementById('admCpNew').value = '';
+                    document.getElementById('admCpConfirm').value = '';
+                })
+                .catch(e => {
+                    if (e.code === 'auth/wrong-password') showToast('Current password is incorrect');
+                    else if (e.code === 'auth/weak-password') showToast('Password is too weak');
+                    else if (e.code === 'auth/requires-recent-login') showToast('Please sign out and back in, then try again');
+                    else showToast('Error: ' + e.message);
+                });
+        }
+
+        // ── SETTINGS: APPEARANCE (device-local, no Firebase) ────────────────
+        function initAppearancePrefs() {
+            try {
+                const motion = localStorage.getItem('bl_reduced_motion') === '1';
+                const density = localStorage.getItem('bl_compact') === '1';
+                document.body.classList.toggle('bl-reduced-motion', motion);
+                document.body.classList.toggle('bl-compact', density);
+                const m = document.getElementById('apr-motion'); if (m) m.classList.toggle('active', motion);
+                const d = document.getElementById('apr-density'); if (d) d.classList.toggle('active', density);
+            } catch (e) {}
+        }
+        function toggleReducedMotion(btn) {
+            const next = !btn.classList.contains('active');
+            btn.classList.toggle('active', next);
+            document.body.classList.toggle('bl-reduced-motion', next);
+            try { localStorage.setItem('bl_reduced_motion', next ? '1' : '0'); } catch (e) {}
+        }
+        function toggleCompactDensity(btn) {
+            const next = !btn.classList.contains('active');
+            btn.classList.toggle('active', next);
+            document.body.classList.toggle('bl-compact', next);
+            try { localStorage.setItem('bl_compact', next ? '1' : '0'); } catch (e) {}
+        }
+
+        // ── SETTINGS: SUPPORT / ABOUT ────────────────────────────────────────
+        function renderSupportInfo() {
+            const emailEl = document.getElementById('supportSignedInEmail');
+            if (emailEl) emailEl.textContent = (adminFbAuth.currentUser && adminFbAuth.currentUser.email) || '—';
+            const statusEl = document.getElementById('supportFbStatus');
+            if (!statusEl) return;
+            adminFbDB.ref('.info/connected').once('value').then(snap => {
+                statusEl.textContent = snap.val() ? '✓ Connected' : 'Offline';
+                statusEl.style.color = snap.val() ? '' : '#ff9b9b';
+            }).catch(() => { statusEl.textContent = 'Unknown'; });
+        }
 
         function renderAdminRanksList() {
           const el = document.getElementById('adminRanksList');
@@ -5798,9 +6129,11 @@
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function() {
                 requestAnimationFrame(dismissSplash);
+                initAppearancePrefs();
             });
         } else {
             requestAnimationFrame(dismissSplash);
+            initAppearancePrefs();
         }
 
         // Every other section is lazy-loaded on demand by showPanel() via
