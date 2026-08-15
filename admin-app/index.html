@@ -276,6 +276,15 @@
             min-width: 20px;
             text-align: center;
         }
+        .nav-dot {
+            position: absolute;
+            right: 18px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--gold);
+            box-shadow: 0 0 6px rgba(201,168,76,0.6);
+        }
 
         .nav-icon {
             width: 20px;
@@ -1396,6 +1405,11 @@
         .admin-chat-hdr { display:flex; align-items:center; gap:14px; padding:18px 20px; border-bottom:1px solid rgba(201,168,76,0.12); position:sticky; top:0; z-index:10; background:#0A0804; flex-shrink:0; }
         .admin-chat-hdr .back-link { background:none; border:1px solid rgba(201,168,76,0.2); color:rgba(201,168,76,0.6); border-radius:8px; padding:8px 12px; font-size:13px; cursor:pointer; transition:all 0.2s; }
         .admin-chat-hdr .back-link:hover { border-color:#C9A84C; color:#C9A84C; }
+        .pf-detail-row { display:flex; justify-content:space-between; gap:16px; padding:10px 0; border-bottom:1px solid rgba(201,168,76,0.08); font-size:13px; }
+        .pf-detail-row:last-child { border-bottom:none; }
+        .pf-detail-label { color:rgba(168,155,140,0.6); flex-shrink:0; }
+        .pf-detail-value { color:var(--text-primary); text-align:right; }
+        .msg-conv-item .pf-list-dot { width:8px; height:8px; border-radius:50%; background:var(--gold); box-shadow:0 0 6px rgba(201,168,76,0.6); margin-left:auto; }
         .admin-chat-av { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#C9A84C,#7A5C10); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0A0804; font-family:'Cormorant Garamond',serif; font-size:15px; flex-shrink:0; }
         .admin-chat-msgs { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:12px; }
         .admin-msg { display:flex; flex-direction:column; }
@@ -1924,6 +1938,7 @@
             <div class="nav-item" data-nav="vip" onclick="showPanel('vip', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span>VIP Manager</span><span class="nav-badge" id="vipBadge" style="display:none;">0</span></div>
             <div class="nav-item" data-nav="vaultmgr" onclick="showPanel('vaultmgr', this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/></svg></span><span>Vault Manager</span></div>
             <div class="nav-item" data-nav="messages" onclick="showPanel('messages', this)"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span><span>Messages</span><span class="nav-badge admin-msgs-badge" id="msgsBadge" style="display:none;">0</span></div>
+            <div class="nav-item" data-nav="projectforms" onclick="showPanel('projectforms', this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></span><span>Project Forms</span><span class="nav-dot" id="projectFormsDot" style="display:none;"></span></div>
         </div>
         <div class="nav-section">
             <div class="nav-section-title">System</div>
@@ -2357,6 +2372,18 @@
                 </div>
             </div>
         </div>
+
+        <!-- Project Forms Panel -->
+        <div class="panel" id="panel-projectforms">
+            <div id="pfListView">
+                <div class="page-header"><div><div class="page-eyebrow">Billy Living</div><h1 class="page-title">Project Forms</h1></div></div>
+                <div id="pfConversationsList" class="msg-conversations"></div>
+            </div>
+            <div id="pfDetailView" style="display:none;">
+                <div class="admin-chat-hdr" style="margin-bottom:20px;"><button class="back-link" onclick="adminFormsBackToList()">← Back</button><div style="flex:1;"><div style="font-weight:600;font-size:15px;color:#E8D5A3;" id="pfDetailName">Client</div><div style="font-size:11px;color:rgba(201,168,76,0.4);" id="pfDetailDate">—</div></div></div>
+                <div class="form-container" style="max-width:600px;" id="pfDetailBody"></div>
+            </div>
+        </div>
     </main>
 
     <!-- Modals -->
@@ -2478,6 +2505,7 @@
             vip:        ['head', 'lead', 'assistant_lead', 'designer'],
             vaultmgr:   ['head', 'lead', 'assistant_lead', 'designer'],
             messages:   ['head', 'lead', 'assistant_lead', 'designer'],
+            projectforms: ['head', 'lead', 'assistant_lead', 'designer'],
             settings:   ['head', 'lead', 'assistant_lead', 'designer'],
             security:   ['head', 'lead', 'assistant_lead'], // "Management" — designer explicitly excluded
         };
@@ -2605,6 +2633,7 @@
             if (name === 'settings') { if (!_panelFetched.settings) { _panelFetched.settings = true; renderMyProfile(); loadAdminNotifPrefs(); renderSupportInfo(); } }
             if (name === 'portfolio') { if (!_panelFetched.portfolio) { _panelFetched.portfolio = true; loadPortfolioUsers(); } }
             if (name === 'messages') { if (!_panelFetched.messages) { _panelFetched.messages = true; initAdminMessagesListener(); } }
+            if (name === 'projectforms') { if (!_panelFetched.projectforms) { _panelFetched.projectforms = true; renderProjectFormsList(); } }
             if (name === 'pending') { if (!_panelFetched.pending) { _panelFetched.pending = true; renderPendingList(); } }
         }
 
@@ -4855,6 +4884,102 @@
           window._adminChatUID = null;
           loadActiveChatMessages();
         }
+        // ── PROJECT FORMS (client consultation intake) ──────────────────────
+        // Read from projectForms/{clientUid}/{formId} — same nesting shape as
+        // chats/, so this mirrors initAdminMessagesListener's structure.
+        let _pfCache = {}; // formId -> { ...form, clientUid }
+        function renderProjectFormsList() {
+          const el = document.getElementById('pfConversationsList');
+          if (window.currentAdminRank === 'designer') {
+            el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div>Project forms aren\'t available for your role.</div>';
+            return Promise.resolve();
+          }
+          el.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(201,168,76,.4);">Loading…</div>';
+          return adminFbDB.ref('projectForms').once('value').then(snap => {
+            if (!snap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div>No project forms yet</div>'; return; }
+            const rows = [];
+            _pfCache = {};
+            snap.forEach(clientSnap => {
+              const clientUid = clientSnap.key;
+              clientSnap.forEach(formSnap => {
+                const form = formSnap.val();
+                const key = formSnap.key;
+                _pfCache[key] = Object.assign({}, form, { clientUid, _key: key });
+                rows.push(_pfCache[key]);
+              });
+            });
+            rows.sort((a, b) => (b.submittedAt || 0) - (a.submittedAt || 0));
+            if (!rows.length) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div>No project forms yet</div>'; return; }
+            el.innerHTML = rows.map(r => {
+              const name = r.clientName || 'Client';
+              const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+              const dt = r.submittedAt ? new Date(r.submittedAt) : null;
+              const now = new Date();
+              const isToday = dt && dt.toDateString() === now.toDateString();
+              const timeStr = dt ? (isToday ? dt.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : dt.toLocaleDateString([], {month:'short', day:'numeric'})) : '';
+              return `<div class="msg-conv-item ${!r.read ? 'unread' : ''}" onclick="openAdminFormDetail('${r._key}')">
+                <div class="msg-conv-avatar">${initials}</div>
+                <div class="msg-conv-body">
+                  <div class="msg-conv-name">${name}</div>
+                  <div class="msg-conv-preview">${(r.projectType||'Project brief')} — ${(r.city||'')}</div>
+                </div>
+                <div class="msg-conv-meta" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                  <div class="msg-conv-time">${timeStr}</div>
+                  ${!r.read ? '<div class="pf-list-dot"></div>' : ''}
+                </div>
+              </div>`;
+            }).join('');
+          }).catch(e => { el.innerHTML = '<div class="empty-state">Error: '+e.message+'</div>'; });
+        }
+        function openAdminFormDetail(key) {
+          const r = _pfCache[key];
+          if (!r) return;
+          document.getElementById('pfListView').style.display = 'none';
+          document.getElementById('pfDetailView').style.display = 'block';
+          document.getElementById('pfDetailName').textContent = r.clientName || 'Client';
+          const dt = r.submittedAt ? new Date(r.submittedAt) : null;
+          document.getElementById('pfDetailDate').textContent = dt ? dt.toLocaleDateString([], {month:'long', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit'}) : '';
+          const row = (label, value) => `<div class="pf-detail-row"><span class="pf-detail-label">${label}</span><span class="pf-detail-value">${value || '—'}</span></div>`;
+          document.getElementById('pfDetailBody').innerHTML = ''
+            + row('Project Type', r.projectType)
+            + row('Rooms', (r.rooms||[]).join(', ') + (r.roomCount ? ` (${r.roomCount} total)` : ''))
+            + row('Location', r.city + (r.address ? ', ' + r.address : ''))
+            + row('Budget', r.budget)
+            + row('Timeline', r.timeline)
+            + row('Style', r.style)
+            + row('Contact', (r.contactMethod||'') + (r.phone ? ' · ' + r.phone : ''))
+            + row('Email', r.clientEmail)
+            + (r.notes ? row('Notes', r.notes) : '');
+          if (!r.read) {
+            adminFbDB.ref('projectForms/' + r.clientUid + '/' + key + '/read').set(true).then(() => {
+              r.read = true;
+              const dot = document.getElementById('projectFormsDot');
+              const stillUnread = Object.values(_pfCache).some(f => !f.read);
+              if (dot && !stillUnread) dot.style.display = 'none';
+            });
+          }
+        }
+        function adminFormsBackToList() {
+          document.getElementById('pfDetailView').style.display = 'none';
+          document.getElementById('pfListView').style.display = 'block';
+          renderProjectFormsList();
+        }
+        // Live dot in the sidebar — independent of visiting the panel, so an
+        // admin sees a new brief arrived without having to click in first.
+        function watchProjectFormsUnread() {
+          if (window.currentAdminRank === 'designer') return;
+          adminFbDB.ref('projectForms').on('value', snap => {
+            let anyUnread = false;
+            snap.forEach(clientSnap => {
+              clientSnap.forEach(formSnap => {
+                if (!formSnap.val().read) anyUnread = true;
+              });
+            });
+            const dot = document.getElementById('projectFormsDot');
+            if (dot) dot.style.display = anyUnread ? 'block' : 'none';
+          });
+        }
+
         function loadActiveChatMessages() {
           const msgs = document.getElementById('adminChatMsgs');
           msgs.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(201,168,76,.4);">Loading...</div>';
@@ -6169,6 +6294,7 @@
             if (_panelFetched.dashboard) return;
             _panelFetched.dashboard = true;
             loadDashboardStats().catch(() => {});
+            watchProjectFormsUnread();
         }
 
         // Auth and initApp() are now triggered by the deferred Firebase loader at the bottom of the body.
