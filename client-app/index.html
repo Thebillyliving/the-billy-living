@@ -627,6 +627,89 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .settings-toggle.active{background:var(--gold)}
 .settings-toggle-knob{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3);transition:transform .25s ease}
 .settings-toggle.active .settings-toggle-knob{transform:translateX(18px)}
+/* Settings Modals */
+.settings-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100002;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.settings-modal-sheet{width:100%;max-width:520px;background:#0E0A04;border-top:1px solid #C9A84C;border-radius:22px 22px 0 0;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));animation:sheetUp .35s cubic-bezier(.32,.72,0,1)}
+.settings-modal-handle{width:38px;height:3px;background:rgba(201,168,76,.28);border-radius:2px;margin:14px auto 0}
+.settings-modal-header{padding:20px 24px 16px;border-bottom:1px solid rgba(201,168,76,.1)}
+.settings-modal-title{font-family:'Cormorant Garamond',serif;font-size:24px;color:#C9A84C;font-weight:600}
+.settings-modal-sub{font-size:12px;color:var(--text-secondary);margin-top:4px;line-height:1.5}
+.settings-modal-body{padding:20px 24px;display:flex;flex-direction:column;gap:14px}
+.settings-input-group{display:flex;flex-direction:column;gap:6px}
+.settings-input-group label{font-family:'Jost',sans-serif;font-size:10px;letter-spacing:1.5px;color:rgba(201,168,76,.6);text-transform:uppercase}
+.settings-input{width:100%;padding:14px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(201,169,98,.2);border-radius:10px;color:#F5F0E8;font-size:14px;font-family:'Jost',sans-serif;outline:none;-webkit-user-select:text;user-select:text}
+.settings-input:focus{border-color:rgba(201,169,98,.5)}
+.settings-modal-btn{width:100%;padding:16px;background:linear-gradient(135deg,var(--gold),#8B6914);border:none;border-radius:12px;color:#0A0804;font-family:'Jost',sans-serif;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:opacity .2s}
+.settings-modal-btn.secondary{background:transparent;border:1px solid rgba(201,168,76,.2);color:var(--gold);margin-top:8px}
+.settings-modal-btn:active{opacity:.85}
+.pref-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(201,168,76,.08)}
+.pref-row:last-child{border-bottom:none}
+.pref-label{font-family:'Jost',sans-serif;font-size:14px;color:var(--text-primary);letter-spacing:.2px}
+.pref-desc{font-size:11px;color:rgba(168,155,140,.55);margin-top:3px;line-height:1.4}
+.unit-radio{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(201,168,76,.08);cursor:pointer;font-family:'Jost',sans-serif;font-size:14px;color:var(--text-primary)}
+.unit-radio:last-child{border-bottom:none}
+.unit-radio input{width:18px;height:18px;accent-color:#C9A84C}
+.faq-item{border-bottom:1px solid rgba(201,168,76,.08)}
+.faq-question{padding:16px 0;font-family:'Jost',sans-serif;font-size:14px;color:var(--text-primary);cursor:pointer;display:flex;justify-content:space-between;align-items:center;line-height:1.4}
+.faq-question::after{content:'›';color:rgba(201,168,76,.4);font-size:18px;transition:transform .2s;display:inline-block}
+.faq-question.open::after{transform:rotate(90deg)}
+.faq-answer{max-height:0;overflow:hidden;transition:max-height .35s ease,padding .35s ease;font-size:13px;color:rgba(168,155,140,.8);line-height:1.7}
+.faq-answer.open{max-height:400px;padding-bottom:16px}
+.legal-body{padding:8px 24px 20px;font-size:12px;color:rgba(168,155,140,.85);line-height:1.9;font-family:'Jost',sans-serif}
+.legal-body h3{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--gold);margin:20px 0 8px;font-weight:600}
+.legal-body p{margin-bottom:12px}
+/* ─── PROJECT FORM (step-by-step intake) ─────────────────────────────────── */
+.pf-dots{display:flex;justify-content:center;gap:6px;padding:14px 0 4px;}
+.pf-dot{width:6px;height:6px;border-radius:50%;background:rgba(201,168,76,.2);transition:background .25s,width .25s;}
+.pf-dot.active{background:#C9A84C;width:16px;border-radius:3px;}
+.pf-dot.done{background:rgba(201,168,76,.55);}
+.pf-field-label{font-family:'Jost',sans-serif;font-size:11px;letter-spacing:1.5px;color:rgba(201,168,76,.6);text-transform:uppercase;margin-bottom:10px;display:block;}
+.pf-pill-group{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;}
+.pf-pill{padding:10px 16px;border-radius:20px;border:1px solid rgba(201,168,76,.25);background:rgba(255,255,255,.03);color:var(--text-primary);font-family:'Jost',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;}
+.pf-pill.selected{background:linear-gradient(135deg,#C9A84C,#8B6914);border-color:transparent;color:#0A0804;font-weight:600;}
+.pf-room-counter{display:flex;align-items:center;justify-content:center;gap:20px;margin:6px 0 20px;}
+.pf-room-counter button{width:40px;height:40px;border-radius:50%;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.03);color:#C9A84C;font-size:20px;cursor:pointer;}
+.pf-room-counter-val{font-family:'Cormorant Garamond',serif;font-size:32px;color:#C9A84C;min-width:40px;text-align:center;}
+.pf-summary-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(201,168,76,.08);font-size:13px;gap:12px;}
+.pf-summary-row:last-child{border-bottom:none;}
+.pf-summary-label{color:rgba(168,155,140,.6);flex-shrink:0;}
+.pf-summary-value{color:var(--text-primary);text-align:right;}
+.pf-success{text-align:center;padding:20px 0;}
+.pf-success-icon{width:64px;height:64px;border-radius:50%;background:rgba(201,168,76,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px;}
+/* My Forms list */
+.pf-form-item{display:flex;align-items:center;gap:12px;padding:14px 4px;border-bottom:1px solid rgba(201,168,76,.08);cursor:pointer;}
+.pf-form-item:last-child{border-bottom:none;}
+.pf-form-icon{width:40px;height:40px;border-radius:10px;background:rgba(201,168,76,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#C9A84C;}
+.pf-form-body{flex:1;min-width:0;}
+.pf-form-title{font-size:14px;color:var(--text-primary);font-family:'Jost',sans-serif;}
+.pf-form-sub{font-size:11px;color:rgba(168,155,140,.55);margin-top:2px;}
+.pf-form-status{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(201,168,76,.5);flex-shrink:0;}
+/* ─── FEED TIKTOK VIEWER ─────────────────────────────────────────────────── */
+.feed-viewer-page{position:fixed;top:0;left:0;right:0;bottom:0;background:#000;z-index:99990;display:none}
+.feed-viewer-page.active{display:block}
+.feed-viewer-container{height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:auto;overscroll-behavior-y:contain;scroll-behavior:auto}
+.feed-viewer-container::-webkit-scrollbar{display:none}
+.feed-viewer-item{height:100%;scroll-snap-align:start;scroll-snap-stop:always;position:relative;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.feed-viewer-item img,.feed-viewer-item video{width:100%;height:100%;object-fit:cover;display:block}
+.feed-viewer-actions{position:absolute;right:12px;bottom:110px;display:flex;flex-direction:column;gap:16px;z-index:20}
+.feed-viewer-action{display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;background:none;border:none;cursor:pointer;font-family:'Jost',sans-serif;text-shadow:0 2px 4px rgba(0,0,0,.8)}
+.feed-viewer-action-icon{width:48px;height:48px;background:rgba(22,22,22,.6);backdrop-filter:blur(12px);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.feed-viewer-action-icon svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.feed-viewer-action.liked .feed-viewer-action-icon{background:rgba(237,73,86,.25)}
+.feed-viewer-action.liked .feed-viewer-action-icon svg{stroke:#ed4956;fill:#ed4956}
+.feed-viewer-action.bookmarked .feed-viewer-action-icon{background:rgba(201,168,76,.25)}
+.feed-viewer-action.bookmarked .feed-viewer-action-icon svg{stroke:#C9A84C;fill:#C9A84C}
+.feed-viewer-action:active .feed-viewer-action-icon{transform:scale(.88)}
+.feed-viewer-count{font-size:12px;font-weight:600;letter-spacing:.3px}
+.feed-viewer-info{position:absolute;bottom:0;left:0;right:0;padding:80px 100px 28px 16px;background:linear-gradient(transparent,rgba(0,0,0,.8));z-index:15;pointer-events:none}
+.feed-viewer-info > *{pointer-events:auto}
+.feed-viewer-user{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.feed-viewer-username{font-weight:600;font-size:16px;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.8)}
+.feed-viewer-caption{font-size:14px;color:#fff;margin-bottom:8px;line-height:1.4;text-shadow:0 2px 4px rgba(0,0,0,.8);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}
+.feed-viewer-caption.expanded{-webkit-line-clamp:unset}
+.feed-viewer-close{position:absolute;top:16px;left:16px;z-index:30;width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px)}
+.feed-viewer-tap{position:absolute;inset:0;z-index:10}
+@keyframes fvHeartPop{0%{transform:translate(-50%,-50%) scale(0);opacity:0}40%{transform:translate(-50%,-50%) scale(1.2);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -768,11 +851,11 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       </div>
       <span class="story-label" id="profileStoryLabel">My Profile</span>
     </button>
-    <button class="story-item" onclick="window.open('https://wa.me/' + CONFIG.WHATSAPP_NUMBER + '?text=' + encodeURIComponent('Hi! I\u2019m interested in an interior design consultation for my space. Could you let me know how your process works?'), '_blank')">
-      <div class="story-circle" style="background:linear-gradient(135deg,#25D366,#128C7E)">
-        <span class="story-circle-icon"><svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.564 4.14 1.548 5.872L0 24l6.336-1.524A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.877 9.877 0 01-5.031-1.378l-.36-.214-3.762.904.944-3.659-.235-.374A9.861 9.861 0 012.118 12C2.118 6.533 6.533 2.118 12 2.118c5.466 0 9.882 4.415 9.882 9.882 0 5.466-4.416 9.882-9.882 9.882z"/></svg></span>
+    <button class="story-item" onclick="openProjectForm()">
+      <div class="story-circle" style="background:linear-gradient(135deg,#2A1F14,#120D06);border:1.5px solid rgba(201,168,76,0.4);">
+        <span class="story-circle-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/><path d="M14 13h3M14 16h3"/></svg></span>
       </div>
-      <span class="story-label">WhatsApp</span>
+      <span class="story-label">Start a Project</span>
     </button>
     <button class="story-item" onclick="openConsultSheet()">
       <div class="story-circle">
@@ -905,12 +988,17 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
         <span class="settings-row-label">Edit Profile</span>
         <span class="settings-row-chevron">›</span>
       </button>
-      <button class="settings-row" onclick="showToast('Change password — contact Concierge')">
+      <button class="settings-row" onclick="openMyForms()">
+        <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/><path d="M14 13h3M14 16h3"/></svg></span>
+        <span class="settings-row-label">Project Forms</span>
+        <span class="settings-row-chevron">›</span>
+      </button>
+      <button class="settings-row" onclick="openSettingsModal('changePasswordModal')">
         <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>
         <span class="settings-row-label">Change Password</span>
         <span class="settings-row-chevron">›</span>
       </button>
-      <button class="settings-row" onclick="showToast('Email preferences coming soon')">
+      <button class="settings-row" onclick="openSettingsModal('emailNotifModal')">
         <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
         <span class="settings-row-label">Email &amp; Notifications</span>
         <span class="settings-row-chevron">›</span>
@@ -920,12 +1008,12 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     <!-- Preferences -->
     <div class="settings-group">
       <div class="settings-group-label">Preferences</div>
-      <button class="settings-row" onclick="showToast('Notification settings coming soon')">
+      <button class="settings-row" onclick="openSettingsModal('pushNotifModal')">
         <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></span>
         <span class="settings-row-label">Push Notifications</span>
         <span class="settings-row-chevron">›</span>
       </button>
-      <button class="settings-row" onclick="showToast('Units set in profile')">
+      <button class="settings-row" onclick="openSettingsModal('unitsModal')">
         <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
         <span class="settings-row-label">Measurement Units</span>
         <span class="settings-row-chevron">›</span>
@@ -950,7 +1038,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
         <span class="settings-row-label">WhatsApp Support</span>
         <span class="settings-row-chevron">›</span>
       </button>
-      <button class="settings-row" onclick="showToast('FAQ coming soon')">
+      <button class="settings-row" onclick="openSettingsModal('helpCenterModal')">
         <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
         <span class="settings-row-label">Help Center</span>
         <span class="settings-row-chevron">›</span>
@@ -960,12 +1048,12 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
     <!-- Legal -->
     <div class="settings-group">
       <div class="settings-group-label">Legal</div>
-      <button class="settings-row" onclick="showToast('Terms of Service coming soon')">
+      <button class="settings-row" onclick="openSettingsModal('termsModal')">
         <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
         <span class="settings-row-label">Terms of Service</span>
         <span class="settings-row-chevron">›</span>
       </button>
-      <button class="settings-row" onclick="showToast('Privacy Policy coming soon')">
+      <button class="settings-row" onclick="openSettingsModal('privacyModal')">
         <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
         <span class="settings-row-label">Privacy Policy</span>
         <span class="settings-row-chevron">›</span>
@@ -2539,7 +2627,7 @@ function buildFeedItem(p) {
     +   '<div class="feed-header-info"><span class="feed-header-name">The Billy Living</span>' + headerLocHtml + '</div>'
     +   '<button class="feed-header-more" onclick="openShareSheetNoCount(_postsMap[\'' + id + '\'])">···</button>'
     + '</div>'
-    + '<div class="feed-image"><div class="tap-pause-overlay" onclick="handleFeedImageTap(this, event, \'' + id + '\')"><div class="tap-pause-icon"></div><div class="dt-heart">❤️</div></div>' + mediaHtml + '</div>'
+    + '<div class="feed-image" onclick="openFeedViewer(\'' + id + '\')" style="cursor:pointer">' + mediaHtml + '</div>'
     + '<div class="feed-actions">'
     +   '<button class="feed-action-btn" onclick="toggleLike(this,\'' + id + '\',\'posts\')">'
     +     '<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>'
@@ -2708,8 +2796,6 @@ async function toggleLike(btn, id, collection) {
     if (currentUser) {
       if (isLiked) { await fbDb.ref(`userLikes/${currentUser.uid}/${id}`).set(true); }
       else { await fbDb.ref(`userLikes/${currentUser.uid}/${id}`).remove(); }
-      // Favoriting a post also saves it into the Portfolio → Favorites tab
-      await syncFavoriteToPortfolio(id, isLiked, _postsMap[id]);
     }
   } catch(e) {
     console.error('toggleLike:', e);
@@ -2731,33 +2817,6 @@ function showLikeErrorToast(e) {
   showToast('Could not save (' + detail + ')');
 }
 
-// ─── FAVORITES → PORTFOLIO SYNC ───────────────────────────────────────────────
-// Tapping the heart ("favorite") on any post mirrors it into the Portfolio's
-// Favorites tab, separate from the bookmark-driven Saves tab. Nothing about
-// the existing Save/bookmark flow is touched.
-async function syncFavoriteToPortfolio(id, isFavorited, item) {
-  if (!currentUser) return;
-  const favRef = fbDb.ref(`userFavorites/${currentUser.uid}/${id}`);
-  if (isFavorited) {
-    const portId = 'fav_' + id;
-    const portItem = {
-      id: portId, postId: id, type: 'favorite',
-      title: (item && item.title) || 'Design', emoji: '❤️',
-      imageData: (item && (item.imageData || item.imageUrl)) || '',
-      description: (item && item.caption) || '', savedAt: Date.now()
-    };
-    await fbDb.ref(`portfolios/${currentUser.uid}/items/${portId}`).set(portItem);
-    await favRef.set(portId);
-    loadPortfolio();
-  } else {
-    const snap = await favRef.get();
-    const portId = snap.val();
-    if (portId) await fbDb.ref(`portfolios/${currentUser.uid}/items/${portId}`).remove();
-    await favRef.remove();
-    loadPortfolio();
-  }
-}
-
 async function bookmarkPost(btn, id, post) {
   if (!currentUser) return;
   btn.classList.toggle('bookmarked');
@@ -2765,10 +2824,10 @@ async function bookmarkPost(btn, id, post) {
   const bmRef = fbDb.ref(`userBookmarks/${currentUser.uid}/${id}`);
   if (isBookmarked) {
     const portId = 'port_' + id;
-    const item = { id: portId, postId: id, type: 'save', title: post.title||'Design', emoji: '🛋️', imageData: post.imageData||post.imageUrl||'', description: post.caption||'', savedAt: Date.now() };
+    const item = { id: portId, postId: id, type: 'favorite', title: post.title||'Design', emoji: '🔖', imageData: post.imageData||post.imageUrl||'', description: post.caption||'', savedAt: Date.now() };
     await fbDb.ref(`portfolios/${currentUser.uid}/items/${portId}`).set(item);
     await bmRef.set(portId);
-    showToast('Saved to Portfolio ✓');
+    showToast('Saved to Favorites ✓');
     loadPortfolio();
   } else {
     const snap = await bmRef.get();
@@ -2777,7 +2836,7 @@ async function bookmarkPost(btn, id, post) {
     await bmRef.remove();
     // Also clear matching trending bookmark icon if visible
     document.querySelectorAll(`.tiktok-item[data-id="${id}"] .tiktok-action.bookmarked`).forEach(b => b.classList.remove('bookmarked'));
-    showToast('Removed from Portfolio');
+    showToast('Removed from Favorites');
     loadPortfolio();
   }
 }
@@ -3112,8 +3171,6 @@ async function toggleTikTokLike(btn, id) {
     if (currentUser) {
       if (isLiked) { await fbDb.ref(`userTrendingLikes/${currentUser.uid}/${id}`).set(true); }
       else { await fbDb.ref(`userTrendingLikes/${currentUser.uid}/${id}`).remove(); }
-      // Favoriting a trending post also saves it into the Portfolio → Favorites tab
-      await syncFavoriteToPortfolio(id, isLiked, _trendMap[id]);
     }
   } catch(e) {
     console.error('toggleTikTokLike:', e);
@@ -3131,10 +3188,10 @@ async function bookmarkTrending(btn, id, item) {
   const bmRef = fbDb.ref(`userBookmarks/${currentUser.uid}/trend_${id}`);
   if (isBookmarked) {
     const portId = 'port_trend_' + id;
-    const portItem = { id: portId, postId: id, type: 'save', title: item.title||'Design', emoji: '🎬', imageData: item.imageData||item.imageUrl||'', description: item.caption||'', savedAt: Date.now() };
+    const portItem = { id: portId, postId: id, type: 'favorite', title: item.title||'Design', emoji: '🎬', imageData: item.imageData||item.imageUrl||'', description: item.caption||'', savedAt: Date.now() };
     await fbDb.ref(`portfolios/${currentUser.uid}/items/${portId}`).set(portItem);
     await bmRef.set(portId);
-    showToast('Saved to Portfolio ✓');
+    showToast('Saved to Favorites ✓');
     loadPortfolio();
   } else {
     const snap = await bmRef.get();
@@ -3143,7 +3200,7 @@ async function bookmarkTrending(btn, id, item) {
     await bmRef.remove();
     // Also clear matching feed bookmark icon if visible
     document.querySelectorAll(`.feed-item[data-id="${id}"] .feed-action-btn.bookmarked`).forEach(b => b.classList.remove('bookmarked'));
-    showToast('Removed from Portfolio');
+    showToast('Removed from Favorites');
     loadPortfolio();
   }
 }
@@ -4513,7 +4570,7 @@ async function addToPortfolioFromShare() {
   if (!currentUser || !currentShareItem) return;
   try {
   const portId = 'port_share_' + (currentShareItem.id || Date.now());
-  const item = { id: portId, postId: currentShareItem.id||'', title: currentShareItem.title||'Design', emoji: '🛋️', imageData: currentShareItem.imageData||currentShareItem.imageUrl||'', description: currentShareItem.caption||'', savedAt: Date.now() };
+  const item = { id: portId, postId: currentShareItem.id||'', type: 'save', title: currentShareItem.title||'Design', emoji: '🛋️', imageData: currentShareItem.imageData||currentShareItem.imageUrl||'', description: currentShareItem.caption||'', savedAt: Date.now() };
   await fbDb.ref(`portfolios/${currentUser.uid}/items/${portId}`).set(item);
   showToast('Saved to Portfolio');
   loadPortfolio();
@@ -5285,8 +5342,658 @@ function addManualRefreshButton() {
   header.appendChild(testBtn);
 }
 setTimeout(addManualRefreshButton, 3000);
+
+// ─── SETTINGS MODALS ─────────────────────────────────────────────────────────
+function openSettingsModal(id){document.getElementById(id).style.display='flex';if(id==='emailNotifModal'||id==='unitsModal')loadPrefs();}
+function closeSettingsModal(id){document.getElementById(id).style.display='none';}
+
+// ─── CHANGE PASSWORD ─────────────────────────────────────────────────────────
+async function handleChangePassword(){
+  const cur=document.getElementById('cpCurrent').value;
+  const nw=document.getElementById('cpNew').value;
+  const cf=document.getElementById('cpConfirm').value;
+  if(!cur||!nw||!cf){showToast('Please fill in all fields');return;}
+  if(nw.length<6){showToast('Password must be at least 6 characters');return;}
+  if(nw!==cf){showToast('New passwords do not match');return;}
+  if(!currentUser){showToast('Please sign in first');return;}
+  try{
+    const cred=firebase.auth.EmailAuthProvider.credential(currentUser.email,cur);
+    await currentUser.reauthenticateWithCredential(cred);
+    await currentUser.updatePassword(nw);
+    showToast('Password updated successfully');
+    closeSettingsModal('changePasswordModal');
+    document.getElementById('cpCurrent').value='';
+    document.getElementById('cpNew').value='';
+    document.getElementById('cpConfirm').value='';
+  }catch(e){
+    if(e.code==='auth/wrong-password')showToast('Current password is incorrect');
+    else if(e.code==='auth/weak-password')showToast('Password is too weak');
+    else if(e.code==='auth/requires-recent-login')showToast('Please log out and back in, then try again');
+    else showToast('Could not update password');
+  }
+}
+
+// ─── NOTIFICATION PREFERENCES ───────────────────────────────────────────────
+async function togglePref(key,btn){
+  if(!currentUser){showToast('Please sign in');return;}
+  const ref=fbDb.ref('userProfiles/'+currentUser.uid+'/preferences/'+key);
+  const snap=await ref.get();
+  const next=!snap.val();
+  await ref.set(next);
+  btn.classList.toggle('active',next);
+  showToast(next?'Subscribed':'Unsubscribed');
+}
+async function loadPrefs(){
+  if(!currentUser)return;
+  const snap=await fbDb.ref('userProfiles/'+currentUser.uid+'/preferences').get();
+  const p=snap.val()||{};
+  ['marketing','projects','collections','concierge'].forEach(k=>{
+    const el=document.getElementById('pref-'+k);
+    if(el)el.classList.toggle('active',!!p[k]);
+  });
+  const unit=(await fbDb.ref('userProfiles/'+currentUser.uid+'/measure').get()).val()||'';
+  if(unit==='inches')document.getElementById('unit-inches').checked=true;
+  if(unit==='cm')document.getElementById('unit-cm').checked=true;
+}
+
+// ─── PUSH NOTIFICATIONS ─────────────────────────────────────────────────────
+function togglePushNotif(btn){
+  if(!('Notification' in window)){showToast('Notifications not supported on this browser');return;}
+  if(Notification.permission==='granted'){
+    btn.classList.toggle('active');
+    showToast(btn.classList.contains('active')?'Push enabled':'Push disabled');
+  }else if(Notification.permission!=='denied'){
+    Notification.requestPermission().then(p=>{
+      if(p==='granted'){
+        btn.classList.add('active');
+        showToast('Push notifications enabled');
+        new Notification('The Billy Living',{body:'You will now receive project updates.',icon:'https://billy-living.vercel.app/ic_launcher-web.png'});
+      }else{showToast('Permission denied — enable in browser settings');}
+    });
+  }else{showToast('Blocked — enable in your browser site settings');}
+}
+
+// ─── MEASUREMENT UNITS ──────────────────────────────────────────────────────
+async function setUnit(unit){
+  if(!currentUser){showToast('Please sign in');return;}
+  await fbDb.ref('userProfiles/'+currentUser.uid).update({measure:unit});
+  document.getElementById('profileMeasurementSelect').value=unit;
+  showToast(unit==='inches'?'Imperial units set':'Metric units set');
+}
+
+// ─── PROJECT FORM (step-by-step consultation intake) ────────────────────────
+function pfEsc(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+const PF_STEPS = [
+  { id:'type', title:'Start Your Project', sub:'What are we designing?' },
+  { id:'rooms', title:'Which Rooms?', sub:'Select every space involved' },
+  { id:'location', title:'Where Is It?', sub:'City and site address' },
+  { id:'budget', title:'Your Budget', sub:'A range helps us scope the right proposal' },
+  { id:'timeline', title:'Your Timeline', sub:'When would you like to start?' },
+  { id:'style', title:'Style Preference', sub:'What feeling are you drawn to?' },
+  { id:'contact', title:'How Should We Reach You?', sub:'Optional notes for your designer' },
+  { id:'review', title:'Review & Share', sub:'One last look before it goes to your designer' }
+];
+
+let pfState = { step: 0, data: { projectType:'', rooms:[], roomCount:1, city:'', address:'', budget:'', timeline:'', style:'', contactMethod:'', phone:'', notes:'' } };
+
+function openProjectForm() {
+  if (!currentUser) { showToast('Please sign in first'); return; }
+  pfState = { step: 0, data: { projectType:'', rooms:[], roomCount:1, city:'', address:'', budget:'', timeline:'', style:'', contactMethod:'', phone: (currentProfile && currentProfile.mobile) || '', notes:'' } };
+  document.getElementById('projectFormOverlay').style.display = 'flex';
+  pfRenderStep();
+}
+function closeProjectForm() { document.getElementById('projectFormOverlay').style.display = 'none'; }
+
+function pfRenderDots() {
+  const wrap = document.getElementById('pfDots');
+  wrap.innerHTML = PF_STEPS.map((s,i) => '<div class="pf-dot ' + (i===pfState.step?'active':(i<pfState.step?'done':'')) + '"></div>').join('');
+}
+
+function pfTogglePill(field, value, multi) {
+  if (multi) {
+    const arr = pfState.data[field];
+    const idx = arr.indexOf(value);
+    if (idx === -1) arr.push(value); else arr.splice(idx,1);
+  } else {
+    pfState.data[field] = value;
+  }
+  pfRenderStep(true); // re-render in place, keep step position
+}
+
+function pfSetRoomCount(delta) {
+  pfState.data.roomCount = Math.max(1, Math.min(30, pfState.data.roomCount + delta));
+  const el = document.getElementById('pfRoomCountVal');
+  if (el) el.textContent = pfState.data.roomCount;
+}
+
+function pfPillHtml(field, options, multi) {
+  const sel = multi ? pfState.data[field] : [pfState.data[field]];
+  return '<div class="pf-pill-group">' + options.map(o =>
+    '<button type="button" class="pf-pill ' + (sel.includes(o) ? 'selected' : '') + '" onclick="pfTogglePill(\'' + field + '\',\'' + o.replace(/'/g,"\\'") + '\',' + (multi?'true':'false') + ')">' + o + '</button>'
+  ).join('') + '</div>';
+}
+
+function pfRenderStep(inPlace) {
+  if (!inPlace) pfRenderDots();
+  const step = PF_STEPS[pfState.step];
+  document.getElementById('pfStepTitle').textContent = step.title;
+  document.getElementById('pfStepSub').textContent = step.sub;
+  const body = document.getElementById('pfStepBody');
+  const d = pfState.data;
+
+  if (step.id === 'type') {
+    body.innerHTML = '<span class="pf-field-label">Project Type</span>' + pfPillHtml('projectType', ['Full Home','Single Room','Multiple Rooms','Office / Commercial','Renovation of Existing Space'], false);
+  } else if (step.id === 'rooms') {
+    body.innerHTML = '<span class="pf-field-label">Rooms Involved</span>' + pfPillHtml('rooms', ['Living Room','Bedroom','Kitchen','Dining Room','Bathroom','Home Office','Outdoor / Balcony','Other'], true)
+      + '<span class="pf-field-label">Total Rooms</span>'
+      + '<div class="pf-room-counter"><button type="button" onclick="pfSetRoomCount(-1)">−</button><span class="pf-room-counter-val" id="pfRoomCountVal">' + d.roomCount + '</span><button type="button" onclick="pfSetRoomCount(1)">+</button></div>';
+  } else if (step.id === 'location') {
+    body.innerHTML = '<span class="pf-field-label">City</span>' + pfPillHtml('city', ['Lagos','Abuja','Other'], false)
+      + '<div class="settings-input-group" style="margin-top:6px;"><label>Site Address</label><input type="text" class="settings-input" id="pfAddress" placeholder="Street, area, landmark" value="' + pfEsc(d.address) + '"></div>';
+  } else if (step.id === 'budget') {
+    body.innerHTML = '<span class="pf-field-label">Budget Range</span>' + pfPillHtml('budget', ['Under ₦5M','₦5M – ₦15M','₦15M – ₦30M','₦30M+','Not sure yet'], false);
+  } else if (step.id === 'timeline') {
+    body.innerHTML = '<span class="pf-field-label">When Do You Want to Start?</span>' + pfPillHtml('timeline', ['As soon as possible','1–3 months','3–6 months','Just exploring'], false);
+  } else if (step.id === 'style') {
+    body.innerHTML = '<span class="pf-field-label">Style Direction</span>' + pfPillHtml('style', ['Billionaire Chic','Modern Minimalist','Classic Luxury','Warm & Rich','Not sure — open to suggestions'], false);
+  } else if (step.id === 'contact') {
+    body.innerHTML = '<span class="pf-field-label">Preferred Contact Method</span>' + pfPillHtml('contactMethod', ['In-App Concierge','WhatsApp','Phone Call','Email'], false)
+      + '<div class="settings-input-group" style="margin-top:6px;"><label>Phone Number</label><input type="tel" class="settings-input" id="pfPhone" placeholder="e.g. 0803 000 0000" value="' + pfEsc(d.phone) + '"></div>'
+      + '<div class="settings-input-group" style="margin-top:14px;"><label>Anything else? <span style="text-transform:none;letter-spacing:0;color:rgba(201,168,76,.4);">(optional)</span></label><textarea class="settings-input" id="pfNotes" rows="3" placeholder="Inspiration, must-haves, constraints…">' + pfEsc(d.notes) + '</textarea></div>';
+  } else if (step.id === 'review') {
+    body.innerHTML = ''
+      + '<div class="pf-summary-row"><span class="pf-summary-label">Project Type</span><span class="pf-summary-value">' + pfEsc(d.projectType||'—') + '</span></div>'
+      + '<div class="pf-summary-row"><span class="pf-summary-label">Rooms</span><span class="pf-summary-value">' + pfEsc(d.rooms.join(', ')||'—') + ' (' + d.roomCount + ' total)</span></div>'
+      + '<div class="pf-summary-row"><span class="pf-summary-label">Location</span><span class="pf-summary-value">' + pfEsc(d.city||'—') + (d.address ? ', ' + pfEsc(d.address) : '') + '</span></div>'
+      + '<div class="pf-summary-row"><span class="pf-summary-label">Budget</span><span class="pf-summary-value">' + pfEsc(d.budget||'—') + '</span></div>'
+      + '<div class="pf-summary-row"><span class="pf-summary-label">Timeline</span><span class="pf-summary-value">' + pfEsc(d.timeline||'—') + '</span></div>'
+      + '<div class="pf-summary-row"><span class="pf-summary-label">Style</span><span class="pf-summary-value">' + pfEsc(d.style||'—') + '</span></div>'
+      + '<div class="pf-summary-row"><span class="pf-summary-label">Contact</span><span class="pf-summary-value">' + pfEsc(d.contactMethod||'—') + (d.phone ? ' · ' + pfEsc(d.phone) : '') + '</span></div>'
+      + (d.notes ? '<div class="pf-summary-row"><span class="pf-summary-label">Notes</span><span class="pf-summary-value">' + pfEsc(d.notes) + '</span></div>' : '');
+  }
+
+  const backBtn = document.getElementById('pfBackBtn');
+  const nextBtn = document.getElementById('pfNextBtn');
+  backBtn.style.visibility = pfState.step === 0 ? 'hidden' : 'visible';
+  nextBtn.textContent = step.id === 'review' ? 'Share Your Project With a Designer' : 'Next';
+}
+
+function pfValidateStep() {
+  const step = PF_STEPS[pfState.step];
+  const d = pfState.data;
+  if (step.id === 'type' && !d.projectType) { showToast('Pick a project type'); return false; }
+  if (step.id === 'rooms' && !d.rooms.length) { showToast('Select at least one room'); return false; }
+  if (step.id === 'location') {
+    d.address = (document.getElementById('pfAddress')?.value || '').trim();
+    if (!d.city) { showToast('Pick a city'); return false; }
+  }
+  if (step.id === 'budget' && !d.budget) { showToast('Pick a budget range'); return false; }
+  if (step.id === 'timeline' && !d.timeline) { showToast('Pick a timeline'); return false; }
+  if (step.id === 'style' && !d.style) { showToast('Pick a style direction'); return false; }
+  if (step.id === 'contact') {
+    d.phone = (document.getElementById('pfPhone')?.value || '').trim();
+    d.notes = (document.getElementById('pfNotes')?.value || '').trim();
+    if (!d.contactMethod) { showToast('Pick a contact method'); return false; }
+    if (!d.phone) { showToast('Add a phone number'); return false; }
+  }
+  return true;
+}
+
+function pfNext() {
+  if (PF_STEPS[pfState.step].id === 'review') { pfSubmit(); return; }
+  if (!pfValidateStep()) return;
+  if (pfState.step < PF_STEPS.length - 1) { pfState.step++; pfRenderStep(); }
+}
+function pfBack() {
+  if (pfState.step > 0) { pfState.step--; pfRenderStep(); }
+}
+
+async function pfSubmit() {
+  if (!currentUser) { showToast('Please sign in first'); return; }
+  const nextBtn = document.getElementById('pfNextBtn');
+  const original = nextBtn.textContent;
+  nextBtn.textContent = 'Sending…'; nextBtn.disabled = true;
+  const d = pfState.data;
+  const record = {
+    clientUid: currentUser.uid,
+    clientName: (currentProfile && currentProfile.name) || 'Client',
+    clientEmail: currentUser.email || '',
+    projectType: d.projectType, rooms: d.rooms, roomCount: d.roomCount,
+    city: d.city, address: d.address, budget: d.budget, timeline: d.timeline,
+    style: d.style, contactMethod: d.contactMethod, phone: d.phone, notes: d.notes,
+    submittedAt: Date.now(), read: false
+  };
+  try {
+    await fbDb.ref('projectForms/' + currentUser.uid).push(record);
+    document.getElementById('pfStepTitle').textContent = 'Sent to Your Designer';
+    document.getElementById('pfStepSub').textContent = '';
+    document.getElementById('pfDots').innerHTML = '';
+    document.getElementById('pfStepBody').innerHTML = '<div class="pf-success"><div class="pf-success-icon">✓</div><div style="font-family:\'Cormorant Garamond\',serif;font-size:19px;color:#F5F0E8;margin-bottom:6px;">Your project brief is on its way</div><div style="font-size:13px;color:rgba(168,155,140,.7);">A designer will review it and reach out via ' + pfEsc(d.contactMethod||'your preferred method') + '. You can view it anytime under Settings → Project Forms.</div></div>';
+    document.getElementById('pfBackBtn').style.display = 'none';
+    nextBtn.textContent = 'Done'; nextBtn.disabled = false;
+    nextBtn.onclick = function() { closeProjectForm(); document.getElementById('pfBackBtn').style.display = ''; nextBtn.onclick = pfNext; };
+  } catch(e) {
+    showToast('Could not send — ' + e.message);
+    nextBtn.textContent = original; nextBtn.disabled = false;
+  }
+}
+
+// ─── MY PROJECT FORMS (client's own history) ─────────────────────────────────
+function openMyForms() {
+  openSettingsModal('myFormsModal');
+  loadMyForms();
+}
+const PF_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>';
+let _myFormsCache = {};
+function loadMyForms() {
+  if (!currentUser) return;
+  const list = document.getElementById('myFormsList');
+  fbDb.ref('projectForms/' + currentUser.uid).orderByChild('submittedAt').once('value').then(snap => {
+    if (!snap.exists()) { list.innerHTML = '<div style="text-align:center;padding:24px;color:rgba(201,168,76,.4);font-size:13px;">No project forms yet — tap "Start a Project" on your home screen.</div>'; return; }
+    const items = [];
+    snap.forEach(child => { items.push({ ...child.val(), _key: child.key }); });
+    items.reverse();
+    _myFormsCache = {}; items.forEach(it => { _myFormsCache[it._key] = it; });
+    list.innerHTML = items.map(it => {
+      const dt = new Date(it.submittedAt||0);
+      const dateStr = dt.toLocaleDateString([], {month:'short', day:'numeric', year:'numeric'});
+      return '<div class="pf-form-item" onclick="viewFormDetail(\'' + it._key + '\')">'
+        + '<div class="pf-form-icon">' + PF_ICON + '</div>'
+        + '<div class="pf-form-body"><div class="pf-form-title">' + pfEsc(it.projectType||'Project Brief') + '</div><div class="pf-form-sub">' + dateStr + ' · ' + pfEsc(it.city||'') + '</div></div>'
+        + '<div class="pf-form-status">' + (it.read ? 'Reviewed' : 'Pending Review') + '</div>'
+        + '</div>';
+    }).join('');
+  }).catch(e => { list.innerHTML = '<div style="text-align:center;padding:24px;color:#ef4444;font-size:13px;">Error: ' + e.message + '</div>'; });
+}
+function viewFormDetail(key) {
+  const it = _myFormsCache[key];
+  if (!it) return;
+  const dt = new Date(it.submittedAt||0);
+  document.getElementById('formDetailDate').textContent = dt.toLocaleDateString([], {month:'long', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit'});
+  document.getElementById('formDetailBody').innerHTML = ''
+    + '<div class="pf-summary-row"><span class="pf-summary-label">Project Type</span><span class="pf-summary-value">' + pfEsc(it.projectType||'—') + '</span></div>'
+    + '<div class="pf-summary-row"><span class="pf-summary-label">Rooms</span><span class="pf-summary-value">' + pfEsc((it.rooms||[]).join(', ')||'—') + ' (' + (it.roomCount||'—') + ' total)</span></div>'
+    + '<div class="pf-summary-row"><span class="pf-summary-label">Location</span><span class="pf-summary-value">' + pfEsc(it.city||'—') + (it.address ? ', ' + pfEsc(it.address) : '') + '</span></div>'
+    + '<div class="pf-summary-row"><span class="pf-summary-label">Budget</span><span class="pf-summary-value">' + pfEsc(it.budget||'—') + '</span></div>'
+    + '<div class="pf-summary-row"><span class="pf-summary-label">Timeline</span><span class="pf-summary-value">' + pfEsc(it.timeline||'—') + '</span></div>'
+    + '<div class="pf-summary-row"><span class="pf-summary-label">Style</span><span class="pf-summary-value">' + pfEsc(it.style||'—') + '</span></div>'
+    + '<div class="pf-summary-row"><span class="pf-summary-label">Contact</span><span class="pf-summary-value">' + pfEsc(it.contactMethod||'—') + (it.phone ? ' · ' + pfEsc(it.phone) : '') + '</span></div>'
+    + (it.notes ? '<div class="pf-summary-row"><span class="pf-summary-label">Notes</span><span class="pf-summary-value">' + pfEsc(it.notes) + '</span></div>' : '')
+    + '<div class="pf-summary-row"><span class="pf-summary-label">Status</span><span class="pf-summary-value">' + (it.read ? 'Reviewed by designer' : 'Pending review') + '</span></div>';
+  document.getElementById('formDetailModal').style.display = 'flex';
+}
+
+// ─── FEED VIEWER ────────────────────────────────────────────────────────────
+function openFeedViewer(startId) {
+  const posts = Object.values(_postsMap).sort((a, b) => {
+    const ta = parseInt((a.id || '').replace('post_', '')) || 0;
+    const tb = parseInt((b.id || '').replace('post_', '')) || 0;
+    return tb - ta;
+  });
+  if (!posts.length) return;
+
+  const container = document.getElementById('feedViewerContainer');
+  container.innerHTML = posts.map(p => buildFeedViewerItem(p)).join('');
+
+  document.getElementById('feedViewer').classList.add('active');
+  document.body.style.overflow = 'hidden';
+
+  const startEl = document.querySelector('.feed-viewer-item[data-id="' + startId + '"]');
+  if (startEl) startEl.scrollIntoView({ behavior: 'instant' });
+
+  _initFeedViewerObservers();
+
+  if (currentUser) {
+    fbDb.ref(`userLikes/${currentUser.uid}`).get().then(snap => {
+      if (!snap.exists()) return;
+      const liked = snap.val();
+      document.querySelectorAll('.feed-viewer-item').forEach(el => {
+        const pid = el.dataset.id;
+        if (pid && liked[pid]) {
+          const btn = el.querySelector('.fv-like-btn');
+          if (btn) btn.classList.add('liked');
+        }
+      });
+    });
+    fbDb.ref(`userBookmarks/${currentUser.uid}`).get().then(bmSnap => {
+      if (!bmSnap.exists()) return;
+      const bookmarks = bmSnap.val();
+      document.querySelectorAll('.feed-viewer-item').forEach(el => {
+        const pid = el.dataset.id;
+        if (pid && bookmarks[pid]) {
+          const btn = el.querySelector('.fv-bookmark-btn');
+          if (btn) btn.classList.add('bookmarked');
+        }
+      });
+    });
+  }
+}
+
+function closeFeedViewer() {
+  document.getElementById('feedViewer').classList.remove('active');
+  document.body.style.overflow = '';
+  document.querySelectorAll('#feedViewerContainer video').forEach(v => v.pause());
+}
+
+function buildFeedViewerItem(item) {
+  const id = item.id;
+  let mediaHtml;
+  if (item.videoData || item.videoUrl) {
+    const src = item.videoData || item.videoUrl;
+    mediaHtml = '<video src="' + src + '" loop muted playsinline style="width:100%;height:100%;object-fit:cover"></video>';
+  } else if (item.imageData || item.imageUrl) {
+    const src = item.imageData || item.imageUrl;
+    mediaHtml = '<img src="' + src + '" alt="" style="width:100%;height:100%;object-fit:cover">';
+  } else if (item.images && item.images.length) {
+    mediaHtml = '<img src="' + item.images[0] + '" alt="" style="width:100%;height:100%;object-fit:cover">';
+  } else {
+    mediaHtml = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:64px">🛋️</div>';
+  }
+
+  return '<div class="feed-viewer-item" data-id="' + id + '">'
+    + mediaHtml
+    + '<div class="feed-viewer-tap" onclick="handleViewerTap(this,event,\'' + id + '\')"></div>'
+    + '<div class="feed-viewer-actions">'
+    +   '<button class="feed-viewer-action fv-like-btn" onclick="toggleViewerLike(this,\'' + id + '\')">'
+    +     '<div class="feed-viewer-action-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>'
+    +     '<span class="feed-viewer-count">' + fmtCount(item.likes || 0) + '</span>'
+    +   '</button>'
+    +   '<button class="feed-viewer-action" onclick="openShareSheet(_postsMap[\'' + id + '\'])">'
+    +     '<div class="feed-viewer-action-icon"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></div>'
+    +     '<span class="feed-viewer-count">' + fmtCount(item.shares || 0) + '</span>'
+    +   '</button>'
+    +   '<button class="feed-viewer-action fv-bookmark-btn" onclick="bookmarkPostViewer(this,\'' + id + '\')">'
+    +     '<div class="feed-viewer-action-icon"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></div>'
+    +     '<span class="feed-viewer-count">Save</span>'
+    +   '</button>'
+    + '</div>'
+    + '<div class="feed-viewer-info">'
+    +   '<div class="feed-viewer-user"><span class="feed-viewer-username">The Billy Living</span><span class="tiktok-badge">✓</span></div>'
+    +   '<div class="feed-viewer-caption" onclick="this.classList.toggle(\'expanded\')">' + (item.title || '') + ' — ' + (item.caption || '') + '</div>'
+    +   (item.location ? '<div class="tiktok-music"><span class="tiktok-music-icon">📍</span><div class="tiktok-music-text"><span>' + item.location + '</span></div></div>' : '')
+    + '</div>'
+  + '</div>';
+}
+
+function handleViewerTap(el, event, postId) {
+  const now = Date.now();
+  const last = el._lastTap || 0;
+  el._lastTap = now;
+  if (now - last < 300) {
+    const item = el.closest('.feed-viewer-item');
+    const likeBtn = item.querySelector('.fv-like-btn');
+    if (likeBtn && !likeBtn.classList.contains('liked')) {
+      toggleViewerLike(likeBtn, postId);
+    }
+    const heart = document.createElement('div');
+    heart.textContent = '❤️';
+    heart.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:80px;opacity:0;pointer-events:none;z-index:25;animation:fvHeartPop .8s ease forwards';
+    el.appendChild(heart);
+    setTimeout(() => heart.remove(), 800);
+    return;
+  }
+  const item = el.closest('.feed-viewer-item');
+  const video = item.querySelector('video');
+  if (video) {
+    if (video.paused) video.play().catch(() => {});
+    else video.pause();
+  }
+}
+
+async function toggleViewerLike(btn, id) {
+  if (btn._busy) return; btn._busy = true;
+  btn.classList.toggle('liked');
+  const isLiked = btn.classList.contains('liked');
+  const countEl = btn.querySelector('.feed-viewer-count');
+  try {
+    const ref = fbDb.ref(`content/posts/${id}/likes`);
+    const snap = await ref.get();
+    const curr = snap.val() || 0;
+    const delta = isLiked ? 1 : -1;
+    await ref.set(Math.max(0, curr + delta));
+    if (countEl) countEl.textContent = fmtCount(Math.max(0, curr + delta));
+    if (currentUser) {
+      if (isLiked) await fbDb.ref(`userLikes/${currentUser.uid}/${id}`).set(true);
+      else await fbDb.ref(`userLikes/${currentUser.uid}/${id}`).remove();
+    }
+    // Sync back to feed heart button
+    const feedBtn = document.querySelector('.feed-item[data-id="' + id + '"] .feed-action-btn');
+    if (feedBtn) feedBtn.classList.toggle('liked', isLiked);
+  } catch(e) {
+    btn.classList.toggle('liked');
+    showLikeErrorToast(e);
+  } finally {
+    btn._busy = false;
+  }
+}
+
+async function bookmarkPostViewer(btn, id) {
+  if (!currentUser) { showToast('Sign in to save'); return; }
+  btn.classList.toggle('bookmarked');
+  const isBookmarked = btn.classList.contains('bookmarked');
+  const post = _postsMap[id];
+  const bmRef = fbDb.ref(`userBookmarks/${currentUser.uid}/${id}`);
+  if (isBookmarked) {
+    const portId = 'port_' + id;
+    const item = { id: portId, postId: id, type: 'favorite', title: post?.title || 'Design', emoji: '🔖', imageData: post?.imageData || post?.imageUrl || '', description: post?.caption || '', savedAt: Date.now() };
+    await fbDb.ref(`portfolios/${currentUser.uid}/items/${portId}`).set(item);
+    await bmRef.set(portId);
+    showToast('Saved to Favorites ✓');
+    const feedBtn = document.querySelector('.feed-item[data-id="' + id + '"] .feed-action-btn.bookmarked');
+    if (feedBtn) feedBtn.classList.add('bookmarked');
+  } else {
+    const snap = await bmRef.get();
+    const portId = snap.val();
+    if (portId) await fbDb.ref(`portfolios/${currentUser.uid}/items/${portId}`).remove();
+    await bmRef.remove();
+    showToast('Removed from Favorites');
+    const feedBtn = document.querySelector('.feed-item[data-id="' + id + '"] .feed-action-btn.bookmarked');
+    if (feedBtn) feedBtn.classList.remove('bookmarked');
+  }
+  loadPortfolio();
+}
+
+function _initFeedViewerObservers() {
+  const container = document.getElementById('feedViewerContainer');
+  if (!container || !window.IntersectionObserver) return;
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      const v = e.target.querySelector('video');
+      if (!v) return;
+      if (e.isIntersecting) { v.muted = false; v.play().catch(() => {}); }
+      else { v.pause(); }
+    });
+  }, { threshold: 0.6 });
+  container.querySelectorAll('.feed-viewer-item').forEach(el => observer.observe(el));
+}
 </script>
 <div id="vaultGlint"></div>
 <div id="splashGuard" style="position:fixed;inset:0;background:#120D06;z-index:99998;opacity:0;visibility:hidden;transition:opacity .5s ease,visibility .5s ease;pointer-events:none;"></div>
+
+<!-- CHANGE PASSWORD -->
+<div class="settings-modal" id="changePasswordModal" onclick="if(event.target===this)closeSettingsModal('changePasswordModal')">
+  <div class="settings-modal-sheet">
+    <div class="settings-modal-handle"></div>
+    <div class="settings-modal-header">
+      <div class="settings-modal-title">Change Password</div>
+      <div class="settings-modal-sub">Re-authenticate to update your credentials</div>
+    </div>
+    <div class="settings-modal-body">
+      <div class="settings-input-group"><label>Current Password</label><input type="password" id="cpCurrent" class="settings-input" placeholder="••••••••"></div>
+      <div class="settings-input-group"><label>New Password</label><input type="password" id="cpNew" class="settings-input" placeholder="Min. 6 characters"></div>
+      <div class="settings-input-group"><label>Confirm Password</label><input type="password" id="cpConfirm" class="settings-input" placeholder="Re-enter new password"></div>
+      <button class="settings-modal-btn" onclick="handleChangePassword()">Update Password</button>
+      <button class="settings-modal-btn secondary" onclick="closeSettingsModal('changePasswordModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- EMAIL & NOTIFICATIONS -->
+<div class="settings-modal" id="emailNotifModal" onclick="if(event.target===this)closeSettingsModal('emailNotifModal')">
+  <div class="settings-modal-sheet">
+    <div class="settings-modal-handle"></div>
+    <div class="settings-modal-header"><div class="settings-modal-title">Email & Notifications</div><div class="settings-modal-sub">Choose what we send to your inbox</div></div>
+    <div class="settings-modal-body">
+      <div class="pref-row"><div class="pref-info"><div class="pref-label">Marketing & Promotions</div><div class="pref-desc">New offers, seasonal campaigns, and partner news</div></div><button class="settings-toggle" id="pref-marketing" onclick="togglePref('marketing',this)"><span class="settings-toggle-knob"></span></button></div>
+      <div class="pref-row"><div class="pref-info"><div class="pref-label">Project Milestones</div><div class="pref-desc">Render approvals, procurement updates, and site visits</div></div><button class="settings-toggle" id="pref-projects" onclick="togglePref('projects',this)"><span class="settings-toggle-knob"></span></button></div>
+      <div class="pref-row"><div class="pref-info"><div class="pref-label">New Collections</div><div class="pref-desc">Alerts when Elite Preformats or overseas exclusives drop</div></div><button class="settings-toggle" id="pref-collections" onclick="togglePref('collections',this)"><span class="settings-toggle-knob"></span></button></div>
+      <div class="pref-row"><div class="pref-info"><div class="pref-label">Concierge Replies</div><div class="pref-desc">Email digests of messages from your design team</div></div><button class="settings-toggle" id="pref-concierge" onclick="togglePref('concierge',this)"><span class="settings-toggle-knob"></span></button></div>
+      <button class="settings-modal-btn secondary" onclick="closeSettingsModal('emailNotifModal')" style="margin-top:8px">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- PUSH NOTIFICATIONS -->
+<div class="settings-modal" id="pushNotifModal" onclick="if(event.target===this)closeSettingsModal('pushNotifModal')">
+  <div class="settings-modal-sheet">
+    <div class="settings-modal-handle"></div>
+    <div class="settings-modal-header"><div class="settings-modal-title">Push Notifications</div><div class="settings-modal-sub">Real-time alerts on your device</div></div>
+    <div class="settings-modal-body">
+      <div class="pref-row"><div class="pref-info"><div class="pref-label">Enable Push Notifications</div><div class="pref-desc">Get alerts even when the app is closed</div></div><button class="settings-toggle" id="pref-push" onclick="togglePushNotif(this)"><span class="settings-toggle-knob"></span></button></div>
+      <div style="padding:14px;background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.12);border-radius:10px;margin-top:10px;">
+        <div style="font-size:11px;color:rgba(168,155,140,.7);line-height:1.7;">
+          <strong style="color:var(--gold)">iOS users:</strong> Add this app to your Home Screen, then enable notifications in Settings → Notifications.<br><br>
+          <strong style="color:var(--gold)">Android users:</strong> Tap the lock icon in Chrome → Site settings → Notifications → Allow.
+        </div>
+      </div>
+      <button class="settings-modal-btn secondary" onclick="closeSettingsModal('pushNotifModal')" style="margin-top:8px">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- MEASUREMENT UNITS -->
+<div class="settings-modal" id="unitsModal" onclick="if(event.target===this)closeSettingsModal('unitsModal')">
+  <div class="settings-modal-sheet">
+    <div class="settings-modal-handle"></div>
+    <div class="settings-modal-header"><div class="settings-modal-title">Measurement Units</div><div class="settings-modal-sub">Preferred for quotes and floor plans</div></div>
+    <div class="settings-modal-body">
+      <label class="unit-radio" onclick="setUnit('inches')"><input type="radio" name="unit" id="unit-inches" style="accent-color:var(--gold)"><span>Imperial — Inches & Feet (US Standard)</span></label>
+      <label class="unit-radio" onclick="setUnit('cm')"><input type="radio" name="unit" id="unit-cm" style="accent-color:var(--gold)"><span>Metric — Centimeters & Meters</span></label>
+      <button class="settings-modal-btn secondary" onclick="closeSettingsModal('unitsModal')" style="margin-top:8px">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- HELP CENTER -->
+<div class="settings-modal" id="helpCenterModal" onclick="if(event.target===this)closeSettingsModal('helpCenterModal')">
+  <div class="settings-modal-sheet" style="max-height:85vh;overflow-y:auto;">
+    <div class="settings-modal-handle"></div>
+    <div class="settings-modal-header"><div class="settings-modal-title">Help Center</div><div class="settings-modal-sub">Frequently asked questions</div></div>
+    <div class="settings-modal-body" style="padding-top:8px">
+      <div class="faq-item"><div class="faq-question" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">How do I book a consultation?</div><div class="faq-answer">Tap <strong>Book</strong> on the home screen or open <strong>Concierge</strong> to schedule your complimentary 30-minute discovery call with a senior designer. We serve Lagos and Abuja metro areas.</div></div>
+      <div class="faq-item"><div class="faq-question" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">What is The Vault and how do I access it?</div><div class="faq-answer">The Vault stores your private project archive: 3D renders, sourcing guides, finish schedules, and warranty cards. It unlocks automatically after your first completed project or via VIP approval from the Concierge.</div></div>
+      <div class="faq-item"><div class="faq-question" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">How do the Elite Preformats work?</div><div class="faq-answer">Browse curated interior styles in the <strong>Catalog</strong>, choose a colour palette, then view room-by-room visualizations. Save any design to your <strong>Portfolio</strong> to share with your designer.</div></div>
+      <div class="faq-item"><div class="faq-question" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">What payment plans are available?</div><div class="faq-answer">We accept full upfront payment and structured instalments. A 40% deposit secures your slot; the balance is split across milestones. All terms are documented in your project timeline after onboarding.</div></div>
+      <div class="faq-item"><div class="faq-question" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">Can I request design revisions?</div><div class="faq-answer">Yes. Two rounds of revision are included in standard packages. Additional rounds or changes after procurement has begun may attract a fee, which your designer will quote in advance.</div></div>
+      <div class="faq-item"><div class="faq-question" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">How long does a project take?</div><div class="faq-answer">Residential projects average 4–8 weeks from concept to installation. Custom furniture or imported pieces may extend this. Your dedicated timeline is updated live in the <strong>Progress Tracker</strong>.</div></div>
+      <div class="faq-item"><div class="faq-question" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">What is saved to my Portfolio?</div><div class="faq-answer">Bookmarks from the home feed, catalog rooms, and trending posts. Use it as a mood board; your designer can see it in real time when you share via Concierge.</div></div>
+      <div class="faq-item"><div class="faq-question" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">How do I contact my project designer?</div><div class="faq-answer">Use the in-app <strong>Concierge</strong> chat for direct messaging and file sharing. For urgent requests, tap <strong>WhatsApp Support</strong> to speak with the team instantly.</div></div>
+      <button class="settings-modal-btn secondary" onclick="closeSettingsModal('helpCenterModal')" style="margin-top:12px">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- TERMS OF SERVICE -->
+<div class="settings-modal" id="termsModal" onclick="if(event.target===this)closeSettingsModal('termsModal')">
+  <div class="settings-modal-sheet" style="max-height:85vh;overflow-y:auto;">
+    <div class="settings-modal-handle"></div>
+    <div class="settings-modal-header"><div class="settings-modal-title">Terms of Service</div><div class="settings-modal-sub">Last updated: August 2026</div></div>
+    <div class="legal-body">
+      <h3>1. Acceptance of Terms</h3>
+      <p>By accessing The Billy Living Interior Platform, you agree to be bound by these Terms. If you do not agree, please discontinue use immediately.</p>
+      <h3>2. Services</h3>
+      <p>We provide luxury interior design consultation, 3D visualization, procurement, and project management services in Lagos, Abuja, and select international locations.</p>
+      <h3>3. User Accounts</h3>
+      <p>You are responsible for maintaining the confidentiality of your login credentials. Notify us immediately of unauthorized use.</p>
+      <h3>4. Intellectual Property</h3>
+      <p>All designs, renders, and content provided through The Vault or Catalog remain the intellectual property of Billy Living until full project payment is cleared. Client-owned images uploaded to Concierge remain client property.</p>
+      <h3>5. Payments & Cancellations</h3>
+      <p>Deposits are non-refundable after 48 hours. Cancellations after procurement has begun are subject to material-restocking fees. Instalment schedules are legally binding once signed.</p>
+      <h3>6. Liability</h3>
+      <p>We insure all items during transit and installation. We are not liable for delays caused by customs, force majeure, or site conditions outside our control.</p>
+      <h3>7. Governing Law</h3>
+      <p>These Terms are governed by the laws of the Federal Republic of Nigeria. Disputes shall be resolved under the jurisdiction of Lagos State courts.</p>
+      <h3>8. Changes</h3>
+      <p>We may update these Terms at any time. Continued use constitutes acceptance of the revised Terms.</p>
+      <p style="margin-top:20px;color:rgba(201,168,76,.5);">Questions? Contact support@billyliving.com</p>
+    </div>
+    <div class="settings-modal-body"><button class="settings-modal-btn secondary" onclick="closeSettingsModal('termsModal')">Close</button></div>
+  </div>
+</div>
+
+<!-- PRIVACY POLICY -->
+<div class="settings-modal" id="privacyModal" onclick="if(event.target===this)closeSettingsModal('privacyModal')">
+  <div class="settings-modal-sheet" style="max-height:85vh;overflow-y:auto;">
+    <div class="settings-modal-handle"></div>
+    <div class="settings-modal-header"><div class="settings-modal-title">Privacy Policy</div><div class="settings-modal-sub">Your data is handled with discretion</div></div>
+    <div class="legal-body">
+      <h3>1. Information We Collect</h3>
+      <p>We collect your name, contact details, residence address, project briefs, and payment information. We also store design preferences and chat history to deliver a personalized service.</p>
+      <h3>2. How We Use It</h3>
+      <p>To provide interior design services, process payments, communicate project updates, and send you curated content you have opted into.</p>
+      <h3>3. Sharing</h3>
+      <p>We share data only with your assigned design team, trusted artisans, and logistics partners directly involved in your project. We do not sell personal data to third parties.</p>
+      <h3>4. Security</h3>
+      <p>Your data is encrypted in transit and at rest. The Vault uses additional PIN-based access control for sensitive project assets.</p>
+      <h3>5. Cookies & Local Storage</h3>
+      <p>We use local storage to cache catalog images and portfolio data for offline viewing. You may clear this via your browser settings.</p>
+      <h3>6. Your Rights</h3>
+      <p>You may request a copy of your data, correct inaccuracies, or request deletion by contacting the Concierge. Account deletion is available in Settings.</p>
+      <h3>7. Retention</h3>
+      <p>We retain project records for 7 years to honour warranty and after-care commitments. Marketing data is retained until you unsubscribe.</p>
+      <h3>8. Contact</h3>
+      <p>Data Controller: Billy Living Interiors Ltd. Email: support@billyliving.com</p>
+    </div>
+    <div class="settings-modal-body"><button class="settings-modal-btn secondary" onclick="closeSettingsModal('privacyModal')">Close</button></div>
+  </div>
+</div>
+
+<!-- PROJECT FORM — step-by-step consultation intake -->
+<div class="settings-modal" id="projectFormOverlay">
+  <div class="settings-modal-sheet pf-sheet" style="max-height:92vh;overflow-y:auto;">
+    <div class="settings-modal-handle"></div>
+    <div class="settings-modal-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+      <div>
+        <div class="settings-modal-title" id="pfStepTitle">Start Your Project</div>
+        <div class="settings-modal-sub" id="pfStepSub">Tell us about your space — takes about 2 minutes</div>
+      </div>
+      <button onclick="closeProjectForm()" style="background:none;border:none;color:rgba(201,168,76,.5);font-size:22px;line-height:1;cursor:pointer;padding:4px;flex-shrink:0;">×</button>
+    </div>
+    <div class="pf-dots" id="pfDots"></div>
+    <div class="settings-modal-body" id="pfStepBody" style="padding-top:6px;"></div>
+    <div class="settings-modal-body" style="padding-top:0;display:flex;gap:10px;">
+      <button class="settings-modal-btn secondary" id="pfBackBtn" onclick="pfBack()" style="margin-top:0;flex:0 0 90px;">Back</button>
+      <button class="settings-modal-btn" id="pfNextBtn" onclick="pfNext()" style="margin-top:0;flex:1;">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- MY PROJECT FORMS — client's own submission history -->
+<div class="settings-modal" id="myFormsModal" onclick="if(event.target===this)closeSettingsModal('myFormsModal')">
+  <div class="settings-modal-sheet" style="max-height:85vh;overflow-y:auto;">
+    <div class="settings-modal-handle"></div>
+    <div class="settings-modal-header"><div class="settings-modal-title">Project Forms</div><div class="settings-modal-sub">Briefs you've shared with your designer</div></div>
+    <div class="settings-modal-body" id="myFormsList" style="padding-top:8px;">
+      <div style="text-align:center;padding:24px;color:rgba(201,168,76,.4);font-size:13px;">Loading…</div>
+    </div>
+    <div class="settings-modal-body" style="padding-top:0;"><button class="settings-modal-btn secondary" onclick="closeSettingsModal('myFormsModal')">Close</button></div>
+  </div>
+</div>
+
+<!-- FORM DETAIL — read-only view of one submitted form -->
+<div class="settings-modal" id="formDetailModal" onclick="if(event.target===this)closeSettingsModal('formDetailModal')">
+  <div class="settings-modal-sheet" style="max-height:85vh;overflow-y:auto;">
+    <div class="settings-modal-handle"></div>
+    <div class="settings-modal-header"><div class="settings-modal-title">Project Brief</div><div class="settings-modal-sub" id="formDetailDate">—</div></div>
+    <div class="settings-modal-body" id="formDetailBody" style="padding-top:8px;"></div>
+    <div class="settings-modal-body" style="padding-top:0;"><button class="settings-modal-btn secondary" onclick="closeSettingsModal('formDetailModal')">Close</button></div>
+  </div>
+</div>
+<!-- FEED TIKTOK VIEWER -->
+<div class="feed-viewer-page" id="feedViewer">
+  <button class="feed-viewer-close" onclick="closeFeedViewer()">←</button>
+  <div class="feed-viewer-container" id="feedViewerContainer"></div>
+</div>
 </body>
 </html>
