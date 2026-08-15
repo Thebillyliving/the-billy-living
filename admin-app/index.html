@@ -1020,6 +1020,7 @@
             font-size: 12px;
             color: rgba(201,168,76,0.35);
         }
+        .style-delete-btn { width: 26px; height: 26px; padding: 0; font-size: 14px; line-height: 1; border-radius: 6px; flex-shrink: 0; }
 
         .elite-collection-cell-admin {
             padding: 14px 10px 10px;
@@ -3876,10 +3877,27 @@
           const cellsHtml = boxes.length
             ? '<div class="elite-catalog-grid-admin">' + boxes.map(_renderCatalogCell).join('') + '</div>'
             : '<div class="style-section-empty">No preformats yet — long-press a preformat to move it here</div>';
+          const deleteBtn = styleId
+            ? '<button class="btn btn-danger rank-gated style-delete-btn" title="Delete style" onclick="deleteStyle(\'' + styleId + '\',\'' + name.replace(/'/g,"\\'") + '\')">×</button>'
+            : '';
           return '<div class="style-section" data-style-id="' + (styleId||'') + '">'
-            + '<div class="style-section-header"><div class="style-section-name">' + name + '</div><div class="style-section-count">' + boxes.length + '</div></div>'
+            + '<div class="style-section-header"><div class="style-section-name">' + name + '</div><div style="display:flex;align-items:center;gap:10px;"><div class="style-section-count">' + boxes.length + '</div>' + deleteBtn + '</div></div>'
             + cellsHtml
             + '</div>';
+        }
+        // Removes the style grouping only — any preformats that were in it
+        // fall back to "Unsorted" (they keep their styleId, it just no
+        // longer matches anything, same as if the style never existed).
+        function deleteStyle(styleId, name) {
+          if (!confirm('Delete "' + name + '"? Preformats inside it move to Unsorted — they are not deleted.')) return;
+          adminFbDB.ref('content/styles/' + styleId).remove().then(() => {
+            _stylesCache = null;
+            showToast('✓ Style deleted');
+            _panelFetched.catalog = false;
+            renderCatalogList();
+          }).catch(e => {
+            showToast('Error: ' + e.message + (e.code === 'PERMISSION_DENIED' ? ' — check your Firebase rules for content/styles' : ''));
+          });
         }
 
         function _renderCatalogFromData(data, styles) {
@@ -4633,6 +4651,8 @@
                     window._fImageBase64=''; window._fVideoBase64=''; window._fAudioBase64=''; window._fAudioName=''; closeForm();
                     if (toPending) { showToast('✓ Sent for approval'); }
                     else { showToast('✓ Post saved'); addItemToHomeList(data); }
+                }).catch(e => {
+                    showToast('Error: ' + e.message + (e.code === 'PERMISSION_DENIED' ? ' — check your Firebase rules' : ''));
                 });
             } else if (t === 'trending') {
                 const data = Object.assign({ id, caption: (document.getElementById('fCaption').value||'Untitled'), location: (document.getElementById('fLocation').value||''), imageData: (window._fImageBase64||''), videoData: (window._fVideoBase64||''), audioData: (window._fAudioBase64||''), audioName: (window._fAudioName||''), likes: (parseInt(document.getElementById('fLikes').value,10)||0), shares: (parseInt(document.getElementById('fShares').value,10)||0), createdAt: Date.now() }, pendingMeta);
@@ -4641,6 +4661,8 @@
                     window._fImageBase64=''; window._fVideoBase64=''; window._fAudioBase64=''; window._fAudioName=''; closeForm();
                     if (toPending) { showToast('✓ Sent for approval'); }
                     else { showToast('✓ Trending item saved'); addItemToTrendingList(data); }
+                }).catch(e => {
+                    showToast('Error: ' + e.message + (e.code === 'PERMISSION_DENIED' ? ' — check your Firebase rules' : ''));
                 });
             } else if (t === 'category') {
                 const n = document.getElementById('fName').value||'Collection'; const sid = n.toLowerCase().replace(/[^a-z0-9]/g,'_');
@@ -4650,6 +4672,8 @@
                     closeForm();
                     if (toPending) { showToast('✓ Sent for approval'); }
                     else { showToast('✓ Category saved'); _panelFetched.catalog = false; renderCatalogList(); }
+                }).catch(e => {
+                    showToast('Error: ' + e.message + (e.code === 'PERMISSION_DENIED' ? ' — check your Firebase rules' : ''));
                 });
             } else if (t === 'style') {
                 const n = (document.getElementById('fStyleName').value || '').trim();
@@ -4661,6 +4685,8 @@
                     _stylesCache = null; closeForm();
                     if (toPending) { showToast('✓ Sent for approval'); }
                     else { showToast('✓ Style created'); _panelFetched.catalog = false; renderCatalogList(); }
+                }).catch(e => {
+                    showToast('Error: ' + e.message + (e.code === 'PERMISSION_DENIED' ? ' — check your Firebase rules for content/styles' : ''));
                 });
             } else { closeForm(); showToast('Saved'); }
         }
