@@ -4940,9 +4940,11 @@
           const dt = r.submittedAt ? new Date(r.submittedAt) : null;
           document.getElementById('pfDetailDate').textContent = dt ? dt.toLocaleDateString([], {month:'long', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit'}) : '';
           const row = (label, value) => `<div class="pf-detail-row"><span class="pf-detail-label">${label}</span><span class="pf-detail-value">${value || '—'}</span></div>`;
+          const typeDisplay = r.projectType === 'Other' && (r.customType||[]).length ? r.customType.join(', ') : r.projectType;
+          const roomsDisplay = (r.rooms||[]).filter(x => x !== 'Other').concat(r.customRooms||[]).join(', ');
           document.getElementById('pfDetailBody').innerHTML = ''
-            + row('Project Type', r.projectType)
-            + row('Rooms', (r.rooms||[]).join(', ') + (r.roomCount ? ` (${r.roomCount} total)` : ''))
+            + row('Project Type', typeDisplay)
+            + row('Rooms', roomsDisplay + (r.roomCount ? ` (${r.roomCount} total)` : ''))
             + row('Location', r.city + (r.address ? ', ' + r.address : ''))
             + row('Budget', r.budget)
             + row('Timeline', r.timeline)
