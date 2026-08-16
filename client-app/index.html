@@ -322,7 +322,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .bottom-nav-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center}
 .bottom-nav-icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s ease,filter .2s ease,stroke-width .2s ease}
 .bottom-nav-item.active .bottom-nav-icon svg{stroke:var(--gold);filter:drop-shadow(0 0 6px rgba(201,168,76,.5));stroke-width:1.8}
-.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg-card);color:var(--gold);padding:16px 24px;border-radius:12px;opacity:0;transition:all .3s;z-index:10000}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg-card);color:var(--gold);padding:16px 24px;border-radius:12px;opacity:0;transition:all .3s;z-index:100010}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .image-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.95);z-index:4000;align-items:center;justify-content:center}
 .image-modal.active{display:flex}
@@ -5465,18 +5465,17 @@ const PF_STEPS = [
   { id:'type', title:'Start Your Project', sub:'What are we designing?' },
   { id:'rooms', title:'Which Rooms?', sub:'Select every space involved' },
   { id:'location', title:'Where Is It?', sub:'City and site address' },
-  { id:'budget', title:'Your Budget', sub:'A range helps us scope the right proposal' },
   { id:'timeline', title:'Your Timeline', sub:'When would you like to start?' },
   { id:'style', title:'Style Preference', sub:'What feeling are you drawn to?' },
   { id:'contact', title:'How Should We Reach You?', sub:'Optional notes for your designer' },
   { id:'review', title:'Review & Share', sub:'One last look before it goes to your designer' }
 ];
 
-let pfState = { step: 0, data: { projectType:'', customType:[], rooms:[], customRooms:[], roomCount:1, city:'', address:'', budget:'', timeline:'', style:'', contactMethod:'', phone:'', notes:'' } };
+let pfState = { step: 0, data: { projectType:'', customType:[], rooms:[], customRooms:[], roomCount:1, city:'', address:'', timeline:'', style:'', contactMethod:'', phone:'', notes:'' } };
 
 function openProjectForm() {
   if (!currentUser) { showToast('Please sign in first'); return; }
-  pfState = { step: 0, data: { projectType:'', customType:[], rooms:[], customRooms:[], roomCount:1, city:'', address:'', budget:'', timeline:'', style:'', contactMethod:'', phone: (currentProfile && currentProfile.mobile) || '', notes:'' } };
+  pfState = { step: 0, data: { projectType:'', customType:[], rooms:[], customRooms:[], roomCount:1, city:'', address:'', timeline:'', style:'', contactMethod:'', phone: (currentProfile && currentProfile.mobile) || '', notes:'' } };
   document.getElementById('projectFormOverlay').style.display = 'flex';
   pfRenderStep();
 }
@@ -5559,8 +5558,6 @@ function pfRenderStep(inPlace) {
   } else if (step.id === 'location') {
     body.innerHTML = '<span class="pf-field-label">City</span>' + pfPillHtml('city', ['Lagos','Abuja','Other'], false)
       + '<div class="settings-input-group" style="margin-top:6px;"><label>Site Address</label><input type="text" class="settings-input" id="pfAddress" placeholder="Street, area, landmark" value="' + pfEsc(d.address) + '"></div>';
-  } else if (step.id === 'budget') {
-    body.innerHTML = '<span class="pf-field-label">Budget Range</span>' + pfPillHtml('budget', ['Under ₦5M','₦5M – ₦15M','₦15M – ₦30M','₦30M+','Not sure yet'], false);
   } else if (step.id === 'timeline') {
     body.innerHTML = '<span class="pf-field-label">When Do You Want to Start?</span>' + pfPillHtml('timeline', ['As soon as possible','1–3 months','3–6 months','Just exploring'], false);
   } else if (step.id === 'style') {
@@ -5576,7 +5573,6 @@ function pfRenderStep(inPlace) {
       + '<div class="pf-summary-row"><span class="pf-summary-label">Project Type</span><span class="pf-summary-value">' + pfEsc(typeDisplay||'—') + '</span></div>'
       + '<div class="pf-summary-row"><span class="pf-summary-label">Rooms</span><span class="pf-summary-value">' + pfEsc(roomsDisplay||'—') + ' (' + d.roomCount + ' total)</span></div>'
       + '<div class="pf-summary-row"><span class="pf-summary-label">Location</span><span class="pf-summary-value">' + pfEsc(d.city||'—') + (d.address ? ', ' + pfEsc(d.address) : '') + '</span></div>'
-      + '<div class="pf-summary-row"><span class="pf-summary-label">Budget</span><span class="pf-summary-value">' + pfEsc(d.budget||'—') + '</span></div>'
       + '<div class="pf-summary-row"><span class="pf-summary-label">Timeline</span><span class="pf-summary-value">' + pfEsc(d.timeline||'—') + '</span></div>'
       + '<div class="pf-summary-row"><span class="pf-summary-label">Style</span><span class="pf-summary-value">' + pfEsc(d.style||'—') + '</span></div>'
       + '<div class="pf-summary-row"><span class="pf-summary-label">Contact</span><span class="pf-summary-value">' + pfEsc(d.contactMethod||'—') + (d.phone ? ' · ' + pfEsc(d.phone) : '') + '</span></div>'
@@ -5598,7 +5594,6 @@ function pfValidateStep() {
     d.address = (document.getElementById('pfAddress')?.value || '').trim();
     if (!d.city) { showToast('Pick a city'); return false; }
   }
-  if (step.id === 'budget' && !d.budget) { showToast('Pick a budget range'); return false; }
   if (step.id === 'timeline' && !d.timeline) { showToast('Pick a timeline'); return false; }
   if (step.id === 'style' && !d.style) { showToast('Pick a style direction'); return false; }
   if (step.id === 'contact') {
@@ -5630,7 +5625,7 @@ async function pfSubmit() {
     clientName: (currentProfile && currentProfile.name) || 'Client',
     clientEmail: currentUser.email || '',
     projectType: d.projectType, customType: d.customType, rooms: d.rooms, customRooms: d.customRooms, roomCount: d.roomCount,
-    city: d.city, address: d.address, budget: d.budget, timeline: d.timeline,
+    city: d.city, address: d.address, timeline: d.timeline,
     style: d.style, contactMethod: d.contactMethod, phone: d.phone, notes: d.notes,
     submittedAt: Date.now(), read: false
   };
@@ -5644,7 +5639,7 @@ async function pfSubmit() {
     nextBtn.textContent = 'Done'; nextBtn.disabled = false;
     nextBtn.onclick = function() { closeProjectForm(); document.getElementById('pfBackBtn').style.display = ''; nextBtn.onclick = pfNext; };
   } catch(e) {
-    showToast('Could not send — ' + e.message);
+    showToast('Could not send — ' + e.message + (e.code === 'PERMISSION_DENIED' ? ' (check Firebase rules for projectForms)' : ''));
     nextBtn.textContent = original; nextBtn.disabled = false;
   }
 }
@@ -5687,7 +5682,6 @@ function viewFormDetail(key) {
     + '<div class="pf-summary-row"><span class="pf-summary-label">Project Type</span><span class="pf-summary-value">' + pfEsc(typeDisplay||'—') + '</span></div>'
     + '<div class="pf-summary-row"><span class="pf-summary-label">Rooms</span><span class="pf-summary-value">' + pfEsc(roomsDisplay||'—') + ' (' + (it.roomCount||'—') + ' total)</span></div>'
     + '<div class="pf-summary-row"><span class="pf-summary-label">Location</span><span class="pf-summary-value">' + pfEsc(it.city||'—') + (it.address ? ', ' + pfEsc(it.address) : '') + '</span></div>'
-    + '<div class="pf-summary-row"><span class="pf-summary-label">Budget</span><span class="pf-summary-value">' + pfEsc(it.budget||'—') + '</span></div>'
     + '<div class="pf-summary-row"><span class="pf-summary-label">Timeline</span><span class="pf-summary-value">' + pfEsc(it.timeline||'—') + '</span></div>'
     + '<div class="pf-summary-row"><span class="pf-summary-label">Style</span><span class="pf-summary-value">' + pfEsc(it.style||'—') + '</span></div>'
     + '<div class="pf-summary-row"><span class="pf-summary-label">Contact</span><span class="pf-summary-value">' + pfEsc(it.contactMethod||'—') + (it.phone ? ' · ' + pfEsc(it.phone) : '') + '</span></div>'
