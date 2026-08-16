@@ -31,6 +31,70 @@
         window._showAppError = function(msg) {
             showErr(msg);
         };
+
+        // ── FULL DIAGNOSTICS LOG ──────────────────────────────────────────
+        // The red banner above only ever shows crashes. This is the fuller
+        // picture — every boot checkpoint, panel load, and Firebase
+        // connection state change — so "the app just doesn't load" can
+        // actually be diagnosed on a phone with no devtools. Tap the "⚙"
+        // button (bottom-right, appears once the page has rendered) to view.
+        window._diagLog = [];
+        window._diagErrorCount = 0;
+        window.diag = function(tag, msg, level) {
+            level = level || 'info';
+            window._diagLog.push({ t: Date.now(), tag: tag, msg: String(msg), level: level });
+            if (window._diagLog.length > 300) window._diagLog.shift();
+            if (level === 'error' || level === 'warn') {
+                window._diagErrorCount++;
+                var dot = document.getElementById('diagBadgeDot');
+                if (dot) dot.style.display = 'block';
+            }
+            var panel = document.getElementById('diagLogList');
+            if (panel && panel.offsetParent !== null) window._renderDiagLog();
+        };
+        window._diagTime = function(t) {
+            var d = new Date(t);
+            return d.toTimeString().slice(0,8) + '.' + String(d.getMilliseconds()).padStart(3,'0');
+        };
+        window._renderDiagLog = function() {
+            var panel = document.getElementById('diagLogList');
+            if (!panel) return;
+            panel.innerHTML = window._diagLog.map(function(e) {
+                return '<div class="diag-line diag-' + e.level + '">' +
+                    '<span class="diag-time">' + window._diagTime(e.t) + '</span>' +
+                    '<span class="diag-tag">[' + e.tag + ']</span> ' +
+                    e.msg.replace(/</g,'&lt;') + '</div>';
+            }).join('');
+            panel.scrollTop = panel.scrollHeight;
+        };
+        window.toggleDiagPanel = function() {
+            var p = document.getElementById('diagPanel');
+            if (!p) return;
+            var opening = p.style.display !== 'block';
+            p.style.display = opening ? 'block' : 'none';
+            if (opening) {
+                window._renderDiagLog();
+                window._diagErrorCount = 0;
+                var dot = document.getElementById('diagBadgeDot');
+                if (dot) dot.style.display = 'none';
+            }
+        };
+        window.copyDiagLog = function() {
+            var text = window._diagLog.map(function(e) { return window._diagTime(e.t) + ' [' + e.tag + '] ' + e.msg; }).join('\n');
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function() { showErr('Diag log copied to clipboard'); }).catch(function() { window._diagFallbackCopy(text); });
+            } else { window._diagFallbackCopy(text); }
+        };
+        window._diagFallbackCopy = function(text) {
+            var ta = document.createElement('textarea');
+            ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta); ta.select();
+            try { document.execCommand('copy'); } catch(e) {}
+            document.body.removeChild(ta);
+        };
+        window.clearDiagLog = function() { window._diagLog = []; window._renderDiagLog(); };
+
+        diag('boot', 'Page script parsing started');
         window.addEventListener('error', function(e) {
             var msg = e.message || 'unknown';
             var loc = e.filename ? (e.filename.split('/').pop() + ':' + e.lineno) : '?';
@@ -38,9 +102,12 @@
                 ? ' [a cross-origin script threw this — likely the video compressor or a CDN file failing to load; browsers hide details for these unless the script tag has crossorigin set]'
                 : '';
             showErr('ERROR: ' + msg + ' @ ' + loc + note);
+            diag('js-error', msg + ' @ ' + loc, 'error');
         });
         window.addEventListener('unhandledrejection', function(e) {
-            showErr('PROMISE REJECTED: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+            var msg = e.reason && e.reason.message ? e.reason.message : e.reason;
+            showErr('PROMISE REJECTED: ' + msg);
+            diag('promise', String(msg), 'error');
         });
     })();
     </script>
@@ -80,11 +147,38 @@
             animation: splashSpin 0.8s linear infinite;
         }
         @keyframes splashSpin { to { transform: rotate(360deg); } }
+        /* ─── DIAGNOSTICS ────────────────────────────────────────────────── */
+        .diag-toggle{position:fixed;bottom:16px;right:16px;z-index:999996;width:40px;height:40px;border-radius:50%;background:rgba(30,22,12,.92);border:1px solid rgba(201,168,76,.35);color:#C9A84C;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.4);}
+        .diag-badge-dot{display:none;position:absolute;top:-2px;right:-2px;width:10px;height:10px;border-radius:50%;background:#ef4444;border:2px solid #120D06;}
+        .diag-panel{display:none;position:fixed;inset:0;z-index:999997;background:rgba(6,4,2,.97);flex-direction:column;padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px));}
+        .diag-panel-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0;}
+        .diag-panel-title{font-family:Georgia,serif;font-size:20px;color:#C9A84C;}
+        .diag-panel-actions{display:flex;gap:8px;}
+        .diag-btn{padding:8px 14px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(201,168,76,.08);color:#C9A84C;font-family:sans-serif;font-size:12px;cursor:pointer;}
+        .diag-log-list{flex:1;overflow-y:auto;font-family:monospace;font-size:11px;line-height:1.6;background:rgba(255,255,255,.02);border-radius:8px;padding:10px;}
+        .diag-line{padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);color:rgba(230,225,215,.75);word-break:break-word;}
+        .diag-time{color:rgba(201,168,76,.4);margin-right:6px;}
+        .diag-tag{color:#C9A84C;margin-right:4px;}
+        .diag-warn{color:#f0c674;}
+        .diag-error{color:#ff8a8a;}
     </style>
     <div id="bl-splash">
         <div id="bl-splash-logo">👑</div>
         <div id="bl-splash-title">Billy Living</div>
         <div id="bl-splash-ring"></div>
+    </div>
+    <!-- DIAGNOSTICS — tap to see what's actually happening (no console on mobile) -->
+    <button class="diag-toggle" onclick="toggleDiagPanel()" aria-label="Diagnostics">⚙<span class="diag-badge-dot" id="diagBadgeDot"></span></button>
+    <div class="diag-panel" id="diagPanel">
+        <div class="diag-panel-hdr">
+            <div class="diag-panel-title">Diagnostics</div>
+            <div class="diag-panel-actions">
+                <button class="diag-btn" onclick="copyDiagLog()">Copy</button>
+                <button class="diag-btn" onclick="clearDiagLog()">Clear</button>
+                <button class="diag-btn" onclick="toggleDiagPanel()">Close</button>
+            </div>
+        </div>
+        <div class="diag-log-list" id="diagLogList"></div>
     </div>
     <!-- Firebase: defer = parallel download, executes after HTML parsed, in order -->
     <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js" onerror="this.onerror=null;setTimeout(()=>{var s=document.createElement('script');s.src=this.src;document.head.appendChild(s);},1000)"></script>
@@ -2483,7 +2577,7 @@
                     updates['system/rankMigrationDone'] = true;
                     return window.adminFbDB.ref().update(updates);
                 });
-            }).catch(e => {});
+            }).catch(e => { diag('boot', 'runRankMigrationIfNeeded failed (non-fatal): ' + e.message, 'warn'); });
         }
         function rankAtLeast(rank, minRank) {
             return RANK_ORDER.indexOf(rank) >= RANK_ORDER.indexOf(minRank);
@@ -2594,7 +2688,9 @@
 
         // Navigation
         function showPanel(name, el) {
+            diag('nav', 'showPanel(' + name + ')');
             if (!canAccessPanel(window.currentAdminRank, name)) {
+                diag('nav', name + ' blocked — rank "' + window.currentAdminRank + '" not permitted', 'warn');
                 showToast('Not available for your role');
                 return;
             }
@@ -4889,6 +4985,7 @@
         // chats/, so this mirrors initAdminMessagesListener's structure.
         let _pfCache = {}; // formId -> { ...form, clientUid }
         function renderProjectFormsList() {
+          diag('load', 'renderProjectFormsList: start');
           const el = document.getElementById('pfConversationsList');
           if (window.currentAdminRank === 'designer') {
             el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div>Project forms aren\'t available for your role.</div>';
@@ -4896,7 +4993,7 @@
           }
           el.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(201,168,76,.4);">Loading…</div>';
           return adminFbDB.ref('projectForms').once('value').then(snap => {
-            if (!snap.exists()) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div>No project forms yet</div>'; return; }
+            if (!snap.exists()) { diag('load', 'renderProjectFormsList: no data at projectForms/'); el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div>No project forms yet</div>'; return; }
             const rows = [];
             _pfCache = {};
             snap.forEach(clientSnap => {
@@ -4929,7 +5026,11 @@
                 </div>
               </div>`;
             }).join('');
-          }).catch(e => { el.innerHTML = '<div class="empty-state">Error: '+e.message+'</div>'; });
+            diag('load', 'renderProjectFormsList: loaded ' + rows.length + ' forms');
+          }).catch(e => {
+            diag('load', 'renderProjectFormsList FAILED: ' + e.message + (e.code === 'PERMISSION_DENIED' ? ' (permission-denied — check Firebase rules for projectForms/)' : ''), 'error');
+            el.innerHTML = '<div class="empty-state">Error: '+e.message+'</div>';
+          });
         }
         function openAdminFormDetail(key) {
           const r = _pfCache[key];
@@ -4969,6 +5070,7 @@
         // admin sees a new brief arrived without having to click in first.
         function watchProjectFormsUnread() {
           if (window.currentAdminRank === 'designer') return;
+          diag('boot', 'watchProjectFormsUnread: listener attached');
           adminFbDB.ref('projectForms').on('value', snap => {
             let anyUnread = false;
             snap.forEach(clientSnap => {
@@ -4978,6 +5080,8 @@
             });
             const dot = document.getElementById('projectFormsDot');
             if (dot) dot.style.display = anyUnread ? 'block' : 'none';
+          }, err => {
+            diag('load', 'watchProjectFormsUnread FAILED: ' + err.message + (err.code === 'PERMISSION_DENIED' ? ' (permission-denied — check Firebase rules for projectForms/)' : ''), 'error');
           });
         }
 
@@ -6294,8 +6398,10 @@
         function initApp() {
             if (_panelFetched.dashboard) return;
             _panelFetched.dashboard = true;
-            loadDashboardStats().catch(() => {});
+            diag('boot', 'initApp() — loading dashboard stats');
+            loadDashboardStats().catch((e) => { diag('load', 'loadDashboardStats FAILED: ' + (e && e.message), 'error'); });
             watchProjectFormsUnread();
+            diag('boot', 'App fully booted');
         }
 
         // Auth and initApp() are now triggered by the deferred Firebase loader at the bottom of the body.
@@ -6561,6 +6667,7 @@ function adminOpenVideo(src) {
     // (or can outright fail) by the time this deferred script runs. Instead
     // of crashing on "firebase is not defined", wait and retry for up to ~15s.
     if (typeof firebase === 'undefined') {
+        if (attempt === 0) diag('boot', 'Waiting for Firebase SDK to load…', 'warn');
         function showNotice(text, isError) {
             var n = document.getElementById('_fbLoadNotice');
             if (!n) {
@@ -6584,10 +6691,12 @@ function adminOpenVideo(src) {
             return;
         }
         showNotice('Could not connect — check your internet, then <a href="#" onclick="location.reload();return false;" style="color:#fff;text-decoration:underline;">tap to retry</a>', true);
+        diag('boot', 'Firebase SDK never loaded after 15s — gstatic.com likely blocked or unreachable', 'error');
         return;
     }
     var loadedNotice = document.getElementById('_fbLoadNotice');
     if (loadedNotice) loadedNotice.remove();
+    diag('boot', 'Firebase SDK loaded (attempt ' + attempt + ')');
 
     var adminFirebaseConfig = {
         apiKey: "AIzaSyBbs6k7PInHUnv1x9FzHB31kUwrCcoGG7c",
@@ -6601,6 +6710,10 @@ function adminOpenVideo(src) {
     if (!firebase.apps.length) firebase.initializeApp(adminFirebaseConfig);
     window.adminFbDB = firebase.database();
     window.adminFbAuth = firebase.auth();
+    diag('boot', 'Firebase app initialized');
+    adminFbDB.ref('.info/connected').on('value', function(snap) {
+        diag('network', snap.val() ? 'Connected to Firebase' : 'OFFLINE — not connected to Firebase', snap.val() ? 'info' : 'warn');
+    });
 
     var appStarted = false;
 
@@ -6682,12 +6795,15 @@ function adminOpenVideo(src) {
     function boot(user) {
         if (appStarted) return;
         appStarted = true;
+        diag('boot', 'boot() — hiding login overlay, calling initApp()');
         hideLoginOverlay();
         initApp();
     }
 
     window.adminFbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(){});
+    diag('auth', 'Attaching onAuthStateChanged listener');
     window.adminFbAuth.onAuthStateChanged(function(user) {
+        diag('auth', user ? ('Resolved: ' + user.email) : 'Resolved: no user');
         if (!user) {
             showLoginOverlay();
             return;
@@ -6695,19 +6811,23 @@ function adminOpenVideo(src) {
         // Being signed in isn't enough — confirm this uid is actually listed
         // as an admin before showing any dashboard content. A newly created
         // designer account, for example, should never reach this far.
+        diag('auth', 'Checking admins/' + user.uid + ' — this is the step that was reported to hang');
         runRankMigrationIfNeeded().then(function() {
         window.adminFbDB.ref('admins/' + user.uid).once('value').then(function(snap) {
             if (snap.exists()) {
                 var rank = rankOf(snap.val());
+                diag('auth', 'Verified admin, rank=' + rank);
                 window.currentAdminUid = user.uid;
                 applyRankUI(rank);
                 boot(user);
             } else {
+                diag('auth', 'UID not listed in admins/ — signing out', 'error');
                 window.adminFbAuth.signOut();
                 showLoginOverlay();
                 showLoginError('This account is not authorized for admin access.');
             }
         }).catch(function(e) {
+            diag('auth', 'admins/' + user.uid + ' read FAILED: ' + e.message + (e.code === 'PERMISSION_DENIED' ? ' (permission-denied — check Firebase rules for admins/)' : ''), 'error');
             window.adminFbAuth.signOut();
             showLoginOverlay();
             showLoginError('Could not verify admin access — check your connection and try again.');
