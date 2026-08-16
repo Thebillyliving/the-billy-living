@@ -670,6 +670,13 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .pf-room-counter{display:flex;align-items:center;justify-content:center;gap:20px;margin:6px 0 20px;}
 .pf-room-counter button{width:40px;height:40px;border-radius:50%;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.03);color:#C9A84C;font-size:20px;cursor:pointer;}
 .pf-room-counter-val{font-family:'Cormorant Garamond',serif;font-size:32px;color:#C9A84C;min-width:40px;text-align:center;}
+.pf-custom-wrap{margin:-6px 0 18px;}
+.pf-chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.pf-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 8px 6px 12px;border-radius:14px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);color:#E8D5A3;font-family:'Jost',sans-serif;font-size:12px;}
+.pf-chip-x{cursor:pointer;color:rgba(201,168,76,.6);font-size:15px;line-height:1;padding:2px;}
+.pf-custom-input-row{display:flex;gap:8px;}
+.pf-custom-input-row .settings-input{flex:1;}
+.pf-add-btn{width:44px;flex-shrink:0;border-radius:10px;border:1px solid rgba(201,168,76,.3);background:rgba(201,168,76,.1);color:#C9A84C;font-size:20px;cursor:pointer;}
 .pf-summary-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(201,168,76,.08);font-size:13px;gap:12px;}
 .pf-summary-row:last-child{border-bottom:none;}
 .pf-summary-label{color:rgba(168,155,140,.6);flex-shrink:0;}
@@ -1656,8 +1663,30 @@ fbAuth.onAuthStateChanged(user => {
     _authInitialized = true;
     _authGraceExpired = true; // auth resolved, cancel any pending grace
 
-    hideGatekeeper();
-    showLoadingSplash();
+    // This listener is the SINGLE place that decides which splash sequence
+    // to run. handleLogin() and handleCreatePassword() only authenticate —
+    // they used to also call hideGatekeeper()/showPage('home') themselves,
+    // which raced against this same first-firing and produced a blank
+    // screen or the wrong splash order. window._freshLogin / _freshSignupPending
+    // tell this listener which case it is; it's the only place that acts on them.
+    if (window._freshSignupPending) {
+      // A brand-new account is mid-signup, sitting on the "Welcome, Name"
+      // gateStep2 reveal with a Continue button. Do NOT touch the
+      // gatekeeper here — handleFinishSignup() does that the moment the
+      // user taps Continue. We only warm up their data in the background
+      // so the transition feels instant when they do.
+    } else if (window._freshLogin) {
+      window._freshLogin = false;
+      hideGatekeeper();
+      fbDb.ref('userProfiles/' + user.uid + '/name').once('value').then(snap => {
+        showLoginSplashSequence(snap.val() || user.displayName || 'Designer');
+      }).catch(() => showLoginSplashSequence('Designer'));
+    } else {
+      // Cold boot with a cached/restored session — the normal returning-user path.
+      hideGatekeeper();
+      showLoadingSplash();
+    }
+
     loadUserProfile(user.uid);
     loadHomeFeed();   // immediate — user sees this first
     loadCatalog();    // immediate — cache-first, near-instant
@@ -1683,14 +1712,16 @@ fbAuth.onAuthStateChanged(user => {
       setTimeout(() => {
         _authGraceExpired = true;
         if (!fbAuth.currentUser) {
-          // Grace period over and still no user — truly logged out
+          // Grace period over and still no user — truly logged out.
+          // 15s (was 4s) — 4s was too tight for slower mobile networks and
+          // was force-logging-out real sessions that just hadn't resolved yet.
           localStorage.removeItem('bl_last_uid');
           currentUser = null;
           _authInitialized = false;
           showGatekeeperLogin();
         }
         // else: onAuthStateChanged will have already fired again with the user — nothing to do
-      }, 4000);
+      }, 15000);
       return;
     }
 
@@ -1796,19 +1827,16 @@ async function handleLogin() {
   }, 12000);
   try {
     await fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-    const cred = await fbAuth.signInWithEmailAndPassword(email, pw);
+    window._freshLogin = true; // tell onAuthStateChanged this is a fresh login, not a restored session
+    await fbAuth.signInWithEmailAndPassword(email, pw);
     clearTimeout(resetTimer);
-    currentUser = cred.user;
-    hideGatekeeper();
-    showPage('home');
-    // Fetch name for the splash then kick off sequence
-    fbDb.ref('userProfiles/' + cred.user.uid + '/name').once('value').then(snap => {
-      const name = snap.val() || cred.user.displayName || 'Designer';
-      showLoginSplashSequence(name);
-    }).catch(() => showLoginSplashSequence('Designer'));
-    loadUserProfile(cred.user.uid);
+    // Do NOT call hideGatekeeper(), showPage('home'), or start a splash
+    // sequence here — onAuthStateChanged fires within milliseconds and is
+    // now the ONLY place that drives this transition. Calling it from both
+    // places is what caused the blank screen / wrong splash order.
   } catch(e) {
     clearTimeout(resetTimer);
+    window._freshLogin = false;
     showGateError('loginError', gateAuthError(e.code || '', 'login'));
     btn.disabled = false; btn.textContent = 'Enter';
   }
@@ -1902,6 +1930,7 @@ async function handleCreatePassword() {
       showGateError('createPasswordError', data.error || 'Could not create account.'); btn.disabled = false; btn.textContent = 'Create Account'; return;
     }
     await fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    window._freshSignupPending = true; // tell onAuthStateChanged to stay hands-off the gatekeeper — handleFinishSignup() owns this transition
     const cred = await fbAuth.signInWithEmailAndPassword(pendingSignupEmail, pw);
     currentUser = cred.user;
     // Mark every step complete now that the account genuinely exists
@@ -1915,12 +1944,14 @@ async function handleCreatePassword() {
   } catch(e) {
     caTimers.forEach(clearTimeout);
     if (cas) cas.classList.remove('active');
+    window._freshSignupPending = false;
     showGateError('createPasswordError', gateAuthError(e.code || '', 'signup'));
   }
   btn.disabled = false; btn.textContent = 'Create Account';
 }
 
 function handleFinishSignup() {
+  window._freshSignupPending = false; // the deliberate transition below now owns it
   hideGatekeeper();
   showPage('home');
   // Trigger new account splash sequence
@@ -1977,11 +2008,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
 function revealNav() {
-  // Guard: don't reveal if either splash is still present and visible
-  var splash  = document.getElementById('splashScreen');
-  var loading = document.getElementById('loadingSplash');
-  if (splash  && !splash.classList.contains('hidden') && splash.style.visibility !== 'hidden') return;
-  if (loading && loading.classList.contains('active')) return;
+  // Guard: don't reveal if any splash is still present and visible
+  var splash   = document.getElementById('splashScreen');
+  var loading  = document.getElementById('loadingSplash');
+  var loginS   = document.getElementById('loginSplash');
+  var creating = document.getElementById('creatingAccountSplash');
+  var welcome  = document.getElementById('welcomeSplash');
+  if (splash   && !splash.classList.contains('hidden') && splash.style.visibility !== 'hidden') return;
+  if (loading  && loading.classList.contains('active')) return;
+  if (loginS   && loginS.classList.contains('active')) return;
+  if (creating && creating.classList.contains('active')) return;
+  if (welcome  && welcome.classList.contains('active')) return;
 
   var nav = document.querySelector('.bottom-nav');
   if (nav && !nav.classList.contains('nav-ready')) {
@@ -5435,11 +5472,11 @@ const PF_STEPS = [
   { id:'review', title:'Review & Share', sub:'One last look before it goes to your designer' }
 ];
 
-let pfState = { step: 0, data: { projectType:'', rooms:[], roomCount:1, city:'', address:'', budget:'', timeline:'', style:'', contactMethod:'', phone:'', notes:'' } };
+let pfState = { step: 0, data: { projectType:'', customType:[], rooms:[], customRooms:[], roomCount:1, city:'', address:'', budget:'', timeline:'', style:'', contactMethod:'', phone:'', notes:'' } };
 
 function openProjectForm() {
   if (!currentUser) { showToast('Please sign in first'); return; }
-  pfState = { step: 0, data: { projectType:'', rooms:[], roomCount:1, city:'', address:'', budget:'', timeline:'', style:'', contactMethod:'', phone: (currentProfile && currentProfile.mobile) || '', notes:'' } };
+  pfState = { step: 0, data: { projectType:'', customType:[], rooms:[], customRooms:[], roomCount:1, city:'', address:'', budget:'', timeline:'', style:'', contactMethod:'', phone: (currentProfile && currentProfile.mobile) || '', notes:'' } };
   document.getElementById('projectFormOverlay').style.display = 'flex';
   pfRenderStep();
 }
@@ -5474,6 +5511,35 @@ function pfPillHtml(field, options, multi) {
   ).join('') + '</div>';
 }
 
+// "Other" custom-entry row — shown under a pill group once "Other" is
+// selected. customField holds an array so more than one can be added
+// (mainly useful for Rooms); entirely optional, nothing here is required.
+function pfCustomEntryHtml(customField, inputId, placeholder) {
+  const entries = pfState.data[customField] || [];
+  const chips = entries.map((val, i) =>
+    '<span class="pf-chip">' + pfEsc(val) + '<span class="pf-chip-x" onclick="pfRemoveCustom(\'' + customField + '\',' + i + ')">×</span></span>'
+  ).join('');
+  return '<div class="pf-custom-wrap">'
+    + (chips ? '<div class="pf-chip-row">' + chips + '</div>' : '')
+    + '<div class="pf-custom-input-row">'
+    + '<input type="text" class="settings-input" id="' + inputId + '" placeholder="' + placeholder + '" onkeydown="if(event.key===\'Enter\'){event.preventDefault();pfAddCustom(\'' + customField + '\',\'' + inputId + '\');}">'
+    + '<button type="button" class="pf-add-btn" onclick="pfAddCustom(\'' + customField + '\',\'' + inputId + '\')">+</button>'
+    + '</div>'
+    + '<div style="font-size:11px;color:rgba(201,168,76,.35);margin-top:6px;">Optional — add as many as you like</div>'
+    + '</div>';
+}
+function pfAddCustom(customField, inputId) {
+  const input = document.getElementById(inputId);
+  const val = (input.value || '').trim();
+  if (!val) return;
+  pfState.data[customField].push(val);
+  pfRenderStep(true);
+}
+function pfRemoveCustom(customField, index) {
+  pfState.data[customField].splice(index, 1);
+  pfRenderStep(true);
+}
+
 function pfRenderStep(inPlace) {
   if (!inPlace) pfRenderDots();
   const step = PF_STEPS[pfState.step];
@@ -5483,9 +5549,11 @@ function pfRenderStep(inPlace) {
   const d = pfState.data;
 
   if (step.id === 'type') {
-    body.innerHTML = '<span class="pf-field-label">Project Type</span>' + pfPillHtml('projectType', ['Full Home','Single Room','Multiple Rooms','Office / Commercial','Renovation of Existing Space'], false);
+    body.innerHTML = '<span class="pf-field-label">Project Type</span>' + pfPillHtml('projectType', ['Full Home','Single Room','Multiple Rooms','Office / Commercial','Renovation of Existing Space','Other'], false)
+      + (d.projectType === 'Other' ? pfCustomEntryHtml('customType','pfCustomTypeInput','e.g. Home Theater Build-out') : '');
   } else if (step.id === 'rooms') {
     body.innerHTML = '<span class="pf-field-label">Rooms Involved</span>' + pfPillHtml('rooms', ['Living Room','Bedroom','Kitchen','Dining Room','Bathroom','Home Office','Outdoor / Balcony','Other'], true)
+      + (d.rooms.includes('Other') ? pfCustomEntryHtml('customRooms','pfCustomRoomInput','e.g. Wine Cellar') : '')
       + '<span class="pf-field-label">Total Rooms</span>'
       + '<div class="pf-room-counter"><button type="button" onclick="pfSetRoomCount(-1)">−</button><span class="pf-room-counter-val" id="pfRoomCountVal">' + d.roomCount + '</span><button type="button" onclick="pfSetRoomCount(1)">+</button></div>';
   } else if (step.id === 'location') {
@@ -5502,9 +5570,11 @@ function pfRenderStep(inPlace) {
       + '<div class="settings-input-group" style="margin-top:6px;"><label>Phone Number</label><input type="tel" class="settings-input" id="pfPhone" placeholder="e.g. 0803 000 0000" value="' + pfEsc(d.phone) + '"></div>'
       + '<div class="settings-input-group" style="margin-top:14px;"><label>Anything else? <span style="text-transform:none;letter-spacing:0;color:rgba(201,168,76,.4);">(optional)</span></label><textarea class="settings-input" id="pfNotes" rows="3" placeholder="Inspiration, must-haves, constraints…">' + pfEsc(d.notes) + '</textarea></div>';
   } else if (step.id === 'review') {
+    const typeDisplay = d.projectType === 'Other' && d.customType.length ? d.customType.join(', ') : d.projectType;
+    const roomsDisplay = d.rooms.filter(r => r !== 'Other').concat(d.customRooms).join(', ');
     body.innerHTML = ''
-      + '<div class="pf-summary-row"><span class="pf-summary-label">Project Type</span><span class="pf-summary-value">' + pfEsc(d.projectType||'—') + '</span></div>'
-      + '<div class="pf-summary-row"><span class="pf-summary-label">Rooms</span><span class="pf-summary-value">' + pfEsc(d.rooms.join(', ')||'—') + ' (' + d.roomCount + ' total)</span></div>'
+      + '<div class="pf-summary-row"><span class="pf-summary-label">Project Type</span><span class="pf-summary-value">' + pfEsc(typeDisplay||'—') + '</span></div>'
+      + '<div class="pf-summary-row"><span class="pf-summary-label">Rooms</span><span class="pf-summary-value">' + pfEsc(roomsDisplay||'—') + ' (' + d.roomCount + ' total)</span></div>'
       + '<div class="pf-summary-row"><span class="pf-summary-label">Location</span><span class="pf-summary-value">' + pfEsc(d.city||'—') + (d.address ? ', ' + pfEsc(d.address) : '') + '</span></div>'
       + '<div class="pf-summary-row"><span class="pf-summary-label">Budget</span><span class="pf-summary-value">' + pfEsc(d.budget||'—') + '</span></div>'
       + '<div class="pf-summary-row"><span class="pf-summary-label">Timeline</span><span class="pf-summary-value">' + pfEsc(d.timeline||'—') + '</span></div>'
@@ -5559,7 +5629,7 @@ async function pfSubmit() {
     clientUid: currentUser.uid,
     clientName: (currentProfile && currentProfile.name) || 'Client',
     clientEmail: currentUser.email || '',
-    projectType: d.projectType, rooms: d.rooms, roomCount: d.roomCount,
+    projectType: d.projectType, customType: d.customType, rooms: d.rooms, customRooms: d.customRooms, roomCount: d.roomCount,
     city: d.city, address: d.address, budget: d.budget, timeline: d.timeline,
     style: d.style, contactMethod: d.contactMethod, phone: d.phone, notes: d.notes,
     submittedAt: Date.now(), read: false
@@ -5611,9 +5681,11 @@ function viewFormDetail(key) {
   if (!it) return;
   const dt = new Date(it.submittedAt||0);
   document.getElementById('formDetailDate').textContent = dt.toLocaleDateString([], {month:'long', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit'});
+  const typeDisplay = it.projectType === 'Other' && (it.customType||[]).length ? it.customType.join(', ') : it.projectType;
+  const roomsDisplay = (it.rooms||[]).filter(r => r !== 'Other').concat(it.customRooms||[]).join(', ');
   document.getElementById('formDetailBody').innerHTML = ''
-    + '<div class="pf-summary-row"><span class="pf-summary-label">Project Type</span><span class="pf-summary-value">' + pfEsc(it.projectType||'—') + '</span></div>'
-    + '<div class="pf-summary-row"><span class="pf-summary-label">Rooms</span><span class="pf-summary-value">' + pfEsc((it.rooms||[]).join(', ')||'—') + ' (' + (it.roomCount||'—') + ' total)</span></div>'
+    + '<div class="pf-summary-row"><span class="pf-summary-label">Project Type</span><span class="pf-summary-value">' + pfEsc(typeDisplay||'—') + '</span></div>'
+    + '<div class="pf-summary-row"><span class="pf-summary-label">Rooms</span><span class="pf-summary-value">' + pfEsc(roomsDisplay||'—') + ' (' + (it.roomCount||'—') + ' total)</span></div>'
     + '<div class="pf-summary-row"><span class="pf-summary-label">Location</span><span class="pf-summary-value">' + pfEsc(it.city||'—') + (it.address ? ', ' + pfEsc(it.address) : '') + '</span></div>'
     + '<div class="pf-summary-row"><span class="pf-summary-label">Budget</span><span class="pf-summary-value">' + pfEsc(it.budget||'—') + '</span></div>'
     + '<div class="pf-summary-row"><span class="pf-summary-label">Timeline</span><span class="pf-summary-value">' + pfEsc(it.timeline||'—') + '</span></div>'
