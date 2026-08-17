@@ -325,6 +325,10 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg-card);color:var(--gold);padding:16px 24px;border-radius:12px;opacity:0;transition:all .3s;z-index:100010}
 /* ─── DIAGNOSTICS ─────────────────────────────────────────────────────────── */
 .diag-toggle{position:fixed;bottom:calc(var(--nav-height) + 14px);right:14px;z-index:100015;width:40px;height:40px;border-radius:50%;background:rgba(30,22,12,.9);border:1px solid rgba(201,168,76,.3);color:#C9A84C;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.4);}
+.network-banner{position:fixed;top:0;left:0;right:0;z-index:100005;text-align:center;font-family:'Jost',sans-serif;font-size:12px;padding:0;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease;}
+.network-banner.show{padding:9px 16px;max-height:40px;}
+.network-banner.offline{background:#3a1414;color:#ffb4b4;}
+.network-banner.slow{background:#3a2a0a;color:#f0c674;}
 .diag-badge-dot{display:none;position:absolute;top:-2px;right:-2px;width:10px;height:10px;border-radius:50%;background:#ef4444;border:2px solid #120D06;}
 .diag-panel{display:none;position:fixed;inset:0;z-index:100020;background:rgba(6,4,2,.97);flex-direction:column;padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px));}
 .diag-panel-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0;}
@@ -737,6 +741,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
+<div class="network-banner" id="networkBanner"></div>
 <div id="downloadBanner">
   <img class="dl-banner-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Crect width='56' height='56' fill='%23C9A84C' rx='12'/%3E%3Ctext x='28' y='38' font-family='serif' font-size='24' fill='%23120D06' text-anchor='middle' font-weight='bold'%3EBL%3C/text%3E%3C/svg%3E" alt="" role="presentation" alt="Billy Living">
   <div class="dl-banner-text">
@@ -1573,9 +1578,65 @@ diag('boot', 'Script parsing started');
 // Live connection state — the single most useful signal for "X isn't
 // loading": if this shows OFFLINE, nothing that reads from Firebase can
 // possibly work, regardless of what else looks broken.
+window._isOnline = true;
 fbDb.ref('.info/connected').on('value', function(snap) {
+  window._isOnline = !!snap.val();
   diag('network', snap.val() ? 'Connected to Firebase' : 'OFFLINE — not connected to Firebase', snap.val() ? 'info' : 'warn');
+  _updateNetworkBanner();
 });
+
+// ─── RETRY WITH BACKOFF ───────────────────────────────────────────────────────
+// Wraps a Firebase call with a timeout (so it can never hang forever the way
+// pfSubmit used to) and retries transient failures with increasing delay
+// before giving up. Permission errors aren't retried — retrying those just
+// wastes time, since the outcome won't change without a rules fix.
+async function withRetry(fn, label, maxAttempts, baseDelayMs) {
+  maxAttempts = maxAttempts || 3;
+  baseDelayMs = baseDelayMs || 800;
+  let lastErr;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await Promise.race([
+        fn(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timed out')), 10000))
+      ]);
+    } catch (e) {
+      lastErr = e;
+      const isPermanent = e.code === 'PERMISSION_DENIED' || e.code === 'permission-denied';
+      diag('retry', (label || 'request') + ' attempt ' + attempt + '/' + maxAttempts + ' failed: ' + e.message, (attempt === maxAttempts || isPermanent) ? 'error' : 'warn');
+      if (isPermanent || attempt === maxAttempts) throw e;
+      await new Promise(r => setTimeout(r, baseDelayMs * Math.pow(2, attempt - 1)));
+    }
+  }
+  throw lastErr;
+}
+
+// ─── NETWORK-AWARE BANNER ─────────────────────────────────────────────────────
+// One persistent, unobtrusive signal for "why is this slow/not working" —
+// covers both true offline (browser-level) and Firebase-specific
+// disconnects, plus a heads-up on detectably slow connections (2G/3G) so
+// people don't wonder why things are taking longer than usual.
+function _updateNetworkBanner() {
+  const el = document.getElementById('networkBanner');
+  if (!el) return;
+  const browserOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+  const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  const slow = conn && (conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g');
+  if (browserOffline || !window._isOnline) {
+    el.textContent = 'You\'re offline — showing saved content';
+    el.className = 'network-banner show offline';
+  } else if (slow) {
+    el.textContent = 'Slow connection detected — some content may take longer to load';
+    el.className = 'network-banner show slow';
+  } else {
+    el.className = 'network-banner';
+  }
+}
+window.addEventListener('online', _updateNetworkBanner);
+window.addEventListener('offline', _updateNetworkBanner);
+if (navigator.connection) navigator.connection.addEventListener('change', _updateNetworkBanner);
+_updateNetworkBanner(); // catch the case where the app opens already offline, before Firebase even attempts to connect
+
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
 let currentUser = null, currentProfile = null;
@@ -2390,7 +2451,7 @@ function requestDeleteAccount() {
 async function loadUserProfile(uid) {
   diag('load', 'loadUserProfile: start');
   try {
-  const snap = await fbDb.ref('userProfiles/' + uid).get();
+  const snap = await withRetry(() => fbDb.ref('userProfiles/' + uid).get(), 'loadUserProfile');
   if (!snap.exists()) { diag('load', 'loadUserProfile: no profile document exists yet', 'warn'); return; }
   const p = snap.val();
   currentProfile = p;
@@ -2649,6 +2710,21 @@ async function loadHomeFeed() {
     return tb - ta;
   });
 
+  // Cache-first: show what we already have INSTANTLY, then refresh in the
+  // background. The previous version waited for the network to fail before
+  // ever touching the cache — on a slow (not dead) connection that meant a
+  // long blank skeleton instead of the content you already had. loadCatalog()
+  // already worked this way; this brings the feed in line with it.
+  let shownFromCache = false;
+  try {
+    const cached = JSON.parse(localStorage.getItem('tbl_feed_posts') || '[]');
+    if (cached.length) {
+      diag('load', 'loadHomeFeed: showing ' + cached.length + ' cached posts instantly');
+      _renderFeed(_sortPosts(cached));
+      shownFromCache = true;
+    }
+  } catch(e) {}
+
   // Show shimmer skeleton immediately
   if (!feed.querySelector('.feed-item')) {
     feed.innerHTML = Array(3).fill(0).map(() => `
@@ -2662,11 +2738,10 @@ async function loadHomeFeed() {
       </div>`).join('');
   }
 
-  // 🔥 FIX: ALWAYS fetch from Firebase first, then cache
   try {
-    const snap = await fbDb.ref('content/posts').get();
+    const snap = await withRetry(() => fbDb.ref('content/posts').get(), 'loadHomeFeed');
     if (!snap.exists()) {
-      if (!document.querySelector('.feed-item')) feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
+      if (!shownFromCache) feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
       return;
     }
 
@@ -2691,17 +2766,10 @@ async function loadHomeFeed() {
   } catch(e) {
     console.error('loadHomeFeed error:', e);
     diag('load', 'loadHomeFeed FAILED: ' + e.message, 'error');
-    // Only fall back to cache if Firebase fetch FAILED
-    try {
-      const cached = JSON.parse(localStorage.getItem('tbl_feed_posts') || '[]');
-      if (cached.length) {
-        console.warn('Using cached posts due to network error');
-        _renderFeed(_sortPosts(cached));
-      } else {
-        feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">Unable to load posts. Check your connection.</div>';
-      }
-    } catch(cacheErr) {
-      feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
+    // Cache is already showing (if we had one) — only show the hard error
+    // state if we truly have nothing on screen
+    if (!shownFromCache && !document.querySelector('.feed-item')) {
+      feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">Unable to load posts. Check your connection.</div>';
     }
   }
 }
@@ -3443,8 +3511,8 @@ async function loadCatalog() {
   // Background Firebase refresh — updates cover cache + grid silently
   try {
     const [snap, stylesSnap] = await Promise.all([
-      fbDb.ref('content/catalog').get(),
-      fbDb.ref('content/styles').get()
+      withRetry(() => fbDb.ref('content/catalog').get(), 'loadCatalog:boxes'),
+      withRetry(() => fbDb.ref('content/styles').get(), 'loadCatalog:styles')
     ]);
     const styles = stylesSnap.exists() ? sortStyles(Object.values(stylesSnap.val())) : [];
     _stylesCache = styles;
@@ -4060,7 +4128,7 @@ function _renderMySpaceProject(projectId) {
 
     const rendersHtml = renders.length
       ? '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' + renders.map(r =>
-          `<div style="border-radius:10px;overflow:hidden;border:1px solid rgba(212,175,55,.15);aspect-ratio:1;position:relative;cursor:pointer;" onclick="openVaultAsset({title:'${(r.type||'Render').replace(/'/g,"\\'")}',url:'${(r.url||'').replace(/'/g,"\\'")}',cat:'3D Render Archive'})"><img src="${r.url||''}" style="width:100%;height:100%;object-fit:cover;"><span style="position:absolute;bottom:6px;left:6px;background:rgba(0,0,0,.6);color:var(--gold-light);font-size:9px;padding:2px 8px;border-radius:10px;letter-spacing:1px;">${(r.type||'RENDER').toUpperCase()}</span></div>`
+          `<div style="border-radius:10px;overflow:hidden;border:1px solid rgba(212,175,55,.15);aspect-ratio:1;position:relative;cursor:pointer;" onclick="openVaultAsset({title:'${(r.type||'Render').replace(/'/g,"\\'")}',url:'${(r.url||'').replace(/'/g,"\\'")}',cat:'3D Render Archive'})"><img src="${r.url||''}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"><span style="position:absolute;bottom:6px;left:6px;background:rgba(0,0,0,.6);color:var(--gold-light);font-size:9px;padding:2px 8px;border-radius:10px;letter-spacing:1px;">${(r.type||'RENDER').toUpperCase()}</span></div>`
         ).join('') + '</div>'
       : '<div style="text-align:center;padding:40px;color:rgba(212,175,55,.3);font-size:13px;">Your designer will add render walkthroughs here</div>';
 
@@ -4497,7 +4565,7 @@ function renderPortfolioGrid() {
   let html = visibleItems.slice(0, SLOTS).map(item => {
     const isSel = selectedPortfolioItems.includes(item.id);
     const mediaHtml = item.imageData
-      ? `<img src="${item.imageData}" alt="${item.title||''}">`
+      ? `<img src="${item.imageData}" alt="${item.title||''}" loading="lazy">`
       : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px">${item.emoji||'🛋️'}</div>`;
     return `<div class="portfolio-item${isSel?' selected':''}"
         data-id="${item.id}"
