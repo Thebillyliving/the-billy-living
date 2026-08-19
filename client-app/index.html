@@ -1982,6 +1982,8 @@ async function handleLogin() {
   btn.disabled = true; btn.textContent = 'Signing in…';
   const resetTimer = setTimeout(() => {
     btn.disabled = false; btn.textContent = 'Enter';
+    diag('auth', 'Login timed out after 12s — no response from Firebase', 'error');
+    showGateError('loginError', 'Taking too long — check your connection and try again.');
   }, 12000);
   try {
     await fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
