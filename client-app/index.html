@@ -1596,14 +1596,17 @@ async function withRetry(fn, label, maxAttempts, baseDelayMs) {
   let lastErr;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      return await Promise.race([
+      const result = await Promise.race([
         fn(),
         new Promise((_, reject) => setTimeout(() => reject(new Error('Timed out')), 10000))
       ]);
+      if (window._consecutiveTimeouts > 0) { window._consecutiveTimeouts = 0; _updateNetworkBanner(); }
+      return result;
     } catch (e) {
       lastErr = e;
       const isPermanent = e.code === 'PERMISSION_DENIED' || e.code === 'permission-denied';
       diag('retry', (label || 'request') + ' attempt ' + attempt + '/' + maxAttempts + ' failed: ' + e.message, (attempt === maxAttempts || isPermanent) ? 'error' : 'warn');
+      if (e.message === 'Timed out') { window._consecutiveTimeouts++; _updateNetworkBanner(); }
       if (isPermanent || attempt === maxAttempts) throw e;
       await new Promise(r => setTimeout(r, baseDelayMs * Math.pow(2, attempt - 1)));
     }
@@ -1616,21 +1619,28 @@ async function withRetry(fn, label, maxAttempts, baseDelayMs) {
 // covers both true offline (browser-level) and Firebase-specific
 // disconnects, plus a heads-up on detectably slow connections (2G/3G) so
 // people don't wonder why things are taking longer than usual.
+window._consecutiveTimeouts = 0;
 function _updateNetworkBanner() {
   const el = document.getElementById('networkBanner');
   if (!el) return;
   const browserOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
   const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-  const slow = conn && (conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g');
+  // effectiveType alone isn't reliable — it can report "4g" while every
+  // request is actually timing out (this is exactly what one real log
+  // showed). Real, observed timeouts are stronger evidence than the
+  // browser's estimate, so either signal can trigger the slow-connection banner.
+  const reportedSlow = conn && (conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g');
+  const observedSlow = window._consecutiveTimeouts >= 2;
   if (browserOffline || !window._isOnline) {
     el.textContent = 'You\'re offline — showing saved content';
     el.className = 'network-banner show offline';
-  } else if (slow) {
+  } else if (reportedSlow || observedSlow) {
     el.textContent = 'Slow connection detected — some content may take longer to load';
     el.className = 'network-banner show slow';
   } else {
     el.className = 'network-banner';
   }
+  diag('network', 'Banner state: ' + el.className.replace('network-banner', '').trim() + ' (effectiveType=' + (conn ? conn.effectiveType : 'n/a') + ', consecutiveTimeouts=' + window._consecutiveTimeouts + ')');
 }
 window.addEventListener('online', _updateNetworkBanner);
 window.addEventListener('offline', _updateNetworkBanner);
@@ -2741,7 +2751,7 @@ async function loadHomeFeed() {
   }
 
   try {
-    const snap = await withRetry(() => fbDb.ref('content/posts').get(), 'loadHomeFeed');
+    const snap = await withRetry(() => fbDb.ref('content/posts').get(), 'loadHomeFeed', shownFromCache ? 2 : 3);
     if (!snap.exists()) {
       if (!shownFromCache) feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
       return;
@@ -2772,6 +2782,11 @@ async function loadHomeFeed() {
     // state if we truly have nothing on screen
     if (!shownFromCache && !document.querySelector('.feed-item')) {
       feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">Unable to load posts. Check your connection.</div>';
+    } else if (shownFromCache) {
+      // Cached content is already on screen and stayed that way — but the
+      // background refresh silently gave up after 3 tries over ~20s with
+      // zero indication. Say so, once, quietly.
+      showToast('Showing saved content — will refresh once your connection improves');
     }
   }
 }
@@ -3512,9 +3527,10 @@ async function loadCatalog() {
 
   // Background Firebase refresh — updates cover cache + grid silently
   try {
+    const attempts = cached.length ? 2 : 3;
     const [snap, stylesSnap] = await Promise.all([
-      withRetry(() => fbDb.ref('content/catalog').get(), 'loadCatalog:boxes'),
-      withRetry(() => fbDb.ref('content/styles').get(), 'loadCatalog:styles')
+      withRetry(() => fbDb.ref('content/catalog').get(), 'loadCatalog:boxes', attempts),
+      withRetry(() => fbDb.ref('content/styles').get(), 'loadCatalog:styles', attempts)
     ]);
     const styles = stylesSnap.exists() ? sortStyles(Object.values(stylesSnap.val())) : [];
     _stylesCache = styles;
