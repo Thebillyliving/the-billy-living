@@ -5,6 +5,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>THE BILLY LIVING INTERIOR Platform</title>
+<link rel="preconnect" href="https://www.gstatic.com">
+<link rel="preconnect" href="https://the-billy-living-default-rtdb.firebaseio.com">
+<link rel="dns-prefetch" href="https://the-billy-living-default-rtdb.firebaseio.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <meta name="application-name" content="THE BILLY LIVING INTERIOR Platform">
 <meta name="apple-mobile-web-app-title" content="THE BILLY LIVING INTERIOR Platform">
@@ -1006,6 +1009,15 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
   </div>
 
   <div class="settings-body">
+    <!-- Admin — hidden by default, only revealed for accounts verified as admin -->
+    <div class="settings-group" id="adminSwitchGroup" style="display:none">
+      <div class="settings-group-label">Admin</div>
+      <button class="settings-row" onclick="openAdminView()">
+        <span class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/></svg></span>
+        <span class="settings-row-label" id="adminSwitchLabel">Switch to Admin View</span>
+        <span class="settings-row-chevron">›</span>
+      </button>
+    </div>
     <!-- Account -->
     <div class="settings-group">
       <div class="settings-group-label">Account</div>
@@ -1494,12 +1506,11 @@ const CONFIG = {
 };
 
 const fbDb   = firebase.database();
-// keepSynced: Firebase keeps these paths cached in memory — instant on repeat visits
-try {
-    fbDb.ref('content/catalog').keepSynced(true);
-    fbDb.ref('content/posts').keepSynced(true);
-    fbDb.ref('content/trending').keepSynced(true);
-} catch(e) {}
+// keepSynced(true) removed — it forced Firebase to download and hold every byte
+// under these paths in memory on every cold start (including any large admin
+// uploads), even before the user got past the login screen. The app's own
+// withRetry(...get()) cache-first pattern (see loadHomeFeed/loadCatalog) already
+// caches reads locally, so this was pure unnecessary boot-time weight.
 
 // ─── DIAGNOSTICS ─────────────────────────────────────────────────────────────
 // On-screen debug log — mobile Chrome has no accessible console, so this is
@@ -1813,6 +1824,88 @@ function showLoadingSplash() {
 let _authInitialized = false;
 let _authGraceExpired = false;
 
+// ─── ADMIN VIEW (lazy-loaded) ─────────────────────────────────────────────
+// Client and admin share one Firebase project and one Auth pool — an admin
+// signs in through the exact same login form as any client. This just checks
+// whether their uid is ranked in admins/{uid} (same node/rule admin.html used)
+// and, if so, reveals a Settings row to switch into the admin view. Nothing
+// admin-related is downloaded until that row is actually tapped.
+window._isAdmin = false;
+window._adminRank = null;
+window._adminModuleLoaded = false;
+
+function checkAdminStatus(uid) {
+  fbDb.ref('admins/' + uid).once('value').then(snap => {
+    const asg = document.getElementById('adminSwitchGroup');
+    if (snap.exists()) {
+      const val = snap.val();
+      window._isAdmin = true;
+      window._adminRank = (val && (val.rank || val)) || 'designer';
+      diag('admin', 'Account verified as admin, rank=' + window._adminRank);
+      if (asg) asg.style.display = '';
+    } else {
+      window._isAdmin = false;
+      window._adminRank = null;
+      if (asg) asg.style.display = 'none';
+    }
+  }).catch(e => {
+    // Not being able to check isn't an error worth surfacing to a client —
+    // just don't show the admin row. diag() still logs it for debugging.
+    diag('admin', 'admins/' + uid + ' check failed: ' + e.message, 'warn');
+  });
+}
+
+function openAdminView() {
+  if (!window._isAdmin || !currentUser) return;
+  const root = document.getElementById('adminViewRoot');
+  const label = document.getElementById('adminSwitchLabel');
+  root.style.display = 'flex';
+  closeSettings();
+
+  if (window._adminModuleLoaded && window.BillyAdmin) {
+    window.BillyAdmin.init(currentUser.uid, window._adminRank, closeAdminView);
+    if (label) label.textContent = 'Switch to Admin View';
+    return;
+  }
+
+  root.innerHTML = '<div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--gold);font-family:\'Jost\',sans-serif;font-size:13px;letter-spacing:1px;">Loading admin module…</div>';
+  const s = document.createElement('script');
+  s.src = '/admin-module.js';
+  s.onload = () => {
+    window._adminModuleLoaded = true;
+    diag('admin', 'admin-module.js loaded');
+    if (window.BillyAdmin) {
+      window.BillyAdmin.init(currentUser.uid, window._adminRank, closeAdminView);
+    } else {
+      root.innerHTML = '<div style="flex:1;display:flex;align-items:center;justify-content:center;color:#e74c3c;text-align:center;padding:24px;">Admin module failed to initialize.</div>';
+    }
+  };
+  s.onerror = () => {
+    diag('admin', 'admin-module.js failed to load', 'error');
+    root.innerHTML = '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#e74c3c;text-align:center;padding:24px;gap:16px;"><div>Could not load the admin module — check your connection.</div><button class="settings-modal-btn" style="max-width:200px" onclick="closeAdminView()">Close</button></div>';
+  };
+  document.head.appendChild(s);
+}
+
+function closeAdminView(fullUnmount) {
+  const root = document.getElementById('adminViewRoot');
+  if (!root) return;
+  if (fullUnmount) {
+    // Logout path — drop everything so the next account on this device
+    // starts clean rather than inheriting a stale admin module state.
+    if (window.BillyAdmin && window.BillyAdmin.teardown) window.BillyAdmin.teardown();
+    root.innerHTML = '';
+    root.style.display = 'none';
+    window._adminModuleLoaded = false;
+    window.BillyAdmin = undefined;
+    return;
+  }
+  // Normal "back to client view" — just hide it. The module stays loaded in
+  // memory for this session so switching back and forth again is instant.
+  if (window.BillyAdmin && window.BillyAdmin.hide) window.BillyAdmin.hide();
+  root.style.display = 'none';
+}
+
 fbAuth.onAuthStateChanged(user => {
   diag('auth', user ? ('Resolved: ' + user.email) : 'Resolved: no user');
   if (user) {
@@ -1859,6 +1952,7 @@ fbAuth.onAuthStateChanged(user => {
     loadHomeFeed();   // immediate — user sees this first
     loadCatalog();    // immediate — cache-first, near-instant
     loadConciergeHistory(); // load chat history on login
+    checkAdminStatus(user.uid); // reveal Admin switch in Settings if this account is ranked
     // Trending, portfolio, concierge deferred — loaded on first navigation to each
     // Sync UID into VIP record so admin-created projects resolve correctly
     fbDb.ref('userProfiles/' + user.uid + '/mobile').once('value')
@@ -2575,6 +2669,11 @@ async function handleAvatarUpload(event) {
 // ─── FIX 3: handleLogout properly signs out ─────────────────────────────────
 function handleLogout() {
   closeProfile();
+  closeAdminView(true); // fully unmount admin view/state on logout — never leave it loaded for the next login on this device
+  window._isAdmin = false;
+  window._adminRank = null;
+  const asg = document.getElementById('adminSwitchGroup');
+  if (asg) asg.style.display = 'none';
 
   // A deliberate logout should show the login form immediately — not the
   // "Restoring your session" spinner, which is only for accidental/network
@@ -6304,5 +6403,8 @@ function _initFeedViewerObservers() {
   </div>
   <div class="diag-log-list" id="diagLogList"></div>
 </div>
+
+<!-- ADMIN VIEW — dormant, empty until openAdminView() lazy-loads /admin-module.js -->
+<div id="adminViewRoot" style="display:none;position:fixed;inset:0;background:#0A0804;z-index:200000;flex-direction:column;"></div>
 </body>
 </html>
