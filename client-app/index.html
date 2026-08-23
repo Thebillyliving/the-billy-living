@@ -2033,6 +2033,13 @@ function showGatekeeperChecking() {
 // Shows the actual login form — only once we're sure there's no session to restore.
 function showGatekeeperLogin() {
   diag('gate', 'showGatekeeperLogin() called — showing login form', 'warn');
+  // We're putting the login form back up, which means we want the NEXT
+  // successful sign-in to run the full transition (hideGatekeeper + splash).
+  // Without this reset, a stale earlier firing this page-load could leave
+  // _authInitialized permanently true, causing a genuinely successful login
+  // to hit the "only run once" guard in onAuthStateChanged and never hide
+  // this screen at all — signed in, but stuck looking at the login form.
+  _authInitialized = false;
   // Reset any stuck button state from a login attempt that was interrupted
   // by a stray gatekeeper re-show, so the form is never left frozen on
   // "Signing in…" with no way to retry.
@@ -2121,6 +2128,23 @@ async function handleLogin() {
     // sequence here — onAuthStateChanged fires within milliseconds and is
     // now the ONLY place that drives this transition. Calling it from both
     // places is what caused the blank screen / wrong splash order.
+    //
+    // SAFETY NET: on a bad connection onAuthStateChanged can be delayed, or
+    // (if _authInitialized was already true from an earlier firing this
+    // page load) it can skip the transition entirely — leaving a genuinely
+    // signed-in user stuck looking at the login form with a dead button.
+    // This watchdog only acts if that's still true 2.5s later, so it never
+    // races the normal fast path above.
+    setTimeout(() => {
+      const gk = document.getElementById('gatekeeper');
+      if (fbAuth.currentUser && gk && gk.style.display !== 'none' && !gk.classList.contains('hidden')) {
+        diag('gate', 'Watchdog: signed in but gatekeeper still visible after 2.5s — forcing hide', 'error');
+        window._freshLogin = false;
+        _authInitialized = false; // let the transition logic run fresh
+        hideGatekeeper();
+        showPage('home');
+      }
+    }, 2500);
   } catch(e) {
     clearTimeout(resetTimer);
     window._freshLogin = false;
