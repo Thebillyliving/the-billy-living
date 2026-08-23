@@ -1687,9 +1687,10 @@ function hideSplashGuard() {
   if (g) { g.style.opacity = '0'; g.style.visibility = 'hidden'; }
 }
 function hideGatekeeper() {
+  diag('gate', 'hideGatekeeper() called');
   const gk = document.getElementById('gatekeeper');
   gk.classList.add('hidden');
-  setTimeout(() => { gk.style.display = 'none'; }, 600);
+  setTimeout(() => { gk.style.display = 'none'; diag('gate', 'hideGatekeeper() display:none applied after 600ms'); }, 600);
   gk.style.bottom = ''; // restore CSS default (80px for nav) after showGatekeeperChecking/Login set it to 0
   showSplashGuard(); // covers the home page during every splash transition
 }
@@ -1962,12 +1963,27 @@ fbAuth.onAuthStateChanged(user => {
       })
       .catch(() => {}); // silently ignore if profile not yet created
   } else {
+    // Firebase can fire onAuthStateChanged(null) as a stray/transient event
+    // during a token refresh hiccup on a flaky connection — even though the
+    // user is genuinely still signed in. Treating that as "logged out" was
+    // the actual bug behind "logged in but the login screen won't leave":
+    // a successful login's hideGatekeeper() would run, then a spurious null
+    // firing moments later would call showGatekeeperChecking()/Login() and
+    // put the form right back up, even though the session was fine the
+    // whole time. fbAuth.currentUser reflects Firebase's real, current
+    // client-side state and is the reliable check here — the callback
+    // argument itself can lag behind it.
+    if (fbAuth.currentUser) {
+      diag('gate', 'onAuthStateChanged(null) fired but fbAuth.currentUser is still set — ignoring stale callback', 'warn');
+      return;
+    }
     // Firebase initially fires null while it checks the cache. On a
     // slow/flaky connection this can also happen while a token refresh is
     // failing — not because the account actually logged out. If this
     // device has a known previous session, show a "restoring" spinner
     // instead of the login form while we wait to find out for sure.
     const hadSession = localStorage.getItem('bl_last_uid');
+    diag('gate', 'onAuthStateChanged(null) fired — hadSession=' + !!hadSession + ' authGraceUsed=' + !!window._authGraceUsed + ' authInitialized=' + _authInitialized);
     if (hadSession && !window._authGraceUsed) {
       window._authGraceUsed = true;
       showGatekeeperChecking();
@@ -1999,6 +2015,7 @@ fbAuth.onAuthStateChanged(user => {
 // session is still being restored — keeps the splash guard up too, so
 // nothing underneath can leak through during this window.
 function showGatekeeperChecking() {
+  diag('gate', 'showGatekeeperChecking() called — re-showing gatekeeper', 'warn');
   const gk = document.getElementById('gatekeeper');
   gk.style.transition = 'none';
   gk.style.display = 'flex';
@@ -2015,6 +2032,12 @@ function showGatekeeperChecking() {
 }
 // Shows the actual login form — only once we're sure there's no session to restore.
 function showGatekeeperLogin() {
+  diag('gate', 'showGatekeeperLogin() called — showing login form', 'warn');
+  // Reset any stuck button state from a login attempt that was interrupted
+  // by a stray gatekeeper re-show, so the form is never left frozen on
+  // "Signing in…" with no way to retry.
+  const lb = document.getElementById('loginBtn');
+  if (lb) { lb.disabled = false; lb.textContent = 'Enter'; }
   const gk = document.getElementById('gatekeeper');
   gk.style.transition = 'none';
   gk.style.display = 'flex';
