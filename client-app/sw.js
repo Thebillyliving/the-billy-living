@@ -35,3 +35,50 @@ self.addEventListener('fetch', e => {
       .catch(() => caches.match(e.request))
   );
 });
+
+// ─── FCM background push ─────────────────────────────────────────────────
+// importScripts runs in the service worker's own startup context, not
+// through the 'fetch' handler above — so this doesn't conflict with the
+// Firebase-traffic exclusion in that handler, which only governs requests
+// the PAGE makes, not the worker's own script loading.
+importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js');
+
+firebase.initializeApp({
+  apiKey: "AIzaSyBbs6k7PInHUnv1x9FzHB31kUwrCcoGG7c",
+  authDomain: "the-billy-living.firebaseapp.com",
+  databaseURL: "https://the-billy-living-default-rtdb.firebaseio.com",
+  projectId: "the-billy-living",
+  storageBucket: "the-billy-living.firebasestorage.app",
+  messagingSenderId: "808519759419",
+  appId: "1:808519759419:web:5578b49e27079039dc4e1e"
+});
+
+const messaging = firebase.messaging();
+
+// Fires when a push arrives while the app is closed / not the focused tab —
+// this is the actual "posts still enter my phone overnight" mechanic.
+// Foreground messages (app open) are handled separately, in index.html's
+// fbMessaging.onMessage(), since FCM does not route those here.
+messaging.onBackgroundMessage(payload => {
+  const title = (payload.notification && payload.notification.title) || 'The Billy Living';
+  const options = {
+    body: (payload.notification && payload.notification.body) || '',
+    icon: '/ic_launcher-web.png',
+    badge: '/ic_launcher-web.png',
+    data: payload.data || {}
+  };
+  self.registration.showNotification(title, options);
+});
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
+      for (const client of clientList) {
+        if ('focus' in client) return client.focus();
+      }
+      if (self.clients.openWindow) return self.clients.openWindow('/');
+    })
+  );
+});
