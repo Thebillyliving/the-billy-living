@@ -104,6 +104,8 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .feed-caption-text{font-family:'Jost',sans-serif;font-size:13px;color:#D9CFBE;line-height:1.5;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer;transition:-webkit-line-clamp .1s}
 .feed-caption-text.expanded{-webkit-line-clamp:unset;display:block}
 .feed-caption-location{display:flex;align-items:center;gap:4px;font-family:'Jost',sans-serif;font-size:11px;color:rgba(168,155,140,.6);letter-spacing:.3px}
+.hashtag-link{color:#C9A84C;font-weight:600;cursor:pointer;}
+.topic-pill{display:inline-block;background:rgba(201,168,76,.12);color:#C9A84C;font-family:'Jost',sans-serif;font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:6px;cursor:pointer;}
 .feed-caption-location svg{width:11px;height:11px;stroke:rgba(168,155,140,.5);fill:none;stroke-width:2;flex-shrink:0}
 /* FIX 1: overscroll-behavior:contain stops scroll bleeding into nav taps */
 .trending-page{position:fixed;top:0;left:0;right:0;bottom:var(--nav-height);background:#000;z-index:100;display:none}
@@ -884,6 +886,11 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 
 <!-- HOME -->
 <div id="home" class="page active">
+  <div class="home-topbar" style="display:flex;align-items:center;padding:10px 16px 0;">
+    <button onclick="openSearchOverlay('home')" style="background:none;border:none;color:#C9A84C;padding:6px;cursor:pointer;line-height:0;" aria-label="Search">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+  </div>
   <div class="stories-row">
     <button class="story-item" id="profileIconBtn" onclick="openProfile()">
       <div class="story-circle" id="profileStoryCircle">
@@ -1145,7 +1152,23 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 
 <!-- TRENDING -->
 <div id="trending" class="trending-page">
+  <button onclick="openSearchOverlay('trending')" style="position:absolute;top:calc(14px + env(safe-area-inset-top,0px));left:14px;z-index:50;background:rgba(0,0,0,.35);border:none;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;" aria-label="Search">
+    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  </button>
   <div class="trending-container" id="trendingContainer"></div>
+</div>
+
+<!-- SEARCH — shared overlay for Home and Trending, filters whatever's
+     already loaded in memory (_postsMap / _trendMap) by caption/title/
+     location. No server-side search index exists yet, so this is a
+     client-side filter over loaded content rather than a full-text search
+     across everything ever posted. -->
+<div id="searchOverlay" style="display:none;position:fixed;inset:0;z-index:100030;background:#0A0804;flex-direction:column;">
+  <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;padding-top:calc(14px + env(safe-area-inset-top,0px));border-bottom:1px solid rgba(201,168,76,.1);">
+    <button onclick="closeSearchOverlay()" style="background:none;border:none;color:#C9A84C;font-size:22px;padding:0 4px;cursor:pointer;line-height:1;">←</button>
+    <input id="searchOverlayInput" type="text" placeholder="Search caption, location, topic, or #hashtag…" oninput="handleSearchInput(this.value)" style="flex:1;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:20px;padding:10px 16px;color:#E8D5A3;font-family:'Jost',sans-serif;font-size:14px;">
+  </div>
+  <div id="searchOverlayResults" style="flex:1;overflow-y:auto;"></div>
 </div>
 
 <!-- CATALOG -->
@@ -1413,6 +1436,13 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       <div class="cg-info-sub"><span style="width:6px;height:6px;border-radius:50%;background:#25D366;display:inline-block"></span>The Billy Living · Private Line</div>
     </div>
   </div>
+  <!-- Admin-only mode toggle — hidden entirely for regular clients. Lets an
+       admin read and reply to any client's chat right here, instead of
+       switching to Admin View → Messages. -->
+  <div id="cgAdminToggle" style="display:none;gap:0;padding:8px 16px;border-bottom:1px solid rgba(201,168,76,.08);">
+    <button id="cgModeAssistantBtn" onclick="setConciergeMode('assistant')" style="flex:1;background:none;border:none;border-bottom:2px solid var(--gold);color:var(--gold);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:8px 0;">My Assistant</button>
+    <button id="cgModeClientsBtn" onclick="setConciergeMode('clients')" style="flex:1;position:relative;background:none;border:none;border-bottom:2px solid transparent;color:rgba(201,168,76,.5);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:8px 0;">Clients<span id="cgClientsBadge" style="display:none;position:absolute;top:2px;right:calc(50% - 34px);background:#C9A84C;color:#0A0804;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px;"></span></button>
+  </div>
   <div class="cg-messages" id="cgMessages">
     <div class="cg-empty" id="cgEmpty">
       <svg viewBox="0 0 60 60" fill="none" style="width:48px;height:48px;opacity:.3"><rect x="8" y="12" width="30" height="22" rx="6" stroke="var(--gold)" stroke-width="1.5"/><path d="M14 34 L10 40 L20 34" stroke="var(--gold)" stroke-width="1.5" stroke-linejoin="round"/><rect x="22" y="26" width="30" height="22" rx="6" stroke="var(--gold)" stroke-width="1.5" opacity=".5"/></svg>
@@ -1420,14 +1450,16 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       <div style="font-size:12px;font-family:'Jost',sans-serif;color:rgba(255,255,255,.2);letter-spacing:.5px">Send a message to begin your consultation</div>
     </div>
   </div>
+  <div id="cgClientList" style="display:none;flex:1;overflow-y:auto;padding:0 16px;"></div>
+  <div id="cgClientChat" style="display:none;flex:1;flex-direction:column;overflow:hidden;"></div>
   <div class="cg-typing" id="cgTyping">Concierge is typing…</div>
   <div class="cg-input-row">
-    <input class="cg-input" id="cgInput" placeholder="Message your concierge…" onkeypress="if(event.key==='Enter')sendConciergeMessage()">
+    <input class="cg-input" id="cgInput" placeholder="Message your concierge…" onkeypress="if(event.key==='Enter')handleConciergeSend()">
     <input type="file" id="cgFileInput" accept="image/*,video/*,.pdf,.doc,.docx" style="display:none" onchange="handleConciergeFile(this)">
     <button class="cg-attach" onclick="document.getElementById('cgFileInput').click()" aria-label="Attach file">
       <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
     </button>
-    <button class="cg-send" onclick="sendConciergeMessage()"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+    <button class="cg-send" onclick="handleConciergeSend()"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
   </div>
 </div>
 
@@ -1568,6 +1600,30 @@ async function registerFcmToken() {
   } catch(e) {
     diag('load', 'registerFcmToken failed: ' + e.message, 'warn');
   }
+}
+
+// Notifies one client, both ways at once: writes an in-app entry (same
+// notifications/{uid} node + {text, timestamp, read, type, from} schema the
+// admin's manual composer already writes, so it shows up in the existing
+// bell/list with zero changes there) and fires a push via /api/send-push so
+// it also reaches a closed app. Called both from admin actions (concierge
+// reply, progress milestone, etc. — sending TO a client) and from a client's
+// own session (the security alert below — sending to themselves); the
+// server only needs to allow "admin sending to anyone" OR "anyone sending to
+// their own uid", which is what send-push.js checks.
+function notifyClient(uid, text, type, pushTitle, pushBody) {
+  if (!uid) return;
+  const payload = { text, timestamp: Date.now(), read: false, type: type || 'system', from: 'Billy Living' };
+  fbDb.ref('notifications/' + uid).push(payload).catch(e => diag('notify', 'in-app write failed: ' + e.message, 'warn'));
+  const authUser = fbAuth.currentUser;
+  if (!authUser) return;
+  authUser.getIdToken().then(idToken => {
+    fetch('/api/send-push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+      body: JSON.stringify({ uid, title: pushTitle || 'The Billy Living', body: pushBody || text })
+    }).catch(e => diag('notify', 'push failed: ' + e.message, 'warn'));
+  }).catch(() => {});
 }
 
 // Foreground messages (app open, active tab) don't trigger the service
@@ -1952,6 +2008,10 @@ function checkAdminStatus(uid) {
       window._adminRank = (val && (val.rank || val)) || 'designer';
       diag('admin', 'Account verified as admin, rank=' + window._adminRank);
       if (asg) asg.style.display = '';
+      // If they're already sitting on Concierge when this resolves (it's an
+      // async check, so it can land after the page is shown), reveal the
+      // admin toggle now rather than only on the next visit to the tab.
+      if (document.getElementById('concierge').classList.contains('active')) initConciergeAdminToggle();
     } else {
       window._isAdmin = false;
       window._adminRank = null;
@@ -2008,9 +2068,11 @@ function closeAdminView(fullUnmount) {
 (function initProfileLongPress() {
   let pressTimer = null;
   let longPressFired = false;
+  let startX = 0, startY = 0;
 
-  function start() {
+  function start(e) {
     longPressFired = false;
+    if (e && e.touches && e.touches[0]) { startX = e.touches[0].clientX; startY = e.touches[0].clientY; }
     diag('longpress', 'press started on profile icon, isAdmin currently=' + !!window._isAdmin);
     pressTimer = setTimeout(() => {
       longPressFired = true;
@@ -2025,6 +2087,18 @@ function closeAdminView(fullUnmount) {
     if (pressTimer) diag('longpress', 'press cancelled before 700ms (' + (e ? e.type : 'unknown') + ')');
     clearTimeout(pressTimer);
     pressTimer = null;
+  }
+  // A real finger resting for 700ms almost never stays at the exact same
+  // pixel — normal hold jitter fires touchmove immediately, which used to
+  // cancel the timer instantly, making the long-press feel broken even
+  // though the code was "working" for a physically impossible perfectly
+  // still touch. Only cancel once the finger has genuinely moved (past a
+  // small threshold), which means a real scroll/drag, not just holding still.
+  function onTouchMove(e) {
+    if (!pressTimer || !e.touches || !e.touches[0]) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    if (Math.sqrt(dx * dx + dy * dy) > 12) cancel(e);
   }
   function onTouchEnd(e) {
     // If the long-press already fired, touch devices still send a synthetic
@@ -2054,7 +2128,7 @@ function closeAdminView(fullUnmount) {
     diag('longpress', 'listeners attached to profileIconBtn');
     btn.addEventListener('touchstart', start, { passive: true });
     btn.addEventListener('touchend', onTouchEnd);
-    btn.addEventListener('touchmove', cancel);
+    btn.addEventListener('touchmove', onTouchMove, { passive: true });
     btn.addEventListener('mousedown', start);
     btn.addEventListener('mouseup', cancel);
     btn.addEventListener('mouseleave', cancel);
@@ -2112,6 +2186,28 @@ fbAuth.onAuthStateChanged(user => {
     checkAdminStatus(user.uid); // reveal Admin switch in Settings if this account is ranked
     checkNotifBadge(user.uid);
     if (Notification.permission === 'granted') registerFcmToken(); // quietly keep the saved token fresh
+
+    // Account security — new device/browser alert. Every browser install
+    // gets a random local ID; the first time THIS uid sees THIS ID, it's
+    // either a genuinely new device or a fresh install — either way worth a
+    // standard "new sign-in" notice, same as banking apps send even on a
+    // user's own legitimate first login on a device, not just intrusion.
+    (function checkNewDeviceAlert() {
+      try {
+        let deviceId = localStorage.getItem('tbl_device_id');
+        if (!deviceId) {
+          deviceId = 'dev_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+          localStorage.setItem('tbl_device_id', deviceId);
+        }
+        fbDb.ref('userProfiles/' + user.uid + '/knownDevices/' + deviceId).once('value').then(snap => {
+          if (!snap.exists()) {
+            fbDb.ref('userProfiles/' + user.uid + '/knownDevices/' + deviceId).set(Date.now()).catch(() => {});
+            const when = new Date().toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            notifyClient(user.uid, 'New sign-in detected on this device — ' + when + '. Not you? Change your password immediately.', 'security', 'New Sign-In', 'A new device signed in to your account.');
+          }
+        }).catch(() => {});
+      } catch(e) {}
+    })();
     // Trending, portfolio, concierge deferred — loaded on first navigation to each
     // Sync UID into VIP record so admin-created projects resolve correctly
     fbDb.ref('userProfiles/' + user.uid + '/mobile').once('value')
@@ -2672,6 +2768,7 @@ function showPage(pageId) {
   if (pageId === 'notifications') renderNotifications();
   if (pageId === 'trending' && !document.querySelector('.tiktok-item')) loadTrending();
   if (pageId === 'concierge' && _conciergeListener === null) loadConciergeHistory();
+  if (pageId === 'concierge' && window._isAdmin) initConciergeAdminToggle();
   // Always scroll to latest message when opening concierge
   if (pageId === 'concierge') {
     setTimeout(() => {
@@ -3286,7 +3383,8 @@ function buildFeedItem(p) {
     + (p.audioData ? '<audio id="audio_post_' + id + '" src="' + p.audioData + '" loop style="display:none;"></audio>' : '')
     + '<div class="feed-caption">'
     +   '<div class="feed-caption-title">' + (p.title||'') + '</div>'
-    +   '<div class="feed-caption-text" onclick="this.classList.toggle(\'expanded\')">' + (p.caption||'') + '</div>'
+    +   (p.topic ? '<span class="topic-pill" onclick="event.stopPropagation();searchByTopic(\'' + escapeHtml(p.topic).replace(/'/g,"\\'") + '\')">' + escapeHtml(p.topic) + '</span>' : '')
+    +   '<div class="feed-caption-text" onclick="this.classList.toggle(\'expanded\')">' + linkifyCaption(p.caption||'') + '</div>'
     + '</div>'
   + '</div>';
 }
@@ -3728,10 +3826,17 @@ function buildTikTokItem(item) {
   const muteBtn = (_hasTVideo || item.audioData)
     ? '<button class="tiktok-action tiktok-sound-btn" onclick="event.stopPropagation();toggleTrendingSound(this,\'' + id + '\')"><div class="tiktok-action-icon">' + (item.audioData ? _svgUnmuted : _svgMuted) + '</div></button>'
     : '';
+  // Tap-to-pause only makes sense for video/audio — on a multi-image carousel
+  // there's nothing to pause, and this full-cover overlay (z-index:10, sits
+  // ON TOP of the media) was silently swallowing every touch meant for the
+  // carousel underneath, including swipes, since the overlay is what the
+  // finger actually lands on. Skipping it for the carousel case is what
+  // lets swipes reach the carousel's own touch handlers again.
+  const pauseOverlayHtml = timgs ? '' : '<div class="tap-pause-overlay" onclick="tapToToggleMedia(this)"><div class="tap-pause-icon"></div></div>';
   return '<div class="tiktok-item" data-id="' + id + '">'
     + audioEl
     + mediaHtml
-    + '<div class="tap-pause-overlay" onclick="tapToToggleMedia(this)"><div class="tap-pause-icon"></div></div>'
+    + pauseOverlayHtml
     + '<div class="tiktok-actions">'
     +   '<button class="tiktok-action" onclick="toggleTikTokLike(this,\'' + id + '\')">'
     +     '<div class="tiktok-action-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>'
@@ -3749,10 +3854,121 @@ function buildTikTokItem(item) {
     + '</div>'
     + '<div class="tiktok-info">'
     +   '<div class="tiktok-user"><span class="tiktok-username">@billyliving</span><span class="tiktok-badge">✓</span></div>'
-    +   '<div class="tiktok-caption" onclick="toggleCaption(this)">' + (item.title||'') + ' — ' + (item.caption||'') + '</div>'
+    +   '<div class="tiktok-caption" onclick="toggleCaption(this)">' + (item.topic ? '<span class="topic-pill" onclick="event.stopPropagation();searchByTopic(\'' + escapeHtml(item.topic).replace(/'/g,"\\'") + '\')">' + escapeHtml(item.topic) + '</span> ' : '') + (item.title ? linkifyCaption(item.title) + ' — ' : '') + linkifyCaption(item.caption||'') + '</div>'
     +   '<div class="tiktok-music"><span class="tiktok-music-icon">🎵</span><div class="tiktok-music-text"><span>' + (item.audioData ? 'Billy Living · Original Audio' : 'Billy Living · Luxury Interiors') + '</span></div></div>'
     + '</div>'
   + '</div>';
+}
+
+// ─── Search — Home & Trending ────────────────────────────────────────────
+// Filters whichever content is already loaded in memory (_postsMap for
+// Home, _trendMap for Trending) by hashtag, location, or caption/title text.
+// Hashtags aren't a stored field anywhere — there's no admin UI for them and
+// no schema change needed. They're extracted from the caption text itself
+// with a regex, both here and wherever a caption renders, so any hashtag
+// ever typed into a caption (past or future) just works immediately.
+function escapeHtml(text) {
+  return (text || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function extractHashtags(text) {
+  if (!text) return [];
+  const matches = text.match(/#[a-zA-Z0-9_]+/g) || [];
+  return [...new Set(matches.map(t => t.slice(1).toLowerCase()))];
+}
+
+// Escapes the caption, then wraps #tags in a tappable gold span — tapping
+// one jumps straight to a hashtag search, same as tapping a hashtag on
+// Instagram or TikTok.
+function linkifyCaption(text) {
+  return escapeHtml(text).replace(/#([a-zA-Z0-9_]+)/g, '<span class="hashtag-link" onclick="event.stopPropagation();searchByHashtag(\'$1\')">#$1</span>');
+}
+
+function searchByHashtag(tag) {
+  const context = document.getElementById('trending').classList.contains('active') ? 'trending' : 'home';
+  openSearchOverlay(context);
+  const input = document.getElementById('searchOverlayInput');
+  input.value = '#' + tag;
+  handleSearchInput('#' + tag);
+}
+
+function searchByTopic(topic) {
+  const context = document.getElementById('trending').classList.contains('active') ? 'trending' : 'home';
+  openSearchOverlay(context);
+  const input = document.getElementById('searchOverlayInput');
+  input.value = topic;
+  handleSearchInput(topic);
+}
+
+let _searchContext = 'home';
+
+function openSearchOverlay(context) {
+  _searchContext = context;
+  const overlay = document.getElementById('searchOverlay');
+  const input = document.getElementById('searchOverlayInput');
+  overlay.style.display = 'flex';
+  input.value = '';
+  handleSearchInput('');
+  setTimeout(() => input.focus(), 100);
+}
+
+function closeSearchOverlay() {
+  document.getElementById('searchOverlay').style.display = 'none';
+}
+
+function handleSearchInput(query) {
+  const raw = query.trim();
+  const q = raw.toLowerCase();
+  const resultsEl = document.getElementById('searchOverlayResults');
+  const placeholderLabel = _searchContext === 'home' ? 'posts' : 'trending videos';
+  if (!q) {
+    resultsEl.innerHTML = '<div style="padding:60px 24px;text-align:center;color:rgba(201,168,76,.35);font-family:\'Cormorant Garamond\',serif;font-size:16px;">Search ' + placeholderLabel + ' by caption, location, topic, or #hashtag</div>';
+    return;
+  }
+  const sourceMap = _searchContext === 'home' ? _postsMap : _trendMap;
+  // A query starting with # matches only real extracted hashtags, exactly —
+  // precise, not a fuzzy text match. Otherwise, a plain caption/location/
+  // title substring search covers everything else, "topic" included: there
+  // is no separate topic field on a post, so a keyword match on the caption
+  // IS the topic search.
+  const isHashtagSearch = q.startsWith('#');
+  const tagQuery = isHashtagSearch ? q.slice(1) : null;
+  const matches = Object.values(sourceMap).filter(item => {
+    if (isHashtagSearch) {
+      return !!tagQuery && extractHashtags(item.caption).some(t => t.includes(tagQuery));
+    }
+    const haystack = ((item.caption || '') + ' ' + (item.title || '') + ' ' + (item.location || '') + ' ' + (item.topic || '')).toLowerCase();
+    return haystack.includes(q);
+  }).slice(0, 30);
+  if (!matches.length) {
+    resultsEl.innerHTML = '<div style="padding:60px 24px;text-align:center;color:rgba(201,168,76,.35);font-family:\'Cormorant Garamond\',serif;font-size:16px;">No results for "' + escapeHtml(raw) + '"</div>';
+    return;
+  }
+  resultsEl.innerHTML = '';
+  matches.forEach(item => {
+    const thumb = item.imageData || item.imageUrl || (item.images && item.images[0]) || '';
+    const caption = escapeHtml(item.caption || item.title || '(no caption)');
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(201,168,76,.06);cursor:pointer;';
+    row.innerHTML = (thumb
+      ? '<img src="' + thumb + '" alt="" loading="lazy" style="width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0;">'
+      : '<div style="width:48px;height:48px;border-radius:8px;background:rgba(201,168,76,.08);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;">🛋️</div>')
+      + '<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#E8D5A3;font-size:13px;">' + caption + '</div>';
+    row.addEventListener('click', () => {
+      closeSearchOverlay();
+      if (_searchContext === 'home') openFeedViewer(item.id);
+      else scrollToTrendingItem(item.id);
+    });
+    resultsEl.appendChild(row);
+  });
+}
+
+function scrollToTrendingItem(id) {
+  showPage('trending');
+  setTimeout(() => {
+    const el = document.querySelector('#trendingContainer .tiktok-item[data-id="' + id + '"]');
+    if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
+  }, 200);
 }
 
 function toggleTikTokAudio(btn, id) {
@@ -5501,6 +5717,201 @@ async function sendConciergeMessage() {
     console.error('sendConciergeMessage:', e);
     showToast('Failed to send message');
   }
+}
+
+// ─── Admin client-inbox merged into the Concierge tab ──────────────────────
+// Lets an admin read and reply to any client's chat right from their own
+// Concierge tab, instead of switching to Admin View → Messages. Deliberately
+// a separate, self-contained implementation rather than reusing BillyAdmin's
+// internal Messages-panel functions — those are private closures inside
+// BillyAdmin's IIFE (only init/hide/teardown are exposed on window.BillyAdmin),
+// so reaching them from here would mean changing that module's public API.
+// Same Firebase paths and field conventions as that panel, so behavior matches.
+let _cgMode = 'assistant';
+let _cgActiveClientUid = null;
+let _cgActiveClientName = null;
+
+function initConciergeAdminToggle() {
+  const bar = document.getElementById('cgAdminToggle');
+  if (bar) bar.style.display = 'flex';
+  if (window._adminRank !== 'designer') loadClientInboxList(); // prefetch, just for the unread badge
+}
+
+function setConciergeMode(mode) {
+  _cgMode = mode;
+  _cgActiveClientUid = null;
+  _cgActiveClientName = null;
+  const assistantBtn = document.getElementById('cgModeAssistantBtn');
+  const clientsBtn = document.getElementById('cgModeClientsBtn');
+  if (assistantBtn) assistantBtn.style.cssText = assistantBtn.style.cssText.replace(/border-bottom:[^;]+;/, 'border-bottom:2px solid ' + (mode === 'assistant' ? 'var(--gold)' : 'transparent') + ';') + (mode === 'assistant' ? 'color:var(--gold);' : 'color:rgba(201,168,76,.5);');
+  if (clientsBtn) clientsBtn.style.cssText = clientsBtn.style.cssText.replace(/border-bottom:[^;]+;/, 'border-bottom:2px solid ' + (mode === 'clients' ? 'var(--gold)' : 'transparent') + ';') + (mode === 'clients' ? 'color:var(--gold);' : 'color:rgba(201,168,76,.5);');
+  renderConciergeModeUI();
+  if (mode === 'clients') loadClientInboxList();
+}
+
+function renderConciergeModeUI() {
+  const assistantView = document.getElementById('cgMessages');
+  const typingEl = document.getElementById('cgTyping');
+  const listEl = document.getElementById('cgClientList');
+  const chatEl = document.getElementById('cgClientChat');
+  const inputRow = document.querySelector('#concierge .cg-input-row');
+  const inputEl = document.getElementById('cgInput');
+  if (!assistantView || !listEl || !chatEl || !inputRow || !inputEl) return;
+
+  if (_cgMode === 'assistant') {
+    assistantView.style.display = '';
+    if (typingEl) typingEl.style.display = '';
+    listEl.style.display = 'none';
+    chatEl.style.display = 'none';
+    inputRow.style.display = 'flex';
+    inputEl.placeholder = 'Message your concierge…';
+  } else {
+    assistantView.style.display = 'none';
+    if (typingEl) typingEl.style.display = 'none';
+    if (_cgActiveClientUid) {
+      listEl.style.display = 'none';
+      chatEl.style.display = 'flex';
+      inputRow.style.display = 'flex';
+      inputEl.placeholder = 'Reply to ' + (_cgActiveClientName || 'client') + '…';
+    } else {
+      listEl.style.display = 'block';
+      chatEl.style.display = 'none';
+      inputRow.style.display = 'none';
+    }
+  }
+}
+
+function updateClientsTabBadge(count) {
+  const badge = document.getElementById('cgClientsBadge');
+  if (!badge) return;
+  if (count > 0) { badge.textContent = String(count); badge.style.display = 'flex'; }
+  else badge.style.display = 'none';
+}
+
+function loadClientInboxList() {
+  const el = document.getElementById('cgClientList');
+  if (!el) return;
+  if (window._adminRank === 'designer') {
+    el.innerHTML = '<div style="padding:60px 24px;text-align:center;color:rgba(201,168,76,.4);font-family:Jost,sans-serif;font-size:13px;">Client messaging isn\'t available for your role.</div>';
+    return;
+  }
+  if (_cgMode === 'clients') el.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(201,168,76,.4);">Loading messages…</div>';
+  fbDb.ref('chats').limitToFirst(30).once('value').then(snap => {
+    if (!snap.exists()) {
+      if (_cgMode === 'clients') el.innerHTML = '<div style="padding:60px 24px;text-align:center;color:rgba(201,168,76,.4);">No client messages yet</div>';
+      updateClientsTabBadge(0);
+      return;
+    }
+    const convos = Object.entries(snap.val());
+    if (_cgMode === 'clients') el.innerHTML = '';
+    let totalUnread = 0;
+    convos.forEach(([uid, convo]) => {
+      const rawMsgs = convo.messages ? convo.messages : convo;
+      const msgList = typeof rawMsgs === 'object' ? Object.values(rawMsgs).filter(v => v && (v.text || v.fileData)) : [];
+      if (!msgList.length) return;
+      const last = msgList[msgList.length - 1];
+      const unread = msgList.filter(m => !m.read && m.sender !== 'admin').length;
+      totalUnread += unread;
+      if (_cgMode !== 'clients') return; // still counted above for the badge, just not rendered
+      const name = convo.clientName || last.senderName || last.clientName || 'Client';
+      const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+      const safePreview = (last.text || '[media]').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(201,168,76,.08);cursor:pointer;' + (unread > 0 ? 'background:rgba(201,168,76,.04);' : '');
+      row.innerHTML = `
+        <div style="width:40px;height:40px;border-radius:50%;background:rgba(201,168,76,.15);color:#C9A84C;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;">${initials}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="color:#E8D5A3;font-size:14px;font-weight:600;">${name}</div>
+          <div style="color:rgba(201,168,76,.5);font-size:12px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${safePreview}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+          <div style="font-size:11px;color:rgba(201,168,76,.4);">${last.createdAt ? new Date(last.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
+          ${unread > 0 ? '<div style="background:#C9A84C;color:#0A0804;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px;">' + unread + '</div>' : ''}
+        </div>
+      `;
+      row.addEventListener('click', () => openClientChat(uid, name));
+      el.appendChild(row);
+    });
+    updateClientsTabBadge(totalUnread);
+  }).catch(e => {
+    diag('concierge', 'client inbox load failed: ' + e.message, 'error');
+    if (_cgMode === 'clients') el.innerHTML = '<div style="padding:40px;color:#ef4444;text-align:center;">Error: ' + e.message + '</div>';
+  });
+}
+
+function openClientChat(uid, name) {
+  _cgActiveClientUid = uid;
+  _cgActiveClientName = name;
+  renderConciergeModeUI();
+  loadClientChatMessages();
+}
+
+function backToClientList() {
+  _cgActiveClientUid = null;
+  _cgActiveClientName = null;
+  renderConciergeModeUI();
+  loadClientInboxList();
+}
+
+function loadClientChatMessages() {
+  const chatEl = document.getElementById('cgClientChat');
+  if (!chatEl) return;
+  chatEl.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(201,168,76,.4);">Loading…</div>';
+  const path = 'chats/' + _cgActiveClientUid + '/messages';
+  fbDb.ref(path).orderByChild('timestamp').limitToLast(50).once('value').then(snap => {
+    const backBtnHtml = '<button onclick="backToClientList()" style="background:none;border:none;color:#C9A84C;font-size:13px;padding:10px 16px;text-align:left;flex-shrink:0;">← All clients · ' + (_cgActiveClientName || '').replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</button>';
+    if (!snap.exists()) {
+      chatEl.innerHTML = backBtnHtml + '<div style="text-align:center;padding:20px;color:rgba(201,168,76,.4);">No messages yet</div>';
+      return;
+    }
+    const msgsObj = snap.val();
+    chatEl.innerHTML = backBtnHtml + '<div id="cgClientChatBubbles" style="flex:1;overflow-y:auto;padding:0 16px;display:flex;flex-direction:column;gap:8px;"></div>';
+    const bubbles = document.getElementById('cgClientChatBubbles');
+    Object.values(msgsObj).forEach(m => {
+      const isMine = m.role === 'admin' || m.sender === 'admin';
+      const time = (m.timestamp || m.createdAt) ? new Date(m.timestamp || m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+      const safeText = (m.text || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const bubble = document.createElement('div');
+      bubble.style.cssText = 'max-width:75%;align-self:' + (isMine ? 'flex-end' : 'flex-start') + ';display:flex;flex-direction:column;';
+      let inner;
+      if (m.fileType === 'image' && m.fileData) {
+        inner = '<img src="' + m.fileData + '" alt="" loading="lazy" style="max-width:220px;border-radius:12px;display:block;">';
+      } else {
+        inner = '<div style="padding:10px 14px;border-radius:14px;background:' + (isMine ? '#C9A84C' : 'rgba(201,168,76,.1)') + ';color:' + (isMine ? '#0A0804' : '#E8D5A3') + ';font-size:13px;line-height:1.4;">' + safeText + '</div>';
+      }
+      bubble.innerHTML = inner + '<div style="font-size:10px;color:rgba(201,168,76,.35);margin-top:3px;' + (isMine ? 'text-align:right;' : '') + '">' + time + '</div>';
+      bubbles.appendChild(bubble);
+    });
+    bubbles.scrollTop = bubbles.scrollHeight;
+    // Mark the client's messages as read now that an admin has actually opened this thread
+    const updates = {};
+    Object.entries(msgsObj).forEach(([k, v]) => { if (v && !v.read && v.sender !== 'admin') updates[k + '/read'] = true; });
+    if (Object.keys(updates).length) fbDb.ref(path).update(updates).then(() => loadClientInboxList()).catch(() => {});
+  }).catch(e => {
+    diag('concierge', 'client chat load failed: ' + e.message, 'error');
+    chatEl.innerHTML = '<div style="padding:20px;color:#ef4444;text-align:center;">Error: ' + e.message + '</div>';
+  });
+}
+
+function sendClientReply() {
+  const input = document.getElementById('cgInput');
+  const text = input.value.trim();
+  if (!text || !_cgActiveClientUid) return;
+  input.value = '';
+  const id = 'msg_' + Date.now();
+  const payload = { text, sender: 'admin', role: 'admin', timestamp: Date.now(), createdAt: Date.now(), read: true };
+  fbDb.ref('chats/' + _cgActiveClientUid + '/messages/' + id).set(payload).then(() => {
+    loadClientChatMessages();
+    const preview = text.length > 60 ? text.slice(0, 60) + '…' : text;
+    notifyClient(_cgActiveClientUid, 'New message from your designer: "' + preview + '"', 'concierge', 'New message', text);
+  }).catch(e => showToast('Error: ' + e.message));
+}
+
+// Dispatches to whichever "send" actually applies — the input row and
+// button are shared between both modes rather than duplicated.
+function handleConciergeSend() {
+  if (window._isAdmin && _cgMode === 'clients') sendClientReply();
+  else sendConciergeMessage();
 }
 
 async function handleConciergeFile(input) {
@@ -7848,7 +8259,7 @@ function _initFeedViewerObservers() {
           <button class="ba-wf-status" style="flex-shrink:0;background:${isProgressed ? 'rgba(80,200,120,.15)' : 'rgba(201,168,76,.1)'};border:1px solid ${isProgressed ? 'rgba(80,200,120,.4)' : 'rgba(201,168,76,.3)'};color:${isProgressed ? '#50C878' : '#C9A84C'};border-radius:6px;padding:6px 10px;font-size:10px;font-weight:700;">${isProgressed ? 'PROGRESSED ✓' : 'PROGRESSING'}</button>
           <button class="ba-wf-del" style="flex-shrink:0;background:none;border:1px solid rgba(239,68,68,.4);color:#ef4444;border-radius:6px;padding:6px 10px;font-size:11px;">✕</button>
         `;
-        row.querySelector('.ba-wf-status').addEventListener('click', () => toggleWorkflowStatus(id, w.status || 'inprogress'));
+        row.querySelector('.ba-wf-status').addEventListener('click', () => toggleWorkflowStatus(id, w.status || 'inprogress', w.name));
         row.querySelector('.ba-wf-del').addEventListener('click', () => {
           if (!confirm('Delete workflow "' + w.name + '"? This cannot be undone.')) return;
           fbDb.ref('timelines/' + _vmCurrentClientUID + '/projects/' + _vmCurrentProjectId + '/workflows/' + id).remove().then(() => {
@@ -7864,10 +8275,17 @@ function _initFeedViewerObservers() {
     });
   }
 
-  function toggleWorkflowStatus(wid, current) {
+  function toggleWorkflowStatus(wid, current, name) {
     const next = current === 'progressed' ? 'inprogress' : 'progressed';
     fbDb.ref('timelines/' + _vmCurrentClientUID + '/projects/' + _vmCurrentProjectId + '/workflows/' + wid + '/status').set(next)
-      .then(loadWorkflowsForProject).catch(e => showToast('Error: ' + e.message));
+      .then(() => {
+        loadWorkflowsForProject();
+        // Only notify on forward progress, not on reverting an accidental toggle
+        if (next === 'progressed') {
+          const stepName = name || 'A workflow step';
+          notifyClient(_vmCurrentClientUID, 'Your project has moved forward: "' + stepName + '" is now complete.', 'progress', 'Project Update', stepName + ' is now complete.');
+        }
+      }).catch(e => showToast('Error: ' + e.message));
   }
 
   function promptNewWorkflow() {
@@ -8266,7 +8684,10 @@ function _initFeedViewerObservers() {
       d.items = d.items || [];
       d.items.push({ category, clientPrice });
       return ref.set(d);
-    }).then(() => { showToast('✓ Added'); renderAtTab(); }).catch(e => showToast('Error: ' + e.message));
+    }).then(() => {
+      showToast('✓ Added'); renderAtTab();
+      notifyClient(_vmCurrentClientUID, 'New pricing added to your Atelier vault.', 'vault', 'Vault Updated', 'New pricing information is available in your Atelier.');
+    }).catch(e => showToast('Error: ' + e.message));
   }
 
   function addAtEarly() {
@@ -8275,7 +8696,10 @@ function _initFeedViewerObservers() {
     const dateVal = document.getElementById('baAtEarlyDate').value;
     const id = 'e_' + Date.now();
     fbDb.ref('vault/atelier/' + _vmCurrentClientUID + '/earlyAccess/' + id).set({ name, availableUntil: dateVal ? new Date(dateVal).getTime() : null })
-      .then(() => { showToast('✓ Added'); renderAtTab(); }).catch(e => showToast('Error: ' + e.message));
+      .then(() => {
+        showToast('✓ Added'); renderAtTab();
+        notifyClient(_vmCurrentClientUID, 'New early access added to your Atelier vault: "' + name + '"', 'vault', 'Vault Updated', 'Early access to "' + name + '" is now available.');
+      }).catch(e => showToast('Error: ' + e.message));
   }
 
   function addAtArtisan() {
@@ -8284,7 +8708,10 @@ function _initFeedViewerObservers() {
     const id = 'a_' + Date.now();
     fbDb.ref('vault/atelier/' + _vmCurrentClientUID + '/artisans/' + id).set({
       name, specialty: document.getElementById('baAtArtSpecialty').value.trim(), location: document.getElementById('baAtArtLocation').value.trim()
-    }).then(() => { showToast('✓ Added'); renderAtTab(); }).catch(e => showToast('Error: ' + e.message));
+    }).then(() => {
+      showToast('✓ Added'); renderAtTab();
+      notifyClient(_vmCurrentClientUID, 'A new artisan was added to your Atelier vault: "' + name + '"', 'vault', 'Vault Updated', name + ' has been added to your artisan network.');
+    }).catch(e => showToast('Error: ' + e.message));
   }
 
   // ─── VIDEO COMPRESSION (ported from admin.html, fully) ───────────────────
@@ -8402,6 +8829,28 @@ function _initFeedViewerObservers() {
       fields = `
         <div style="margin-bottom:12px;"><label style="display:block;font-size:11px;color:rgba(201,168,76,.6);margin-bottom:6px;">Caption / Title</label><input id="baCfCaption" placeholder="e.g. Modern Living Room" style="width:100%;box-sizing:border-box;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.25);color:#E8D5A3;padding:10px;border-radius:8px;"></div>
         <div style="margin-bottom:12px;"><label style="display:block;font-size:11px;color:rgba(201,168,76,.6);margin-bottom:6px;">Location</label><input id="baCfLocation" placeholder="e.g. Lagos, Nigeria" style="width:100%;box-sizing:border-box;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.25);color:#E8D5A3;padding:10px;border-radius:8px;"></div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block;font-size:11px;color:rgba(201,168,76,.6);margin-bottom:6px;">Topic</label>
+          <select id="baCfTopic" onchange="document.getElementById('baCfTopicOtherWrap').style.display=this.value==='Other'?'block':'none'" style="width:100%;box-sizing:border-box;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.25);color:#E8D5A3;padding:10px;border-radius:8px;">
+            <option value="">— None —</option>
+            <option>Living Room</option>
+            <option>Bedroom</option>
+            <option>Kitchen</option>
+            <option>Bathroom</option>
+            <option>Dining Room</option>
+            <option>Home Office</option>
+            <option>Outdoor / Patio</option>
+            <option>Kids Room</option>
+            <option>Walk-in Closet</option>
+            <option>Entryway / Foyer</option>
+            <option>Media Room</option>
+            <option>Wine Cellar</option>
+            <option value="Other">Other…</option>
+          </select>
+          <div id="baCfTopicOtherWrap" style="display:none;margin-top:8px;">
+            <input id="baCfTopicOther" placeholder="Enter custom topic" style="width:100%;box-sizing:border-box;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.25);color:#E8D5A3;padding:10px;border-radius:8px;">
+          </div>
+        </div>
         <div style="margin-bottom:12px;"><label style="display:block;font-size:11px;color:rgba(201,168,76,.6);margin-bottom:6px;">Image</label>
           <input type="file" accept="image/*" id="baCfImageFile" style="display:none;">
           <div id="baCfImageWrap" style="border:2px dashed rgba(201,168,76,.3);border-radius:12px;padding:28px;text-align:center;cursor:pointer;">
@@ -8462,6 +8911,30 @@ function _initFeedViewerObservers() {
     });
   }
 
+  // Fires a push to every registered device when a post actually goes live —
+  // either published directly (head/lead rank) or approved from pending
+  // (designer/assistant_lead submissions). Never for trending/category/style —
+  // scoped to "a new design was published" per the original ask.
+  function triggerPostPush(caption, imageData, postId) {
+    if (!fbAuth.currentUser) return;
+    fbAuth.currentUser.getIdToken().then(idToken => {
+      fetch('/api/send-push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+        body: JSON.stringify({
+          title: 'The Billy Living',
+          body: caption || 'A new design just dropped',
+          // Push notification images must be a real HTTPS URL — FCM can't
+          // display a base64 data: URI, which is how most images are still
+          // stored here. Just omit it when that's what we've got; title +
+          // body still send fine.
+          imageUrl: (imageData && imageData.startsWith('http')) ? imageData : undefined,
+          postId
+        })
+      }).catch(e => diag('admin', 'send-push failed: ' + e.message, 'warn'));
+    }).catch(() => {});
+  }
+
   function submitContentForm() {
     const t = _cfType;
     const id = t + '_' + Date.now();
@@ -8480,10 +8953,13 @@ function _initFeedViewerObservers() {
     };
 
     if (t === 'post' || t === 'trending') {
+      const topicSelect = document.getElementById('baCfTopic').value;
+      const topic = topicSelect === 'Other' ? (document.getElementById('baCfTopicOther').value || '').trim() : topicSelect;
       const data = Object.assign({
         id,
         caption: document.getElementById('baCfCaption').value || 'Untitled',
         location: document.getElementById('baCfLocation').value || '',
+        topic: topic || '',
         imageData: _cfImageBase64 || '',
         videoData: _cfVideoBase64 || '',
         likes: parseInt(document.getElementById('baCfLikes').value, 10) || 0,
@@ -8492,7 +8968,10 @@ function _initFeedViewerObservers() {
       }, pendingMeta);
       const path = t === 'post' ? 'posts' : 'trending';
       const targetRef = toPending ? fbDb.ref('pendingContent/' + path + '/' + id) : fbDb.ref('content/' + path + '/' + id);
-      finish(targetRef, data, t === 'post' ? '✓ Post saved' : '✓ Trending item saved', () => { if (t === 'post') loadHomePanel(); else loadTrendingPanel(); });
+      finish(targetRef, data, t === 'post' ? '✓ Post saved' : '✓ Trending item saved', () => {
+        if (t === 'post') { loadHomePanel(); triggerPostPush(data.caption, data.imageData, id); }
+        else loadTrendingPanel();
+      });
     } else if (t === 'category') {
       const n = document.getElementById('baCfName').value || 'Collection';
       const sid = n.toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -9449,16 +9928,19 @@ function _initFeedViewerObservers() {
   function approvePendingItem(section, id) {
     if (!canApprovePending(_rank)) { showToast('Not permitted for your role'); return; }
     const ref = fbDb.ref('pendingContent/' + section + '/' + id);
+    let _approvedData = null;
     ref.once('value').then(snap => {
       if (!snap.exists()) { showToast('Already handled'); loadPendingPanel(); return; }
       const data = snap.val();
       delete data.status; // keep createdBy* — that's what powers each admin's project count
+      _approvedData = data;
       return fbDb.ref('content/' + section + '/' + id).set(data).then(() => ref.remove());
     }).then(() => {
       showToast('✓ Approved and published');
       const row = document.getElementById('baPendRow_' + section + '_' + id);
       if (row) row.remove();
       loadPendingPanel();
+      if (section === 'posts' && _approvedData) triggerPostPush(_approvedData.caption, _approvedData.imageData, id);
     }).catch(e => showToast('Error: ' + e.message));
   }
 
@@ -9937,7 +10419,15 @@ function _initFeedViewerObservers() {
     const id = 'msg_' + Date.now();
     const payload = { text, sender: 'admin', role: 'admin', timestamp: Date.now(), createdAt: Date.now(), read: true };
     fbDb.ref(_activeChatPath + '/' + id).set(payload)
-      .then(() => { input.value = ''; loadActiveChatMessages(); })
+      .then(() => {
+        input.value = '';
+        loadActiveChatMessages();
+        // Only for a real client chat — _activeChatUID is null for admin-to-admin
+        if (_activeChatUID) {
+          const preview = text.length > 60 ? text.slice(0, 60) + '…' : text;
+          notifyClient(_activeChatUID, 'New message from your designer: "' + preview + '"', 'concierge', 'New message', text);
+        }
+      })
       .catch(e => showToast('Error: ' + e.message));
   }
 
@@ -10046,7 +10536,10 @@ function _initFeedViewerObservers() {
       + row('Email', r.clientEmail)
       + (r.notes ? row('Notes', r.notes) : '');
     if (!r.read) {
-      fbDb.ref('projectForms/' + r.clientUid + '/' + key + '/read').set(true).then(() => { r.read = true; }).catch(() => {});
+      fbDb.ref('projectForms/' + r.clientUid + '/' + key + '/read').set(true).then(() => {
+        r.read = true;
+        notifyClient(r.clientUid, 'Your project brief has been received and reviewed by your designer.', 'projectform', 'Project Brief Reviewed', 'Your designer has reviewed your submission.');
+      }).catch(() => {});
     }
   }
 
