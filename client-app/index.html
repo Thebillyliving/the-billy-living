@@ -26,10 +26,10 @@ html{touch-action:manipulation;color-scheme:dark;scroll-behavior:smooth}
 .dt-heart{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:80px;opacity:0;pointer-events:none;z-index:20}
 .dt-heart.pop{animation:heartPop .8s ease forwards}
 @keyframes heartPop{0%{transform:translate(-50%,-50%) scale(0);opacity:0}40%{transform:translate(-50%,-50%) scale(1.2);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
-:root{--bg-primary:#120D06;--bg-card:#1E160C;--bg-secondary:#2A1F14;--bg-navy:#060D18;--text-primary:#F5F0E8;--text-secondary:#A89B8C;--gold:#C9A84C;--gold-light:#E8D5A3;--gold-dark:#8B6914;--nav-height:80px}
+:root{--bg-primary:#120D06;--bg-card:#1E160C;--bg-secondary:#2A1F14;--bg-navy:#060D18;--bg-deep:#0A0804;--text-primary:#F5F0E8;--text-secondary:#A89B8C;--gold:#C9A84C;--gold-light:#E8D5A3;--gold-dark:#8B6914;--nav-height:80px;--ease-pop:cubic-bezier(.22,1,.36,1);--ease-sheet:cubic-bezier(.32,.72,0,1)}
 body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow-x:hidden;min-height:100vh;padding-bottom:calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));overscroll-behavior-y:contain}
 .page{display:none;min-height:calc(100vh - var(--nav-height));overscroll-behavior-y:contain}
-.page.active{display:block;animation:fadeIn 0.3s ease;pointer-events:auto}
+.page.active{display:block;animation:fadeIn .14s ease-out;pointer-events:auto}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes catalogFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 @keyframes vaultShimmer{0%{transform:translateX(-100%) skewX(-15deg);opacity:0}30%{opacity:1}100%{transform:translateX(200%) skewX(-15deg);opacity:0}}
@@ -46,7 +46,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .story-label{font-family:'Jost',sans-serif;font-size:10px;font-weight:400;letter-spacing:.5px;color:var(--gold);text-align:center;line-height:1}
 .consult-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:5000;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
 .consult-overlay.active{display:flex}
-.consult-sheet{width:100%;max-width:520px;background:#0E0A04;border-top:1px solid #C9A84C;border-radius:22px 22px 0 0;padding-bottom:36px;animation:sheetUp .38s cubic-bezier(.32,.72,0,1)}
+.consult-sheet{width:100%;max-width:520px;background:#0E0A04;border-top:1px solid #C9A84C;border-radius:22px 22px 0 0;padding-bottom:36px;animation:sheetUp .38s var(--ease-sheet)}
 @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .consult-handle{width:38px;height:3px;background:rgba(201,168,76,.28);border-radius:2px;margin:14px auto 0}
 .consult-header{padding:22px 24px 16px;border-bottom:1px solid rgba(201,168,76,.1)}
@@ -83,7 +83,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 /* ─── TAP TO PAUSE OVERLAY ───────────────────────────────────────────────────── */
 .tap-pause-overlay{position:absolute;inset:0;z-index:10;cursor:pointer;}
 .tiktok-item-loader{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;background:#000;pointer-events:none}
-.tap-pause-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);width:64px;height:64px;background:rgba(0,0,0,0.55);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform .15s cubic-bezier(.22,1,.36,1),opacity .25s ease;opacity:0;pointer-events:none;}
+.tap-pause-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);width:64px;height:64px;background:rgba(0,0,0,0.55);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform .15s var(--ease-pop),opacity .25s ease;opacity:0;pointer-events:none;}
 .tap-pause-icon.show{transform:translate(-50%,-50%) scale(1);opacity:1;}
 .tap-pause-icon.hide{transform:translate(-50%,-50%) scale(0.7);opacity:0;}
 .tap-pause-icon svg{width:28px;height:28px;fill:white;}
@@ -106,6 +106,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .feed-caption-location{display:flex;align-items:center;gap:4px;font-family:'Jost',sans-serif;font-size:11px;color:rgba(168,155,140,.6);letter-spacing:.3px}
 .hashtag-link{color:#C9A84C;font-weight:600;cursor:pointer;}
 .topic-pill{display:inline-block;background:rgba(201,168,76,.12);color:#C9A84C;font-family:'Jost',sans-serif;font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:6px;cursor:pointer;}
+@keyframes retryPulse{0%,100%{opacity:.3;transform:scale(.8);}50%{opacity:1;transform:scale(1.15);}}
 .feed-caption-location svg{width:11px;height:11px;stroke:rgba(168,155,140,.5);fill:none;stroke-width:2;flex-shrink:0}
 /* FIX 1: overscroll-behavior:contain stops scroll bleeding into nav taps */
 .trending-page{position:fixed;top:0;left:0;right:0;bottom:var(--nav-height);background:#000;z-index:100;display:none}
@@ -321,7 +322,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 @keyframes navFadeIn{from{opacity:0}to{opacity:1}}
 @keyframes blPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.88)}}
 @keyframes blSpin{to{transform:rotate(360deg)}}
-.bottom-nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-secondary);font-size:8px;cursor:pointer;padding:8px 4px;border:none;background:none;flex:1;min-width:0;min-height:56px;letter-spacing:.1px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;position:relative;transition:transform .2s cubic-bezier(0.22,1,0.36,1),color .2s ease;}
+.bottom-nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-secondary);font-size:8px;cursor:pointer;padding:8px 4px;border:none;background:none;flex:1;min-width:0;min-height:56px;letter-spacing:.1px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;position:relative;transition:transform .2s var(--ease-pop),color .2s ease;}
 .bottom-nav-item::before{content:'';position:absolute;top:-10px;left:0;right:0;bottom:0;pointer-events:none;}
 .bottom-nav-item.active{color:var(--gold);transform:translateY(-2px)}
 .bottom-nav-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center}
@@ -340,90 +341,15 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .notif-row.unread .notif-avatar{background:rgba(201,168,76,.2)}
 .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg-card);color:var(--gold);padding:16px 24px;border-radius:12px;opacity:0;transition:all .3s;z-index:100010}
 /* ─── DIAGNOSTICS ─────────────────────────────────────────────────────────── */
-.diag-toggle{position:fixed;bottom:calc(var(--nav-height) + 14px);right:14px;z-index:100015;width:40px;height:40px;border-radius:50%;background:rgba(30,22,12,.9);border:1px solid rgba(201,168,76,.3);color:#C9A84C;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.4);}
 .network-banner{position:fixed;top:0;left:0;right:0;z-index:100005;text-align:center;font-family:'Jost',sans-serif;font-size:12px;padding:0;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease;}
 .network-banner.show{padding:9px 16px;max-height:40px;}
 .network-banner.offline{background:#3a1414;color:#ffb4b4;}
 .network-banner.slow{background:#3a2a0a;color:#f0c674;}
-.diag-badge-dot{display:none;position:absolute;top:-2px;right:-2px;width:10px;height:10px;border-radius:50%;background:#ef4444;border:2px solid #120D06;}
-.diag-panel{display:none;position:fixed;inset:0;z-index:100020;background:rgba(6,4,2,.97);flex-direction:column;padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px));}
-.diag-panel-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0;}
-.diag-panel-title{font-family:'Cormorant Garamond',serif;font-size:20px;color:#C9A84C;}
-.diag-panel-actions{display:flex;gap:8px;}
-.diag-btn{padding:8px 14px;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(201,168,76,.08);color:#C9A84C;font-family:'Jost',sans-serif;font-size:12px;cursor:pointer;}
-.diag-log-list{flex:1;overflow-y:auto;font-family:monospace;font-size:11px;line-height:1.6;background:rgba(255,255,255,.02);border-radius:8px;padding:10px;}
-.diag-line{padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);color:rgba(230,225,215,.75);word-break:break-word;}
-.diag-time{color:rgba(201,168,76,.4);margin-right:6px;}
-.diag-tag{color:#C9A84C;margin-right:4px;}
-.diag-warn{color:#f0c674;}
-.diag-error{color:#ff8a8a;}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .image-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.95);z-index:4000;align-items:center;justify-content:center}
 .image-modal.active{display:flex}
 .image-modal img{max-width:90%;max-height:90%;object-fit:contain}
 .image-modal-close{position:absolute;top:20px;right:20px;background:none;border:none;color:white;font-size:32px;cursor:pointer}
-.profile-screen{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;flex-direction:column;overflow-y:auto;scrollbar-width:none;padding-bottom:calc(var(--nav-height) + 20px);background:#0A0804}
-.profile-screen::-webkit-scrollbar{display:none}
-.profile-screen.active{display:flex;animation:fadeIn .3s ease}
-.profile-topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid rgba(201,168,76,.15);position:sticky;top:0;background:#0A0804;z-index:10;flex-shrink:0}
-.profile-topbar-back{background:none;border:none;color:var(--gold);font-size:22px;cursor:pointer;line-height:1;width:36px}
-.profile-topbar-title{font-family:'Jost',sans-serif;font-size:9px;letter-spacing:5px;color:rgba(201,168,76,.5);text-transform:uppercase}
-.profile-topbar-spacer{width:36px}
-.profile-identity{display:flex;flex-direction:column;align-items:center;padding:36px 20px 28px;border-bottom:1px solid rgba(201,168,76,.1)}
-.profile-ornament{font-family:'Cormorant Garamond',serif;font-size:10px;letter-spacing:5px;color:rgba(201,168,76,.3);text-transform:uppercase;margin-bottom:20px}
-.profile-avatar-ring{width:92px;height:92px;border-radius:50%;border:2px solid var(--gold);padding:3px;transition:border-width .4s ease,box-shadow .5s ease;flex-shrink:0;position:relative;cursor:pointer}
-.profile-avatar-camera{position:absolute;bottom:2px;right:2px;width:24px;height:24px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #0A0804;z-index:2;cursor:pointer;transition:transform .2s,background .2s}
-.profile-avatar-uploading{position:absolute;inset:0;border-radius:50%;background:rgba(10,8,4,.72);display:flex;align-items:center;justify-content:center;z-index:3}
-.btn-inline-spinner{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid rgba(10,8,4,.25);border-top-color:#0A0804;animation:blSpin .8s linear infinite;vertical-align:-2px;margin-right:8px}
-.profile-avatar-camera:active{transform:scale(.9)}
-.profile-avatar-camera svg{width:11px;height:11px;stroke:#0A0804;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.profile-avatar-placeholder{width:100%;height:100%;border-radius:50%;background:#130E06;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
-.profile-avatar-placeholder svg{width:68%;height:80%}
-.profile-container.is-vip .profile-avatar-ring{border-width:3px;box-shadow:0 0 0 1px rgba(201,168,76,.25),0 0 20px rgba(201,168,76,.5),0 0 50px rgba(201,168,76,.2)}
-.profile-avatar-img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
-.profile-name-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;position:relative}
-.profile-client-name{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--gold);letter-spacing:1px;text-align:center;background:transparent;border:none;outline:none;width:220px;-webkit-user-select:text;user-select:text;-webkit-box-shadow:0 0 0 1000px transparent inset!important;-webkit-text-fill-color:var(--gold)!important;caret-color:var(--gold)}
-.profile-client-name::placeholder{color:rgba(201,168,76,.35)}
-.profile-client-name:focus{border-bottom:1px solid rgba(201,168,76,.3)}
-.profile-name-pencil{flex-shrink:0;opacity:.3;pointer-events:none}
-.profile-name-pencil svg{width:13px;height:13px;stroke:var(--gold);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.profile-standard-tag{margin-top:8px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:3px;color:rgba(168,155,140,.45);text-transform:uppercase;transition:opacity .3s ease,max-height .3s ease;max-height:30px;overflow:hidden}
-.profile-container.is-vip .profile-standard-tag{opacity:0;max-height:0;margin:0}
-.profile-vip-badge{display:flex;flex-direction:column;align-items:center;margin-top:0;max-height:0;overflow:hidden;opacity:0;transition:max-height .45s ease,opacity .4s ease,margin-top .3s ease}
-.profile-container.is-vip .profile-vip-badge{max-height:100px;opacity:1;margin-top:14px}
-.vip-badge-shield{position:relative;overflow:hidden;background-color:#0C0900;background-image:linear-gradient(160deg,#1C1400 0%,#0C0900 50%,#1C1400 100%),linear-gradient(100deg,transparent 40%,rgba(232,213,163,.4) 50%,transparent 60%);background-size:100% 100%,220% 220%;background-position:0 0,-120% 0;background-repeat:no-repeat;animation:vipShimmer 3.5s linear infinite;border:1px solid var(--gold);border-radius:4px 4px 10px 10px;padding:10px 22px 13px;text-align:center;box-shadow:0 0 20px rgba(201,168,76,.3)}
-.vip-badge-shield::before,.vip-badge-shield::after{content:'◆';position:absolute;top:-7px;font-size:10px;color:var(--gold);z-index:2}
-.vip-badge-shield::before{left:10px}
-.vip-badge-shield::after{right:10px}
-@keyframes vipShimmer{0%{background-position:0 0,-120% 0}100%{background-position:0 0,120% 0}}
-.vip-badge-line1{font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:700;color:var(--gold);letter-spacing:2.5px;text-transform:uppercase;line-height:1.3}
-.vip-badge-divider{width:65%;height:1px;background:linear-gradient(to right,transparent,rgba(201,168,76,.7),transparent);margin:5px auto}
-.vip-badge-line2{font-family:'Jost',sans-serif;font-size:8px;font-weight:500;color:rgba(201,168,76,.7);letter-spacing:4px;text-transform:uppercase}
-.profile-dashboard{display:flex;gap:12px;padding:20px 20px 0}
-.dash-card{flex:1;background:#080808;border:1px solid rgba(201,168,76,.15);border-radius:10px;padding:16px 14px;position:relative;overflow:hidden}
-.dash-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(to right,transparent,rgba(201,168,76,.35),transparent)}
-.dash-card-eyebrow{font-family:'Jost',sans-serif;font-size:8px;letter-spacing:3px;color:rgba(201,168,76,.4);text-transform:uppercase;margin-bottom:10px}
-.dash-card-value{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;color:var(--gold);line-height:1.1;margin-bottom:5px}
-.dash-card-label{font-family:'Jost',sans-serif;font-size:10px;color:rgba(168,155,140,.55);letter-spacing:.3px;line-height:1.5}
-.profile-section-header{padding:22px 20px 8px;font-family:'Jost',sans-serif;font-size:9px;letter-spacing:4px;color:rgba(201,168,76,.38);text-transform:uppercase}
-.profile-fields{margin:0 20px;border:1px solid rgba(201,168,76,.1);border-radius:10px;overflow:hidden;background:#080808}
-.profile-field-row{display:flex;align-items:center;padding:0 16px;border-bottom:1px solid rgba(201,168,76,.08);position:relative;min-height:60px}
-.profile-field-row:last-child{border-bottom:none}
-.profile-field-label{font-family:'Jost',sans-serif;font-size:9px;letter-spacing:2.5px;color:rgba(201,168,76,.65);text-transform:uppercase;white-space:nowrap;width:100px;flex-shrink:0}
-.profile-field-input{flex:1;background:transparent;border:none;outline:none;color:var(--text-primary);font-family:'Jost',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3px;padding:18px 32px 18px 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;-webkit-user-select:text;user-select:text;-webkit-box-shadow:0 0 0 1000px transparent inset!important;-webkit-text-fill-color:var(--text-primary)!important;caret-color:var(--gold)}
-.profile-field-input::placeholder{color:rgba(168,155,140,.25)}
-.profile-field-input:focus{color:var(--gold);white-space:normal}
-.profile-field-select{flex:1;background:transparent;border:none;outline:none;color:var(--text-primary);font-family:'Jost',sans-serif;font-size:13px;font-weight:400;letter-spacing:.3px;padding:18px 32px 18px 0;appearance:none;-webkit-appearance:none;cursor:pointer;min-width:0}
-.profile-field-select option{background:#160F04;color:var(--text-primary)}
-.profile-field-pencil{position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:.3}
-.profile-field-pencil svg{width:13px;height:13px;stroke:var(--gold);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.profile-actions{padding:24px 20px 0;display:flex;flex-direction:column;gap:12px}
-.profile-btn-primary{width:100%;padding:17px;background:var(--gold);border:none;border-radius:10px;color:#0A0804;font-family:'Jost',sans-serif;font-size:11px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;cursor:pointer;transition:opacity .2s,transform .15s}
-.profile-btn-primary:active{opacity:.82;transform:scale(.99)}
-.profile-btn-ghost{width:100%;padding:17px;background:transparent;border:1px solid var(--gold);border-radius:10px;color:var(--gold);font-family:'Jost',sans-serif;font-size:11px;font-weight:400;letter-spacing:2.5px;text-transform:uppercase;cursor:pointer;transition:background .2s,transform .15s}
-.profile-btn-ghost:active{background:rgba(201,168,76,.06);transform:scale(.99)}
-.profile-btn-text{width:100%;padding:14px;background:none;border:none;color:rgba(168,155,140,.35);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:2.5px;text-transform:uppercase;cursor:pointer;transition:color .2s;margin-top:4px;margin-bottom:36px}
-.profile-btn-text:active{color:rgba(168,155,140,.7)}
 .share-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99600}
 .share-preview{display:none;align-items:center;gap:12px;margin:0 16px 16px;padding:12px;background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.15);border-radius:12px}
 .share-preview.visible{display:flex}
@@ -433,7 +359,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .share-preview-title{font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .share-preview-sub{font-family:'Jost',sans-serif;font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,.3);text-transform:uppercase;margin-top:3px}
 .share-backdrop.active{display:block}
-.share-sheet{position:fixed;bottom:-100%;left:0;right:0;background:#1C1C1E;border-radius:22px 22px 0 0;z-index:99601;padding-bottom:env(safe-area-inset-bottom,20px);transition:bottom .32s cubic-bezier(.4,0,.2,1)}
+.share-sheet{position:fixed;bottom:-100%;left:0;right:0;background:#1C1C1E;border-radius:22px 22px 0 0;z-index:99601;padding-bottom:env(safe-area-inset-bottom,20px);transition:bottom .32s var(--ease-sheet)}
 .share-sheet.active{bottom:0}
 .share-handle{width:36px;height:4px;background:rgba(255,255,255,.18);border-radius:2px;margin:10px auto 0}
 .share-quick-item{flex:0 0 76px;display:flex;flex-direction:column;align-items:center;gap:7px;padding:6px 0 10px;cursor:pointer}
@@ -489,7 +415,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .story-circle-photo{width:100%;height:100%;object-fit:cover;border-radius:50%}
 
 /* ─── DOWNLOAD BANNER ───────────────────────────────────────────────────────── */
-#downloadBanner{position:fixed;top:0;left:0;right:0;z-index:88888;background:#0E0A04;border-bottom:1px solid rgba(201,168,76,.4);padding:10px 14px;display:flex;align-items:center;gap:12px;transform:translateY(-100%);transition:transform .4s cubic-bezier(.32,.72,0,1);box-shadow:0 4px 24px rgba(0,0,0,.7)}
+#downloadBanner{position:fixed;top:0;left:0;right:0;z-index:88888;background:#0E0A04;border-bottom:1px solid rgba(201,168,76,.4);padding:10px 14px;display:flex;align-items:center;gap:12px;transform:translateY(-100%);transition:transform .4s var(--ease-sheet);box-shadow:0 4px 24px rgba(0,0,0,.7)}
 #downloadBanner.show{transform:translateY(0)}
 .dl-banner-icon{width:40px;height:40px;border-radius:10px;flex-shrink:0;object-fit:cover}
 .dl-banner-text{flex:1}
@@ -499,17 +425,17 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .dl-banner-close{background:none;border:none;color:rgba(168,155,140,.5);font-size:20px;cursor:pointer;padding:4px;flex-shrink:0;line-height:1}
 
 /* ─── SPLASH SCREEN ─────────────────────────────────────────────────────────── */
-#splashScreen{position:fixed;top:0;left:0;right:0;bottom:0;background:#120D06;z-index:100002;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .6s ease,visibility .6s ease;}
+#splashScreen{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg-primary);z-index:100002;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .6s ease,visibility .6s ease;}
 #splashScreen.hidden{opacity:0;visibility:hidden;pointer-events:none}
 @keyframes splashAutoDismiss{0%{opacity:1;visibility:visible;pointer-events:auto}100%{opacity:0;visibility:hidden;pointer-events:none}}
-.splash-logo{width:140px;height:140px;border-radius:28px;animation:splashPop .7s cubic-bezier(.22,1,.36,1) both}
+.splash-logo{width:140px;height:140px;border-radius:28px;animation:splashPop .7s var(--ease-pop) both}
 .splash-name{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;letter-spacing:7px;color:#C9A84C;text-transform:uppercase;text-align:center;animation:splashFadeUp .6s .3s ease both}
 .splash-tagline{font-family:'Jost',sans-serif;font-size:9px;letter-spacing:4px;color:rgba(201,168,76,.45);text-transform:uppercase;animation:splashFadeUp .6s .45s ease both}
 @keyframes skelShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 @keyframes splashPop{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
 @keyframes splashFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 /* ─── LOGIN SPLASH (shown after login, before logo splash) ──────────────────── */
-#loginSplash{position:fixed;top:0;left:0;right:0;bottom:0;background:#120D06;z-index:100005;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .6s ease,visibility .6s ease}
+#loginSplash{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg-primary);z-index:100005;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .6s ease,visibility .6s ease}
 #loginSplash.active{opacity:1;visibility:visible;pointer-events:auto}
 #loginSplash.dismissing{opacity:0;visibility:hidden;pointer-events:none}
 .ls2-ornament{font-family:'Cormorant Garamond',serif;font-size:11px;letter-spacing:6px;color:rgba(201,168,76,.3);text-transform:uppercase;margin-bottom:32px;animation:lsFadeUp .8s ease both}
@@ -520,7 +446,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 @keyframes lsFadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 
 /* ─── CREATING ACCOUNT SPLASH (7s) ──────────────────────────────────────────── */
-#creatingAccountSplash{position:fixed;top:0;left:0;right:0;bottom:0;background:#120D06;z-index:100006;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .6s ease,visibility .6s ease}
+#creatingAccountSplash{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg-primary);z-index:100006;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .6s ease,visibility .6s ease}
 #creatingAccountSplash.active{opacity:1;visibility:visible;pointer-events:auto}
 #creatingAccountSplash.dismissing{opacity:0;visibility:hidden;pointer-events:none}
 .ca-ring{width:72px;height:72px;border-radius:50%;border:1.5px solid rgba(201,168,76,.15);border-top-color:#C9A84C;animation:caRingSpin 1.1s linear infinite;margin-bottom:36px}
@@ -536,10 +462,10 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .ca-step.done .ca-step-text{color:rgba(201,168,76,.7)}
 
 /* ─── WELCOME SPLASH (3s, new users only) ────────────────────────────────────── */
-#welcomeSplash{position:fixed;top:0;left:0;right:0;bottom:0;background:#120D06;z-index:100005;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .6s ease,visibility .6s ease}
+#welcomeSplash{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg-primary);z-index:100005;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .6s ease,visibility .6s ease}
 #welcomeSplash.active{opacity:1;visibility:visible;pointer-events:auto}
 #welcomeSplash.dismissing{opacity:0;visibility:hidden;pointer-events:none}
-.wc-crown{font-size:36px;margin-bottom:28px;animation:wcPop .7s cubic-bezier(.22,1,.36,1) both}
+.wc-crown{font-size:36px;margin-bottom:28px;animation:wcPop .7s var(--ease-pop) both}
 .wc-eyebrow{font-family:'Jost',sans-serif;font-size:8px;letter-spacing:6px;color:rgba(201,168,76,.35);text-transform:uppercase;margin-bottom:12px;animation:lsFadeUp .7s .1s ease both}
 .wc-title{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:300;color:#F5F0E8;letter-spacing:2px;text-align:center;line-height:1.1;animation:lsFadeUp .7s .2s ease both}
 .wc-name{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:700;color:#C9A84C;letter-spacing:2px;text-align:center;animation:lsFadeUp .7s .3s ease both}
@@ -548,7 +474,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 @keyframes wcPop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
 
 /* ─── LOADING SPLASH (SECOND SCREEN) ────────────────────────────────────────── */
-#loadingSplash{position:fixed;top:0;left:0;right:0;bottom:0;background:#120D06;z-index:100003;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .55s ease,visibility .55s ease}
+#loadingSplash{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg-primary);z-index:100003;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .55s ease,visibility .55s ease}
 #loadingSplash.active{opacity:1;visibility:visible;pointer-events:auto}
 #loadingSplash.dismissing{opacity:0;visibility:hidden;pointer-events:none}
 .ls-logo{width:72px;height:72px;border-radius:16px;opacity:.9}
@@ -563,7 +489,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .ls-dot:nth-child(2){animation:lsDotPulse 1.4s ease-in-out infinite .22s}
 .ls-dot:nth-child(3){animation:lsDotPulse 1.4s ease-in-out infinite .44s}
 /* ─── MODERN PROFILE ───────────────────────────────────────────────────────── */
-.profile-screen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;flex-direction:column;overflow-y:auto;scrollbar-width:none;padding-bottom:calc(var(--nav-height) + 20px);background:#0A0804}
+.profile-screen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;flex-direction:column;overflow-y:auto;scrollbar-width:none;padding-bottom:calc(var(--nav-height) + 20px);background:var(--bg-deep)}
 .profile-screen::-webkit-scrollbar{display:none}
 .profile-screen.active{display:flex;animation:fadeIn .35s ease}
 
@@ -580,7 +506,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 
 .profile-avatar-ring{width:110px;height:110px;border-radius:50%;padding:4px;background:linear-gradient(135deg,var(--gold),#8B6914,#C9A84C);position:relative;cursor:pointer;flex-shrink:0;box-shadow:0 8px 32px rgba(201,168,76,.15)}
 .profile-container.is-vip .profile-avatar-ring{background:linear-gradient(135deg,#E8D5A3,var(--gold),#B8860B,#E8D5A3);box-shadow:0 8px 40px rgba(201,168,76,.35)}
-.profile-avatar-ring::before{content:'';position:absolute;inset:4px;border-radius:50%;background:#0A0804;z-index:0}
+.profile-avatar-ring::before{content:'';position:absolute;inset:4px;border-radius:50%;background:var(--bg-deep);z-index:0}
 .profile-avatar-placeholder{width:100%;height:100%;border-radius:50%;background:#130E06;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;position:relative;z-index:1}
 .profile-avatar-placeholder svg{width:68%;height:80%}
 .profile-avatar-img{position:absolute;inset:4px;width:calc(100% - 8px);height:calc(100% - 8px);border-radius:50%;object-fit:cover;display:block;z-index:2}
@@ -628,7 +554,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .profile-btn-ghost:active{background:rgba(201,168,76,.06);transform:scale(.99)}
 
 /* ─── SETTINGS SCREEN ────────────────────────────────────────────────────────── */
-.settings-screen{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:100001;flex-direction:column;overflow-y:auto;scrollbar-width:none;background:#0A0804}
+.settings-screen{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:100001;flex-direction:column;overflow-y:auto;scrollbar-width:none;background:var(--bg-deep)}
 .settings-screen::-webkit-scrollbar{display:none}
 .settings-screen.active{display:flex;animation:fadeIn .3s ease}
 
@@ -663,7 +589,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .settings-toggle.active .settings-toggle-knob{transform:translateX(18px)}
 /* Settings Modals */
 .settings-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100002;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
-.settings-modal-sheet{width:100%;max-width:520px;background:#0E0A04;border-top:1px solid #C9A84C;border-radius:22px 22px 0 0;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));animation:sheetUp .35s cubic-bezier(.32,.72,0,1)}
+.settings-modal-sheet{width:100%;max-width:520px;background:#0E0A04;border-top:1px solid #C9A84C;border-radius:22px 22px 0 0;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));animation:sheetUp .35s var(--ease-sheet)}
 .settings-modal-handle{width:38px;height:3px;background:rgba(201,168,76,.28);border-radius:2px;margin:14px auto 0}
 .settings-modal-header{padding:20px 24px 16px;border-bottom:1px solid rgba(201,168,76,.1)}
 .settings-modal-title{font-family:'Cormorant Garamond',serif;font-size:24px;color:#C9A84C;font-weight:600}
@@ -759,6 +685,16 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 </head>
 <body>
 <div class="network-banner" id="networkBanner"></div>
+<!-- Content retry indicator — a background retry was already happening
+     silently every 15s after the first "showing saved content" toast, but
+     nothing stayed visible to show that, so it looked like the app had
+     just given up. This stays up for as long as ANY page has a retry
+     pending (synced centrally in _scheduleContentRetry/_cancelContentRetry
+     below), disappearing the moment fresh content actually lands. -->
+<div id="contentRetryIndicator" style="display:none;position:fixed;bottom:calc(var(--nav-height) + 10px);left:50%;transform:translateX(-50%);z-index:9500;background:rgba(20,15,8,.92);border:1px solid rgba(201,168,76,.25);border-radius:20px;padding:7px 14px;align-items:center;gap:8px;font-family:'Jost',sans-serif;font-size:11px;color:rgba(201,168,76,.85);white-space:nowrap;">
+  <span style="width:7px;height:7px;border-radius:50%;background:#C9A84C;display:inline-block;animation:retryPulse 1.4s infinite;"></span>
+  Retrying to load fresh content…
+</div>
 <div id="downloadBanner">
   <img class="dl-banner-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Crect width='56' height='56' fill='%23C9A84C' rx='12'/%3E%3Ctext x='28' y='38' font-family='serif' font-size='24' fill='%23120D06' text-anchor='middle' font-weight='bold'%3EBL%3C/text%3E%3C/svg%3E" alt="" role="presentation" alt="Billy Living">
   <div class="dl-banner-text">
@@ -1163,7 +1099,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
      location. No server-side search index exists yet, so this is a
      client-side filter over loaded content rather than a full-text search
      across everything ever posted. -->
-<div id="searchOverlay" style="display:none;position:fixed;inset:0;z-index:100030;background:#0A0804;flex-direction:column;">
+<div id="searchOverlay" style="display:none;position:fixed;inset:0;z-index:100030;background:var(--bg-deep);flex-direction:column;">
   <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;padding-top:calc(14px + env(safe-area-inset-top,0px));border-bottom:1px solid rgba(201,168,76,.1);">
     <button onclick="closeSearchOverlay()" style="background:none;border:none;color:#C9A84C;font-size:22px;padding:0 4px;cursor:pointer;line-height:1;">←</button>
     <input id="searchOverlayInput" type="text" placeholder="Search caption, location, topic, or #hashtag…" oninput="handleSearchInput(this.value)" style="flex:1;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:20px;padding:10px 16px;color:#E8D5A3;font-family:'Jost',sans-serif;font-size:14px;">
@@ -1299,7 +1235,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
       <button class="vault-btn" style="margin-top:12px;max-width:280px;width:100%;background:transparent;border:1px solid rgba(201,168,76,.3);color:rgba(201,168,76,.6)" onclick="handleVaultLogout()">Sign Out</button>
     </div>
   </div>
-  <div id="vaultGallery" style="display:none;min-height:100vh;background:#0A0804">
+  <div id="vaultGallery" style="display:none;min-height:100vh;background:var(--bg-deep)">
     <!-- Header -->
     <div style="padding:32px 20px 20px;border-bottom:1px solid rgba(212,175,55,.12);position:sticky;top:0;background:rgba(10,8,4,.97);z-index:10;backdrop-filter:blur(12px)">
       <div style="font-family:'Jost',sans-serif;font-size:8px;letter-spacing:6px;color:rgba(212,175,55,.5);text-transform:uppercase;margin-bottom:8px;font-weight:400">Your Private Collection</div>
@@ -1800,11 +1736,18 @@ _updateNetworkBanner(); // catch the case where the app opens already offline, b
 // already covers that. If the browser reports offline, waits for the
 // 'online' event instead of hammering a connection that isn't there.
 window._contentRetryTimers = window._contentRetryTimers || {};
+function _syncContentRetryIndicator() {
+  const el = document.getElementById('contentRetryIndicator');
+  if (!el) return;
+  const pending = Object.keys(window._contentRetryTimers || {}).length > 0;
+  el.style.display = pending ? 'flex' : 'none';
+}
 function _scheduleContentRetry(key, loaderFn, delayMs) {
   if (window._contentRetryTimers[key]) return; // already queued
   delayMs = delayMs || 15000;
   window._contentRetryTimers[key] = setTimeout(() => {
     delete window._contentRetryTimers[key];
+    _syncContentRetryIndicator();
     if (navigator.onLine === false) {
       const onOnline = () => { window.removeEventListener('online', onOnline); _scheduleContentRetry(key, loaderFn, 1500); };
       window.addEventListener('online', onOnline);
@@ -1813,12 +1756,14 @@ function _scheduleContentRetry(key, loaderFn, delayMs) {
     diag('retry', 'Silent background refresh for ' + key);
     loaderFn();
   }, delayMs);
+  _syncContentRetryIndicator();
 }
 function _cancelContentRetry(key) {
   if (window._contentRetryTimers[key]) {
     clearTimeout(window._contentRetryTimers[key]);
     delete window._contentRetryTimers[key];
   }
+  _syncContentRetryIndicator();
 }
 
 
@@ -3364,7 +3309,7 @@ function buildFeedItem(p) {
     +   '<div class="feed-header-info"><span class="feed-header-name">The Billy Living</span>' + headerLocHtml + '</div>'
     +   '<button class="feed-header-more" onclick="openShareSheetNoCount(_postsMap[\'' + id + '\'])">···</button>'
     + '</div>'
-    + '<div class="feed-image" onclick="openFeedViewer(\'' + id + '\')" style="cursor:pointer">' + mediaHtml + newBadgeHtml + '</div>'
+    + '<div class="feed-image" onclick="handleFeedImageTap(this,event,\'' + id + '\')" style="cursor:pointer">' + mediaHtml + newBadgeHtml + '<div class="dt-heart">❤️</div>' + '</div>'
     + '<div class="feed-actions">'
     +   '<button class="feed-action-btn" onclick="toggleLike(this,\'' + id + '\',\'posts\')">'
     +     '<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>'
@@ -3762,7 +3707,7 @@ function handleFeedImageTap(el, event, postId) {
     return;
   }
   // Wait briefly to see if a second tap follows before treating as single-tap
-  el._singleTapTimer = setTimeout(() => { tapToToggleMedia(el); }, 300);
+  el._singleTapTimer = setTimeout(() => { openFeedViewer(postId); }, 300);
 }
 
 function tapToToggleMedia(el) {
@@ -4593,7 +4538,7 @@ function openTextureItem(key) {
   fbDb.ref('textureGallery/' + key).once('value').then(snap => {
     const item = snap.val(); if (!item) return;
     const modal = document.createElement('div');
-    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:80px;background:#0A0804;z-index:30000;display:flex;flex-direction:column;';
+    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:80px;background:var(--bg-deep);z-index:30000;display:flex;flex-direction:column;';
     modal.innerHTML = `
       <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid rgba(212,175,55,.15);background:rgba(10,8,4,.97);position:sticky;top:0;z-index:10;flex-shrink:0;">
         <button onclick="this.closest('div[style*=position\\:fixed]').remove()" style="background:none;border:1px solid rgba(212,175,55,.3);color:rgba(212,175,55,.6);border-radius:8px;padding:8px 14px;font-size:11px;cursor:pointer;">←</button>
@@ -4722,7 +4667,7 @@ function applyForPartnership() {
 function openVaultSection(type) {
   const modal = document.createElement('div');
   modal.id = 'vaultSectionModal';
-  modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:80px;background:#0A0804;z-index:20000;display:flex;flex-direction:column;overflow:hidden;';
+  modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:80px;background:var(--bg-deep);z-index:20000;display:flex;flex-direction:column;overflow:hidden;';
   const titles = { myspace:'My Space', progress:'Progress Tracker', textures:'Material Samples', overseas:'Unreleased Overseas Exclusives', preservation:'The Preservation Protocol', atelier:'The Atelier', concierge:'Priority Concierge Access' };
   const icons  = { myspace:'🏠', progress:'📊', textures:'🎨', overseas:'✈️', preservation:'📋', atelier:'🏛️', concierge:'⭐' };
   modal.innerHTML = `
@@ -4764,7 +4709,7 @@ function _loadVaultSectionMySpace(content) {
     if (msCardSub) msCardSub.textContent = projects.length + ' project' + (projects.length!==1?'s':'') + ' archived';
     // Selector if more than one project
     const selector = projects.length > 1
-      ? '<select id="msProjectSelect" onchange="_renderMySpaceProject(this.value)" style="width:100%;padding:12px 14px;background:#120D06;border:1px solid rgba(212,175,55,.25);border-radius:10px;color:var(--gold-light);font-family:Jost,sans-serif;font-size:13px;margin-bottom:16px;">'
+      ? '<select id="msProjectSelect" onchange="_renderMySpaceProject(this.value)" style="width:100%;padding:12px 14px;background:var(--bg-primary);border:1px solid rgba(212,175,55,.25);border-radius:10px;color:var(--gold-light);font-family:Jost,sans-serif;font-size:13px;margin-bottom:16px;">'
         + projects.map(([id,p]) => '<option value="'+id+'">'+(p.name||'Project')+'</option>').join('') + '</select>'
       : '';
     window._msProjects = Object.fromEntries(projects);
@@ -4798,7 +4743,7 @@ function _renderMySpaceProject(projectId) {
 
     const sourcingHtml = sourcing.length
       ? sourcing.map(item => `
-        <div style="display:flex;gap:12px;padding:14px;background:#120D06;border:1px solid rgba(212,175,55,.12);border-radius:12px;margin-bottom:10px;">
+        <div style="display:flex;gap:12px;padding:14px;background:var(--bg-primary);border:1px solid rgba(212,175,55,.12);border-radius:12px;margin-bottom:10px;">
           ${item.image ? `<img src="${item.image}" style="width:56px;height:56px;border-radius:8px;object-fit:cover;flex-shrink:0;">` : '<div style="width:56px;height:56px;border-radius:8px;background:rgba(212,175,55,.08);flex-shrink:0;display:flex;align-items:center;justify-content:center;">🛋️</div>'}
           <div style="flex:1;min-width:0;">
             <div style="font-family:Cormorant Garamond,serif;font-size:15px;color:var(--gold-light);">${item.name||'Item'}</div>
@@ -4811,7 +4756,7 @@ function _renderMySpaceProject(projectId) {
 
     const finishHtml = finish.length
       ? finish.map(f => `
-        <div style="padding:14px;background:#120D06;border:1px solid rgba(212,175,55,.12);border-radius:12px;margin-bottom:10px;">
+        <div style="padding:14px;background:var(--bg-primary);border:1px solid rgba(212,175,55,.12);border-radius:12px;margin-bottom:10px;">
           <div style="font-size:9px;letter-spacing:2px;color:rgba(212,175,55,.4);text-transform:uppercase;margin-bottom:4px;">${f.room||''} · ${f.category||''}</div>
           <div style="font-family:Cormorant Garamond,serif;font-size:15px;color:var(--gold-light);">${f.brand||''} ${f.code?'— '+f.code:''}</div>
           ${f.supplier ? `<div style="font-size:11px;color:rgba(212,175,55,.5);margin-top:2px;">${f.supplier}</div>` : ''}
@@ -4825,7 +4770,7 @@ function _renderMySpaceProject(projectId) {
           const monthsLeft = (expiresAt - now) / (30*24*60*60*1000);
           const color = monthsLeft < 0 ? '#e74c3c' : monthsLeft < 6 ? '#e0a832' : '#50C878';
           const label = monthsLeft < 0 ? 'Expired' : monthsLeft < 6 ? 'Expiring soon' : 'Active';
-          return `<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:#120D06;border:1px solid rgba(212,175,55,.12);border-radius:12px;margin-bottom:10px;">
+          return `<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--bg-primary);border:1px solid rgba(212,175,55,.12);border-radius:12px;margin-bottom:10px;">
             <div><div style="font-family:Cormorant Garamond,serif;font-size:14px;color:var(--gold-light);">${item.name||'Item'}</div><div style="font-size:10px;color:rgba(212,175,55,.4);">Expires ${new Date(expiresAt).toLocaleDateString()}</div></div>
             <span style="font-size:9px;letter-spacing:1px;padding:4px 10px;border-radius:10px;background:${color}22;color:${color};">${label.toUpperCase()}</span>
           </div>`;
@@ -4961,7 +4906,7 @@ function _loadVaultSectionAtelier(content) {
     const artisans = d.artisans ? Object.values(d.artisans) : [];
 
     const pricingHtml = pricing.length ? pricing.map(sheet => `
-      <div style="padding:14px;background:#120D06;border:1px solid rgba(212,175,55,.12);border-radius:12px;margin-bottom:10px;">
+      <div style="padding:14px;background:var(--bg-primary);border:1px solid rgba(212,175,55,.12);border-radius:12px;margin-bottom:10px;">
         <div style="font-size:9px;letter-spacing:2px;color:rgba(212,175,55,.4);text-transform:uppercase;margin-bottom:8px;">${sheet.quarter||'Trade Pricing'}</div>
         ${(sheet.items||[]).map(it => `<div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid rgba(212,175,55,.06);font-size:12px;"><span style="color:rgba(230,225,215,.8);">${it.category||''}</span><span style="color:var(--gold-light);">₦${it.clientPrice||it.price||'—'}</span></div>`).join('')}
       </div>`).join('') : '';
@@ -4973,7 +4918,7 @@ function _loadVaultSectionAtelier(content) {
       </div>`).join('') : '';
 
     const artisansHtml = artisans.length ? artisans.map(a => `
-      <div style="display:flex;gap:12px;padding:14px;background:#120D06;border:1px solid rgba(212,175,55,.12);border-radius:12px;margin-bottom:10px;">
+      <div style="display:flex;gap:12px;padding:14px;background:var(--bg-primary);border:1px solid rgba(212,175,55,.12);border-radius:12px;margin-bottom:10px;">
         ${a.image ? `<img src="${a.image}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;">` : '<div style="width:52px;height:52px;border-radius:50%;background:rgba(212,175,55,.1);flex-shrink:0;"></div>'}
         <div><div style="font-family:Cormorant Garamond,serif;font-size:15px;color:var(--gold-light);">${a.name||'Artisan'}</div><div style="font-size:11px;color:rgba(212,175,55,.5);">${a.specialty||''}${a.location?' · '+a.location:''}</div></div>
       </div>`).join('') : '';
@@ -7073,7 +7018,7 @@ function _initFeedViewerObservers() {
 }
 </script>
 <div id="vaultGlint"></div>
-<div id="splashGuard" style="position:fixed;inset:0;background:#120D06;z-index:99998;opacity:0;visibility:hidden;transition:opacity .5s ease,visibility .5s ease;pointer-events:none;"></div>
+<div id="splashGuard" style="position:fixed;inset:0;background:var(--bg-primary);z-index:99998;opacity:0;visibility:hidden;transition:opacity .5s ease,visibility .5s ease;pointer-events:none;"></div>
 
 <!-- CHANGE PASSWORD -->
 <div class="settings-modal" id="changePasswordModal" onclick="if(event.target===this)closeSettingsModal('changePasswordModal')">
@@ -7261,23 +7206,15 @@ function _initFeedViewerObservers() {
 </div>
 
 <!-- DIAGNOSTICS — tap to see what's actually happening (no console on mobile) -->
-<button class="diag-toggle" onclick="toggleDiagPanel()" aria-label="Diagnostics">⚙<span class="diag-badge-dot" id="diagBadgeDot"></span></button>
-<div class="diag-panel" id="diagPanel">
-  <div class="diag-panel-hdr">
-    <div class="diag-panel-title">Diagnostics</div>
-    <div class="diag-panel-actions">
-      <button class="diag-btn" onclick="copyDiagLog()">Copy</button>
-      <button class="diag-btn" onclick="clearDiagLog()">Clear</button>
-      <button class="diag-btn" onclick="toggleDiagPanel()">Close</button>
-    </div>
-  </div>
-  <div class="diag-log-list" id="diagLogList"></div>
-</div>
+<!-- Diagnostics panel removed from the UI per request — the underlying
+     diag() logger (used throughout this file for background debugging)
+     is untouched and still safe to call; it just has nowhere to render to
+     now, and silently no-ops on the UI side. -->
 
 <!-- ADMIN VIEW — dormant until an admin taps the switch. BillyAdmin is
      defined below and runs for every visitor, since this is now a single
      merged file rather than a lazy-loaded module. -->
-<div id="adminViewRoot" style="display:none;position:fixed;inset:0;background:#0A0804;z-index:200000;flex-direction:column;"></div>
+<div id="adminViewRoot" style="display:none;position:fixed;inset:0;background:var(--bg-deep);z-index:200000;flex-direction:column;"></div>
 <script>
 // admin-module.js — The Billy Living admin panel, lazy-loaded into client.html
 //
@@ -7880,7 +7817,7 @@ function _initFeedViewerObservers() {
       list.innerHTML = '';
       items.forEach(item => {
         const card = document.createElement('div');
-        card.style.cssText = 'position:relative;border-radius:14px;overflow:hidden;border:1px solid rgba(212,175,55,.25);cursor:pointer;aspect-ratio:3/4;background:#0A0804;';
+        card.style.cssText = 'position:relative;border-radius:14px;overflow:hidden;border:1px solid rgba(212,175,55,.25);cursor:pointer;aspect-ratio:3/4;background:var(--bg-deep);';
         card.innerHTML = `
           ${item.coverImage ? `<img src="${item.coverImage}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;">` : '<div style="width:100%;height:100%;background:linear-gradient(135deg,#060D18,#0E0B06);display:flex;align-items:center;justify-content:center;font-size:32px;position:absolute;inset:0;">✈️</div>'}
           <div style="position:absolute;inset:0;background:linear-gradient(transparent 40%,rgba(0,0,0,.85));"></div>
