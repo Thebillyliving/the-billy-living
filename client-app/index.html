@@ -489,7 +489,8 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .ls-dot:nth-child(2){animation:lsDotPulse 1.4s ease-in-out infinite .22s}
 .ls-dot:nth-child(3){animation:lsDotPulse 1.4s ease-in-out infinite .44s}
 /* ─── MODERN PROFILE ───────────────────────────────────────────────────────── */
-.profile-screen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;flex-direction:column;overflow-y:auto;scrollbar-width:none;padding-bottom:calc(var(--nav-height) + 20px);background:var(--bg-deep)}
+.profile-screen{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;flex-direction:column;overflow-y:auto;scrollbar-width:none;padding-bottom:calc(var(--nav-height) + 20px);background:var(--bg-deep)}
+.btn-inline-spinner{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid rgba(10,8,4,.25);border-top-color:#0A0804;animation:blSpin .8s linear infinite;vertical-align:-2px;margin-right:8px}
 .profile-screen::-webkit-scrollbar{display:none}
 .profile-screen.active{display:flex;animation:fadeIn .35s ease}
 
@@ -516,7 +517,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .profile-avatar-uploading{position:absolute;inset:4px;border-radius:50%;background:rgba(10,8,4,.72);display:flex;align-items:center;justify-content:center;z-index:4}
 
 .profile-name-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:18px;position:relative;width:100%}
-.profile-client-name{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--gold);letter-spacing:.5px;text-align:center;background:transparent;border:none;outline:none;width:260px;-webkit-user-select:text;user-select:text;-webkit-text-fill-color:var(--gold)!important;caret-color:var(--gold);padding:4px 0}
+.profile-client-name{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--gold);letter-spacing:.5px;text-align:center;background:transparent;border:none;outline:none;width:260px;-webkit-user-select:text;user-select:text;-webkit-text-fill-color:var(--gold)!important;caret-color:var(--gold);padding:4px 0;-webkit-box-shadow:0 0 0 1000px transparent inset!important}
 .profile-client-name::placeholder{color:rgba(201,168,76,.3)}
 .profile-client-name:focus{border-bottom:1px solid rgba(201,168,76,.2)}
 
@@ -541,7 +542,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 .profile-field-icon{font-size:18px;width:24px;text-align:center;flex-shrink:0;opacity:.6}
 .profile-field-body{flex:1;display:flex;flex-direction:column;gap:2px}
 .profile-field-label{font-family:'Jost',sans-serif;font-size:9px;letter-spacing:2px;color:rgba(201,168,76,.5);text-transform:uppercase}
-.profile-field-input{flex:1;background:transparent;border:none;outline:none;color:var(--text-primary);font-family:'Jost',sans-serif;font-size:14px;font-weight:400;letter-spacing:.2px;padding:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;-webkit-user-select:text;user-select:text;-webkit-text-fill-color:var(--text-primary)!important;caret-color:var(--gold)}
+.profile-field-input{flex:1;background:transparent;border:none;outline:none;color:var(--text-primary);font-family:'Jost',sans-serif;font-size:14px;font-weight:400;letter-spacing:.2px;padding:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;-webkit-user-select:text;user-select:text;-webkit-text-fill-color:var(--text-primary)!important;caret-color:var(--gold);-webkit-box-shadow:0 0 0 1000px transparent inset!important}
 .profile-field-input::placeholder{color:rgba(168,155,140,.25)}
 .profile-field-input:focus{white-space:normal;color:var(--gold)}
 .profile-field-select{flex:1;background:transparent;border:none;outline:none;color:var(--text-primary);font-family:'Jost',sans-serif;font-size:14px;font-weight:400;letter-spacing:.2px;padding:0;appearance:none;-webkit-appearance:none;cursor:pointer;min-width:0}
@@ -1574,65 +1575,17 @@ if (fbMessaging) {
 }
 
 // ─── DIAGNOSTICS ─────────────────────────────────────────────────────────────
-// On-screen debug log — mobile Chrome has no accessible console, so this is
-// the only way to see what's actually happening when something silently
-// fails to load. Tap the small "Diag" button (bottom-right) to open it.
+// Bare in-memory logger only — no on-screen panel (removed per request, along
+// with every function that only existed to render/copy/clear it). ~150 call
+// sites throughout this file still call diag(...) for background debugging;
+// rewriting all of those would be a much larger, riskier change for no
+// benefit, so this stays as a pure no-UI logger they can keep calling safely.
 window._diagLog = [];
-window._diagErrorCount = 0;
 function diag(tag, msg, level) {
   level = level || 'info';
-  const entry = { t: Date.now(), tag: tag, msg: String(msg), level: level };
-  window._diagLog.push(entry);
+  window._diagLog.push({ t: Date.now(), tag: tag, msg: String(msg), level: level });
   if (window._diagLog.length > 300) window._diagLog.shift();
-  if (level === 'error' || level === 'warn') {
-    window._diagErrorCount++;
-    const dot = document.getElementById('diagBadgeDot');
-    if (dot) dot.style.display = 'block';
-  }
-  const panel = document.getElementById('diagLogList');
-  if (panel && panel.offsetParent !== null) _renderDiagLog(); // only re-render while visibly open
 }
-function _diagTime(t) {
-  const d = new Date(t);
-  return d.toTimeString().slice(0,8) + '.' + String(d.getMilliseconds()).padStart(3,'0');
-}
-function _renderDiagLog() {
-  const panel = document.getElementById('diagLogList');
-  if (!panel) return;
-  panel.innerHTML = window._diagLog.map(e =>
-    '<div class="diag-line diag-' + e.level + '">' +
-    '<span class="diag-time">' + _diagTime(e.t) + '</span>' +
-    '<span class="diag-tag">[' + e.tag + ']</span> ' +
-    e.msg.replace(/</g,'&lt;') + '</div>'
-  ).join('');
-  panel.scrollTop = panel.scrollHeight;
-}
-function toggleDiagPanel() {
-  const p = document.getElementById('diagPanel');
-  if (!p) return;
-  const opening = p.style.display !== 'block';
-  p.style.display = opening ? 'block' : 'none';
-  if (opening) {
-    _renderDiagLog();
-    window._diagErrorCount = 0;
-    const dot = document.getElementById('diagBadgeDot');
-    if (dot) dot.style.display = 'none';
-  }
-}
-function copyDiagLog() {
-  const text = window._diagLog.map(e => _diagTime(e.t) + ' [' + e.tag + '] ' + e.msg).join('\n');
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(() => showToast('Log copied')).catch(() => _diagFallbackCopy(text));
-  } else { _diagFallbackCopy(text); }
-}
-function _diagFallbackCopy(text) {
-  const ta = document.createElement('textarea');
-  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
-  document.body.appendChild(ta); ta.select();
-  try { document.execCommand('copy'); showToast('Log copied'); } catch(e) { showToast('Could not copy — select manually'); }
-  document.body.removeChild(ta);
-}
-function clearDiagLog() { window._diagLog = []; _renderDiagLog(); }
 
 // Catches ANY uncaught error or rejected promise anywhere in the app —
 // this is what actually explains a section that "just doesn't load" with
@@ -7205,11 +7158,12 @@ function _initFeedViewerObservers() {
   <div class="feed-viewer-container" id="feedViewerContainer"></div>
 </div>
 
-<!-- DIAGNOSTICS — tap to see what's actually happening (no console on mobile) -->
-<!-- Diagnostics panel removed from the UI per request — the underlying
-     diag() logger (used throughout this file for background debugging)
-     is untouched and still safe to call; it just has nowhere to render to
-     now, and silently no-ops on the UI side. -->
+<!-- Diagnostics UI fully removed per request — no button, no panel, and the
+     support functions that only existed to render/copy/clear it are gone
+     too. The bare diag() logger itself still exists (see DIAGNOSTICS section
+     near the top of the script) purely because ~150 call sites throughout
+     this file still call it — it just writes to an in-memory array now,
+     with nothing on screen to show it. -->
 
 <!-- ADMIN VIEW — dormant until an admin taps the switch. BillyAdmin is
      defined below and runs for every visitor, since this is now a single
@@ -9526,7 +9480,7 @@ function _initFeedViewerObservers() {
       <div style="font-size:13px;color:#E8D5A3;font-weight:600;margin-bottom:8px;">Help</div>
       ${faq("Why can't I see a section?", 'Some sections — Portfolio Analytics and Management — are limited by rank. Ask a Head or Lead Designer if you need access.')}
       ${faq('How do pending submissions work?', 'Designer and Assistant Lead uploads go to Pending Approval first. Lead and Head Designer can approve or reject from there.')}
-      ${faq("A page won't load or looks stuck", "Use the refresh button in that section's header first. Check the diagnostics panel for what's actually happening.")}
+      ${faq("A page won't load or looks stuck", "Use the refresh button in that section's header first, or try reloading the app.")}
       <div style="border-top:1px solid rgba(201,168,76,.15);margin-top:16px;padding-top:16px;">
         <div style="font-size:13px;color:#E8D5A3;font-weight:600;margin-bottom:10px;">About</div>
         <div style="display:flex;justify-content:space-between;font-size:13px;color:rgba(201,168,76,.6);padding:8px 0;border-bottom:1px solid rgba(201,168,76,.08);"><span>Signed in as</span><span style="color:#E8D5A3;">${(fbAuth.currentUser && fbAuth.currentUser.email) || '—'}</span></div>
