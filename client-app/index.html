@@ -683,6 +683,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 </head>
 <body>
 <div class="network-banner" id="networkBanner"></div>
@@ -1506,6 +1507,7 @@ const CONFIG = {
 };
 
 const fbDb   = firebase.database();
+const fbStorage = firebase.storage();
 // keepSynced(true) removed — it forced Firebase to download and hold every byte
 // under these paths in memory on every cold start (including any large admin
 // uploads), even before the user got past the login screen. The app's own
@@ -1628,7 +1630,7 @@ async function withRetry(fn, label, maxAttempts, baseDelayMs) {
     const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     const reportedSlow = conn && (conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g' || conn.effectiveType === '3g');
     const observedSlow = window._consecutiveTimeouts >= 2;
-    const TIMEOUT_MS = (reportedSlow || observedSlow) ? 25000 : 10000;
+    const TIMEOUT_MS = (reportedSlow || observedSlow) ? 90000 : 30000;
     try {
       const result = await Promise.race([
         fn(),
@@ -3144,7 +3146,7 @@ async function loadHomeFeed() {
   }
 
   try {
-    const snap = await withRetry(() => fbDb.ref('content/posts').limitToLast(30).get(), 'loadHomeFeed', shownFromCache ? 2 : 3);
+    const snap = await withRetry(() => fbDb.ref('content/posts').limitToLast(5).get(), 'loadHomeFeed', shownFromCache ? 2 : 3);
     if (!snap.exists()) {
       if (!shownFromCache) feed.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(201,168,76,.3);font-family:Cormorant Garamond,serif;font-size:20px">No posts yet</div>';
       return;
@@ -3503,7 +3505,7 @@ async function loadTrending() {
   // ── BACKGROUND REFRESH ──
   let snap;
   try {
-    snap = await withRetry(() => fbDb.ref('content/trending').limitToLast(25).get(), 'loadTrending', container.querySelector('.tiktok-item') ? 2 : 3);
+    snap = await withRetry(() => fbDb.ref('content/trending').limitToLast(5).get(), 'loadTrending', container.querySelector('.tiktok-item') ? 2 : 3);
   } catch(e) {
     console.error('loadTrending error:', e);
     diag('load', 'loadTrending FAILED: ' + e.message, 'error');
@@ -8654,6 +8656,7 @@ function _initFeedViewerObservers() {
   }
 
   let _cfVideoBase64 = '';
+  let _cfVideoBlob = null; // the real Blob, uploaded to Storage on submit — _cfVideoBase64 above is kept only for the local <video> preview
 
   function handleCfVideoPick(e) {
     const file = e.target.files[0];
@@ -8670,13 +8673,11 @@ function _initFeedViewerObservers() {
       const st = document.getElementById('baCfVideoStatus');
       if (st) st.textContent = 'Compressing… ' + pct + '%';
     }).then(blob => {
-      const reader = new FileReader();
-      reader.onload = ev => {
-        _cfVideoBase64 = ev.target.result;
-        const savedPct = Math.round((1 - blob.size / file.size) * 100);
-        wrap.innerHTML = `<video src="${ev.target.result}" controls muted style="max-width:100%;max-height:160px;border-radius:8px;display:block;margin:0 auto;"></video><div style="text-align:center;font-size:10px;color:rgba(201,168,76,.5);margin-top:6px;">${fmtBytes(file.size)} → ${fmtBytes(blob.size)}${savedPct > 0 ? ' (' + savedPct + '% smaller)' : ''}</div>`;
-      };
-      reader.readAsDataURL(blob);
+      _cfVideoBlob = blob;
+      const savedPct = Math.round((1 - blob.size / file.size) * 100);
+      const previewUrl = URL.createObjectURL(blob);
+      _cfVideoBase64 = ''; // no longer needed for storage, only kept as a name for backward compat elsewhere
+      wrap.innerHTML = `<video src="${previewUrl}" controls muted style="max-width:100%;max-height:160px;border-radius:8px;display:block;margin:0 auto;"></video><div style="text-align:center;font-size:10px;color:rgba(201,168,76,.5);margin-top:6px;">${fmtBytes(file.size)} → ${fmtBytes(blob.size)}${savedPct > 0 ? ' (' + savedPct + '% smaller)' : ''}</div>`;
     }).catch(err => {
       diag('admin', 'video compression failed, falling back to original: ' + err.message, 'warn');
       if (file.size > 15 * 1024 * 1024) {
@@ -8684,12 +8685,9 @@ function _initFeedViewerObservers() {
         input.value = '';
         return;
       }
-      const reader = new FileReader();
-      reader.onload = ev => {
-        _cfVideoBase64 = ev.target.result;
-        wrap.innerHTML = `<video src="${ev.target.result}" controls muted style="max-width:100%;max-height:160px;border-radius:8px;display:block;margin:0 auto;"></video><div style="text-align:center;font-size:10px;color:#ef4444;margin-top:6px;">Compression unavailable — saved uncompressed</div>`;
-      };
-      reader.readAsDataURL(file);
+      _cfVideoBlob = file; // upload the original file as-is
+      const previewUrl = URL.createObjectURL(file);
+      wrap.innerHTML = `<video src="${previewUrl}" controls muted style="max-width:100%;max-height:160px;border-radius:8px;display:block;margin:0 auto;"></video><div style="text-align:center;font-size:10px;color:#ef4444;margin-top:6px;">Compression unavailable — saved uncompressed</div>`;
     });
   }
 
@@ -8711,6 +8709,7 @@ function _initFeedViewerObservers() {
     _cfType = type;
     _cfImageBase64 = '';
     _cfVideoBase64 = '';
+    _cfVideoBlob = null;
     const titles = { post: 'Add Home Post', trending: 'Add Trending Item', category: 'Add Catalog Category', style: 'Create New Style' };
     const overlay = document.createElement('div');
     overlay.id = 'baCfOverlay';
@@ -8846,23 +8845,45 @@ function _initFeedViewerObservers() {
     if (t === 'post' || t === 'trending') {
       const topicSelect = document.getElementById('baCfTopic').value;
       const topic = topicSelect === 'Other' ? (document.getElementById('baCfTopicOther').value || '').trim() : topicSelect;
-      const data = Object.assign({
-        id,
-        caption: document.getElementById('baCfCaption').value || 'Untitled',
-        location: document.getElementById('baCfLocation').value || '',
-        topic: topic || '',
-        imageData: _cfImageBase64 || '',
-        videoData: _cfVideoBase64 || '',
-        likes: parseInt(document.getElementById('baCfLikes').value, 10) || 0,
-        shares: parseInt(document.getElementById('baCfShares').value, 10) || 0,
-        createdAt: Date.now()
-      }, pendingMeta);
       const path = t === 'post' ? 'posts' : 'trending';
-      const targetRef = toPending ? fbDb.ref('pendingContent/' + path + '/' + id) : fbDb.ref('content/' + path + '/' + id);
-      finish(targetRef, data, t === 'post' ? '✓ Post saved' : '✓ Trending item saved', () => {
-        if (t === 'post') { loadHomePanel(); triggerPostPush(data.caption, data.imageData, id); }
-        else loadTrendingPanel();
-      });
+
+      // Video is uploaded to Storage (not embedded as base64) — a single
+      // compressed video inline in the post JSON was regularly pushing feed
+      // reads (30 posts fetched at once) to tens of megabytes, well past
+      // what a slow connection can pull inside its timeout. A post now
+      // carries a small URL string instead of the whole file.
+      const buildAndSave = (videoUrl) => {
+        const data = Object.assign({
+          id,
+          caption: document.getElementById('baCfCaption').value || 'Untitled',
+          location: document.getElementById('baCfLocation').value || '',
+          topic: topic || '',
+          imageData: _cfImageBase64 || '',
+          videoUrl: videoUrl || '',
+          likes: parseInt(document.getElementById('baCfLikes').value, 10) || 0,
+          shares: parseInt(document.getElementById('baCfShares').value, 10) || 0,
+          createdAt: Date.now()
+        }, pendingMeta);
+        const targetRef = toPending ? fbDb.ref('pendingContent/' + path + '/' + id) : fbDb.ref('content/' + path + '/' + id);
+        finish(targetRef, data, t === 'post' ? '✓ Post saved' : '✓ Trending item saved', () => {
+          if (t === 'post') { loadHomePanel(); triggerPostPush(data.caption, data.imageData, id); }
+          else loadTrendingPanel();
+        });
+      };
+
+      if (_cfVideoBlob) {
+        const submitBtn = document.getElementById('baCfSubmit');
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Uploading video…'; }
+        fbStorage.ref('content/' + path + '/' + id + '/video.mp4').put(_cfVideoBlob)
+          .then(uploadSnap => uploadSnap.ref.getDownloadURL())
+          .then(url => buildAndSave(url))
+          .catch(e => {
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitsToPending(_rank) ? 'Submit for Approval' : 'Save'; }
+            showToast('Video upload failed: ' + e.message);
+          });
+      } else {
+        buildAndSave('');
+      }
     } else if (t === 'category') {
       const n = document.getElementById('baCfName').value || 'Collection';
       const sid = n.toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -9481,12 +9502,72 @@ function _initFeedViewerObservers() {
       ${faq("Why can't I see a section?", 'Some sections — Portfolio Analytics and Management — are limited by rank. Ask a Head or Lead Designer if you need access.')}
       ${faq('How do pending submissions work?', 'Designer and Assistant Lead uploads go to Pending Approval first. Lead and Head Designer can approve or reject from there.')}
       ${faq("A page won't load or looks stuck", "Use the refresh button in that section's header first, or try reloading the app.")}
+      ${_rank === 'head' ? `
+      <div style="border-top:1px solid rgba(201,168,76,.15);margin-top:16px;padding-top:16px;">
+        <div style="font-size:13px;color:#E8D5A3;font-weight:600;margin-bottom:6px;">Maintenance</div>
+        <div style="font-size:11px;color:rgba(201,168,76,.5);margin-bottom:10px;line-height:1.5;">One-time cleanup: moves any video still stored as embedded base64 into Storage, replacing it with a lightweight URL. Safe to run more than once — it only touches posts that still have an embedded video.</div>
+        <button id="baMigrateBtn" onclick="migrateVideosToStorage()" style="width:100%;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);color:#C9A84C;border-radius:8px;padding:11px;font-size:12px;font-weight:600;">Migrate Videos to Storage</button>
+        <div id="baMigrateStatus" style="font-size:11px;color:rgba(201,168,76,.6);margin-top:8px;text-align:center;"></div>
+      </div>` : ''}
       <div style="border-top:1px solid rgba(201,168,76,.15);margin-top:16px;padding-top:16px;">
         <div style="font-size:13px;color:#E8D5A3;font-weight:600;margin-bottom:10px;">About</div>
         <div style="display:flex;justify-content:space-between;font-size:13px;color:rgba(201,168,76,.6);padding:8px 0;border-bottom:1px solid rgba(201,168,76,.08);"><span>Signed in as</span><span style="color:#E8D5A3;">${(fbAuth.currentUser && fbAuth.currentUser.email) || '—'}</span></div>
         <div style="display:flex;justify-content:space-between;font-size:13px;color:rgba(201,168,76,.6);padding:8px 0;"><span>Support</span><span style="color:#E8D5A3;">support@billyliving.com</span></div>
       </div>
     `;
+  }
+
+  // ─── One-time video migration: base64-in-database → Firebase Storage ──────
+  // A single embedded video was regularly pushing a 30-post feed read to tens
+  // of megabytes — well past what a slow connection can finish inside its
+  // timeout. This walks every existing post/trending item, uploads any
+  // embedded video to Storage, and replaces the embedded copy with a URL.
+  function migrateVideosToStorage() {
+    if (_rank !== 'head') { showToast('Only Head Designer can run this'); return; }
+    if (!confirm('This uploads every existing embedded video to Storage and removes the embedded copy from the database. This cannot be undone. Continue?')) return;
+    const statusEl = document.getElementById('baMigrateStatus');
+    const btn = document.getElementById('baMigrateBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Scanning…'; }
+
+    const sections = ['posts', 'trending'];
+    const allItems = [];
+
+    Promise.all(sections.map(section =>
+      fbDb.ref('content/' + section).once('value').then(snap => {
+        const val = snap.val() || {};
+        Object.entries(val).forEach(([id, item]) => {
+          if (item && typeof item.videoData === 'string' && item.videoData.indexOf('data:') === 0) {
+            allItems.push({ section, id, base64: item.videoData });
+          }
+        });
+      })
+    )).then(() => {
+      if (!allItems.length) {
+        if (statusEl) statusEl.textContent = 'Nothing to migrate — no embedded videos found.';
+        if (btn) { btn.disabled = false; btn.textContent = 'Migrate Videos to Storage'; }
+        return;
+      }
+      let done = 0, failed = 0;
+      const next = () => {
+        if (done + failed >= allItems.length) {
+          if (statusEl) statusEl.textContent = 'Done — ' + done + ' migrated' + (failed ? ', ' + failed + ' failed (see browser console)' : '') + '.';
+          if (btn) { btn.disabled = false; btn.textContent = 'Migrate Videos to Storage'; }
+          return;
+        }
+        const item = allItems[done + failed];
+        if (statusEl) statusEl.textContent = 'Migrating ' + (done + failed + 1) + ' of ' + allItems.length + '…';
+        fetch(item.base64).then(r => r.blob())
+          .then(blob => fbStorage.ref('content/' + item.section + '/' + item.id + '/video.mp4').put(blob))
+          .then(uploadSnap => uploadSnap.ref.getDownloadURL())
+          .then(url => fbDb.ref('content/' + item.section + '/' + item.id).update({ videoUrl: url, videoData: null }))
+          .then(() => { done++; next(); })
+          .catch(e => { console.error('video migration failed for', item.section, item.id, e); failed++; next(); });
+      };
+      next();
+    }).catch(e => {
+      if (statusEl) statusEl.textContent = 'Scan failed: ' + e.message;
+      if (btn) { btn.disabled = false; btn.textContent = 'Migrate Videos to Storage'; }
+    });
   }
 
   // ─── PORTFOLIO PANEL (ported from admin.html, fully) ─────────────────────
