@@ -26,7 +26,7 @@ html{touch-action:manipulation;color-scheme:dark;scroll-behavior:smooth}
 .dt-heart{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:80px;opacity:0;pointer-events:none;z-index:20}
 .dt-heart.pop{animation:heartPop .8s ease forwards}
 @keyframes heartPop{0%{transform:translate(-50%,-50%) scale(0);opacity:0}40%{transform:translate(-50%,-50%) scale(1.2);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
-:root{--bg-primary:#120D06;--bg-card:#1E160C;--bg-secondary:#2A1F14;--bg-navy:#060D18;--bg-deep:#0A0804;--text-primary:#F5F0E8;--text-secondary:#A89B8C;--gold:#C9A84C;--gold-light:#E8D5A3;--gold-dark:#8B6914;--nav-height:80px;--ease-pop:cubic-bezier(.22,1,.36,1);--ease-sheet:cubic-bezier(.32,.72,0,1)}
+:root{--bg-primary:#0C0804;--bg-card:#140E08;--bg-secondary:#1B140D;--bg-navy:#060D18;--bg-deep:#060503;--text-primary:#F5F0E8;--text-secondary:#A89B8C;--gold:#C9A84C;--gold-light:#E8D5A3;--gold-dark:#8B6914;--nav-height:80px;--ease-pop:cubic-bezier(.22,1,.36,1);--ease-sheet:cubic-bezier(.32,.72,0,1)}
 body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow-x:hidden;min-height:100vh;padding-bottom:calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));overscroll-behavior-y:contain}
 .page{display:none;min-height:calc(100vh - var(--nav-height));overscroll-behavior-y:contain}
 .page.active{display:block;animation:fadeIn .14s ease-out;pointer-events:auto}
@@ -1378,8 +1378,8 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
        admin read and reply to any client's chat right here, instead of
        switching to Admin View → Messages. -->
   <div id="cgAdminToggle" style="display:none;gap:0;padding:8px 16px;border-bottom:1px solid rgba(201,168,76,.08);">
-    <button id="cgModeAssistantBtn" onclick="setConciergeMode('assistant')" style="flex:1;background:none;border:none;border-bottom:2px solid var(--gold);color:var(--gold);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:8px 0;">My Assistant</button>
-    <button id="cgModeClientsBtn" onclick="setConciergeMode('clients')" style="flex:1;position:relative;background:none;border:none;border-bottom:2px solid transparent;color:rgba(201,168,76,.5);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:8px 0;">Clients<span id="cgClientsBadge" style="display:none;position:absolute;top:2px;right:calc(50% - 34px);background:#C9A84C;color:#0A0804;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px;"></span></button>
+    <button id="cgModeDesignersBtn" onclick="setConciergeMode('designers')" style="flex:1;background:none;border:none;border-bottom:2px solid var(--gold);color:var(--gold);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:8px 0;">Designers</button>
+    <button id="cgModeMessagesBtn" onclick="setConciergeMode('messages')" style="flex:1;position:relative;background:none;border:none;border-bottom:2px solid transparent;color:rgba(201,168,76,.5);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:8px 0;">Messages<span id="cgMessagesBadge" style="display:none;position:absolute;top:2px;right:calc(50% - 40px);background:#C9A84C;color:#0A0804;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px;"></span></button>
   </div>
   <div class="cg-messages" id="cgMessages">
     <div class="cg-empty" id="cgEmpty">
@@ -2683,8 +2683,11 @@ function showPage(pageId) {
     const _login  = document.getElementById('vaultLogin');
     const _isVip = (currentProfile && currentProfile.isVip) ||
                   document.getElementById('profileContainer').classList.contains('is-vip');
-    if (_isVip) {
-      // VIP-confirmed clients always bypass the completed-project gate
+    // Head and Lead Designer accounts manage the vault's own content — they
+    // shouldn't be blocked by a gate meant for actual clients who haven't
+    // started a project yet.
+    const _staffBypass = window._isAdmin && (window._adminRank === 'head' || window._adminRank === 'lead');
+    if (_isVip || _staffBypass) {
       if (_locked) _locked.style.display = 'none';
       if (_login)  _login.style.display = 'flex';
     } else if (currentUser) {
@@ -2778,24 +2781,23 @@ function requestDeleteAccount() {
 
 async function loadUserProfile(uid) {
   diag('load', 'loadUserProfile: start');
+  // Cache-first — the exact same reasoning as loadHomeFeed/loadCatalog: on a
+  // slow connection, the profile fields (including the avatar) would sit
+  // blank for however long the network read takes, which can easily look
+  // like "my photo disappeared" even though nothing was actually lost.
+  // Showing the last-known profile instantly, then refreshing underneath,
+  // removes that blank window entirely.
+  try {
+    const cached = JSON.parse(localStorage.getItem('tbl_profile_cache') || 'null');
+    if (cached) applyProfileToDOM(cached);
+  } catch(e) {}
   try {
   const snap = await withRetry(() => fbDb.ref('userProfiles/' + uid).get(), 'loadUserProfile');
   if (!snap.exists()) { diag('load', 'loadUserProfile: no profile document exists yet', 'warn'); return; }
   const p = snap.val();
   currentProfile = p;
-  document.getElementById('profileNameInput').value      = p.name     || '';
-  document.getElementById('profileResidenceInput').value = p.residence|| '';
-  document.getElementById('profileMobileInput').value    = p.mobile   || '';
-  if (p.measure) document.getElementById('profileMeasurementSelect').value = p.measure;
-  document.getElementById('profileStoryLabel').textContent = 'My Profile';
-  if (p.avatar) {
-    document.getElementById('profileAvatarImg').src = p.avatar;
-    document.getElementById('profileAvatarImg').style.display = 'block';
-    document.getElementById('avatarPlaceholder').style.display = 'none';
-    document.getElementById('profileStoryPhoto').src = p.avatar;
-    document.getElementById('profileStoryPhoto').style.display = 'block';
-    document.getElementById('profileStoryDefault').style.display = 'none';
-  }
+  applyProfileToDOM(p);
+  try { localStorage.setItem('tbl_profile_cache', JSON.stringify(p)); } catch(e) {}
   // VIP status — re-checked fresh every load so a revoked VIP correctly
   // loses the badge/styling instead of keeping it forever. The old version
   // of this only ever ADDED the "vip" look and never removed it, which is
@@ -2817,6 +2819,24 @@ async function loadUserProfile(uid) {
   }
   updatePortfolioDashCount();
   } catch(e) { console.error('loadUserProfile:', e); diag('load', 'loadUserProfile FAILED: ' + e.message, 'error'); }
+}
+
+// Pulled out of loadUserProfile so both the instant cached-render and the
+// real network result apply the same fields the same way.
+function applyProfileToDOM(p) {
+  document.getElementById('profileNameInput').value      = p.name     || '';
+  document.getElementById('profileResidenceInput').value = p.residence|| '';
+  document.getElementById('profileMobileInput').value    = p.mobile   || '';
+  if (p.measure) document.getElementById('profileMeasurementSelect').value = p.measure;
+  document.getElementById('profileStoryLabel').textContent = 'My Profile';
+  if (p.avatar) {
+    document.getElementById('profileAvatarImg').src = p.avatar;
+    document.getElementById('profileAvatarImg').style.display = 'block';
+    document.getElementById('avatarPlaceholder').style.display = 'none';
+    document.getElementById('profileStoryPhoto').src = p.avatar;
+    document.getElementById('profileStoryPhoto').style.display = 'block';
+    document.getElementById('profileStoryDefault').style.display = 'none';
+  }
 }
 
 function onProfileChange() {
@@ -3822,44 +3842,62 @@ function handleSearchInput(query) {
   const resultsEl = document.getElementById('searchOverlayResults');
   const placeholderLabel = _searchContext === 'home' ? 'posts' : 'trending videos';
   if (!q) {
+    resultsEl.style.display = 'block';
     resultsEl.innerHTML = '<div style="padding:60px 24px;text-align:center;color:rgba(201,168,76,.35);font-family:\'Cormorant Garamond\',serif;font-size:16px;">Search ' + placeholderLabel + ' by caption, location, topic, or #hashtag</div>';
     return;
   }
   const sourceMap = _searchContext === 'home' ? _postsMap : _trendMap;
-  // A query starting with # matches only real extracted hashtags, exactly —
-  // precise, not a fuzzy text match. Otherwise, a plain caption/location/
-  // title substring search covers everything else, "topic" included: there
-  // is no separate topic field on a post, so a keyword match on the caption
-  // IS the topic search.
   const isHashtagSearch = q.startsWith('#');
   const tagQuery = isHashtagSearch ? q.slice(1) : null;
+  // Word-based matching — every word in the query has to appear SOMEWHERE in
+  // the haystack, not as one exact contiguous phrase. "Living room" now
+  // matches a caption like "a room built for entertaining and living well",
+  // the way a real search suggests the right content instead of demanding
+  // an exact phrase match.
+  const queryWords = q.split(/\s+/).filter(Boolean);
   const matches = Object.values(sourceMap).filter(item => {
     if (isHashtagSearch) {
       return !!tagQuery && extractHashtags(item.caption).some(t => t.includes(tagQuery));
     }
     const haystack = ((item.caption || '') + ' ' + (item.title || '') + ' ' + (item.location || '') + ' ' + (item.topic || '')).toLowerCase();
-    return haystack.includes(q);
+    return queryWords.every(w => haystack.includes(w));
   }).slice(0, 30);
   if (!matches.length) {
+    resultsEl.style.display = 'block';
     resultsEl.innerHTML = '<div style="padding:60px 24px;text-align:center;color:rgba(201,168,76,.35);font-family:\'Cormorant Garamond\',serif;font-size:16px;">No results for "' + escapeHtml(raw) + '"</div>';
     return;
   }
+  // TikTok-style 2-column grid of tall tiles — a video's first frame or the
+  // post's image fills the tile, a small play glyph marks video results,
+  // and the caption sits as a gradient overlay at the bottom of the tile
+  // itself, rather than the old text-forward list row.
+  resultsEl.style.display = 'grid';
+  resultsEl.style.cssText = 'flex:1;overflow-y:auto;display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:2px;align-content:start;';
   resultsEl.innerHTML = '';
+  const playIconSvg = '<svg viewBox="0 0 24 24" width="15" height="15" fill="#fff"><path d="M8 5v14l11-7z"/></svg>';
   matches.forEach(item => {
-    const thumb = item.imageData || item.imageUrl || (item.images && item.images[0]) || '';
-    const caption = escapeHtml(item.caption || item.title || '(no caption)');
-    const row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(201,168,76,.06);cursor:pointer;';
-    row.innerHTML = (thumb
-      ? '<img src="' + thumb + '" alt="" loading="lazy" style="width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0;">'
-      : '<div style="width:48px;height:48px;border-radius:8px;background:rgba(201,168,76,.08);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;">🛋️</div>')
-      + '<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#E8D5A3;font-size:13px;">' + caption + '</div>';
-    row.addEventListener('click', () => {
+    const thumb = item.imageData || item.imageUrl || '';
+    const videoSrc = item.videoData || item.videoUrl || '';
+    const caption = escapeHtml(item.caption || item.title || '');
+    const cell = document.createElement('div');
+    cell.style.cssText = 'position:relative;aspect-ratio:9/16;background:#000;cursor:pointer;overflow:hidden;border-radius:2px;';
+    let mediaHtml;
+    if (thumb) {
+      mediaHtml = '<img src="' + thumb + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;">';
+    } else if (videoSrc) {
+      mediaHtml = '<video src="' + videoSrc + '" muted preload="metadata" playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video>';
+    } else {
+      mediaHtml = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:26px;background:rgba(201,168,76,.08);">🛋️</div>';
+    }
+    const playIconHtml = videoSrc ? '<div style="position:absolute;top:6px;left:6px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.7));">' + playIconSvg + '</div>' : '';
+    const captionOverlay = caption ? '<div style="position:absolute;left:0;right:0;bottom:0;padding:18px 8px 6px;background:linear-gradient(transparent,rgba(0,0,0,.78));color:#fff;font-size:11px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + caption + '</div>' : '';
+    cell.innerHTML = mediaHtml + playIconHtml + captionOverlay;
+    cell.addEventListener('click', () => {
       closeSearchOverlay();
       if (_searchContext === 'home') openFeedViewer(item.id);
       else scrollToTrendingItem(item.id);
     });
-    resultsEl.appendChild(row);
+    resultsEl.appendChild(cell);
   });
 }
 
@@ -5080,7 +5118,7 @@ function renderNotifications() {
   const list = document.getElementById('notifList');
   if (!list || !currentUser) return;
   list.innerHTML = '<div style="padding:60px 24px;text-align:center;color:rgba(201,168,76,.3);font-family:\'Jost\',sans-serif;font-size:12px;">Loading…</div>';
-  fbDb.ref('notifications/' + currentUser.uid).orderByChild('timestamp').limitToLast(50).once('value').then(snap => {
+  withRetry(() => fbDb.ref('notifications/' + currentUser.uid).orderByChild('timestamp').limitToLast(50).get(), 'renderNotifications', 2).then(snap => {
     const items = [];
     snap.forEach(child => { items.push({ id: child.key, ...child.val() }); });
     items.reverse(); // newest first
@@ -5100,7 +5138,11 @@ function renderNotifications() {
       fbDb.ref('notifications/' + currentUser.uid).update(updates).catch(() => {});
     }
   }).catch(e => {
-    diag('notif', 'renderNotifications failed: ' + e.message, 'warn');
+    // Logged with the error code specifically because "permission_denied" and
+    // "timed out" have completely different real causes (missing database
+    // rules vs. a genuinely slow connection) — worth telling apart if this
+    // keeps happening after the rules are confirmed published.
+    diag('notif', 'renderNotifications failed: ' + e.message + (e.code ? ' (' + e.code + ')' : ''), 'warn');
     list.innerHTML = '<div style="padding:60px 24px;text-align:center;color:rgba(201,168,76,.4);font-family:\'Jost\',sans-serif;font-size:13px;">Unable to load notifications. Check your connection.</div>';
   });
 }
@@ -5619,34 +5661,61 @@ async function sendConciergeMessage() {
   }
 }
 
-// ─── Admin client-inbox merged into the Concierge tab ──────────────────────
-// Lets an admin read and reply to any client's chat right from their own
-// Concierge tab, instead of switching to Admin View → Messages. Deliberately
-// a separate, self-contained implementation rather than reusing BillyAdmin's
-// internal Messages-panel functions — those are private closures inside
-// BillyAdmin's IIFE (only init/hide/teardown are exposed on window.BillyAdmin),
-// so reaching them from here would mean changing that module's public API.
-// Same Firebase paths and field conventions as that panel, so behavior matches.
-let _cgMode = 'assistant';
-let _cgActiveClientUid = null;
-let _cgActiveClientName = null;
+// ─── Admin messaging merged into the Concierge tab ─────────────────────────
+// Two tabs for admin-ranked accounts, replacing the old "My Assistant" /
+// "Clients" pair:
+//   • Designers — a directory of every other admin/designer, tap one to
+//     start or resume an admin-to-admin chat
+//   • Messages  — ONE combined list of every ongoing conversation, client
+//     threads and admin-to-admin threads together, newest first
+// Deliberately a separate, self-contained implementation rather than reusing
+// BillyAdmin's internal Messages-panel functions — those are private closures
+// inside BillyAdmin's IIFE (only init/hide/teardown are exposed on
+// window.BillyAdmin). Same Firebase paths and field conventions as that panel:
+//   client threads:       chats/{clientUid}/messages       (sender: 'admin'|'client')
+//   admin-to-admin:       adminChats/{sortedUidPair}/messages  (senderUid / senderName)
+let _cgMode = 'designers'; // 'designers' | 'messages'
+let _cgThread = null;      // { path, type: 'client'|'admin', name, clientUid? } while a chat is open
+
+function _cgRankOf(a) {
+  if (a === true) return 'head'; // legacy admins/{uid}: true records
+  return (a && a.rank) || 'designer';
+}
+function _cgOwnUid() { return currentUser ? currentUser.uid : null; }
+function _cgPairKey(otherUid) { return [_cgOwnUid(), otherUid].sort().join('_'); }
+function _cgInitials(name) {
+  return (name || '?').split(/[\s@._-]+/).filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?';
+}
 
 function initConciergeAdminToggle() {
   const bar = document.getElementById('cgAdminToggle');
   if (bar) bar.style.display = 'flex';
-  if (window._adminRank !== 'designer') loadClientInboxList(); // prefetch, just for the unread badge
+  // Staff never use the personal "chat with the brand" thread on this tab —
+  // both tabs here are staff-to-client / staff-to-staff — so its attach
+  // button (which posts into the account's OWN client chat) would only ever
+  // write to the wrong place. Hidden for admins.
+  const attach = document.querySelector('#concierge .cg-attach');
+  if (attach) attach.style.display = 'none';
+  // Keep an already-open conversation open if they navigated away and back;
+  // otherwise land on whichever tab they were last on (Designers by default).
+  if (_cgThread) renderConciergeModeUI();
+  else setConciergeMode(_cgMode);
+  loadMessagesList(); // also refreshes the unread badge even while on the Designers tab
 }
 
 function setConciergeMode(mode) {
   _cgMode = mode;
-  _cgActiveClientUid = null;
-  _cgActiveClientName = null;
-  const assistantBtn = document.getElementById('cgModeAssistantBtn');
-  const clientsBtn = document.getElementById('cgModeClientsBtn');
-  if (assistantBtn) assistantBtn.style.cssText = assistantBtn.style.cssText.replace(/border-bottom:[^;]+;/, 'border-bottom:2px solid ' + (mode === 'assistant' ? 'var(--gold)' : 'transparent') + ';') + (mode === 'assistant' ? 'color:var(--gold);' : 'color:rgba(201,168,76,.5);');
-  if (clientsBtn) clientsBtn.style.cssText = clientsBtn.style.cssText.replace(/border-bottom:[^;]+;/, 'border-bottom:2px solid ' + (mode === 'clients' ? 'var(--gold)' : 'transparent') + ';') + (mode === 'clients' ? 'color:var(--gold);' : 'color:rgba(201,168,76,.5);');
+  _cgThread = null;
+  const dBtn = document.getElementById('cgModeDesignersBtn');
+  const mBtn = document.getElementById('cgModeMessagesBtn');
+  const active = 'border-bottom:2px solid var(--gold);color:var(--gold);';
+  const idle = 'border-bottom:2px solid transparent;color:rgba(201,168,76,.5);';
+  const base = 'flex:1;background:none;border:none;font-family:\'Jost\',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:8px 0;';
+  if (dBtn) dBtn.style.cssText = base + (mode === 'designers' ? active : idle);
+  if (mBtn) mBtn.style.cssText = base + 'position:relative;' + (mode === 'messages' ? active : idle);
   renderConciergeModeUI();
-  if (mode === 'clients') loadClientInboxList();
+  if (mode === 'designers') loadDesignersList();
+  else loadMessagesList();
 }
 
 function renderConciergeModeUI() {
@@ -5658,160 +5727,242 @@ function renderConciergeModeUI() {
   const inputEl = document.getElementById('cgInput');
   if (!assistantView || !listEl || !chatEl || !inputRow || !inputEl) return;
 
-  if (_cgMode === 'assistant') {
-    assistantView.style.display = '';
-    if (typingEl) typingEl.style.display = '';
+  // Admin accounts never see the personal assistant thread on this tab
+  assistantView.style.display = 'none';
+  if (typingEl) typingEl.style.display = 'none';
+  if (_cgThread) {
     listEl.style.display = 'none';
-    chatEl.style.display = 'none';
+    chatEl.style.display = 'flex';
     inputRow.style.display = 'flex';
-    inputEl.placeholder = 'Message your concierge…';
+    inputEl.placeholder = 'Message ' + (_cgThread.name || 'them') + '…';
   } else {
-    assistantView.style.display = 'none';
-    if (typingEl) typingEl.style.display = 'none';
-    if (_cgActiveClientUid) {
-      listEl.style.display = 'none';
-      chatEl.style.display = 'flex';
-      inputRow.style.display = 'flex';
-      inputEl.placeholder = 'Reply to ' + (_cgActiveClientName || 'client') + '…';
-    } else {
-      listEl.style.display = 'block';
-      chatEl.style.display = 'none';
-      inputRow.style.display = 'none';
-    }
+    listEl.style.display = 'block';
+    chatEl.style.display = 'none';
+    inputRow.style.display = 'none';
   }
 }
 
-function updateClientsTabBadge(count) {
-  const badge = document.getElementById('cgClientsBadge');
+function updateMessagesTabBadge(count) {
+  const badge = document.getElementById('cgMessagesBadge');
   if (!badge) return;
   if (count > 0) { badge.textContent = String(count); badge.style.display = 'flex'; }
   else badge.style.display = 'none';
 }
 
-function loadClientInboxList() {
+// ── Designers tab: a directory of every OTHER admin ─────────────────────────
+function loadDesignersList() {
   const el = document.getElementById('cgClientList');
   if (!el) return;
-  if (window._adminRank === 'designer') {
-    el.innerHTML = '<div style="padding:60px 24px;text-align:center;color:rgba(201,168,76,.4);font-family:Jost,sans-serif;font-size:13px;">Client messaging isn\'t available for your role.</div>';
-    return;
-  }
-  if (_cgMode === 'clients') el.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(201,168,76,.4);">Loading messages…</div>';
-  fbDb.ref('chats').limitToFirst(30).once('value').then(snap => {
-    if (!snap.exists()) {
-      if (_cgMode === 'clients') el.innerHTML = '<div style="padding:60px 24px;text-align:center;color:rgba(201,168,76,.4);">No client messages yet</div>';
-      updateClientsTabBadge(0);
+  el.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(201,168,76,.4);">Loading designers…</div>';
+  fbDb.ref('admins').get().then(snap => {
+    if (_cgMode !== 'designers' || _cgThread) return; // switched away while loading
+    const all = snap.val() || {};
+    const rows = Object.keys(all).filter(uid => uid !== _cgOwnUid()).map(uid => {
+      const a = all[uid];
+      return { uid, email: (a && a.email) || ('Admin ' + uid.slice(0, 6)), rank: _cgRankOf(a) };
+    });
+    if (!rows.length) {
+      el.innerHTML = '<div style="padding:60px 24px;text-align:center;color:rgba(201,168,76,.4);">No other designers yet</div>';
       return;
     }
-    const convos = Object.entries(snap.val());
-    if (_cgMode === 'clients') el.innerHTML = '';
-    let totalUnread = 0;
-    convos.forEach(([uid, convo]) => {
-      const rawMsgs = convo.messages ? convo.messages : convo;
-      const msgList = typeof rawMsgs === 'object' ? Object.values(rawMsgs).filter(v => v && (v.text || v.fileData)) : [];
-      if (!msgList.length) return;
-      const last = msgList[msgList.length - 1];
-      const unread = msgList.filter(m => !m.read && m.sender !== 'admin').length;
-      totalUnread += unread;
-      if (_cgMode !== 'clients') return; // still counted above for the badge, just not rendered
-      const name = convo.clientName || last.senderName || last.clientName || 'Client';
-      const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-      const safePreview = (last.text || '[media]').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    el.innerHTML = '';
+    rows.forEach(r => {
       const row = document.createElement('div');
-      row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(201,168,76,.08);cursor:pointer;' + (unread > 0 ? 'background:rgba(201,168,76,.04);' : '');
+      row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(201,168,76,.08);cursor:pointer;';
       row.innerHTML = `
-        <div style="width:40px;height:40px;border-radius:50%;background:rgba(201,168,76,.15);color:#C9A84C;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;">${initials}</div>
+        <div style="width:40px;height:40px;border-radius:50%;background:rgba(201,168,76,.15);color:#C9A84C;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;">${escapeHtml(_cgInitials(r.email))}</div>
         <div style="flex:1;min-width:0;">
-          <div style="color:#E8D5A3;font-size:14px;font-weight:600;">${name}</div>
-          <div style="color:rgba(201,168,76,.5);font-size:12px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${safePreview}</div>
+          <div style="color:#E8D5A3;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(r.email)}</div>
+          <div style="color:rgba(201,168,76,.5);font-size:11px;margin-top:2px;letter-spacing:.5px;text-transform:uppercase;">${escapeHtml(r.rank.replace('_', ' '))}</div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-          <div style="font-size:11px;color:rgba(201,168,76,.4);">${last.createdAt ? new Date(last.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
-          ${unread > 0 ? '<div style="background:#C9A84C;color:#0A0804;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px;">' + unread + '</div>' : ''}
-        </div>
-      `;
-      row.addEventListener('click', () => openClientChat(uid, name));
+        <div style="color:rgba(201,168,76,.4);font-size:18px;">›</div>`;
+      row.addEventListener('click', () => openThread({ path: 'adminChats/' + _cgPairKey(r.uid) + '/messages', type: 'admin', name: r.email }));
       el.appendChild(row);
     });
-    updateClientsTabBadge(totalUnread);
   }).catch(e => {
-    diag('concierge', 'client inbox load failed: ' + e.message, 'error');
-    if (_cgMode === 'clients') el.innerHTML = '<div style="padding:40px;color:#ef4444;text-align:center;">Error: ' + e.message + '</div>';
+    diag('concierge', 'designers list load failed: ' + e.message + (e.code ? ' (' + e.code + ')' : ''), 'error');
+    if (_cgMode === 'designers' && !_cgThread) el.innerHTML = '<div style="padding:40px;color:#ef4444;text-align:center;">Could not load designers</div>';
   });
 }
 
-function openClientChat(uid, name) {
-  _cgActiveClientUid = uid;
-  _cgActiveClientName = name;
-  renderConciergeModeUI();
-  loadClientChatMessages();
+// ── Messages tab: client threads + admin-to-admin threads, one list ─────────
+function loadMessagesList() {
+  const el = document.getElementById('cgClientList');
+  if (!el) return;
+  const isDesignerRank = window._adminRank === 'designer';
+  const wantRender = () => _cgMode === 'messages' && !_cgThread;
+  if (wantRender()) el.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(201,168,76,.4);">Loading messages…</div>';
+
+  // Plain 'designer' accounts can only message other admins — never clients
+  // (same restriction the admin panel enforces).
+  const tasks = [
+    isDesignerRank ? Promise.resolve(null) : fbDb.ref('chats').limitToFirst(30).get(),
+    fbDb.ref('adminChats').limitToFirst(50).get(),
+    fbDb.ref('admins').get()
+  ];
+  Promise.all(tasks).then(([chatsSnap, adminChatsSnap, adminsSnap]) => {
+    const ownUid = _cgOwnUid();
+    const admins = (adminsSnap && adminsSnap.val()) || {};
+    const threads = [];
+
+    if (chatsSnap && chatsSnap.exists()) {
+      Object.entries(chatsSnap.val()).forEach(([uid, convo]) => {
+        const rawMsgs = convo.messages ? convo.messages : convo;
+        const msgList = typeof rawMsgs === 'object' ? Object.values(rawMsgs).filter(v => v && (v.text || v.fileData)) : [];
+        if (!msgList.length) return;
+        const last = msgList[msgList.length - 1];
+        threads.push({
+          type: 'client', path: 'chats/' + uid + '/messages',
+          name: convo.clientName || last.senderName || last.clientName || 'Client',
+          preview: last.text || '[media]',
+          time: last.timestamp || last.createdAt || 0,
+          unread: msgList.filter(m => !m.read && m.sender !== 'admin').length
+        });
+      });
+    }
+
+    if (adminChatsSnap && adminChatsSnap.exists()) {
+      Object.entries(adminChatsSnap.val()).forEach(([pairKey, convo]) => {
+        const parts = pairKey.split('_');
+        if (!parts.includes(ownUid)) return; // someone else's private admin thread
+        const otherUid = parts.find(p => p !== ownUid);
+        const rawMsgs = convo.messages || {};
+        const msgList = Object.values(rawMsgs).filter(v => v && v.text);
+        if (!msgList.length) return;
+        const last = msgList[msgList.length - 1];
+        const other = admins[otherUid];
+        threads.push({
+          type: 'admin', path: 'adminChats/' + pairKey + '/messages',
+          name: (other && other.email) || ('Admin ' + String(otherUid).slice(0, 6)),
+          preview: last.text,
+          time: last.timestamp || 0,
+          unread: msgList.filter(m => !m.read && m.senderUid !== ownUid).length
+        });
+      });
+    }
+
+    threads.sort((a, b) => b.time - a.time);
+    updateMessagesTabBadge(threads.reduce((n, t) => n + t.unread, 0));
+    if (!wantRender()) return; // just refreshing the badge in the background
+
+    if (!threads.length) {
+      el.innerHTML = '<div style="padding:60px 24px;text-align:center;color:rgba(201,168,76,.4);">No messages yet</div>';
+      return;
+    }
+    el.innerHTML = '';
+    threads.forEach(t => {
+      const tag = t.type === 'admin'
+        ? '<span style="background:rgba(201,168,76,.15);color:#C9A84C;font-size:9px;letter-spacing:.5px;text-transform:uppercase;padding:2px 6px;border-radius:6px;margin-left:6px;">Team</span>'
+        : '<span style="background:rgba(80,200,120,.15);color:#50C878;font-size:9px;letter-spacing:.5px;text-transform:uppercase;padding:2px 6px;border-radius:6px;margin-left:6px;">Client</span>';
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(201,168,76,.08);cursor:pointer;' + (t.unread > 0 ? 'background:rgba(201,168,76,.04);' : '');
+      row.innerHTML = `
+        <div style="width:40px;height:40px;border-radius:50%;background:rgba(201,168,76,.15);color:#C9A84C;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;">${escapeHtml(_cgInitials(t.name))}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="color:#E8D5A3;font-size:14px;font-weight:600;display:flex;align-items:center;"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(t.name)}</span>${tag}</div>
+          <div style="color:rgba(201,168,76,.5);font-size:12px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(t.preview)}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+          <div style="font-size:11px;color:rgba(201,168,76,.4);">${t.time ? new Date(t.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
+          ${t.unread > 0 ? '<div style="background:#C9A84C;color:#0A0804;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px;">' + t.unread + '</div>' : ''}
+        </div>`;
+      row.addEventListener('click', () => openThread({ path: t.path, type: t.type, name: t.name }));
+      el.appendChild(row);
+    });
+  }).catch(e => {
+    diag('concierge', 'messages list load failed: ' + e.message + (e.code ? ' (' + e.code + ')' : ''), 'error');
+    if (wantRender()) el.innerHTML = '<div style="padding:40px;color:#ef4444;text-align:center;">Could not load messages</div>';
+  });
 }
 
-function backToClientList() {
-  _cgActiveClientUid = null;
-  _cgActiveClientName = null;
+// ── An open conversation (either kind) ──────────────────────────────────────
+function openThread(thread) {
+  _cgThread = thread;
   renderConciergeModeUI();
-  loadClientInboxList();
+  loadThreadMessages();
 }
 
-function loadClientChatMessages() {
+function backToThreadList() {
+  _cgThread = null;
+  renderConciergeModeUI();
+  if (_cgMode === 'designers') loadDesignersList();
+  else loadMessagesList();
+}
+
+function loadThreadMessages() {
   const chatEl = document.getElementById('cgClientChat');
-  if (!chatEl) return;
+  if (!chatEl || !_cgThread) return;
+  const thread = _cgThread;
   chatEl.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(201,168,76,.4);">Loading…</div>';
-  const path = 'chats/' + _cgActiveClientUid + '/messages';
-  fbDb.ref(path).orderByChild('timestamp').limitToLast(50).once('value').then(snap => {
-    const backBtnHtml = '<button onclick="backToClientList()" style="background:none;border:none;color:#C9A84C;font-size:13px;padding:10px 16px;text-align:left;flex-shrink:0;">← All clients · ' + (_cgActiveClientName || '').replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</button>';
+  fbDb.ref(thread.path).orderByChild('timestamp').limitToLast(50).get().then(snap => {
+    if (_cgThread !== thread) return; // closed/switched while loading
+    const ownUid = _cgOwnUid();
+    const backBtnHtml = '<button onclick="backToThreadList()" style="background:none;border:none;color:#C9A84C;font-size:13px;padding:10px 16px;text-align:left;flex-shrink:0;">← ' + escapeHtml(thread.name || '') + '</button>';
     if (!snap.exists()) {
-      chatEl.innerHTML = backBtnHtml + '<div style="text-align:center;padding:20px;color:rgba(201,168,76,.4);">No messages yet</div>';
+      chatEl.innerHTML = backBtnHtml + '<div style="text-align:center;padding:20px;color:rgba(201,168,76,.4);">No messages yet — say hello</div>';
       return;
     }
     const msgsObj = snap.val();
     chatEl.innerHTML = backBtnHtml + '<div id="cgClientChatBubbles" style="flex:1;overflow-y:auto;padding:0 16px;display:flex;flex-direction:column;gap:8px;"></div>';
     const bubbles = document.getElementById('cgClientChatBubbles');
     Object.values(msgsObj).forEach(m => {
-      const isMine = m.role === 'admin' || m.sender === 'admin';
+      // "Mine" means: sent by this staff account, in either thread shape
+      const isMine = thread.type === 'admin' ? m.senderUid === ownUid : (m.role === 'admin' || m.sender === 'admin');
       const time = (m.timestamp || m.createdAt) ? new Date(m.timestamp || m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-      const safeText = (m.text || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
       const bubble = document.createElement('div');
       bubble.style.cssText = 'max-width:75%;align-self:' + (isMine ? 'flex-end' : 'flex-start') + ';display:flex;flex-direction:column;';
       let inner;
       if (m.fileType === 'image' && m.fileData) {
         inner = '<img src="' + m.fileData + '" alt="" loading="lazy" style="max-width:220px;border-radius:12px;display:block;">';
       } else {
-        inner = '<div style="padding:10px 14px;border-radius:14px;background:' + (isMine ? '#C9A84C' : 'rgba(201,168,76,.1)') + ';color:' + (isMine ? '#0A0804' : '#E8D5A3') + ';font-size:13px;line-height:1.4;">' + safeText + '</div>';
+        inner = '<div style="padding:10px 14px;border-radius:14px;background:' + (isMine ? '#C9A84C' : 'rgba(201,168,76,.1)') + ';color:' + (isMine ? '#0A0804' : '#E8D5A3') + ';font-size:13px;line-height:1.4;">' + escapeHtml(m.text || '') + '</div>';
       }
       bubble.innerHTML = inner + '<div style="font-size:10px;color:rgba(201,168,76,.35);margin-top:3px;' + (isMine ? 'text-align:right;' : '') + '">' + time + '</div>';
       bubbles.appendChild(bubble);
     });
     bubbles.scrollTop = bubbles.scrollHeight;
-    // Mark the client's messages as read now that an admin has actually opened this thread
+    // Opening the thread counts as reading what the other side sent
     const updates = {};
-    Object.entries(msgsObj).forEach(([k, v]) => { if (v && !v.read && v.sender !== 'admin') updates[k + '/read'] = true; });
-    if (Object.keys(updates).length) fbDb.ref(path).update(updates).then(() => loadClientInboxList()).catch(() => {});
+    Object.entries(msgsObj).forEach(([k, v]) => {
+      if (!v || v.read) return;
+      const fromOther = thread.type === 'admin' ? v.senderUid !== ownUid : v.sender !== 'admin';
+      if (fromOther) updates[k + '/read'] = true;
+    });
+    if (Object.keys(updates).length) fbDb.ref(thread.path).update(updates).then(() => loadMessagesList()).catch(() => {});
   }).catch(e => {
-    diag('concierge', 'client chat load failed: ' + e.message, 'error');
-    chatEl.innerHTML = '<div style="padding:20px;color:#ef4444;text-align:center;">Error: ' + e.message + '</div>';
+    diag('concierge', 'thread load failed: ' + e.message + (e.code ? ' (' + e.code + ')' : ''), 'error');
+    if (_cgThread === thread) chatEl.innerHTML = '<div style="padding:20px;color:#ef4444;text-align:center;">Could not load this conversation</div>';
   });
 }
 
-function sendClientReply() {
+function sendThreadReply() {
   const input = document.getElementById('cgInput');
   const text = input.value.trim();
-  if (!text || !_cgActiveClientUid) return;
+  if (!text || !_cgThread) return;
+  const thread = _cgThread;
   input.value = '';
   const id = 'msg_' + Date.now();
-  const payload = { text, sender: 'admin', role: 'admin', timestamp: Date.now(), createdAt: Date.now(), read: true };
-  fbDb.ref('chats/' + _cgActiveClientUid + '/messages/' + id).set(payload).then(() => {
-    loadClientChatMessages();
-    const preview = text.length > 60 ? text.slice(0, 60) + '…' : text;
-    notifyClient(_cgActiveClientUid, 'New message from your designer: "' + preview + '"', 'concierge', 'New message', text);
+  // Field shapes match what each thread type already uses everywhere else
+  const payload = thread.type === 'admin'
+    ? { text, senderUid: _cgOwnUid(), senderName: (currentUser && currentUser.email) || 'Admin', timestamp: Date.now(), read: false }
+    : { text, sender: 'admin', role: 'admin', timestamp: Date.now(), createdAt: Date.now(), read: true };
+  fbDb.ref(thread.path + '/' + id).set(payload).then(() => {
+    if (_cgThread === thread) loadThreadMessages();
+    // Only client replies push a notification — that's the client-facing
+    // path. Admin-to-admin messages stay in-thread.
+    if (thread.type === 'client') {
+      const clientUid = thread.path.split('/')[1];
+      const preview = text.length > 60 ? text.slice(0, 60) + '…' : text;
+      notifyClient(clientUid, 'New message from your designer: "' + preview + '"', 'concierge', 'New message', text);
+    }
   }).catch(e => showToast('Error: ' + e.message));
 }
 
-// Dispatches to whichever "send" actually applies — the input row and
-// button are shared between both modes rather than duplicated.
+// Dispatches to whichever "send" actually applies — the input row is shared
+// between the staff conversation view and the regular client concierge chat.
 function handleConciergeSend() {
-  if (window._isAdmin && _cgMode === 'clients') sendClientReply();
-  else sendConciergeMessage();
+  if (window._isAdmin) { sendThreadReply(); return; }
+  sendConciergeMessage();
 }
 
 async function handleConciergeFile(input) {
@@ -10646,7 +10797,6 @@ function _initFeedViewerObservers() {
       const r = root();
       r.innerHTML = shellHTML();
       r.style.display = 'flex';
-      r.style.position = 'relative';
       wireShell();
       applyReducedMotion(localStorage.getItem('bl_reduced_motion') === '1');
       applyCompactDensity(localStorage.getItem('bl_compact') === '1');
