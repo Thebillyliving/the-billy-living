@@ -1111,6 +1111,11 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 
 <!-- CATALOG -->
 <div id="catalog" class="page">
+  <div style="display:flex;align-items:center;padding:10px 16px 0;">
+    <button onclick="openSearchOverlay('catalog')" style="background:none;border:none;color:#C9A84C;padding:6px;cursor:pointer;line-height:0;" aria-label="Search">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+  </div>
   <div class="elite-catalog-header">
     <div class="elite-catalog-name">Billy Living Presents</div>
     <div class="elite-catalog-title">The Elite Preformats</div>
@@ -3836,17 +3841,49 @@ function closeSearchOverlay() {
   document.getElementById('searchOverlay').style.display = 'none';
 }
 
+function _searchSourceList() {
+  if (_searchContext === 'home') return Object.values(_postsMap);
+  if (_searchContext === 'trending') return Object.values(_trendMap);
+  return Object.values(_catalogMap); // catalog
+}
+function _searchLabel() {
+  if (_searchContext === 'home') return 'posts';
+  if (_searchContext === 'trending') return 'trending videos';
+  return 'catalog collections';
+}
+// Catalog boxes don't carry caption/title/location/topic the way posts do —
+// they have a name (value) and a description. One haystack-builder per
+// context keeps the matching logic itself (below) identical for all three.
+function _searchHaystack(item) {
+  if (_searchContext === 'catalog') return ((item.value || '') + ' ' + (item.description || item.feeling || '')).toLowerCase();
+  return ((item.caption || '') + ' ' + (item.title || '') + ' ' + (item.location || '') + ' ' + (item.topic || '')).toLowerCase();
+}
+function _searchThumb(item) {
+  if (_searchContext !== 'catalog') return item.imageData || item.imageUrl || '';
+  const imgsArr = item.images ? (Array.isArray(item.images) ? item.images : Object.values(item.images)) : [];
+  return imgsArr.find(i => i) || '';
+}
+function _searchCaption(item) {
+  if (_searchContext === 'catalog') return item.value || item.description || '';
+  return item.caption || item.title || '';
+}
+function _searchOpen(item) {
+  closeSearchOverlay();
+  if (_searchContext === 'home') openFeedViewer(item.id);
+  else if (_searchContext === 'trending') scrollToTrendingItem(item.id);
+  else openCatalogInner(item);
+}
+
 function handleSearchInput(query) {
   const raw = query.trim();
   const q = raw.toLowerCase();
   const resultsEl = document.getElementById('searchOverlayResults');
-  const placeholderLabel = _searchContext === 'home' ? 'posts' : 'trending videos';
+  const placeholderLabel = _searchLabel();
   if (!q) {
     resultsEl.style.display = 'block';
     resultsEl.innerHTML = '<div style="padding:60px 24px;text-align:center;color:rgba(201,168,76,.35);font-family:\'Cormorant Garamond\',serif;font-size:16px;">Search ' + placeholderLabel + ' by caption, location, topic, or #hashtag</div>';
     return;
   }
-  const sourceMap = _searchContext === 'home' ? _postsMap : _trendMap;
   const isHashtagSearch = q.startsWith('#');
   const tagQuery = isHashtagSearch ? q.slice(1) : null;
   // Word-based matching — every word in the query has to appear SOMEWHERE in
@@ -3855,12 +3892,11 @@ function handleSearchInput(query) {
   // the way a real search suggests the right content instead of demanding
   // an exact phrase match.
   const queryWords = q.split(/\s+/).filter(Boolean);
-  const matches = Object.values(sourceMap).filter(item => {
+  const matches = _searchSourceList().filter(item => {
     if (isHashtagSearch) {
-      return !!tagQuery && extractHashtags(item.caption).some(t => t.includes(tagQuery));
+      return !!tagQuery && extractHashtags(item.caption || item.description).some(t => t.includes(tagQuery));
     }
-    const haystack = ((item.caption || '') + ' ' + (item.title || '') + ' ' + (item.location || '') + ' ' + (item.topic || '')).toLowerCase();
-    return queryWords.every(w => haystack.includes(w));
+    return queryWords.every(w => _searchHaystack(item).includes(w));
   }).slice(0, 30);
   if (!matches.length) {
     resultsEl.style.display = 'block';
@@ -3868,7 +3904,7 @@ function handleSearchInput(query) {
     return;
   }
   // TikTok-style 2-column grid of tall tiles — a video's first frame or the
-  // post's image fills the tile, a small play glyph marks video results,
+  // item's image fills the tile, a small play glyph marks video results,
   // and the caption sits as a gradient overlay at the bottom of the tile
   // itself, rather than the old text-forward list row.
   resultsEl.style.display = 'grid';
@@ -3876,9 +3912,9 @@ function handleSearchInput(query) {
   resultsEl.innerHTML = '';
   const playIconSvg = '<svg viewBox="0 0 24 24" width="15" height="15" fill="#fff"><path d="M8 5v14l11-7z"/></svg>';
   matches.forEach(item => {
-    const thumb = item.imageData || item.imageUrl || '';
-    const videoSrc = item.videoData || item.videoUrl || '';
-    const caption = escapeHtml(item.caption || item.title || '');
+    const thumb = _searchThumb(item);
+    const videoSrc = _searchContext === 'catalog' ? '' : (item.videoData || item.videoUrl || '');
+    const caption = escapeHtml(_searchCaption(item));
     const cell = document.createElement('div');
     cell.style.cssText = 'position:relative;aspect-ratio:9/16;background:#000;cursor:pointer;overflow:hidden;border-radius:2px;';
     let mediaHtml;
@@ -3892,11 +3928,7 @@ function handleSearchInput(query) {
     const playIconHtml = videoSrc ? '<div style="position:absolute;top:6px;left:6px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.7));">' + playIconSvg + '</div>' : '';
     const captionOverlay = caption ? '<div style="position:absolute;left:0;right:0;bottom:0;padding:18px 8px 6px;background:linear-gradient(transparent,rgba(0,0,0,.78));color:#fff;font-size:11px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + caption + '</div>' : '';
     cell.innerHTML = mediaHtml + playIconHtml + captionOverlay;
-    cell.addEventListener('click', () => {
-      closeSearchOverlay();
-      if (_searchContext === 'home') openFeedViewer(item.id);
-      else scrollToTrendingItem(item.id);
-    });
+    cell.addEventListener('click', () => _searchOpen(item));
     resultsEl.appendChild(cell);
   });
 }
@@ -9138,6 +9170,7 @@ function _initFeedViewerObservers() {
           <div style="color:#E8D5A3;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.caption || p.title || p.description || 'Post'}</div>
           <div style="color:rgba(201,168,76,.5);font-size:11px;margin-top:2px;">${p.location || ''}${p.location && dateStr ? ' · ' : ''}${dateStr}</div>
         </div>
+        <button class="ba-home-repost" data-id="${p.id || ''}" title="Move to the top of the feed" style="background:none;border:1px solid rgba(201,168,76,.3);color:#C9A84C;border-radius:6px;padding:7px 10px;font-size:12px;flex-shrink:0;">↻</button>
         <button class="ba-home-del" data-id="${p.id || ''}" style="background:none;border:1px solid rgba(239,68,68,.4);color:#ef4444;border-radius:6px;padding:7px 10px;font-size:12px;flex-shrink:0;">Delete</button>
       </div>
     `;
@@ -9157,10 +9190,41 @@ function _initFeedViewerObservers() {
       const posts = Object.entries(snap.val()).map(([k, v]) => Object.assign({}, v, { id: v.id || k })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       el.innerHTML = posts.map(homeRow).join('');
       wireHomeDeletes();
+      wireRepostButtons('.ba-home-repost', 'posts');
     }).catch(e => {
       diag('admin', 'home: load failed: ' + e.message, 'error');
       el.innerHTML = '<div style="padding:40px;color:#ef4444;text-align:center;">Error: ' + e.message + '</div>';
     });
+  }
+
+  // "Repost" — moves an existing post/trending item back to the top of the
+  // feed. The client app's ordering (and the limitToLast query itself) is
+  // driven by the TIMESTAMP EMBEDDED IN THE ID, not a createdAt field — so
+  // bumping visibility means giving the content a fresh id, not just
+  // touching a field. Likes/shares/caption/media all carry over unchanged;
+  // only the id and createdAt move forward.
+  function wireRepostButtons(selector, section) {
+    document.querySelectorAll(selector).forEach(btn => {
+      btn.addEventListener('click', () => repostItem(section, btn.getAttribute('data-id')));
+    });
+  }
+  function repostItem(section, id) {
+    if (!id) return;
+    if (!confirm('Repost this to the top of ' + (section === 'posts' ? 'the home feed' : 'trending') + '?')) return;
+    const idPrefix = section === 'posts' ? 'post' : 'trending';
+    const oldRef = fbDb.ref('content/' + section + '/' + id);
+    oldRef.once('value').then(snap => {
+      if (!snap.exists()) { showToast('Could not find that item'); return; }
+      const data = snap.val();
+      const newId = idPrefix + '_' + Date.now();
+      data.id = newId;
+      data.createdAt = Date.now();
+      return fbDb.ref('content/' + section + '/' + newId).set(data).then(() => oldRef.remove());
+    }).then(() => {
+      showToast('✓ Reposted to the top');
+      if (section === 'posts') loadHomePanel();
+      else loadTrendingPanel();
+    }).catch(e => showToast('Error: ' + e.message));
   }
 
   function wireHomeDeletes() {
@@ -10101,6 +10165,7 @@ function _initFeedViewerObservers() {
           <div style="color:#E8D5A3;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.caption || p.title || 'Trending'}</div>
           <div style="color:rgba(201,168,76,.5);font-size:11px;margin-top:2px;">${p.location || ''}${p.location && dateStr ? ' · ' : ''}${dateStr}</div>
         </div>
+        <button class="ba-trend-repost" data-id="${p.id || ''}" title="Move to the top of trending" style="background:none;border:1px solid rgba(201,168,76,.3);color:#C9A84C;border-radius:6px;padding:7px 10px;font-size:12px;flex-shrink:0;">↻</button>
         <button class="ba-trend-del" data-id="${p.id || ''}" style="background:none;border:1px solid rgba(239,68,68,.4);color:#ef4444;border-radius:6px;padding:7px 10px;font-size:12px;flex-shrink:0;">Delete</button>
       </div>
     `;
@@ -10114,6 +10179,7 @@ function _initFeedViewerObservers() {
       const items = Object.values(snap.val()).reverse();
       el.innerHTML = items.map(trendingRow).join('');
       wireTrendingDeletes();
+      wireRepostButtons('.ba-trend-repost', 'trending');
     }).catch(e => {
       diag('admin', 'trending: load failed: ' + e.message, 'error');
       el.innerHTML = '<div style="padding:40px;color:#ef4444;text-align:center;">Error: ' + e.message + '</div>';
