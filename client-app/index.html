@@ -1373,9 +1373,9 @@ body{font-family:'Jost',sans-serif;background:var(--bg-primary);color:var(--text
 
   <div class="cg-header">
     <button onclick="showPage('home')" style="background:none;border:none;color:var(--gold);font-size:22px;cursor:pointer;line-height:1;padding:0 8px 0 0;flex-shrink:0;">←</button>
-    <div class="cg-avatar">TBL</div>
+    <div class="cg-avatar" id="cgHeaderAvatar">TBL</div>
     <div style="flex:1">
-      <div class="cg-info-name">Design Concierge</div>
+      <div class="cg-info-name" id="cgHeaderName">Design Concierge</div>
       <div class="cg-info-sub"><span style="width:6px;height:6px;border-radius:50%;background:#25D366;display:inline-block"></span>The Billy Living · Private Line</div>
     </div>
   </div>
@@ -2403,6 +2403,7 @@ async function handleCreatePassword() {
     window._freshSignupPending = true; // tell onAuthStateChanged to stay hands-off the gatekeeper — handleFinishSignup() owns this transition
     const cred = await fbAuth.signInWithEmailAndPassword(pendingSignupEmail, pw);
     currentUser = cred.user;
+    try { notifyClient(currentUser.uid, 'Welcome to The Billy Living, ' + (pendingSignupName.split(' ')[0] || 'there') + '! We\'re delighted to have you.', 'system', 'Welcome to The Billy Living', 'We\'re delighted to have you with us.'); } catch(e) {}
     // Mark every step complete now that the account genuinely exists
     caSteps.forEach(id => { const el = document.getElementById(id); if (el) { el.classList.add('visible'); el.classList.add('done'); } });
     setTimeout(() => {
@@ -2596,6 +2597,28 @@ function refreshPage(pageId) {
   }
 }
 
+
+// Assigned designer: when a head/lead/assistant lead assigns a designer to this
+// client (assignments/{uid}), the concierge header swaps from "TBL" to them.
+function applyAssignedDesigner() {
+  if (!currentUser) return;
+  fbDb.ref('assignments/' + currentUser.uid).once('value').then(snap => {
+    const av = document.getElementById('cgHeaderAvatar'), nm = document.getElementById('cgHeaderName');
+    if (!av || !nm) return;
+    if (!snap.exists()) { av.textContent = 'TBL'; av.style.backgroundImage = ''; nm.textContent = 'Design Concierge'; return; }
+    const a = snap.val() || {};
+    const name = a.designerName || 'Your Designer';
+    nm.textContent = name;
+    if (a.designerAvatar) {
+      av.textContent = '';
+      av.style.backgroundImage = 'url("' + String(a.designerAvatar).replace(/"/g, '%22') + '")';
+      av.style.backgroundSize = 'cover'; av.style.backgroundPosition = 'center';
+    } else {
+      av.style.backgroundImage = '';
+      av.textContent = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    }
+  }).catch(() => {});
+}
 function showPage(pageId) {
   diag('nav', 'showPage(' + pageId + ')');
   dismissLoadingSplash();
@@ -2672,6 +2695,7 @@ function showPage(pageId) {
   if (pageId === 'portfolio') loadPortfolio();
   if (pageId === 'notifications') renderNotifications();
   if (pageId === 'trending' && !document.querySelector('.tiktok-item')) loadTrending();
+  if (pageId === 'concierge') applyAssignedDesigner();
   if (pageId === 'concierge' && _conciergeListener === null) loadConciergeHistory();
   if (pageId === 'concierge' && window._isAdmin) initConciergeAdminToggle();
   // Always scroll to latest message when opening concierge
@@ -5638,7 +5662,9 @@ function buildCgMsgEl(m) {
   const time = ts ? new Date(ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
   const safeText = (m.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-  if (m.fileType === 'image' && m.fileData) {
+  if (m.imageData) {
+    el.innerHTML = (safeText ? `<div class="cg-bubble" style="margin-bottom:4px;">${safeText}</div>` : '') + `<div class="cg-img-bubble" onclick="openImageModal('${m.imageData.replace(/'/g,"\\'")}')"><img src="${m.imageData}" alt="Shared design" loading="lazy"></div><div class="cg-msg-time">${time}</div>`;
+  } else if (m.fileType === 'image' && m.fileData) {
     // WhatsApp-style: image IS the bubble — no background wrapper
     el.innerHTML = `<div class="cg-img-bubble" onclick="openImageModal('${m.fileData.replace(/'/g,"\\'")}')"><img src="${m.fileData}" alt="Image" loading="lazy"></div><div class="cg-msg-time">${time}</div>`;
   } else if (m.fileType === 'video' && m.fileData) {
@@ -5944,7 +5970,9 @@ function loadThreadMessages() {
       const bubble = document.createElement('div');
       bubble.style.cssText = 'max-width:75%;align-self:' + (isMine ? 'flex-end' : 'flex-start') + ';display:flex;flex-direction:column;';
       let inner;
-      if (m.fileType === 'image' && m.fileData) {
+      if (m.imageData) {
+        inner = (m.text ? '<div style="padding:10px 14px;border-radius:14px;margin-bottom:4px;background:' + (isMine ? '#C9A84C' : 'rgba(201,168,76,.1)') + ';color:' + (isMine ? '#0A0804' : '#E8D5A3') + ';font-size:13px;line-height:1.4;">' + escapeHtml(m.text) + '</div>' : '') + '<img src="' + m.imageData + '" alt="Shared design" loading="lazy" style="max-width:220px;border-radius:12px;display:block;">';
+      } else if (m.fileType === 'image' && m.fileData) {
         inner = '<img src="' + m.fileData + '" alt="" loading="lazy" style="max-width:220px;border-radius:12px;display:block;">';
       } else {
         inner = '<div style="padding:10px 14px;border-radius:14px;background:' + (isMine ? '#C9A84C' : 'rgba(201,168,76,.1)') + ';color:' + (isMine ? '#0A0804' : '#E8D5A3') + ';font-size:13px;line-height:1.4;">' + escapeHtml(m.text || '') + '</div>';
@@ -10363,7 +10391,16 @@ function _initFeedViewerObservers() {
         <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(201,168,76,.12);">
           <button id="baMsgsBackBtn" style="background:none;border:none;color:#C9A84C;font-size:14px;">← Back</button>
           <div style="width:36px;height:36px;border-radius:50%;background:rgba(201,168,76,.15);color:#C9A84C;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;" id="baChatAv">?</div>
-          <div style="font-weight:600;font-size:14px;color:#E8D5A3;" id="baChatName">Client</div>
+          <div style="font-weight:600;font-size:14px;color:#E8D5A3;flex:1;" id="baChatName">Client</div>
+          <button id="baAssignBtn" style="display:none;background:linear-gradient(135deg,#C9A84C,#7A5C10);color:#0A0804;border:none;border-radius:16px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;">Assign</button>
+        </div>
+        <div id="baAssignModal" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.75);align-items:center;justify-content:center;padding:20px;">
+          <div style="background:#120D06;border:1px solid rgba(201,168,76,.3);border-radius:16px;padding:20px;width:100%;max-width:380px;">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:#C9A84C;margin-bottom:4px;">Assign Designer</div>
+            <div id="baAssignSub" style="font-size:12px;color:rgba(201,168,76,.5);margin-bottom:12px;"></div>
+            <div id="baAssignList" style="max-height:50vh;overflow-y:auto;"></div>
+            <button id="baAssignCancel" style="margin-top:12px;width:100%;padding:12px;background:none;border:1px solid rgba(201,168,76,.3);border-radius:10px;color:#C9A84C;font-size:13px;">CANCEL</button>
+          </div>
         </div>
         <div id="baChatMsgs" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px;"></div>
         <div id="baMsgCtxMenu" style="display:none;position:fixed;z-index:99999;background:#1a1408;border:1px solid rgba(201,168,76,.3);border-radius:10px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.5);min-width:140px;">
@@ -10380,6 +10417,8 @@ function _initFeedViewerObservers() {
       </div>
     `;
     document.getElementById('baMsgsBackBtn').addEventListener('click', msgsBackToList);
+    document.getElementById('baAssignBtn').addEventListener('click', openAssignPicker);
+    document.getElementById('baAssignCancel').addEventListener('click', () => { document.getElementById('baAssignModal').style.display = 'none'; });
     document.getElementById('baMsgsSearch').addEventListener('input', e => handleMsgsSearch(e.target.value));
     document.getElementById('baChatSendBtn').addEventListener('click', sendActiveChatMessage);
     document.getElementById('baChatInput').addEventListener('keypress', e => { if (e.key === 'Enter') sendActiveChatMessage(); });
@@ -10504,6 +10543,7 @@ function _initFeedViewerObservers() {
     const pairKey = [_uid, otherUid].sort().join('_');
     _activeChatPath = 'adminChats/' + pairKey + '/messages';
     _activeChatUID = null;
+    { const ab2 = document.getElementById('baAssignBtn'); if (ab2) ab2.style.display = 'none'; }
     loadActiveChatMessages();
   }
 
@@ -10515,7 +10555,52 @@ function _initFeedViewerObservers() {
     document.getElementById('baChatAv').textContent = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     _activeChatPath = 'chats/' + uid + '/messages';
     _activeChatUID = uid;
+    const ab = document.getElementById('baAssignBtn');
+    if (ab) ab.style.display = (_rank === 'head' || _rank === 'lead' || _rank === 'assistant_lead') ? 'block' : 'none';
     loadActiveChatMessages();
+  }
+
+  // ── Assign designer (same behaviour as the standalone admin) ──
+  function openAssignPicker() {
+    if (!(_rank === 'head' || _rank === 'lead' || _rank === 'assistant_lead') || !_activeChatUID) return;
+    const clientUid = _activeChatUID;
+    document.getElementById('baAssignSub').textContent = 'Client: ' + document.getElementById('baChatName').textContent;
+    const list = document.getElementById('baAssignList');
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(201,168,76,.4);">Loading…</div>';
+    document.getElementById('baAssignModal').style.display = 'flex';
+    Promise.all([fbDb.ref('admins').once('value'), fbDb.ref('assignments/' + clientUid).once('value').catch(() => null)]).then(([snap, cur]) => {
+      const all = snap.val() || {};
+      const curUid = cur && cur.exists() ? (cur.val().designerUid || '') : '';
+      const rows = Object.keys(all).filter(u => { const v = all[u]; return ((v && v.rank) || 'designer') === 'designer'; }).map(u => {
+        const a = all[u] || {};
+        return { uid: u, name: a.name || a.displayName || a.email || u.slice(0, 8), avatar: a.avatar || a.photoURL || '' };
+      });
+      if (!rows.length) { list.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(201,168,76,.4);">No designers found</div>'; return; }
+      list.innerHTML = '';
+      rows.forEach(r => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid rgba(201,168,76,.1);cursor:pointer;';
+        row.innerHTML = '<div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#C9A84C,#7A5C10);color:#0A0804;display:flex;align-items:center;justify-content:center;font-weight:700;">' + escapeHtml((r.name || '?')[0].toUpperCase()) + '</div><div><div style="color:#E8D5A3;font-size:14px;">' + escapeHtml(r.name) + '</div><div style="font-size:11px;color:rgba(201,168,76,.4);">' + (r.uid === curUid ? 'Currently assigned' : 'Designer') + '</div></div>';
+        row.onclick = () => assignDesigner(r, clientUid);
+        list.appendChild(row);
+      });
+    }).catch(e => { list.innerHTML = '<div style="padding:20px;text-align:center;color:#ef4444;">Error: ' + escapeHtml(e.message) + '</div>'; });
+  }
+  function assignDesigner(d, clientUid) {
+    const ownUid = currentUser ? currentUser.uid : null;
+    if (!ownUid) return;
+    const clientName = document.getElementById('baChatName').textContent || 'Client';
+    const now = Date.now();
+    const pairKey = [ownUid, d.uid].sort().join('_');
+    const updates = {};
+    updates['assignments/' + clientUid] = { designerUid: d.uid, designerName: d.name, designerAvatar: d.avatar || '', assignedBy: ownUid, assignedAt: now };
+    updates['adminChats/' + pairKey + '/messages/msg_' + now] = { text: "You've been assigned to a new project. Begin.\nClient: " + clientName, senderUid: ownUid, senderName: (currentUser && currentUser.email) || 'Admin', timestamp: now, read: false };
+    fbDb.ref().update(updates).then(() => {
+      document.getElementById('baAssignModal').style.display = 'none';
+      showToast(d.name + ' assigned');
+      notifyClient(d.uid, "You've been assigned to a new project. Begin.", 'assignment', 'New project assigned', "You've been assigned to a new project. Begin.");
+      notifyClient(clientUid, d.name + ' is now your designer.', 'assignment', 'Your designer is ready', d.name + ' is now your designer.');
+    }).catch(e => showToast('Assign failed: ' + e.message));
   }
 
   function loadActiveChatMessages() {
@@ -10547,6 +10632,9 @@ function _initFeedViewerObservers() {
       let inner;
       if (m.deleted) {
         inner = `<div style="padding:10px 14px;border-radius:14px;font-style:italic;opacity:.5;background:rgba(201,168,76,.08);color:#E8D5A3;font-size:13px;">Message deleted</div>`;
+      } else if (m.imageData) {
+        const st = (m.text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        inner = (st ? `<div style="padding:10px 14px;border-radius:14px;margin-bottom:4px;background:${isMine ? '#C9A84C' : 'rgba(201,168,76,.1)'};color:${isMine ? '#0A0804' : '#E8D5A3'};font-size:13px;line-height:1.4;">${st}</div>` : '') + `<img src="${m.imageData}" alt="Shared design" loading="lazy" style="max-width:220px;border-radius:12px;display:block;">`;
       } else if (m.fileType === 'image' && m.fileData) {
         inner = `<img src="${m.fileData}" alt="Image" loading="lazy" style="max-width:220px;border-radius:12px;display:block;">`;
       } else {
