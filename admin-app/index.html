@@ -2457,7 +2457,7 @@
             </div>
             <div id="msgsAdminChatView" style="display:none;height:100%;">
                 <div class="admin-chat-panel">
-                    <div class="admin-chat-hdr"><button class="back-link" onclick="adminBackToList()">← Back</button><div class="admin-chat-av" id="adminChatAv" onclick="openClientProfile()" style="cursor:pointer;">?</div><div onclick="openClientProfile()" style="cursor:pointer;flex:1;"><div style="font-weight:600;font-size:15px;color:#E8D5A3;" id="adminChatClientName">Client</div><div style="font-size:11px;color:rgba(201,168,76,0.4);" id="adminChatSubline">Tap to view profile →</div></div></div>
+                    <div class="admin-chat-hdr"><button class="back-link" onclick="adminBackToList()">← Back</button><div class="admin-chat-av" id="adminChatAv" onclick="openClientProfile()" style="cursor:pointer;">?</div><div onclick="openClientProfile()" style="cursor:pointer;flex:1;"><div style="font-weight:600;font-size:15px;color:#E8D5A3;" id="adminChatClientName">Client</div><div style="font-size:11px;color:rgba(201,168,76,0.4);" id="adminChatSubline">Tap to view profile →</div></div><button id="assignDesignerBtn" onclick="openAssignDesignerPicker()" style="display:none;flex-shrink:0;background:linear-gradient(135deg,#C9A84C,#7A5C10);color:#0A0804;border:none;border-radius:16px;padding:7px 14px;font-size:12px;font-weight:700;letter-spacing:.5px;cursor:pointer;">Assign</button></div>
                     <div class="admin-chat-msgs" id="adminChatMsgs"></div>
                     <div id="msgContextMenu" style="display:none;position:fixed;z-index:99999;background:#1a1408;border:1px solid rgba(201,168,76,0.3);border-radius:10px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.5);min-width:140px;">
                         <button class="msg-ctx-btn" onclick="msgCtxAction('edit')" id="msgCtxEditBtn">✏️ Edit</button>
@@ -2502,6 +2502,17 @@
     </main>
 
     <!-- Modals -->
+    <div id="assignDesignerModal" class="gold-modal">
+        <div class="gold-modal-content">
+            <div class="gold-modal-title">Assign Designer</div>
+            <div id="assignDesignerSub" style="font-size:12px;color:rgba(201,168,76,.5);margin:-4px 0 12px;"></div>
+            <div id="assignDesignerList" style="max-height:50vh;overflow-y:auto;"></div>
+            <div class="gold-modal-actions">
+                <button class="gold-modal-btn gold-modal-btn-secondary" onclick="closeAssignDesignerPicker()">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
     <div id="vmPTModal" class="gold-modal">
         <div class="gold-modal-content">
             <div class="gold-modal-title">New Project</div>
@@ -3997,6 +4008,29 @@
             try { localStorage.setItem('blcache_' + key, JSON.stringify(value)); } catch(e) { /* storage full/unavailable — just skip caching */ }
         }
 
+
+        // Repost = move the post to the top of the feed. The client orders by the
+        // timestamp inside the post ID, so a fresh ID is needed. New node is written
+        // BEFORE the old one is removed, so a failure can never lose or duplicate it.
+        function repostItem(section, id) {
+            if (!id || (section !== 'posts' && section !== 'trending')) return;
+            if (!confirm('Repost this to the top of the feed?')) return;
+            const oldRef = adminFbDB.ref('content/' + section + '/' + id);
+            oldRef.once('value').then(snap => {
+                if (!snap.exists()) { showToast('Post no longer exists'); return; }
+                const data = snap.val();
+                const newId = 'post_' + Date.now();
+                const copy = Object.assign({}, data, { id: newId, createdAt: Date.now(), repostedAt: Date.now() });
+                return adminFbDB.ref('content/' + section + '/' + newId).set(copy)
+                    .then(() => oldRef.remove())
+                    .then(() => {
+                        try { localStorage.removeItem('blcache_' + (section === 'posts' ? 'home_posts' : 'trending_items')); } catch(e) {}
+                        showToast('Reposted');
+                        if (section === 'posts') { if (typeof renderHomeList === 'function') renderHomeList(); }
+                        else if (typeof renderTrendingList === 'function') renderTrendingList();
+                    });
+            }).catch(e => showToast('Repost failed: ' + e.message));
+        }
         function _buildHomeRowHtml(p) {
             const imgSrc = p.imageData || p.imageUrl || p.image || null;
             const vidSrc = p.videoData || p.videoUrl || null;
@@ -4009,6 +4043,7 @@
               <div class="list-info"><div class="list-title">${p.caption||p.title||p.description||'Post'}</div><div class="list-meta">${p.location||''} · ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div></div>
               <div class="list-actions" style="gap:8px;">
                 <button class="btn btn-secondary" style="padding:12px 16px;font-size:13px;" onclick="openPostAnalytics('posts','${p.id}','${(p.caption||p.title||'Post').replace(/'/g,"\\'")}')">👁 Views</button>
+                <button class="btn btn-secondary rank-gated" style="padding:12px 14px;font-size:13px;" onclick="event.stopPropagation();repostItem('posts','${p.id||''}')">🔁 Repost</button>
                 <button class="btn btn-secondary engagement-gated" style="padding:12px 16px;font-size:13px;" onclick="event.stopPropagation();openStatsEditor('posts','${p.id}','${(p.caption||p.title||'Post').replace(/'/g,"\\'")}')">❤️ Likes</button>
                 <button class="btn btn-danger rank-gated" style="padding:12px 14px;font-size:13px;" onclick="event.stopPropagation();if(confirm('Delete?'))deleteHomeItem('${p.id||''}')">×</button>
               </div>
@@ -4216,6 +4251,7 @@
               <div class="list-info"><div class="list-title">${p.caption||p.title||'Trending'}</div><div class="list-meta">${p.location||''} · ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</div></div>
               <div class="list-actions" style="gap:8px;">
                 <button class="btn btn-secondary" style="padding:12px 16px;font-size:13px;" onclick="openPostAnalytics('trending','${p.id||''}','${(p.caption||p.title||'Trending').replace(/'/g,"\\'")}')">👁 Views</button>
+                <button class="btn btn-secondary rank-gated" style="padding:12px 14px;font-size:13px;" onclick="event.stopPropagation();repostItem('trending','${p.id||''}')">🔁 Repost</button>
                 <button class="btn btn-secondary engagement-gated" style="padding:12px 16px;font-size:13px;" onclick="event.stopPropagation();openStatsEditor('trending','${p.id||''}','${(p.caption||p.title||'Trending').replace(/'/g,"\\'")}')">❤️ Likes</button>
                 <button class="btn btn-danger rank-gated" style="padding:12px 14px;font-size:13px;" onclick="event.stopPropagation();if(confirm('Delete?'))deleteTrendingItem('${p.id||''}')">×</button>
               </div>
@@ -5082,10 +5118,63 @@
           document.getElementById('adminChatClientName').textContent = name;
           document.getElementById('adminChatAv').textContent = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
           const sub = document.getElementById('adminChatSubline'); if (sub) sub.textContent = 'Tap to view profile →';
+          const ab = document.getElementById('assignDesignerBtn');
+          if (ab) ab.style.display = rankAtLeast(window.currentAdminRank, 'assistant_lead') ? 'block' : 'none';
           window._activeChatMode = 'client';
           window._activeChatPath = 'chats/' + uid + '/messages';
           window._adminChatUID = uid; // kept for openClientProfile() and other existing client-chat code
           loadActiveChatMessages();
+        }
+
+        // ── ASSIGN DESIGNER ────────────────────────────────────────────────
+        // Head / Lead / Assistant Lead pick a designer for the client in the open chat.
+        // Writes assignments/{clientUid} (the client app reads it to swap the avatar),
+        // drops a message in the admin-to-admin chat, and notifies both people.
+        function openAssignDesignerPicker() {
+          if (!rankAtLeast(window.currentAdminRank, 'assistant_lead')) { showToast('Not allowed'); return; }
+          const clientUid = window._adminChatUID;
+          if (!clientUid) { showToast('Open a client chat first'); return; }
+          const clientName = (document.getElementById('adminChatClientName') || {}).textContent || 'Client';
+          document.getElementById('assignDesignerSub').textContent = 'Client: ' + clientName;
+          const list = document.getElementById('assignDesignerList');
+          list.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(201,168,76,.4);">Loading…</div>';
+          document.getElementById('assignDesignerModal').style.display = 'flex';
+          Promise.all([adminFbDB.ref('admins').once('value'), adminFbDB.ref('assignments/' + clientUid).once('value').catch(() => null)]).then(([snap, cur]) => {
+            const all = snap.val() || {};
+            const curUid = cur && cur.exists() ? (cur.val().designerUid || '') : '';
+            const rows = Object.keys(all).filter(u => rankOf(all[u]) === 'designer').map(u => {
+              const a = all[u] || {};
+              const nm = a.name || a.displayName || a.email || u.slice(0, 8);
+              return { uid: u, name: nm, avatar: a.avatar || a.photoURL || '' };
+            });
+            if (!rows.length) { list.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(201,168,76,.4);">No designers found</div>'; return; }
+            window._assignRows = {}; rows.forEach(r => window._assignRows[r.uid] = r);
+            list.innerHTML = rows.map(r => `<div class="list-item" style="cursor:pointer;" onclick="assignDesigner('${r.uid}')">
+              <div class="list-image"><div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#C9A84C,#7A5C10);font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:#0A0804;">${(r.name || '?')[0].toUpperCase()}</div></div>
+              <div class="list-info"><div class="list-title">${r.name.replace(/</g, '&lt;')}</div><div class="list-meta">${r.uid === curUid ? 'Currently assigned' : 'Designer'}</div></div>
+            </div>`).join('');
+          }).catch(e => { list.innerHTML = '<div style="padding:20px;text-align:center;color:#ef4444;">Error: ' + e.message + '</div>'; });
+        }
+        function closeAssignDesignerPicker() { document.getElementById('assignDesignerModal').style.display = 'none'; }
+        function assignDesigner(designerUid) {
+          const d = (window._assignRows || {})[designerUid];
+          const clientUid = window._adminChatUID;
+          if (!d || !clientUid) return;
+          const clientName = (document.getElementById('adminChatClientName') || {}).textContent || 'Client';
+          const now = Date.now();
+          const record = { designerUid, designerName: d.name, designerAvatar: d.avatar || '', assignedBy: window.currentAdminUid, assignedAt: now };
+          const pairKey = [window.currentAdminUid, designerUid].sort().join('_');
+          const msgId = 'msg_' + now;
+          const msg = { text: "You've been assigned to a new project. Begin.\nClient: " + clientName, senderUid: window.currentAdminUid, senderName: (adminFbAuth.currentUser && adminFbAuth.currentUser.email) || 'Admin', timestamp: now, read: false };
+          const updates = {};
+          updates['assignments/' + clientUid] = record;
+          updates['adminChats/' + pairKey + '/messages/' + msgId] = msg;
+          adminFbDB.ref().update(updates).then(() => {
+            closeAssignDesignerPicker();
+            showToast(d.name + ' assigned');
+            notifyClient(designerUid, "You've been assigned to a new project. Begin.", 'assignment', 'New project assigned', "You've been assigned to a new project. Begin.");
+            notifyClient(clientUid, d.name + ' is now your designer.', 'assignment', 'Your designer is ready', d.name + ' is now your designer.');
+          }).catch(e => showToast('Assign failed: ' + e.message));
         }
         function openAdminToAdminChat(otherUid, otherName) {
           document.getElementById('msgsListView').style.display = 'none';
@@ -5094,6 +5183,7 @@
           document.getElementById('adminChatAv').textContent = otherName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
           const sub = document.getElementById('adminChatSubline'); if (sub) sub.textContent = 'Admin conversation';
           const pairKey = [window.currentAdminUid, otherUid].sort().join('_');
+          const ab2 = document.getElementById('assignDesignerBtn'); if (ab2) ab2.style.display = 'none';
           window._activeChatMode = 'admin';
           window._activeChatPath = 'adminChats/' + pairKey + '/messages';
           window._adminChatUID = null;
@@ -5231,6 +5321,9 @@
             } else if (m.fileType === 'image' && m.fileData) {
               const safeSrc = m.fileData.replace(/'/g, "\\'");
               bubbleHTML = `<div class="admin-img-bubble" onclick="adminOpenImage('${safeSrc}')"><img src="${m.fileData}" alt="Image" loading="lazy"></div>`;
+            } else if (m.imageData) {
+              const safeSrc2 = m.imageData.replace(/'/g, "\\'");
+              bubbleHTML = (safeText ? `<div class="admin-bubble" style="margin-bottom:4px;">${safeText}</div>` : '') + `<div class="admin-img-bubble" onclick="adminOpenImage('${safeSrc2}')"><img src="${m.imageData}" alt="Shared design" loading="lazy"></div>`;
             } else if (m.fileType === 'video' && m.fileData) {
               bubbleHTML = `<div class="admin-bubble" style="padding:6px"><video src="${m.fileData}" controls style="width:220px;border-radius:10px;display:block;"></video></div>`;
             } else if (m.fileType === 'file' && m.fileData) {
